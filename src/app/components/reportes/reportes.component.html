@@ -1,0 +1,96 @@
+<!-- home.component.html -->
+<div class="d-lg-none d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
+    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
+        aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-list"></i>
+    </button>
+</div>
+
+<div class="d-flex">
+    <!-- Sidebar para todos los tamaños -->
+    <app-sidebar></app-sidebar>
+
+    <div class="flex-grow-1 p-4 dashboard">
+        <div class="card mt-2">
+            <div class="card-body">
+                <div class="flex justify-content-between mb-3">
+                    <h3 class="text-center">Módulo funcional de reportes.</h3>
+                    <div class="card mt-2 p-3">
+                        <div class="row mb-2">
+                            <div class="col-12 col-md-3 mb-2 d-grid">
+                                <label for="fechaInicio">Fecha inicio</label>
+                                <p-calendar [(ngModel)]="fechaInicio" dateFormat="yy-mm-dd" inputId="fechaInicio" showIcon appendTo="body" class="d-grid" />
+                            </div>
+
+                            <div class="col-12 col-md-3 mb-2 d-grid">
+                                <label for="fechaFin">Fecha fin</label>
+                                <p-calendar [(ngModel)]="fechaFin" dateFormat="yy-mm-dd" inputId="fechaFin" showIcon appendTo="body" class="d-grid" />
+                            </div>
+
+                            <div class="col-12 col-md-3 mb-2 d-grid">
+                                <label for="consultorio">Consultorio</label>
+                                <p-dropdown 
+                                    [options]="consultoriosOpts"
+                                    [(ngModel)]="consultorio" 
+                                    placeholder="Seleccione"
+                                    inputId="tipoReporte">
+                                </p-dropdown>
+                            </div>
+
+                            <div class="col-12 col-md-3 mb-2 d-grid">
+                                <label for="tipoReporte">Tipo de reporte</label>
+                                <p-dropdown 
+                                    [options]="tipoReporteOptions"
+                                    [(ngModel)]="tipoReporte" 
+                                    placeholder="Seleccione"
+                                    inputId="tipoReporte">
+                                </p-dropdown>
+                            </div>
+                        </div>
+
+                        <div class="mb-1">
+                            <button pButton type="button" label="Generar reporte" icon="pi pi-search" class="m-2" (click)="generarReporte()"></button>
+                            <button pButton type="button" label="Descargar Excel" icon="pi pi-file-excel" class="p-button-success m-2" (click)="descargarExcel()" [disabled]="!datos.length"></button>
+                        </div>
+
+                        <hr>
+
+                        <p-table 
+                            #tablaDatos
+                            [value]="datos" 
+                            [size]="'small'" 
+                            [paginator]="true" 
+                            [rows]="10" 
+                            [rowsPerPageOptions]="[5, 10, 20]"
+                            *ngIf="datos.length" 
+                            [responsiveLayout]="'scroll'" 
+                            [scrollable]="true">
+                            <ng-template pTemplate="header">
+                                <tr>
+                                    <th *ngFor="let col of columnas">{{ col.header }}</th>
+                                </tr>
+                            </ng-template>
+
+                            <ng-template pTemplate="body" let-row>
+                                <tr>
+                                    <td *ngFor="let col of columnas">{{ row[col.field] }}</td>
+                                </tr>
+                            </ng-template>
+
+                            <ng-template pTemplate="footer" #footer>
+                                <tr>
+                                    <td *ngFor="let col of columnas">
+                                        <strong *ngIf="totales[col.field] !== undefined">{{ totales[col.field] | number:'1.2-2' }}</strong>
+                                    </td>
+                                </tr>
+                            </ng-template>
+                        </p-table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

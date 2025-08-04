@@ -1,0 +1,105 @@
+/* CSS ACTUALIZADO */
+
+.login-container {
+  min-height: 100vh;
+  background-color: #ededf7;
+  padding: 20px;
+}
+
+.login-card {
+  max-width: 900px;
+  width: 100%;
+  border-radius: 1rem;
+  overflow: hidden;
+  background-color: #212529;
+  color: #f8f9fa;
+}
+
+.login-image-container {
+  background-color: #343a40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.login-image {
+  border-radius: 0.5rem;
+  object-fit: cover;
+  height: 100%;
+  max-height: -webkit-fill-available;
+  width: 100%;
+}
+
+.login-form-container {
+  background-color: #212529;
+  padding: 20px;
+}
+
+.login-input {
+  background-color: #343a40;
+  border: 1px solid #495057;
+  color: #f8f9fa;
+}
+
+.login-input::placeholder {
+  color: #adb5bd;
+  opacity: 0.8;
+}
+
+.login-input:focus {
+  background-color: #343a40;
+  border-color: #00c5d6;
+  box-shadow: 0 0 0 0.25rem rgba(0, 197, 214, 0.25);
+  color: #f8f9fa;
+}
+
+.login-button {
+  background-color: #007ec8;
+  color: white;
+  font-weight: bold;
+  border: none;
+}
+
+.login-button:hover {
+  background-color: #007ec8;
+  color: white;
+}
+
+.register-link {
+  color: #00c5d6;
+  text-decoration: none;
+}
+
+.register-link:hover {
+  text-decoration: underline !important;
+  color: #00e0f2;
+}
+
+.input-group-text {
+  border-right: none;
+}
+
+.input-group .form-control {
+  border-left: none;
+}
+
+.btn-turquoise {
+  background-color: #00a7ed;
+  color: white;
+  border: none;
+}
+
+.btn-turquoise:hover {
+  background-color: #06495a;
+}
+
+@media (max-width: 767px) {
+  .login-card {
+    border-radius: 1rem;
+  }
+
+  .login-image-container {
+    display: none;
+  }
+}

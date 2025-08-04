@@ -1,0 +1,4 @@
+/* Añade margen si necesitas separar contenido principal */
+:host {
+  display: block;
+}

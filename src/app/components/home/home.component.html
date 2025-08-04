@@ -1,0 +1,53 @@
+<!-- home.component.html -->
+<div class="d-lg-none d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
+    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
+        aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-list"></i>
+    </button>
+    <strong>Dashboard</strong>
+</div>
+
+<div class="d-flex">
+    <!-- Sidebar para todos los tamaños -->
+    <app-sidebar></app-sidebar>
+
+    <!-- Contenido principal -->
+    <div class="flex-grow-1 p-4 dashboard">
+        <div class="card mt-3">
+            <div *ngIf="datosUsuario.idRol == '1'" class="card-body">
+                <h2 for="graficaGeneralAnio" [align]="'center'">Registro total de pesos durante el año actual.</h2>
+                <div style="height: 200px;">
+                    <p-chart 
+                        #graficaGeneralAnio
+                        type="line" 
+                        [data]="chartData" 
+                        [options]="chartOptions" 
+                        style="width: 100%; height: 200px">
+                    </p-chart>
+                </div>
+                <div class="row">
+                    <div style="height: 350px;" class="col-12 col-md-6 mb-4">
+                        <h3 for="graficaMesActual" [align]="'center'">Total de pesos durante el mes actual.</h3>
+                        <p-chart 
+                            #graficaMesActual
+                            type="polarArea" 
+                            [data]="chartDataMesActual" 
+                            [options]="chartOptionsMesActual" 
+                            style="height: 350px; width: 100%;">
+                        </p-chart>
+                    </div>
+                    <div style="height: 350px;" class="col-12 col-md-6 mb-4">
+                        <h3 for="graficaMesActualConsultorio" [align]="'center'">Balance de peso por consultorio (mes actual)</h3>
+                        <p-chart 
+                            #graficaMesActualConsultorio
+                            type="bar" 
+                            [data]="chartDataMesActualConsultorio" 
+                            [options]="chartOptionsMesActualConsultorio" 
+                            style="height: 350px; width: 50%;">
+                        </p-chart>
+                    </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>

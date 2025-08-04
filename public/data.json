@@ -1,0 +1,9 @@
+{
+    "codigo": 1,
+    "mensaje": "OK",
+    "data": {
+        "nombre" : "Prueba",
+        "apellido" : "Prueba2",
+        "mail": "a@a.com"
+    }
+}

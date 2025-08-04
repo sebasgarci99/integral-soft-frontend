@@ -1,0 +1,26 @@
+
+/* Para que el sidebar y contenido ocupen toda la altura de la pantalla */
+html, body {
+    height: 100%;
+    margin: 0;
+    background: linear-gradient(87deg, #bbfaff, transparent);
+}
+
+.contenido-dashboard {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    overflow: auto;
+}
+
+.dashboard {
+    margin-left: 240px;
+    overflow: auto;
+}
+
+/* Sidebar en móviles: superpuesto */
+@media (max-width: 991.98px) {
+    .dashboard {
+        margin-left: 0px;
+        overflow: auto;
+    }
+}

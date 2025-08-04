@@ -1,0 +1,437 @@
+<!-- home.component.html -->
+<div class="d-lg-none d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
+    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
+        aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-list"></i>
+    </button>
+</div>
+
+<div class="d-flex">
+    <!-- Sidebar para todos los tamaños -->
+    <app-sidebar></app-sidebar>
+
+    <!-- Contenido principal -->
+    <div class="flex-grow-1 p-4 dashboard">
+        <div class="card mt-2">
+            <div class="card-body">
+                <!-- Título + botón -->
+                <div class="flex justify-content-between mb-3">
+                    <h3 class="text-center m-0 mb-2">Menú de Registros de Recolección</h3>
+                    <p-button 
+                        label="Registrar recolección" 
+                        icon="pi pi-plus" 
+                        severity="info"
+                        (onClick)="abrirFormulario()">
+                    </p-button>
+                </div>
+
+                <!-- Tabla -->
+                <p-table 
+                    [value]="recolecciones" 
+                    [paginator]="true" 
+                    [rows]="10" 
+                    responsiveLayout="scroll">
+                    <ng-template pTemplate="header">
+                        <tr>
+                        <th>Fecha de registro</th>
+                        <th>Consultorio</th>
+                        <th>Res. Aprovechables</th>
+                        <th>Res. No Aprovechables</th>
+                        <th>Res. Biosanitarios</th>
+                        <th>Res. Cortopunzantes NG</th>
+                        <th>Res. Cortopunzantes K</th>
+                        <th>Anatomopatologicos</th>
+                        <th>Farmacos</th>
+                        <th>Acciones</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-row>
+                        <tr [ngClass]="rowClass(row)">
+                            <td>{{ row.fecha_registro | date:'shortDate' }}</td>
+                            <td>{{ row.consultorio }}</td>
+                            <td>{{ row.aprovechables }}</td>
+                            <td>{{ row.no_aprovechables }}</td>
+                            <td>{{ row.biosanitarios }}</td>
+                            <td>{{ row.cortopunzantes_ng }}</td>
+                            <td>{{ row.cortopunzantes_k }}</td>
+                            <td>{{ row.anatomopatologicos }}</td>
+                            <td>{{ row.farmacos }}</td>
+                            <td>
+                                <!-- Se muestran las opciones si es ADMIN -->
+                                <p-button 
+                                    *ngIf="datosUsuario.idRol == '1'"
+                                    icon="pi pi-pencil" 
+                                    class="p-button-text p-button-sm"
+                                    (onClick)="editarRecoleccion(row)"></p-button>
+                                <p-button 
+                                    *ngIf="datosUsuario.idRol == '1'" 
+                                    icon="pi pi-trash" 
+                                    class="p-button-text p-button-sm"
+                                    (onClick)="borrarRecoleccion(row.id_registropeso)" ></p-button>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+
+                <!-- Diálogo con wizard -->
+                <p-dialog 
+                    header="{{ isEdit ? 'Editar' : 'Crear' }} registro de Recolección."
+                    [(visible)]="displayDialog" 
+                    [modal]="true" 
+                    [style]="{
+                        width: '40rem',           
+                        'max-height': '80vh',
+                        height: '70%'
+                    }"
+                    [contentStyle]="{
+                        'overflow-x': 'visible',   
+                        'overflow-y': 'auto'  
+                    }"
+                    [draggable]="false">
+                    <!-- Pasos -->
+                    <p-steps [model]="steps" [activeIndex]="current" styleClass="mb-4"></p-steps>
+
+                    <!-- CONTENIDO DE CADA PASO -->
+                    <ng-container [ngSwitch]="current">
+
+                        <!-- Paso 0: Datos generales -->
+                        <ng-container *ngSwitchCase="0">
+                            <div class="p-fluid grid p-formgrid">
+                                <p-floatlabel variant="on" class="col-12 md:col-6">
+                                    <p-calendar 
+                                        id="fecha" 
+                                        [(ngModel)]="formData.fecha" 
+                                        dateFormat="dd-mm-yy" 
+                                        [showTime]="true" 
+                                        hourFormat="12"
+                                        showIcon="true"
+                                        class="w-100"
+                                        [defaultDate]="hoy"
+                                        required
+                                        #fecha="ngModel">
+                                    </p-calendar>
+                                    <label for="fecha">Fecha</label>
+                                </p-floatlabel>
+                                <small class="p-error text-error-small" *ngIf="formData.fecha == null && fecha.touched">
+                                    El fecha es OBLIGATORIA.
+                                </small>
+                                <small class="p-error text-error-small" *ngIf="formData.fecha != null && formData.fecha > hoy">
+                                    La fecha no debe ser superior a hoy
+                                </small>
+                                
+                                <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                                    <p-dropdown 
+                                        id="consultorio" 
+                                        [options]="consultoriosOpts" 
+                                        [(ngModel)]="formData.consultorio"
+                                        #consultorio="ngModel"
+                                        [checkmark]="true" 
+                                        optionLabel="label" 
+                                        optionValue="value"
+                                        [showClear]="true"
+                                        [filter]="true" 
+                                        class="w-100"
+                                        appendTo="body">
+                                    </p-dropdown>
+                                    <label for="consultorio">Consultorio a registrar</label>
+                                </p-floatlabel>
+                                <small class="p-error text-error-small" *ngIf="formData.consultorio == null && consultorio.touched">
+                                    El consultorio es requerido para el registro.
+                                </small>
+                            </div>
+                        </ng-container>
+
+                        <!-- Paso 1: Residuos -->
+                        <ng-container *ngSwitchCase="1">
+                            <div class="p-fluid grid p-formgrid">
+                                <ng-container *ngFor="let r of residuosFirstLine">
+                                    <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                                        <span class="p-input-icon-left w-100">
+                                            <p-inputNumber 
+                                                [(ngModel)]="$any(formData)[r.prop]" 
+                                                inputId="{{r.prop}}"
+                                                class="w-100"
+                                                [min]="0" 
+                                                max="999"
+                                                [mode]="'decimal'"
+                                                [showButtons]="true" 
+                                                #control="ngModel"
+                                                required>
+                                            </p-inputNumber>
+                                            <label [for]="r.prop">
+                                                {{ r.label }} 
+                                                <i *ngIf="r.icon" [ngClass]="r.icon"></i>
+                                            </label>
+                                        </span>
+                                    </p-floatlabel>
+                                    <small class="p-error text-error-small" *ngIf="control.invalid && (control.touched)">
+                                        El campo: {{r.label}} es obligatorio.
+                                    </small>
+                                </ng-container>
+                            </div>
+                        </ng-container>
+
+                        <!-- Paso 2: Bolsas -->
+                        <ng-container *ngSwitchCase="2">
+                            <div class="p-fluid grid p-formgrid">
+                                <p-floatlabel variant="on" class="col-12 md:col-3 mt-2">
+                                    <p-inputNumber 
+                                        [(ngModel)]="formData.bolsasGuardianes" 
+                                        [min]="0" 
+                                        max="999"
+                                        inputId="bolsasGuardianes"
+                                        class="w-100"
+                                        [showButtons]="true">
+                                    </p-inputNumber>
+                                    <label for="bolsasGuardianes">Guardianes</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-12 md:col-3 mt-2">
+                                    <p-inputNumber 
+                                        [(ngModel)]="formData.bolsasBlanco" 
+                                        [min]="0" 
+                                        max="999"
+                                        inputId="bolsasBlanco"
+                                        class="w-100"
+                                        [showButtons]="true">
+                                    </p-inputNumber>
+                                    <label for="bolsasBlanco">Blanco</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-12 md:col-3 mt-2">
+                                    <p-inputNumber 
+                                        [(ngModel)]="formData.bolsasNegra" 
+                                        [min]="0" 
+                                        max="999"
+                                        inputId="bolsasNegra"   
+                                        class="w-100"
+                                        [showButtons]="true">
+                                    </p-inputNumber>
+                                    <label for="bolsasNegra">Negra</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-12 md:col-3 mt-2">
+                                    <p-inputNumber 
+                                        [(ngModel)]="formData.bolsasRoja" 
+                                        [min]="0" 
+                                        max="999"
+                                        inputId="bolsasRoja"
+                                        class="w-100"
+                                        [showButtons]="true">
+                                    </p-inputNumber>
+                                    <label for="bolsasRoja">Roja</label>
+                                </p-floatlabel>
+
+                                <hr>
+                                <h6>Información del proceso: </h6>
+
+                                <p-floatlabel variant="on" class="col-12 md:col-4 mt-3">
+                                    <p-dropdown 
+                                        id="pretratamiento" 
+                                        [options]="pretUsadoOpts" 
+                                        [(ngModel)]="formData.pretratamiento"
+                                        #pretratamiento="ngModel"
+                                        [ngClass]="{
+                                            'p-inputwrapper-filled': formData.pretratamiento
+                                        }"
+                                        inputId="pretratamiento" 
+                                        [checkmark]="true" 
+                                        optionLabel="label" 
+                                        optionValue="value"
+                                        [showClear]="true" 
+                                        class="w-100">
+                                    </p-dropdown>
+                                    <label for="pretratamiento">Pret. usado</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-12 md:col-4 mt-3">
+                                    <p-inputNumber 
+                                        [(ngModel)]="formData.almacenamientoDias" 
+                                        [min]="0" 
+                                        max="999"
+                                        inputId="almacenamientoDias"
+                                        class="w-100"
+                                        [showButtons]="true">
+                                    </p-inputNumber>
+                                    <label for="almacenamientoDias">Alm. días</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-12 md:col-4 mt-3">
+                                    <p-dropdown 
+                                        id="tratamiento" 
+                                        [options]="tratamientoOpts" 
+                                        [(ngModel)]="formData.tratamiento"
+                                        #tratamiento="ngModel"
+                                        [ngClass]="{
+                                            'p-inputwrapper-filled': formData.tratamiento
+                                        }"
+                                        inputId="tratamiento" 
+                                        [checkmark]="true" 
+                                        optionLabel="label" 
+                                        optionValue="value"
+                                        [showClear]="true" 
+                                        class="w-100"
+                                        appendTo="body">
+                                    </p-dropdown>
+                                    <label for="tratamiento">Tratamiento</label>
+                                </p-floatlabel>
+
+                                <div class="col-12 d-flex">
+                                    <p-floatlabel variant="on" class="col-6 mt-3 w-50">
+                                        <p-calendar
+                                            [(ngModel)]="formData.horaRoja"
+                                            inputId="horaRoja"
+                                            [timeOnly]="true"
+                                            hourFormat="12"
+                                            class="w-100"
+                                            appendTo="body">
+                                        </p-calendar>
+                                        <label for="horaRoja">Hora Roja</label>
+                                    </p-floatlabel>
+
+                                    <p-floatlabel variant="on" class="col-6 mt-3 w-50">
+                                        <p-calendar
+                                            [(ngModel)]="formData.horaNegra"
+                                            inputId="horaNegra"
+                                            [timeOnly]="true"
+                                            hourFormat="12"
+                                            class="w-100"
+                                            appendTo="body">
+                                        </p-calendar>
+                                        <label for="horaNegra">Hora Negra</label>
+                                    </p-floatlabel>
+                                </div>
+                               
+                            </div>
+                        </ng-container>
+
+                        <!-- Paso 3: Confirmación -->
+                        <!-- Paso 4: Confirmación -->
+                        <ng-container *ngSwitchCase="3">
+                            <div class="p-fluid grid p-formgrid">
+                                <p-floatlabel variant="on" class="col-12 md:col-6">
+                                    <p-dropdown
+                                        id="dotacionGenerador" 
+                                        [options]="siNoOpts"
+                                        [ngClass]="{
+                                            'p-inputwrapper-filled': formData.dotacionGenerador
+                                        }"
+                                        [(ngModel)]="formData.dotacionGenerador"
+                                        #dotacionGenerador="ngModel"
+                                        inputId="dotacionGenerador"
+                                        [checkmark]="true" 
+                                        optionLabel="label" 
+                                        optionValue="value"
+                                        [showClear]="true"
+                                        [filter]="true" 
+                                        class="w-100">
+                                    </p-dropdown>
+                                    <label for="dotacionGenerador">¿Dotación personal generador adecuada?</label>
+                                    <small class="p-error text-error-small" *ngIf="formData.dotacionGenerador == null && dotacionGenerador.touched">
+                                        Debes seleccionar una opción en la pregunta.
+                                    </small>
+                                </p-floatlabel>
+                                <br>
+                                <p-floatlabel variant="on" class="col-12 md:col-6">
+                                    <p-dropdown
+                                         id="dotacionPseg" 
+                                        [options]="siNoOpts"
+                                        [ngClass]="{
+                                            'p-inputwrapper-filled': formData.dotacionPseg
+                                        }" 
+                                        [(ngModel)]="formData.dotacionPseg"
+                                        #dotacionPseg="ngModel"
+                                        inputId="dotacionPseg"
+                                        [checkmark]="true" 
+                                        optionLabel="label" 
+                                        optionValue="value"
+                                        [showClear]="true"
+                                        [filter]="true" 
+                                        class="w-100">
+                                    </p-dropdown>
+                                    <label for="dotacionPseg">¿Dotación personal pseg adecuada?</label>
+                                    <small class="p-error text-error-small" *ngIf="formData.dotacionPseg == null && dotacionPseg.touched">
+                                        Debes seleccionar una opción en la pregunta.
+                                    </small>
+                                </p-floatlabel>
+                            </div>
+                            <br>
+                            <!-- Firma -->
+                            <div class="field col-12 text-center">
+                                
+                                <h5 class="block mb-2 font-medium text-gray-700">Firma del responsable</h5>
+                                <p-floatlabel  variant="on" class="col-12 md:col-6">
+                                    
+                                    <div class="field col-12 t-center">
+                                        <!-- NUEVO componente -->
+                                        <app-signature-canvas #firmaPad></app-signature-canvas>
+                                    </div>
+
+                                    <small class="p-error text-error-small" *ngIf="formData.firma == null">
+                                        Debes registrar la firma.
+                                    </small>
+                                    <p-tag severity="success" *ngIf="mostrarMensajeOK" value="Firma registrada correctamente." />
+                                    
+                                    <div class="mt-2 flex gap-2">
+                                        <p-button label="Limpiar firma" icon="pi pi-trash" (onClick)="firmaPad.clear()"></p-button>
+                                        <p-button label="Guardar firma" icon="pi pi-check" (onClick)="guardarFirma()"></p-button>
+                                    </div>
+                                </p-floatlabel>
+                            </div>
+                            
+                        </ng-container>
+
+                    <!-- CONTENIDO DE CADA PASO -->
+                    </ng-container>
+
+                    <!-- FOOTER -->
+                    <ng-template pTemplate="footer">
+                        <div class="flex justify-content-end gap-2 mt-3">
+                            <p-button 
+                                label="Cancelar" 
+                                icon="pi pi-times" 
+                                class="m-1" 
+                                severity="secondary"
+                                (onClick)="cerrar()">
+                            </p-button>
+
+                            <p-button 
+                                *ngIf="current>0" 
+                                label="Anterior" 
+                                icon="pi pi-arrow-left" 
+                                class="m-1" 
+                                severity="secondary"
+                                (onClick)="prev()">
+                            </p-button>
+
+                            <!-- Intermedio -->
+                            <p-button 
+                                *ngIf="current<steps.length-1" 
+                                label="Siguiente" 
+                                icon="pi pi-arrow-right"
+                                class="m-1" 
+                                severity="info" 
+                                (onClick)="next()"
+                                [disabled]="validacionesPasos()">
+                            </p-button>
+
+                            <!-- Último -->
+                            <p-button 
+                                *ngIf="current===steps.length-1" 
+                                label="Guardar" 
+                                icon="pi pi-check"
+                                class="m-1" 
+                                [disabled]="validacionesPasos()"
+                                (onClick)="crearActualizarRecoleccion()">
+                            </p-button>
+                        </div>
+                    </ng-template>
+                </p-dialog>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
