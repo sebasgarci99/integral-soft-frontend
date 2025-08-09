@@ -57,7 +57,6 @@ export class LoginComponent implements OnInit{
 		// console.log('Intento de login con:', this.formLogin.value);
 		this.loginService.login(this.formLogin.value).subscribe({
 			next: (data) => {
-				console.log(data);
 				localStorage.setItem('token', data.token);
 				localStorage.setItem('idUser', data.idUser);
 				localStorage.setItem('idEmpresa', data.idEmpresa);

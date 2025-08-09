@@ -93,7 +93,7 @@ export class ConsultoriosComponent implements OnInit{
 
     borrarConsultorio(id: number) {
         this.confirmService.confirm({
-            icon: 'pi pi-exclamation-triangle', // <- Ícono de advertencia
+            icon: 'fa fa-exclamation-triangle', // <- Ícono de advertencia
             header: 'Eliminar consultorio',
             message: '¿Estás seguro de eliminar este consultorio?',
             acceptLabel: 'Sí',

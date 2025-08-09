@@ -133,4 +133,25 @@ fieldset:first-of-type {
         margin-left: 0px;
         overflow: auto;
     }
+
+    #dialog_registro {
+      width: 25rem;
+    }
 }
+
+/* @media (max-width: 991.98px) {
+    ::ng-deep .p-dialog {
+        width: 90vw !important;  /* O el porcentaje que quieras 
+        max-width: 90vw !important;
+        height: 60% !important;
+    }
+} */
+
+@media (max-width: 568px) {
+    ::ng-deep .p-dialog {
+        width: 24rem !important;
+        max-width: 24rem !important;
+        height: 88% !important;
+    }
+}
+

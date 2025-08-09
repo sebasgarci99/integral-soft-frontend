@@ -23,6 +23,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { Tag } from 'primeng/tag';
 
+import { localeEs } from '../../utils/locale-es';
+ 
 import { MenuItem, SelectItem } from 'primeng/api';
 
 /* Firma */
@@ -66,6 +68,9 @@ export class RegRecoleccionComponent implements OnInit{
 
     @ViewChild('firmaPad') firmaPad!: SignatureCanvasComponent;
 
+    // Variable local de traducción del lenguaje de los calendar
+    local_espaniol:any = null;
+
     // Objeto con las variables de sesión
     datosUsuario:any = {};
 
@@ -85,7 +90,8 @@ export class RegRecoleccionComponent implements OnInit{
 
     // Tabla
     recolecciones: Recoleccion[] = [];
-    registroDiaHoy: number | null = null; // esto va en tu componente
+    // registroDiaHoy: number | null = null; // esto va en tu componente
+    registroDiaHoy: number[] = [];
 
     // Diálogo / formulario
     displayDialog = false;
@@ -96,9 +102,9 @@ export class RegRecoleccionComponent implements OnInit{
     mostrarMensajeOK:boolean = false;
 
     steps: MenuItem[] = [
-        { label: 'Generales' },
+        { label: 'General' },
         { label: 'Residuos' },
-        { label: 'Bolsas entregadas' },
+        { label: 'Bolsas' },
         { label: 'Confirmación y firma' }
     ];
 
@@ -112,14 +118,15 @@ export class RegRecoleccionComponent implements OnInit{
 
     pretUsadoOpts: SelectItem[] = [
         { label: 'No aplica', value: 'N/A' },
-        { label: 'Químico', value: 'Químico' },
+        { label: 'Químico', value: 'Químico'},
         { label: 'Térmico', value: 'Térmico' }
     ];
 
     tratamientoOpts: SelectItem[] = [
         { label: 'Incineración', value: 'Incineración' },
         { label: 'Bioremediación', value: 'Bioremediación' },
-        { label: 'Celda de seguridad', value: 'Celda de seguridad' }
+        { label: 'Celda de seguridad', value: 'Celda de seguridad' },
+        { label: 'Esterilización', value: 'Esterilización' }
     ];
 
     boolOpts: SelectItem[] = [
@@ -130,16 +137,16 @@ export class RegRecoleccionComponent implements OnInit{
     residuosFirstLine = [
         { prop: 'aprovechablesBlanco',  label: 'Aprovechables - Blanco (kg)', icon: 'fa fa-recycle' },
         { prop: 'noAprovechablesNegra', label: 'NO Aprovechables - Negra (kg)', icon: 'fa fa-trash' },
-        { prop: 'biosanitariosRoja',    label: 'Biosanitarios - Roja (kg)', icon: 'pi pi-exclamation-triangle' },
+        { prop: 'biosanitariosRoja',    label: 'Biosanitarios - Roja (kg)', icon: 'fa fa-exclamation-triangle' },
         { prop: 'cortopunzantesK',      label: 'Cortopunzantes K', icon: 'fa fa-eyedropper' },
         { prop: 'cortopunzantesNG',     label: 'Cortopunzantes NG', icon: 'fa fa-eyedropper' },
-        { prop: 'anatomopatologicos',   label: 'Anatomopatológicos', icon: 'pi pi-tint' },
+        { prop: 'anatomopatologicos',   label: 'Anatomopatológicos', icon: 'fa fa-tint' },
         { prop: 'farmacos',             label: 'Fármacos', icon: 'fa fa-plus-circle' },
-        { prop: 'chatarraElectronica',  label: 'Chatarra electrónica', icon: 'pi pi-desktop' },
+        { prop: 'chatarraElectronica',  label: 'Chatarra electrónica', icon: 'fa fa-desktop' },
         { prop: 'pilas',                label: 'Pilas', icon: 'fa fa-battery-empty' },
         { prop: 'quimicos',             label: 'Químicos', icon: 'fa fa-flask' },
-        { prop: 'iluminarias',          label: 'Iluminarias', icon: 'pi pi-lightbulb' },
-        { prop: 'aceitesUsados',        label: 'Aceites usados', icon: 'pi pi-filter' }
+        { prop: 'iluminarias',          label: 'Iluminarias', icon: 'fa fa-lightbulb' },
+        { prop: 'aceitesUsados',        label: 'Aceites usados', icon: 'fa fa-filter' }
     ];
 
     siNoOpts = [
@@ -155,6 +162,8 @@ export class RegRecoleccionComponent implements OnInit{
     ) {}
 
     ngOnInit(): void { 
+        this.local_espaniol = localeEs;
+
         /* cargar recolecciones desde API aquí */ 
         // Sólo asigna la fecha actual si todavía no hay valor (útil si reutilizas este form en modo edición).
         if (!this.formData.fecha) {
@@ -169,6 +178,10 @@ export class RegRecoleccionComponent implements OnInit{
     // Funcion que limpia y habilita el formulario de recolección, a su vez impulsa el abrir.
     abrirFormulario(): void {
         this.formData = this.emptyForm();
+
+        // Marcamos el tratamiento quimico
+        this.formData.pretratamiento = 'Químico';
+
         this.isEdit = false;
         this.current = 0;
         this.displayDialog = true;
@@ -296,10 +309,14 @@ export class RegRecoleccionComponent implements OnInit{
                     })
                 ).filter(e => e.estado == 'A');
 
-                // Buscar el primer registro con fecha de hoy
-                this.registroDiaHoy = registros.find(r => this.validarFechaEsHoy(r.fecha_registro))?.id_registropeso ?? null;
-
                 this.recolecciones = registros;
+
+                // Busca los registros del día de hoy y lo pinta sobre el grid
+                let auxiliarValidacion = this.registroDiaHoy = registros
+                    .filter(r => this.validarFechaEsHoy(r.fecha_registro))
+                    .map(r => r.id_registropeso);
+
+                console.log(this.recolecciones)
             });
             
         } catch(e) {
@@ -409,24 +426,25 @@ export class RegRecoleccionComponent implements OnInit{
 
         // Paso 1 o de REGISTRO PROPIO DE PESOS
         // Validamos que todos los campos esten digitados
-        if(this.current == 1) {
-            if(
-                this.formData.aprovechablesBlanco == null ||
-                this.formData.noAprovechablesNegra == null ||
-                this.formData.biosanitariosRoja == null ||
-                this.formData.cortopunzantesK == null ||
-                this.formData.cortopunzantesNG == null ||
-                this.formData.anatomopatologicos == null ||
-                this.formData.farmacos == null ||
-                this.formData.chatarraElectronica == null ||
-                this.formData.pilas == null ||
-                this.formData.quimicos == null ||
-                this.formData.iluminarias == null ||
-                this.formData.aceitesUsados == null 
-            ) {
-                return true;
-            } 
-        }
+        // 05-08-2025 Se retiran condiciones
+        // if(this.current == 1) {
+        //     if(
+        //         this.formData.aprovechablesBlanco == null ||
+        //         this.formData.noAprovechablesNegra == null ||
+        //         this.formData.biosanitariosRoja == null ||
+        //         this.formData.cortopunzantesK == null ||
+        //         this.formData.cortopunzantesNG == null ||
+        //         this.formData.anatomopatologicos == null ||
+        //         this.formData.farmacos == null ||
+        //         this.formData.chatarraElectronica == null ||
+        //         this.formData.pilas == null ||
+        //         this.formData.quimicos == null ||
+        //         this.formData.iluminarias == null ||
+        //         this.formData.aceitesUsados == null 
+        //     ) {
+        //         return true;
+        //     } 
+        // }
 
         // Paso 2 o de las bolsas
         // Pendiente porque no se sin son obligatorias
@@ -464,6 +482,7 @@ export class RegRecoleccionComponent implements OnInit{
 
     // Procedimiento dinamico para asignar una clase y pintar el o los registros del dia
     rowClass(row: any): any {
-        return row.id_registropeso === this.registroDiaHoy ? 'fila-hoy' : '';
+        return this.registroDiaHoy.includes(row.id_registropeso) ? 'fila-hoy' : '';
     }
+
 }

@@ -16,7 +16,7 @@
             <div class="card-body">
                 <div class="flex justify-content-between mb-3">
                     <h3 class="text-center">Menú de Consultorios</h3>
-                    <p-button label="Crear consultorio" icon="pi pi-plus" severity="info" (onClick)="abrirFormulario()" />
+                    <p-button label="Crear consultorio" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" />
                 </div>
 
                 <p-table [value]="consultorios" [paginator]="true" [rows]="10" responsiveLayout="scroll">
@@ -24,9 +24,9 @@
                     <tr>
                         <th>Código</th>
                         <th>Descripción</th>
-                        <th>Representante</th>
+                        <th>Representante o profesional</th>
                         <th>Piso</th>
-                        <th>Aforo</th>
+                        <!-- <th>Aforo</th> -->
                         <th>Correo</th>
                         <th>Estado</th>
                         <th>Acciones</th>
@@ -38,12 +38,12 @@
                         <td>{{ row.descripcion }}</td>
                         <td>{{ row.nombre_representante }}</td>
                         <td>{{ row.piso_ubicacion }}</td>
-                        <td>{{ row.aforo }}</td>
+                        <!-- <td>{{ row.aforo }}</td> -->
                         <td>{{ row.correo }}</td>
                         <td>{{ row.estado }}</td>
                         <td>
-                            <p-button icon="pi pi-pencil" class="p-button-text p-button-sm" (onClick)="editarDatosConsultorio(row)" />
-                            <p-button icon="pi pi-trash" class="p-button-text p-button-sm" (onClick)="borrarConsultorio(row.id)" />
+                            <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editarDatosConsultorio(row)" />
+                            <p-button icon="fa fa-trash" class="p-button-text p-button-sm" (onClick)="borrarConsultorio(row.id)" />
                         </td>
                     </tr>
                     </ng-template>
@@ -92,10 +92,10 @@
                                     autocomplete="off"
                                     [(ngModel)]="formData.nombre_representante" 
                                 />
-                                <label for="representante">Representante</label>
+                                <label for="representante">Nombre del profesional o IPS</label>
                             </p-floatlabel>
                             <small class="p-error text-error-small" *ngIf="(representante.invalid && (representante.touched))">
-                                El representante es requerido
+                                El representante, nombre del profesional o IPS es requerido
                             </small>
 
                             <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
@@ -114,13 +114,13 @@
                                     [(ngModel)]="formData.piso_ubicacion"
                                     maxlength="20"
                                 />
-                                <label for="piso">Piso</label>
+                                <label for="piso">Piso, consultorio ó IPS</label>
                             </p-floatlabel>
                             <small class="p-error text-error-small" *ngIf="(piso.invalid && (piso.touched))">
                                 El piso del consultorio es requerido
                             </small>
 
-                            <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                            <!-- <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
                                 <input 
                                     type="number" 
                                     pInputText 
@@ -136,7 +136,7 @@
                             </p-floatlabel>
                             <small class="p-error text-error-small" *ngIf="(aforo.invalid && (aforo.touched))">
                                 El aforo del consultorio es requerido
-                            </small>
+                            </small> -->
 
                             <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
                                 <input 
@@ -176,13 +176,13 @@
 
                     <ng-template pTemplate="footer">
                         <div class="flex justify-content-end gap-2">
-                            <p-button label="Cancelar" class="m-2" icon="pi pi-times" severity="secondary" (onClick)="displayDialog = false" />
+                            <p-button label="Cancelar" class="m-2" icon="fa fa-times" severity="secondary" (onClick)="displayDialog = false" />
                             <p-button 
                                 label="Guardar" 
                                 class="m-2" 
-                                icon="pi pi-check" 
+                                icon="fa fa-check" 
                                 severity="info"
-                                [disabled]="codigo.invalid || representante.invalid || aforo.invalid || piso.invalid || correo.invalid" 
+                                [disabled]="codigo.invalid || representante.invalid || piso.invalid || correo.invalid" 
                                 (onClick)="crearActualizarConsultorio()" 
                             />
                         </div>

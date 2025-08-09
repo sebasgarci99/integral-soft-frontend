@@ -19,7 +19,7 @@
                     <h3 class="text-center m-0 mb-2">Menú de Registros de Recolección</h3>
                     <p-button 
                         label="Registrar recolección" 
-                        icon="pi pi-plus" 
+                        icon="fa fa-plus" 
                         severity="info"
                         (onClick)="abrirFormulario()">
                     </p-button>
@@ -48,7 +48,7 @@
 
                     <ng-template pTemplate="body" let-row>
                         <tr [ngClass]="rowClass(row)">
-                            <td>{{ row.fecha_registro | date:'shortDate' }}</td>
+                            <td>{{ row.fecha_registro | date:'dd-MM-yyyy' }}</td>
                             <td>{{ row.consultorio }}</td>
                             <td>{{ row.aprovechables }}</td>
                             <td>{{ row.no_aprovechables }}</td>
@@ -61,12 +61,12 @@
                                 <!-- Se muestran las opciones si es ADMIN -->
                                 <p-button 
                                     *ngIf="datosUsuario.idRol == '1'"
-                                    icon="pi pi-pencil" 
+                                    icon="fa fa-pencil" 
                                     class="p-button-text p-button-sm"
                                     (onClick)="editarRecoleccion(row)"></p-button>
                                 <p-button 
                                     *ngIf="datosUsuario.idRol == '1'" 
-                                    icon="pi pi-trash" 
+                                    icon="fa fa-trash" 
                                     class="p-button-text p-button-sm"
                                     (onClick)="borrarRecoleccion(row.id_registropeso)" ></p-button>
                             </td>
@@ -76,6 +76,7 @@
 
                 <!-- Diálogo con wizard -->
                 <p-dialog 
+                    id="dialog_registro"
                     header="{{ isEdit ? 'Editar' : 'Crear' }} registro de Recolección."
                     [(visible)]="displayDialog" 
                     [modal]="true" 
@@ -84,6 +85,7 @@
                         'max-height': '80vh',
                         height: '70%'
                     }"
+                    [ngClass]="['dialog-responsive']"
                     [contentStyle]="{
                         'overflow-x': 'visible',   
                         'overflow-y': 'auto'  
@@ -105,6 +107,7 @@
                                         dateFormat="dd-mm-yy" 
                                         [showTime]="true" 
                                         hourFormat="12"
+                                        [locale]="local_espaniol"
                                         showIcon="true"
                                         class="w-100"
                                         [defaultDate]="hoy"
@@ -149,15 +152,21 @@
                                     <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
                                         <span class="p-input-icon-left w-100">
                                             <p-inputNumber 
-                                                [(ngModel)]="$any(formData)[r.prop]" 
+                                                [(ngModel)]="$any(formData)[r.prop]"
                                                 inputId="{{r.prop}}"
                                                 class="w-100"
-                                                [min]="0" 
-                                                max="999"
-                                                [mode]="'decimal'"
+                                                [min]="0"
+                                                [max]="999.9"
+                                                [step]="0.1"
+                                                mode="decimal"
+                                                value="0.01"
+                                                [minFractionDigits]="0.01"
+                                                [maxFractionDigits]="2"
                                                 [showButtons]="true" 
+                                                [useGrouping]="false"
                                                 #control="ngModel"
-                                                required>
+                                                [attr.inputmode]="'decimal'"
+                                                required>>
                                             </p-inputNumber>
                                             <label [for]="r.prop">
                                                 {{ r.label }} 
@@ -240,7 +249,8 @@
                                         optionLabel="label" 
                                         optionValue="value"
                                         [showClear]="true" 
-                                        class="w-100">
+                                        class="w-100"
+                                        appendTo="body">
                                     </p-dropdown>
                                     <label for="pretratamiento">Pret. usado</label>
                                 </p-floatlabel>
@@ -283,6 +293,7 @@
                                             [(ngModel)]="formData.horaRoja"
                                             inputId="horaRoja"
                                             [timeOnly]="true"
+                                            [locale]="local_espaniol"
                                             hourFormat="12"
                                             class="w-100"
                                             appendTo="body">
@@ -295,6 +306,7 @@
                                             [(ngModel)]="formData.horaNegra"
                                             inputId="horaNegra"
                                             [timeOnly]="true"
+                                            [locale]="local_espaniol"
                                             hourFormat="12"
                                             class="w-100"
                                             appendTo="body">
@@ -324,7 +336,6 @@
                                         optionLabel="label" 
                                         optionValue="value"
                                         [showClear]="true"
-                                        [filter]="true" 
                                         class="w-100">
                                     </p-dropdown>
                                     <label for="dotacionGenerador">¿Dotación personal generador adecuada?</label>
@@ -347,7 +358,6 @@
                                         optionLabel="label" 
                                         optionValue="value"
                                         [showClear]="true"
-                                        [filter]="true" 
                                         class="w-100">
                                     </p-dropdown>
                                     <label for="dotacionPseg">¿Dotación personal pseg adecuada?</label>
@@ -374,8 +384,8 @@
                                     <p-tag severity="success" *ngIf="mostrarMensajeOK" value="Firma registrada correctamente." />
                                     
                                     <div class="mt-2 flex gap-2">
-                                        <p-button label="Limpiar firma" icon="pi pi-trash" (onClick)="firmaPad.clear()"></p-button>
-                                        <p-button label="Guardar firma" icon="pi pi-check" (onClick)="guardarFirma()"></p-button>
+                                        <p-button label="Limpiar firma" icon="fa fa-trash" (onClick)="firmaPad.clear()"></p-button>
+                                        <p-button label="Guardar firma" icon="fa fa-check" (onClick)="guardarFirma()"></p-button>
                                     </div>
                                 </p-floatlabel>
                             </div>
@@ -387,10 +397,10 @@
 
                     <!-- FOOTER -->
                     <ng-template pTemplate="footer">
-                        <div class="flex justify-content-end gap-2 mt-3">
+                        <div class="flex justify-content-center text-center gap-2 mt-3">
                             <p-button 
                                 label="Cancelar" 
-                                icon="pi pi-times" 
+                                icon="fa fa-times" 
                                 class="m-1" 
                                 severity="secondary"
                                 (onClick)="cerrar()">
@@ -399,7 +409,7 @@
                             <p-button 
                                 *ngIf="current>0" 
                                 label="Anterior" 
-                                icon="pi pi-arrow-left" 
+                                icon="fa fa-arrow-left" 
                                 class="m-1" 
                                 severity="secondary"
                                 (onClick)="prev()">
@@ -409,7 +419,7 @@
                             <p-button 
                                 *ngIf="current<steps.length-1" 
                                 label="Siguiente" 
-                                icon="pi pi-arrow-right"
+                                icon="fa fa-arrow-right"
                                 class="m-1" 
                                 severity="info" 
                                 (onClick)="next()"
@@ -420,7 +430,7 @@
                             <p-button 
                                 *ngIf="current===steps.length-1" 
                                 label="Guardar" 
-                                icon="pi pi-check"
+                                icon="fa fa-check"
                                 class="m-1" 
                                 [disabled]="validacionesPasos()"
                                 (onClick)="crearActualizarRecoleccion()">

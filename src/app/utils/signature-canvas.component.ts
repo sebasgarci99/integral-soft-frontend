@@ -8,7 +8,7 @@ import SignaturePad from 'signature_pad';
     <!-- lienzo con borde PrimeFlex -->
     <canvas #canvas
             class="w-full border-1 surface-border border-round-2xl"
-            style="touch-action:none; height:150px;background-color:"></canvas>
+            style="touch-action:none; height:150px;background-color:lightgray;border-radius:10px"></canvas>
   `
 })
 export class SignatureCanvasComponent implements AfterViewInit {

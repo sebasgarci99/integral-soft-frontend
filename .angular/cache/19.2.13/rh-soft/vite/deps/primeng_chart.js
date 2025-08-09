@@ -1,6 +1,6 @@
 import {
   BaseStyle
-} from "./chunk-ZKDU2I6R.js";
+} from "./chunk-ALXBCVEU.js";
 import {
   SharedModule
 } from "./chunk-CQVLGLW3.js";

@@ -16,20 +16,35 @@
             "outputPath": "dist/rh-soft",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/primeicons/fonts",
+                "output": "/assets/fonts/"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/@fortawesome/fontawesome-free/webfonts",
+                "output": "/assets/webfonts/"
+              },
+              {
+                "glob": ".htaccess",
+                "input": "src",
+                "output": "."
               }
             ],
+            "baseHref": "/",
             "styles": [
               "src/styles.css",
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "node_modules/@fortawesome/fontawesome-free/css/all.min.css"
+              "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
+              "node_modules/primeicons/primeicons.css"
             ],
             "scripts": [
               "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
@@ -40,8 +55,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "2.5MB",
+                  "maximumError": "3MB"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -49,7 +64,14 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "baseHref": "/",
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/enviroments/enviroment.ts",
+                  "with": "src/enviroments/enviroment.prod.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,
@@ -69,7 +91,7 @@
               "buildTarget": "rh-soft:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development" 
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n"
@@ -86,13 +108,23 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "primeicons.*",
+                "input": "node_modules/primeicons/fonts",
+                "output": "/assets/fonts/"
+              },
+              {
+                "glob": ".htaccess",
+                "input": "src",
+                "output": "."
               }
             ],
             "styles": [
               "src/styles.css",
-              "node_modules/bootstrap-icons/font/bootstrap-icons.css",
-              "node_modules/primeicons/primeicons.css",
-              "node_modules/primeflex/primeflex.css"
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
+              "node_modules/primeicons/primeicons.css"
             ],
             "scripts": []
           }
