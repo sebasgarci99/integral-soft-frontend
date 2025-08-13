@@ -3,6 +3,10 @@
     overflow: auto;
 }
 
+.calendarios {
+    z-index: 1000 !important;
+}
+
 /* Sidebar en móviles: superpuesto */
 @media (max-width: 991.98px) {
     .dashboard {

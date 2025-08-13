@@ -12,19 +12,19 @@
 
     <div class="flex-grow-1 p-4 dashboard">
         <div class="card mt-2">
-            <div class="card-body">
+            <div class="card-body" style="min-height: 30rem;">
                 <div class="flex justify-content-between mb-3">
                     <h3 class="text-center">Módulo funcional de reportes.</h3>
                     <div class="card mt-2 p-3">
                         <div class="row mb-2">
-                            <div class="col-12 col-md-3 mb-2 d-grid">
+                            <div id="calendar-container" class="col-12 col-md-3 mb-2 d-grid">
                                 <label for="fechaInicio">Fecha inicio</label>
-                                <p-calendar [(ngModel)]="fechaInicio" dateFormat="yy-mm-dd" inputId="fechaInicio" showIcon appendTo="body" class="d-grid" />
-                            </div>
+                                <p-calendar [(ngModel)]="fechaInicio" dateFormat="yy-mm-dd" inputId="fechaInicio" showIcon appendTo="'calendar-container" class="d-grid calendarios" />
+                            </div> 
 
                             <div class="col-12 col-md-3 mb-2 d-grid">
                                 <label for="fechaFin">Fecha fin</label>
-                                <p-calendar [(ngModel)]="fechaFin" dateFormat="yy-mm-dd" inputId="fechaFin" showIcon appendTo="body" class="d-grid" />
+                                <p-calendar [(ngModel)]="fechaFin" dateFormat="yy-mm-dd" inputId="fechaFin" showIcon appendTo="body" class="d-grid calendarios" />
                             </div>
 
                             <div class="col-12 col-md-3 mb-2 d-grid">

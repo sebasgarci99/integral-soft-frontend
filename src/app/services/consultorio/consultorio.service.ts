@@ -38,7 +38,7 @@ export class ConsultorioService {
         ); 
     }
 
-    crearConsultorio(data: Consultorio): Observable<Consultorio> {
+    crearConsultorio(data: Consultorio): Observable<any> {
 
         let token = localStorage.getItem('token');
         let idUser = localStorage.getItem('idUser');
@@ -61,7 +61,7 @@ export class ConsultorioService {
             id_empresa: idEmpresa  
         };
 
-        return this.http.post<Consultorio>(
+        return this.http.post<any>(
             this.urlApp+this.urlAppAPI+'crear_actualizar_consultorio', 
             body,
             {
@@ -70,7 +70,7 @@ export class ConsultorioService {
         );
     }
 
-    actualizarConsultorio(id: number, data: Partial<Consultorio>): Observable<Consultorio> {
+    actualizarConsultorio(id: number, data: Partial<Consultorio>): Observable<any> {
         
         let token = localStorage.getItem('token');
         let idUser = localStorage.getItem('idUser');
@@ -93,7 +93,7 @@ export class ConsultorioService {
             id_empresa: idEmpresa  
         };
 
-        return this.http.post<Consultorio>(
+        return this.http.post<any>(
             this.urlApp+this.urlAppAPI+'crear_actualizar_consultorio', 
             body,
             {

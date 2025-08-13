@@ -19,7 +19,24 @@
                     <p-button label="Crear consultorio" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" />
                 </div>
 
-                <p-table [value]="consultorios" [paginator]="true" [rows]="10" responsiveLayout="scroll">
+                <div class="flex justify-content-between mb-2 text-end">
+                    <input 
+                        #gbInput
+                        pInputText 
+                        type="text"
+                        (input)="tablaConsultorios.filterGlobal(gbInput.value, 'contains')" 
+                        placeholder="Buscar..."
+                    />
+                </div>
+
+                <p-table 
+                    #tablaConsultorios
+                    [value]="consultorios" 
+                    [paginator]="true" 
+                    [rows]="10" 
+                    responsiveLayout="scroll"
+                    [globalFilterFields]="['codigo', 'nombre_representante', 'piso', 'correo', 'estado']"
+                    >
                     <ng-template pTemplate="header">
                     <tr>
                         <th>Código</th>
@@ -52,6 +69,7 @@
                 <p-dialog 
                     header="{{ isEdit ? 'Editar' : 'Adicionar' }} Consultorio" 
                     [(visible)]="displayDialog" 
+                    *ngIf="displayDialog"
                     [modal]="true" 
                     [style]="{ width: '300px' }" 
                     [draggable]="false"
@@ -73,8 +91,8 @@
                                     min="1"/>
                                 <label for="codigo">Código</label>
                             </p-floatlabel>
-                            <small class="p-error text-error-small" *ngIf="(codigo.invalid && (codigo.touched)) || codigo.errors?.['min'] > 0">
-                                El código es requerido ,diferente de cero (0) y no mayor a 99999
+                            <small class="p-error text-error-small" *ngIf="codigo.touched && (codigo.invalid || codigo.errors?.['min'] > 0)">
+                                El código es requerido, diferente de cero (0) y no mayor a 99999
                             </small>
 
                             <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
@@ -99,7 +117,7 @@
                             </small>
 
                             <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
-                                <textarea pInputTextarea  id="info_recoleccion" class="w-100" [(ngModel)]="formData.info_recoleccion" maxlength="500" rows="3"> </textarea>
+                                <textarea pInputTextarea id="info_recoleccion" class="w-100" [(ngModel)]="formData.info_recoleccion" maxlength="500" rows="3"> </textarea>
                                 <label for="info_recoleccion">Información de recolección</label>
                             </p-floatlabel>
 

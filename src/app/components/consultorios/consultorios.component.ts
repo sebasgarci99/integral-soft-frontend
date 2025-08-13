@@ -75,6 +75,7 @@ export class ConsultoriosComponent implements OnInit{
 
     cargarConsultorios() {
         this.consultorioService.obtenerDatosConsultorios().subscribe((data) => {
+            // Mostrar los consultorios activos
             this.consultorios = data;
         });
     }
@@ -114,16 +115,27 @@ export class ConsultoriosComponent implements OnInit{
         }
 
         if (this.isEdit) {
-            this.consultorioService.actualizarConsultorio(this.formData.id, this.formData).subscribe(() => {
-                this.cargarConsultorios();
-                this.displayDialog = false;
-                this.messageService.add({ severity: 'success', summary: 'Actualizado' });
+            this.consultorioService.actualizarConsultorio(this.formData.id, this.formData).subscribe((res) => {
+                if(res.state == 'OK') {
+                    this.cargarConsultorios();
+                    this.displayDialog = false;
+                    this.messageService.add({ severity: 'success', summary: 'Consultorio actualizado correctamente.' });
+                } else {
+                    console.log(res)
+                    this.messageService.add({ severity: 'error', summary: 'Ocurrio un problema: '+res.body });
+                }
             });
         } else {
-            this.consultorioService.crearConsultorio(this.formData).subscribe(() => {
-                this.cargarConsultorios();
-                this.displayDialog = false;
-                this.messageService.add({ severity: 'success', summary: 'Creado' });
+            this.consultorioService.crearConsultorio(this.formData).subscribe((res) => {
+                if(res.state == 'OK') {
+                    this.messageService.add({ severity: 'success', summary: 'Consultorio creado correctamente.' });
+                    this.cargarConsultorios();
+                    this.displayDialog = false;
+                } else {
+                    console.log(res)
+                    this.messageService.add({ severity: 'error', summary: 'Ocurrio un problema: '+res.body });
+                }
+                
             });
         }
     }

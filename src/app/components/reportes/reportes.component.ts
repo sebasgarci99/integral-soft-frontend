@@ -109,7 +109,7 @@ export class ReportesComponent {
     cargarConsultorios() {
         try {
             this.consultorioService.obtenerDatosConsultorios().subscribe((data) => {
-                this.consultoriosOpts = data.map((item: any) => ({
+                this.consultoriosOpts = data.filter(e => e.estado == 'A').map((item: any) => ({
                     label: item.codigo+'-'+item.descripcion,
                     value: item.id
                 }));
