@@ -2,15 +2,6 @@ import {
   Tooltip,
   TooltipModule
 } from "./chunk-PA44BQLI.js";
-import "./chunk-NMOYQVAO.js";
-import "./chunk-5G7WYC4N.js";
-import {
-  BaseComponent
-} from "./chunk-EK4YVP6V.js";
-import "./chunk-PK5RGYZ5.js";
-import {
-  BaseStyle
-} from "./chunk-ALXBCVEU.js";
 import {
   ActivatedRoute,
   Router,
@@ -20,6 +11,15 @@ import {
 import "./chunk-DCVU3JPE.js";
 import "./chunk-JVBOKW6K.js";
 import "./chunk-TTPXWPGZ.js";
+import "./chunk-NMOYQVAO.js";
+import "./chunk-5G7WYC4N.js";
+import {
+  BaseComponent
+} from "./chunk-EK4YVP6V.js";
+import "./chunk-PK5RGYZ5.js";
+import {
+  BaseStyle
+} from "./chunk-ALXBCVEU.js";
 import {
   SharedModule,
   find,

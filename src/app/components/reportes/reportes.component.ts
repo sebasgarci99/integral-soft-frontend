@@ -21,6 +21,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { CalendarModule } from 'primeng/calendar';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 
 import * as XLSX from 'xlsx';
@@ -44,13 +45,17 @@ import * as XLSX from 'xlsx';
         DropdownModule,
         CalendarModule,
         IconFieldModule,
-        InputIconModule
+        InputIconModule,
+        ProgressSpinnerModule
     ],
     templateUrl: './reportes.component.html',
     styleUrl: './reportes.component.css',
     providers: [MessageService, ConfirmationService]
 })
 export class ReportesComponent {
+
+    idRol:number = 0;
+    loader: boolean = false;
 
     fechaInicio: Date = new Date;
     fechaFin: Date = new Date;
@@ -77,6 +82,8 @@ export class ReportesComponent {
         private messageService: MessageService,
         private confirmService: ConfirmationService
     ) {
+        this.idRol = Number(localStorage.getItem('idRol'));
+
         this.cargarConsultorios();
     }
 
@@ -150,6 +157,53 @@ export class ReportesComponent {
         const wb: XLSX.WorkBook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Reporte');
         XLSX.writeFile(wb, `reporte_${this.tipoReporte}.xlsx`);
+    }
+
+    async enviarReporteConsultorios() {
+        this.confirmService.confirm({
+            header: 'Enviar reporte por correo electrónico',
+            icon: 'fa fa-exclamation-triangle', // <- Ícono de advertencia
+            message: '¿Estás seguro de enviar el reporte generado a los correos electrónicos de los consultorios? Recuerda que se enviarán a todos los consultorios que hayas generado en el reporte.',
+            acceptLabel: 'Sí',
+            rejectLabel: 'No',
+            accept: () => {
+                this.loader = true; // mostrar spinner
+
+                this.reportesService.enviarReporteCorreosConsultorios(
+                    this.fechaInicio, this.fechaFin, this.consultorio, this.tipoReporte
+                ).subscribe({
+                    next: (res) => {
+                        if(res.state === 'OK') {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Reporte enviado correctamente por correo electrónico.',
+                                detail: 'Por favor espere a que el proceso se ejecute por completo...',
+                                life: 6000
+                            });
+                        } else {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Se ha encontrado una novedad en el envio: ',
+                                detail: res.body,
+                                life: 5000
+                            });
+                        }
+                    },
+                    error: (e) => {
+                        console.log(e);
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: 'No fue posible enviar el reporte.',
+                            life: 5000
+                        });
+                    },
+                    complete: () => {
+                        this.loader = false; // ocultar spinner
+                    }
+                });
+            }
+        });
     }
 
     formatoFecha(fecha: Date | null): string | null {

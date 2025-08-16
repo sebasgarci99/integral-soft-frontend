@@ -41,6 +41,15 @@
 /* Sidebar general */
 /* sidebar.component.css */
 
+#dropdownUser1 {
+    display: inline-block;
+    max-width: 180px;       /* ajusta según el ancho que quieras */
+    white-space: nowrap;    /* no hacer saltos de línea */
+    overflow: hidden;       /* oculta lo que sobra */
+    text-overflow: ellipsis; /* agrega los ... */
+    vertical-align: middle; /* alinea bien con la imagen */
+}
+
 /* Sidebar base */
 .sidebar {
     width: 240px;

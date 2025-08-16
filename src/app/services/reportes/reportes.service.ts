@@ -13,10 +13,12 @@ export class ReportesService {
 
     private urlApp: string;
     private urlAppAPI: string;
+    private urlAppAPI_enviarMail: string;
 
     constructor(private http: HttpClient) {
         this.urlApp     = enviroment.endpoint;
         this.urlAppAPI  = 'api/reportes/';
+        this.urlAppAPI_enviarMail = 'api/enviarmail/';
     }
 
      /* ─────────────────────────────────────────────
@@ -77,6 +79,9 @@ export class ReportesService {
         );
     }
 
+     /* ─────────────────────────────────────────────
+        LISTAR (GET) ─ getResumenMes (graficas)
+    ───────────────────────────────────────────── */
     obtenerReporteResumenMes(): Observable<any> {
         const token   = localStorage.getItem('token');
         const idUser  = localStorage.getItem('idUser');
@@ -95,6 +100,9 @@ export class ReportesService {
         );
     }
 
+    /* ─────────────────────────────────────────────
+        LISTAR (GET) ─ getResumenMesActual (graficas)
+    ───────────────────────────────────────────── */
     obtenerReporteResumenMesActual(): Observable<any> {
         const token   = localStorage.getItem('token');
         const idUser  = localStorage.getItem('idUser');
@@ -113,6 +121,9 @@ export class ReportesService {
         );
     }
 
+    /* ─────────────────────────────────────────────
+        LISTAR (GET) ─ getResumenMesActualConsultorios (graficas)
+    ───────────────────────────────────────────── */
     obtenerReporteResumenMesActualConsultorio(): Observable<any> {
         const token   = localStorage.getItem('token');
         const idUser  = localStorage.getItem('idUser');
@@ -128,6 +139,32 @@ export class ReportesService {
             { headers }
         ).pipe(
             map(resp => resp.body)
+        );
+    }
+
+    /* ─────────────────────────────────────────────
+        LISTAR (GET) ─ enviarReporteCorreosConsultorios
+    ───────────────────────────────────────────── */
+    enviarReporteCorreosConsultorios(
+        fechaInicio:Date,
+        fechaFin:Date,
+        consultorio:number | null,
+        tipoReporte: String
+    ): Observable<any> {
+        const token   = localStorage.getItem('token');
+
+        const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        const body    = { 
+            fecha_inicio : fechaInicio,
+            fecha_fin : fechaFin,
+            consultorio : consultorio,
+            tipo_reporte : tipoReporte
+        };
+
+        return this.http.post<any>(
+            `${this.urlApp}${this.urlAppAPI_enviarMail}sendReportes`,
+            body,
+            { headers }
         );
     }
 }

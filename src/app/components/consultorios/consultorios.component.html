@@ -88,7 +88,8 @@
                                     required 
                                     autocomplete="off" 
                                     max="99999"
-                                    min="1"/>
+                                    min="1"
+                                    [disabled]="isEdit ? true : false"/>
                                 <label for="codigo">Código</label>
                             </p-floatlabel>
                             <small class="p-error text-error-small" *ngIf="codigo.touched && (codigo.invalid || codigo.errors?.['min'] > 0)">

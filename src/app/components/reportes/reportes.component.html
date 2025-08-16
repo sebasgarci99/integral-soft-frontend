@@ -51,6 +51,7 @@
                         <div class="mb-1">
                             <button pButton type="button" label="Generar reporte" icon="fa fa-search" class="m-2" (click)="generarReporte()"></button>
                             <button pButton type="button" label="Descargar Excel" icon="fa fa-file-excel" class="p-button-success m-2" (click)="descargarExcel()" [disabled]="!datos.length"></button>
+                            <button *ngIf="idRol == 1" pButton type="button" label="Enviar por correo electrónico" icon="fa fa-envelope-open-text" class="p-button-info m-2" (click)="enviarReporteConsultorios()" [disabled]="!datos.length"></button>
                         </div>
 
                         <hr>
@@ -90,6 +91,10 @@
             </div>
         </div>
     </div>
+</div>
+
+<div class="overlay" *ngIf="loader">
+    <p-progressSpinner></p-progressSpinner>
 </div>
 
 <p-toast></p-toast>
