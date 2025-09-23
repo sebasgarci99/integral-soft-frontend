@@ -9,6 +9,7 @@ import { authGuard } from './utils/auth.guard';
 import { ConsultoriosComponent } from './components/consultorios/consultorios.component';
 import { RegRecoleccionComponent } from './components/reg-recoleccion/reg-recoleccion.component';
 import { ReportesComponent } from './components/reportes/reportes.component';
+import { VacunasComponent } from './components/vacunas/vacunas.component';
 
 export const routes: Routes = [
     {
@@ -44,6 +45,11 @@ export const routes: Routes = [
     },
     {
         path: 'reportes', component: ReportesComponent, canActivate: [
+            authGuard
+        ]
+    },
+    {
+        path: 'vacunas', component: VacunasComponent, canActivate: [
             authGuard
         ]
     }

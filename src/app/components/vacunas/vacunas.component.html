@@ -1,0 +1,256 @@
+<!-- home.component.html -->
+<div class="d-lg-none d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
+    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
+        aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-list"></i>
+    </button>
+</div>
+
+<div class="d-flex">
+    <!-- Sidebar para todos los tamaños -->
+    <app-sidebar></app-sidebar>
+
+    <!-- Contenido principal -->
+    <div class="flex-grow-1 p-4 dashboard">
+        <div class="card mt-2">
+            <div class="card-body">
+                <div class="flex justify-content-between mb-3">
+                    <h3 class="text-center">Menú de Vacunas</h3>
+                    <p-button label="Crear vacuna" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" />
+                </div>
+
+                <div class="flex justify-content-between mb-2 text-end">
+                    <input 
+                        #gbInput
+                        pInputText 
+                        type="text"
+                        (input)="tablaConsultorios.filterGlobal(gbInput.value, 'contains')" 
+                        placeholder="Buscar..."
+                    />
+                </div>
+
+                <p-table 
+                    #tablaConsultorios
+                    [value]="vacunas" 
+                    [paginator]="true" 
+                    [rows]="10" 
+                    responsiveLayout="scroll"
+                    [globalFilterFields]="['nombre_vacuna', 'cantidad_dosis', 'fecha_vencimiento', 'estado']"
+                    >
+                    <ng-template pTemplate="header">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Cantidad de dosis</th>
+                        <th>F. del Lote</th>
+                        <th>F. Vencimiento Lote</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row>
+                    <tr>
+                        <td>{{ row.nombre_vacuna }}</td>
+                        <td>{{ row.cantidad_dosis }}</td>
+                        <td>{{ row.fecha_lote }}</td>
+                        <td>{{ row.fecha_vencimiento }}</td>
+                        <!-- <td>{{ row.aforo }}</td> -->
+                        <td>{{ row.estado }}</td>
+                        <td>
+                            <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editarVacuna(row)" />
+                            <p-button icon="fa fa-trash" class="p-button-text p-button-sm" (onClick)="borrarVacuna(row.id)" />
+                        </td>
+                    </tr>
+                    </ng-template>
+                </p-table>
+
+                <p-dialog 
+                    header="{{ isEdit ? 'Editar' : 'Adicionar' }} Vacuna" 
+                    [(visible)]="displayDialog" 
+                    *ngIf="displayDialog"
+                    [modal]="true" 
+                    [style]="{ width: '35rem', height: '40rem' }" 
+                    [draggable]="false"
+                    appendTo="body"
+                >
+                    <div class="p-fluid grid p-formgrid">
+                        <!-- Nombre vacuna -->
+                        <p-floatlabel variant="on" class="col-12 md:col-6 mt-1">
+                            <input 
+                                pInputText 
+                                id="nombre_vacuna" 
+                                class="w-100" 
+                                #nombre_vacuna="ngModel"
+                                required 
+                                [(ngModel)]="formData.nombre_vacuna"
+                            />
+                            <label for="nombre_vacuna">Nombre de la vacuna</label>
+                        </p-floatlabel>
+                        <small class="p-error text-error-small" *ngIf="nombre_vacuna.invalid && nombre_vacuna.touched">
+                            El nombre de la vacuna es requerido
+                        </small>
+
+                        <!-- Presentación comercial -->
+                        <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                            <input 
+                                pInputText 
+                                id="presentacion_comercial" 
+                                class="w-100" 
+                                [(ngModel)]="formData.presentacion_comercial"
+                            />
+                            <label for="presentacion_comercial">Presentación comercial</label>
+                        </p-floatlabel>
+
+                        <!-- Laboratorio -->
+                        <div class="col-12 row">
+                            <p-floatlabel variant="on" class="col-lg-6 col-md-6 mt-3">
+                                <p-dropdown 
+                                    id="id_laboratorio" 
+                                    class="w-100" 
+                                    [options]="laboratorios" 
+                                    optionLabel="label" 
+                                    optionValue="value"
+                                    placeholder="Seleccione un laboratorio"
+                                    [(ngModel)]="formData.id_laboratorio"
+                                    #id_laboratorio="ngModel"
+                                    required>
+                                </p-dropdown>
+                                <label for="id_laboratorio">Laboratorio</label>
+                            </p-floatlabel>
+                            <small class="p-error text-error-small" *ngIf="id_laboratorio.invalid && id_laboratorio.touched">
+                                El laboratorio es requerido
+                            </small>
+
+                            <!-- Registro sanitario -->
+                            <p-floatlabel variant="on" class="col-lg-6 col-md-6 mt-3">
+                                <input 
+                                    type="number"
+                                    pInputText 
+                                    id="registro_sanitario" 
+                                    class="w-100" 
+                                    [(ngModel)]="formData.registro_sanitario"
+                                />
+                                <label for="registro_sanitario">Registro sanitario</label>
+                            </p-floatlabel>
+                        </div>
+
+                        <div class="col-12 row">
+                            <!-- Fecha lote -->
+                            <p-floatlabel variant="on" class="col-lg-6 col-md-6 mt-3">
+                                <p-calendar
+                                    id="fecha_lote" 
+                                    [(ngModel)]="formData.fecha_lote" 
+                                    dateFormat="dd-mm-yy" 
+                                    [showTime]="false" 
+                                    hourFormat="12"
+                                    [locale]="local_espaniol"
+                                    showIcon="true"
+                                    class="w-100" 
+                                    required
+                                    #fecha_lote="ngModel"
+                                    >
+                                </p-calendar>
+                                <label for="fecha_lote">Fecha de lote</label>
+                                <small class="p-error text-error-small" *ngIf="fecha_lote.invalid && fecha_lote.touched">
+                                    La fecha del lote es requerida.
+                                </small>
+                            </p-floatlabel>
+
+                            <!-- Fecha vencimiento -->
+                            <p-floatlabel variant="on" class="col-lg-6 col-md-6 mt-3">
+                                <p-calendar  
+                                    id="fecha_vencimiento" 
+                                    [(ngModel)]="formData.fecha_vencimiento" 
+                                    dateFormat="dd-mm-yy" 
+                                    [showTime]="false" 
+                                    hourFormat="12"
+                                    [locale]="local_espaniol"
+                                    showIcon="true"
+                                    class="w-100" 
+                                    required
+                                    #fecha_vencimiento="ngModel"
+                                    >
+                                </p-calendar>
+                                <label for="fecha_vencimiento">Fecha de vencimiento</label>
+                                <small class="p-error text-error-small" *ngIf="fecha_vencimiento.invalid && fecha_vencimiento.touched">
+                                    La fecha de vencimiento del lote es requerida.
+                                </small>
+                            </p-floatlabel>
+                        </div>
+
+                        <!-- Principio activo -->
+                        <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                            <input 
+                                pInputText 
+                                id="principio_activo" 
+                                class="w-100" 
+                                [(ngModel)]="formData.principio_activo"
+                            />
+                            <label for="principio_activo">Principio activo</label>
+                        </p-floatlabel>
+
+                        <!-- Cantidad dosis -->
+                        <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                            <input 
+                                type="number"
+                                pInputText 
+                                id="cantidad_dosis" 
+                                #cantidad_dosis="ngModel"
+                                class="w-100" 
+                                [(ngModel)]="formData.cantidad_dosis"
+                            />
+                            <label for="cantidad_dosis">Cantidad de dosis</label>
+                        </p-floatlabel>
+                        <small class="p-error text-error-small" *ngIf="cantidad_dosis.invalid && cantidad_dosis.touched">
+                            La cantidad de dosis de la vacuna es requerida.
+                        </small>
+
+                        <div class="col-12 row">
+                            <!-- Concentración -->
+                            <p-floatlabel variant="on" class="col-lg-6 col-md-6 mt-3">
+                                <input 
+                                    type="number"
+                                    pInputText 
+                                    id="concentracion" 
+                                    class="w-100" 
+                                    step="0.01"
+                                    [(ngModel)]="formData.concentracion"
+                                />
+                                <label for="concentracion">Concentración</label>
+                            </p-floatlabel>
+
+                            <!-- Unidad de medida -->
+                            <p-floatlabel variant="on" class="col-lg-6 col-md-6 mt-3">
+                                <input 
+                                    pInputText 
+                                    id="unidad_medida" 
+                                    class="w-100" 
+                                    value="Unidad"
+                                    [(ngModel)]="formData.unidad_medida"
+                                />
+                                <label for="unidad_medida">Unidad de medida</label>
+                            </p-floatlabel>
+                        </div>
+                    </div>
+
+                    <ng-template pTemplate="footer">
+                        <div class="flex justify-content-end gap-2">
+                            <p-button label="Cancelar" class="m-2" icon="fa fa-times" severity="secondary" (onClick)="displayDialog = false" />
+                            <p-button 
+                                label="Guardar" 
+                                class="m-2" 
+                                icon="fa fa-check" 
+                                severity="info"
+                                [disabled]="nombre_vacuna.invalid || id_laboratorio.invalid || cantidad_dosis.invalid || fecha_vencimiento.invalid || fecha_lote.invalid" 
+                                (onClick)="crearActualizarVacuna()" 
+                            />
+                        </div>
+                    </ng-template>
+                </p-dialog>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
