@@ -101,12 +101,9 @@ export class VacunasComponent implements OnInit {
     }
 
     cargarLaboratorios() {
-        // ejemplo, deberías traerlo de un servicio real
-        this.laboratorios = [
-            { label: 'Pfizer', value: 1 },
-            { label: 'Moderna', value: 2 },
-            { label: 'AstraZeneca', value: 3 }
-        ];
+         this.vacunaService.obtenerLaboratorios().subscribe((data) => {
+            this.laboratorios = data;
+        });
     }
 
     abrirFormulario() {
@@ -117,7 +114,11 @@ export class VacunasComponent implements OnInit {
 
     editarVacuna(vacuna: Vacunas) {
         this.isEdit = true;
-        this.formData = { ...vacuna };
+        this.formData = { 
+            ...vacuna,
+            fecha_lote: new Date(vacuna.fecha_lote+"T00:00:00"),
+            fecha_vencimiento: new Date(vacuna.fecha_vencimiento+"T00:00:00")
+        };
         this.displayDialog = true;
     }
 

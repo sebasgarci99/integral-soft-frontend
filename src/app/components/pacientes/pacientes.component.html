@@ -1,0 +1,247 @@
+<div class="d-flex">
+    <app-sidebar></app-sidebar>
+
+    <div class="flex-grow-1 p-4 dashboard">
+        <div class="card mt-2">
+            <div class="card-body">
+                <div class="flex justify-content-between mb-3">
+                <h3 class="text-center m-0 mb-2">Gestión de Pacientes</h3>
+                <p-button label="Registrar Paciente" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()"></p-button>
+                </div>
+
+                <p-table [value]="pacientes" [paginator]="true" [rows]="10" responsiveLayout="scroll">
+                <ng-template pTemplate="header">
+                    <tr>
+                    <th>Nombre Completo</th>
+                    <th>Documento</th>
+                    <th>Fecha Nacimiento</th>
+                    <th>Sexo</th>
+                    <th>Teléfono</th>
+                    <th>EPS</th>
+                    <th>Acciones</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-paciente>
+                    <tr>
+                    <td>{{ paciente.nombres }} {{ paciente.apellidos }}</td>
+                    <td>{{ paciente.tipo_documento }} {{ paciente.numero_documento }}</td>
+                    <td>{{ paciente.fecha_nacimiento | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ paciente.sexo }}</td>
+                    <td>{{ paciente.telefono_contacto }}</td>
+                    <td>{{ paciente.t_datos_admin_paciente?.eps }}</td>
+                    <td>
+                        <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="abrirFormulario(paciente)"></p-button>
+                        <p-button icon="fa fa-trash" class="p-button-text p-button-sm" (onClick)="borrarPaciente(paciente.id_paciente)"></p-button>
+                    </td>
+                    </tr>
+                </ng-template>
+                </p-table>
+
+                <!-- Diálogo -->
+                <p-dialog
+                    header="{{ isEdit ? 'Editar Paciente' : 'Registrar Paciente' }}"
+                    [(visible)]="displayDialog"
+                    [modal]="true"
+                    [style]="{ width: '47rem', 'max-height': '80vh', height: '75%' }"
+                    [contentStyle]="{ 'overflow-y': 'auto' }"
+                    [draggable]="false"
+                    >
+                    <!-- <p-steps [model]="steps" [activeIndex]="current" styleClass="mb-4"></p-steps> -->
+                    <p-tabMenu [model]="steps" [(activeItem)]="activeItem" styleClass="mb-4"></p-tabMenu>
+
+                    <ng-container [ngSwitch]="current">
+                        <!-- Paso 1: Datos personales -->
+                        <ng-container *ngSwitchCase="0">
+                            <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
+                                <div class="col-12 d-flex">
+                                    <p-floatlabel variant="on" class="col-6 md:col-6 mt-3 me-2">
+                                        <input pInputText [(ngModel)]="formData.nombres" class="w-100"/>
+                                        <label>Nombres</label>
+                                    </p-floatlabel>
+
+                                    <p-floatlabel variant="on" class="col-6 md:col-6 mt-3 me-2">
+                                        <input pInputText [(ngModel)]="formData.apellidos" class="w-100" />
+                                        <label>Apellidos</label>
+                                    </p-floatlabel>
+                                </div>
+
+                                <div class="col-12 d-flex">
+                                    <p-floatlabel variant="on" class="col-3 md:col-4 mt-3 me-2">
+                                        <p-dropdown 
+                                            [options]="[
+                                                { label: 'Femenino', value: 'F' }, 
+                                                { label: 'Masculino', value: 'M' }, 
+                                                { label: 'Otro', value: 'O' }
+                                            ]" 
+                                            [(ngModel)]="formData.sexo"
+                                            class="w-100"
+                                            inputId="sexo"
+                                            #sexo="ngModel"
+                                            [ngClass]="{
+                                                'p-inputwrapper-filled': formData.sexo
+                                            }">
+                                        </p-dropdown>
+                                        <label for="sexo">Sexo</label>
+                                    </p-floatlabel>
+
+                                    <p-floatlabel variant="on" class="col-3 md:col-4 mt-3" style="width: 24%; margin-right: 0.5rem;">
+                                        <p-dropdown                                            
+                                            [options]="[
+                                                { label: 'C.C.', value: 'CC' },
+                                                { label: 'T.I.', value: 'TI' },
+                                                { label: 'R.C.', value: 'RC' },
+                                                { label: 'Pasaporte', value: 'PA' }
+                                            ]"
+                                            [(ngModel)]="formData.tipo_documento"
+                                            #tipo_documento="ngModel"
+                                            [ngClass]="{
+                                                'p-inputwrapper-filled': formData.tipo_documento
+                                            }"
+                                            class="w-100"
+                                        ></p-dropdown>
+                                        <label>Tipo Documento</label>
+                                    </p-floatlabel>
+
+                                    <p-floatlabel variant="on" class="col-6 md:col-4 mt-3">
+                                        <input pInputText [(ngModel)]="formData.numero_documento" class="w-100" />
+                                        <label>Número Documento</label>
+                                    </p-floatlabel>
+                                </div>
+
+                                <div class="col-12 d-flex">
+                                    <p-floatlabel variant="on" class="col-6 md:col-4 mt-3 ms-2">
+                                        <p-calendar 
+                                            [(ngModel)]="formData.fecha_nacimiento" 
+                                            dateFormat="yy-mm-dd" 
+                                            [locale]="local_espaniol" 
+                                            showIcon="true"
+                                            class="w-100 ms-2">
+                                        </p-calendar>
+                                        <label>Fecha Nacimiento</label>
+                                    </p-floatlabel>
+                                    <p-floatlabel variant="on" class="col-6 md:col-6 mt-3">
+                                        <input pInputText [(ngModel)]="formData.municipio_residencia" class="w-100"  />
+                                        <label>Municipio</label>
+                                    </p-floatlabel>
+                                </div>
+
+                                <p-floatlabel variant="on" class="col-12 md:col-8 mt-3">
+                                    <input pInputText [(ngModel)]="formData.direccion_residencia" class="w-100" />
+                                    <label>Dirección de residencia</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                                    <input pInputText [(ngModel)]="formData.telefono_contacto" class="w-100" />
+                                    <label>Teléfono</label>
+                                </p-floatlabel>
+                            </div>
+                        </ng-container>
+
+                        <!-- Paso 2: Antecedentes -->
+                        <ng-container *ngSwitchCase="1">
+                            <div class="p-fluid grid p-formgrid">
+                                <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                                    <textarea 
+                                        pInputTextarea 
+                                        [(ngModel)]="formData.enfermedades_actuales"
+                                        inputId="enfermedades"
+                                        class="p-inputtext w-100"
+                                        rows="3"
+                                        [ngClass]="{'p-filled': formData.enfermedades_actuales}">
+                                    </textarea>
+                                    <label for="enfermedades">Enfermedades actuales</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-12 mt-3">
+                                    <textarea 
+                                        pInputTextarea 
+                                        rows="3" 
+                                        [(ngModel)]="formData.uso_medicamentos" 
+                                        [ngClass]="{'p-filled': formData.uso_medicamentos}"
+                                        class="w-100 p-inputtext">
+                                    </textarea>
+                                    <label>Uso de medicamentos inmunosupresores</label>
+                                </p-floatlabel>
+
+                                <div class="col-12 d-flex">
+                                    <p-floatlabel variant="on" class="col-6 mt-3">
+                                        <p-dropdown 
+                                            [options]="[{ label: 'Sí', value: true }, { label: 'No', value: false }]" 
+                                            [(ngModel)]="formData.esta_embarazada"
+                                            class="w-75 ms-2"
+                                        ></p-dropdown>
+                                        <label>¿Embarazada?</label>
+                                    </p-floatlabel>
+
+                                    <p-floatlabel variant="on" class="col-6 mt-3">
+                                        <p-dropdown 
+                                            [options]="[{ label: 'Sí', value: true }, { label: 'No', value: false }]" 
+                                            [(ngModel)]="formData.esta_lactando"
+                                            class="w-75"
+                                        ></p-dropdown>
+                                        <label>¿Lactando?</label>
+                                    </p-floatlabel>
+                                </div>
+
+                                <p-floatlabel variant="on" class="col-12 mt-3">
+                                    <textarea 
+                                        pInputTextarea 
+                                        rows="3" 
+                                        [(ngModel)]="formData.reacciones_previas_vacunas" 
+                                        [ngClass]="{'p-filled': formData.reacciones_previas_vacunas}"
+                                        class="w-100 p-inputtext">
+                                        </textarea>
+                                    <label>Reacciones previas a vacunas</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-12 mt-3">
+                                    <textarea 
+                                        pInputTextarea 
+                                        rows="3" 
+                                        [(ngModel)]="formData.alergias_graves" 
+                                        [ngClass]="{'p-filled': formData.alergias_graves}"
+                                        class="w-100 p-inputtext">
+                                        </textarea>
+                                    <label>Alergias graves</label>
+                                </p-floatlabel>
+                            </div>
+                        </ng-container>
+
+                        <!-- Paso 3: Datos administrativos -->
+                        <ng-container *ngSwitchCase="2">
+                            <div class="p-fluid grid p-formgrid">
+                                <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                                    <input pInputText [(ngModel)]="formData.eps" class="w-100"/>
+                                    <label>EPS (Nueva EPS, Sanitas, SURA, SOS EPS, etc.)</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                                    <input pInputText [(ngModel)]="formData.tipo_poblacion" class="w-100"/>
+                                    <label>Tipo de población (Mestizos, indígenas, afrocolombianos, raizales y gitanos o Rom)</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-12 mt-3">
+                                    <input pInputText [(ngModel)]="formData.nombre_acompanante" class="w-100"/>
+                                    <label>Nombre del acompañante (si aplica)</label>
+                                </p-floatlabel>
+                            </div>
+                        </ng-container>
+                    </ng-container>
+
+                    <ng-template pTemplate="footer">
+                        <div class="flex justify-content-center text-center gap-2 mt-3">
+                        <!-- <p-button label="Cancelar" icon="fa fa-times" severity="secondary" (onClick)="cerrar()"></p-button>
+                        <p-button *ngIf="current>0" label="Anterior" icon="fa fa-arrow-left" severity="secondary" (onClick)="prev()"></p-button>
+                        <p-button *ngIf="current<steps.length-1" label="Siguiente" icon="fa fa-arrow-right" severity="info" (onClick)="next()" [disabled]="validacionesPasos()"></p-button> -->
+                        <p-button *ngIf="current===steps.length-1" label="Guardar" icon="fa fa-check" (onClick)="crearActualizarPaciente()"></p-button>
+                        </div>
+                    </ng-template>
+                </p-dialog>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

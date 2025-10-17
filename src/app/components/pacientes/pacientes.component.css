@@ -1,0 +1,161 @@
+.fila-hoy {
+  background-color: #d4f1ff !important; /* verde suave */
+  font-weight: bold;
+}
+
+/* Gradiente de fondo */
+#grad1 {
+  background: linear-gradient(to right, #ee9ca7, #ffdde1);
+  padding: 30px 0;
+  min-height: 100vh;
+}
+
+/* Estilo de la tarjeta */
+.card {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0px 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Título principal */
+.card h2 {
+  font-weight: bold;
+  color: #333;
+}
+
+/* Progressbar */
+#progressbar {
+  margin-bottom: 30px;
+  overflow: hidden;
+  color: lightgrey;
+  padding-left: 0;
+}
+
+#progressbar li {
+  list-style-type: none;
+  width: 25%;
+  float: left;
+  position: relative;
+  font-weight: 400;
+  font-size: 13px;
+}
+
+#progressbar li:before {
+  width: 50px;
+  height: 50px;
+  content: '';
+  line-height: 45px;
+  display: block;
+  font-size: 18px;
+  color: #fff;
+  background: lightgray;
+  border-radius: 50%;
+  margin: 0 auto 10px auto;
+  position: relative;
+  z-index: 2;
+}
+
+#progressbar li:after {
+  content: '';
+  width: 100%;
+  height: 2px;
+  background: lightgray;
+  position: absolute;
+  left: -50%;
+  top: 25px;
+  z-index: 1;
+}
+
+#progressbar li:first-child:after {
+  content: none;
+}
+
+#progressbar li.active:before {
+  background: #27AE60;
+}
+
+#progressbar li.active + li:after {
+  background: #27AE60;
+}
+
+fieldset {
+  background: white;
+  border: none;
+  border-radius: 10px;
+  padding: 20px 30px;
+  display: none;
+}
+
+fieldset:first-of-type {
+  display: block;
+}
+
+.form-card {
+  text-align: left;
+}
+
+.action-button, .action-button-previous {
+  background: #27AE60;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 5px;
+  margin: 10px 5px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.action-button:hover,
+.action-button-previous:hover {
+  background: #219150;
+}
+
+.text-error-small {
+    font-size: 0.8rem; 
+    color: #e24c4c;
+    margin-top: 2px;
+    display: block;
+}
+
+/* el propio cuadro blanco nunca tiene overflow */
+::ng-deep .dlg--scrollable .p-dialog-content {
+  overflow: visible !important;
+}
+
+.dashboard {
+    margin-left: 240px;
+    overflow: auto;
+}
+
+textarea {
+    border-radius: 0.5rem;
+}
+
+/* Sidebar en móviles: superpuesto */
+@media (max-width: 991.98px) {
+    .dashboard {
+        margin-left: 0px;
+        overflow: auto;
+    }
+
+    #dialog_registro {
+      width: 25rem;
+    }
+}
+
+/* @media (max-width: 991.98px) {
+    ::ng-deep .p-dialog {
+        width: 90vw !important;  /* O el porcentaje que quieras 
+        max-width: 90vw !important;
+        height: 60% !important;
+    }
+} */
+
+@media (max-width: 568px) {
+    ::ng-deep .p-dialog {
+        width: 24rem !important;
+        max-width: 24rem !important;
+        height: 88% !important;
+    }
+}
+

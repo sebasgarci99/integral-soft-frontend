@@ -288,6 +288,19 @@ function findSingle(element, selector) {
 function focus(element, options) {
   element && document.activeElement !== element && element.focus(options);
 }
+function getAttribute(element, name) {
+  if (isElement(element)) {
+    const value = element.getAttribute(name);
+    if (!isNaN(value)) {
+      return +value;
+    }
+    if (value === "true" || value === "false") {
+      return value === "true";
+    }
+    return value;
+  }
+  return void 0;
+}
 function getFocusableElements(element, selector = "") {
   let focusableElements = find(element, `button:not([tabindex = "-1"]):not([disabled]):not([style*="display:none"]):not([hidden])${selector},
             [href][clientHeight][clientWidth]:not([tabindex = "-1"]):not([disabled]):not([style*="display:none"]):not([hidden])${selector},
@@ -1653,6 +1666,7 @@ export {
   find,
   findSingle,
   focus,
+  getAttribute,
   getFocusableElements,
   getFirstFocusableElement,
   getHeight,
@@ -1706,4 +1720,4 @@ export {
   TranslationKeys,
   TreeDragDropService
 };
-//# sourceMappingURL=chunk-CQVLGLW3.js.map
+//# sourceMappingURL=chunk-SN7RFI2O.js.map

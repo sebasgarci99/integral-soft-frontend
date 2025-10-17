@@ -14,7 +14,7 @@
     <!-- Contenido principal -->
     <div class="flex-grow-1 p-4 dashboard">
         <div class="card mt-3">
-            <div *ngIf="datosUsuario.idRol == '1'" class="card-body">
+            <div *ngIf="datosUsuario.idRol == '1' && datosUsuario.tieneModuloRegPeso === 'S'" class="card-body">
                 <h2 for="graficaGeneralAnio" [align]="'center'">Registro total de pesos durante el año actual.</h2>
                 <div style="height: 200px;">
                     <p-chart 

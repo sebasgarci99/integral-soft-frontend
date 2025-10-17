@@ -51,6 +51,8 @@ export class SidebarComponent implements OnInit {
 				this.datosUsuario.id_rol != localStorage.getItem('idRol') ? localStorage.setItem('idRol', this.datosUsuario.id_rol) : null;
 				this.datosUsuario.id_empresa != localStorage.getItem('idEmpresa') ? localStorage.setItem('idEmpresa', this.datosUsuario.id_empresa) : null;
 				
+				!this.datosUsuario.modulos.some((e:any)=> e.modulo === "Registros de peso") != true ? localStorage.setItem('moduloRegPeso', 'S') : null;
+
 				// Cargamos el logo despues de 0.2 segundos ya que es un blob
 				setTimeout(() => {
                     this.logo = 'data:image/png;base64,' + this.datosUsuario.blob_foto_perfil;

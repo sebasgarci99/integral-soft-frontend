@@ -10,6 +10,7 @@ import { ConsultoriosComponent } from './components/consultorios/consultorios.co
 import { RegRecoleccionComponent } from './components/reg-recoleccion/reg-recoleccion.component';
 import { ReportesComponent } from './components/reportes/reportes.component';
 import { VacunasComponent } from './components/vacunas/vacunas.component';
+import { PacientesComponent } from './components/pacientes/pacientes.component';
 
 export const routes: Routes = [
     {
@@ -50,6 +51,11 @@ export const routes: Routes = [
     },
     {
         path: 'vacunas', component: VacunasComponent, canActivate: [
+            authGuard
+        ]
+    },
+    {
+        path: 'pacientes', component: PacientesComponent, canActivate: [
             authGuard
         ]
     }

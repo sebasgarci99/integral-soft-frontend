@@ -286,7 +286,8 @@ export class HomeComponent implements OnInit, OnDestroy{
     async cargarDatosUsuario(){
         this.datosUsuario = {
             "idEmpresa" : localStorage.getItem('idEmpresa'),
-            "idRol" : localStorage.getItem('idRol')
+            "idRol" : localStorage.getItem('idRol'),
+            "tieneModuloRegPeso": localStorage.getItem('moduloRegPeso')
         }
     }
 }

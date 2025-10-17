@@ -66,7 +66,7 @@ export class VacunaService {
         };
 
         return this.http.post<any>(
-            this.urlApp + this.urlAppAPI + 'crear_actualizar_vacuna',
+            this.urlApp + this.urlAppAPI + 'crear_actualizar_vacunas',
             body,
             { headers: headersWS }
         );
@@ -100,7 +100,7 @@ export class VacunaService {
         };
 
         return this.http.post<any>(
-            this.urlApp + this.urlAppAPI + 'crear_actualizar_vacuna',
+            this.urlApp + this.urlAppAPI + 'crear_actualizar_vacunas',
             body,
             { headers: headersWS }
         );
@@ -116,9 +116,28 @@ export class VacunaService {
         let body = { id_vacuna: Number(id) };
 
         return this.http.post<any>(
-            this.urlApp + this.urlAppAPI + 'eliminar_vacuna',
+            this.urlApp + this.urlAppAPI + 'eliminar_vacunas',
             body,
             { headers: headersWS }
         );
+    }
+
+    // ================================
+    // GET - obtener laboratorios
+    // ================================
+    obtenerLaboratorios(): Observable<any[]> {
+        let token = localStorage.getItem('token');
+        let idUser = localStorage.getItem('idUser');
+
+        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        let body = { id_usuario: Number(idUser) };
+
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'getLaboratorios',
+            body,
+            { headers: headersWS }
+            ).pipe(
+                map(response => response.body as any[])
+            );
     }
 }

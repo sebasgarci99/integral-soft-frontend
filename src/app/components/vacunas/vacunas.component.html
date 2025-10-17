@@ -68,7 +68,7 @@
                     [(visible)]="displayDialog" 
                     *ngIf="displayDialog"
                     [modal]="true" 
-                    [style]="{ width: '35rem', height: '40rem' }" 
+                    [style]="{ width: '38em', height: '43rem' }" 
                     [draggable]="false"
                     appendTo="body"
                 >
@@ -82,6 +82,7 @@
                                 #nombre_vacuna="ngModel"
                                 required 
                                 [(ngModel)]="formData.nombre_vacuna"
+                                maxlength="50"
                             />
                             <label for="nombre_vacuna">Nombre de la vacuna</label>
                         </p-floatlabel>
@@ -96,6 +97,7 @@
                                 id="presentacion_comercial" 
                                 class="w-100" 
                                 [(ngModel)]="formData.presentacion_comercial"
+                                maxlength="50"
                             />
                             <label for="presentacion_comercial">Presentación comercial</label>
                         </p-floatlabel>
@@ -107,8 +109,8 @@
                                     id="id_laboratorio" 
                                     class="w-100" 
                                     [options]="laboratorios" 
-                                    optionLabel="label" 
-                                    optionValue="value"
+                                    optionLabel="nombre" 
+                                    optionValue="id"
                                     placeholder="Seleccione un laboratorio"
                                     [(ngModel)]="formData.id_laboratorio"
                                     #id_laboratorio="ngModel"
@@ -126,6 +128,8 @@
                                     type="number"
                                     pInputText 
                                     id="registro_sanitario" 
+                                    [max]="9999999"
+                                    [min]="1"
                                     class="w-100" 
                                     [(ngModel)]="formData.registro_sanitario"
                                 />
@@ -184,6 +188,7 @@
                                 id="principio_activo" 
                                 class="w-100" 
                                 [(ngModel)]="formData.principio_activo"
+                                maxlength="50"
                             />
                             <label for="principio_activo">Principio activo</label>
                         </p-floatlabel>
@@ -197,11 +202,14 @@
                                 #cantidad_dosis="ngModel"
                                 class="w-100" 
                                 [(ngModel)]="formData.cantidad_dosis"
+                                [min]="0" 
+                                max="99" 
+                                required
                             />
                             <label for="cantidad_dosis">Cantidad de dosis</label>
                         </p-floatlabel>
                         <small class="p-error text-error-small" *ngIf="cantidad_dosis.invalid && cantidad_dosis.touched">
-                            La cantidad de dosis de la vacuna es requerida.
+                            La cantidad de dosis de la vacuna es requerida o supera el rango permitido (99)
                         </small>
 
                         <div class="col-12 row">
@@ -214,6 +222,8 @@
                                     class="w-100" 
                                     step="0.01"
                                     [(ngModel)]="formData.concentracion"
+                                    [max]="99"
+                                    [min]="1"
                                 />
                                 <label for="concentracion">Concentración</label>
                             </p-floatlabel>
@@ -225,6 +235,7 @@
                                     id="unidad_medida" 
                                     class="w-100" 
                                     value="Unidad"
+                                    maxlength="20"
                                     [(ngModel)]="formData.unidad_medida"
                                 />
                                 <label for="unidad_medida">Unidad de medida</label>

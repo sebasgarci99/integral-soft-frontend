@@ -11,21 +11,21 @@ import {
 } from "./chunk-NMOYQVAO.js";
 import {
   Button
-} from "./chunk-XVAUXMNS.js";
-import {
-  DomHandler
-} from "./chunk-5G7WYC4N.js";
+} from "./chunk-FXSQ2HRG.js";
 import {
   TimesIcon,
   WindowMaximizeIcon,
   WindowMinimizeIcon
-} from "./chunk-LHSOWXDB.js";
+} from "./chunk-V6PZLO3Y.js";
+import {
+  DomHandler
+} from "./chunk-5G7WYC4N.js";
 import {
   BaseComponent
-} from "./chunk-EK4YVP6V.js";
+} from "./chunk-HOW5VWZN.js";
 import {
   BaseStyle
-} from "./chunk-ALXBCVEU.js";
+} from "./chunk-6TA5B4NM.js";
 import {
   PrimeTemplate,
   SharedModule,
@@ -45,7 +45,7 @@ import {
   setAttribute,
   unblockBodyScroll,
   uuid
-} from "./chunk-CQVLGLW3.js";
+} from "./chunk-SN7RFI2O.js";
 import {
   CommonModule,
   NgClass,
@@ -2272,4 +2272,4 @@ export {
   Dialog,
   DialogModule
 };
-//# sourceMappingURL=chunk-5IT7O2OG.js.map
+//# sourceMappingURL=chunk-JHUNON3Z.js.map
