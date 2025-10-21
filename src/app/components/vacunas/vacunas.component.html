@@ -15,7 +15,7 @@
         <div class="card mt-2">
             <div class="card-body">
                 <div class="flex justify-content-between mb-3">
-                    <h3 class="text-center">Menú de Vacunas</h3>
+                    <h3 class="text-center">Gestión de Vacunas</h3>
                     <p-button label="Crear vacuna" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" />
                 </div>
 
@@ -24,13 +24,13 @@
                         #gbInput
                         pInputText 
                         type="text"
-                        (input)="tablaConsultorios.filterGlobal(gbInput.value, 'contains')" 
+                        (input)="tablaVacunas.filterGlobal(gbInput.value, 'contains')" 
                         placeholder="Buscar..."
                     />
                 </div>
 
                 <p-table 
-                    #tablaConsultorios
+                    #tablaVacunas
                     [value]="vacunas" 
                     [paginator]="true" 
                     [rows]="10" 
@@ -40,21 +40,20 @@
                     <ng-template pTemplate="header">
                     <tr>
                         <th>Nombre</th>
+                        <th>Present. comercial</th>
                         <th>Cantidad de dosis</th>
-                        <th>F. del Lote</th>
+                        <th>Núm. lote</th>
                         <th>F. Vencimiento Lote</th>
-                        <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-row>
                     <tr>
                         <td>{{ row.nombre_vacuna }}</td>
+                        <td>{{ row.presentacion_comercial }}</td>
                         <td>{{ row.cantidad_dosis }}</td>
-                        <td>{{ row.fecha_lote }}</td>
+                        <td>{{ row.registro_sanitario }}</td>
                         <td>{{ row.fecha_vencimiento }}</td>
-                        <!-- <td>{{ row.aforo }}</td> -->
-                        <td>{{ row.estado }}</td>
                         <td>
                             <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editarVacuna(row)" />
                             <p-button icon="fa fa-trash" class="p-button-text p-button-sm" (onClick)="borrarVacuna(row.id)" />
@@ -128,18 +127,18 @@
                                     type="number"
                                     pInputText 
                                     id="registro_sanitario" 
-                                    [max]="9999999"
+                                    [max]="999999999"
                                     [min]="1"
                                     class="w-100" 
                                     [(ngModel)]="formData.registro_sanitario"
                                 />
-                                <label for="registro_sanitario">Registro sanitario</label>
+                                <label for="registro_sanitario">Número del lote</label>
                             </p-floatlabel>
                         </div>
 
                         <div class="col-12 row">
                             <!-- Fecha lote -->
-                            <p-floatlabel variant="on" class="col-lg-6 col-md-6 mt-3">
+                            <p-floatlabel variant="on" class="col-lg-6 col-md-6 mt-3 d-none">
                                 <p-calendar
                                     id="fecha_lote" 
                                     [(ngModel)]="formData.fecha_lote" 

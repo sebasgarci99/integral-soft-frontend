@@ -124,6 +124,8 @@ export class PacientesComponent {
     }
 
     crearActualizarPaciente() {
+        if(!this.validarFormulario()) return;
+
         const payload = {
             nombres: this.formData.nombres,
             apellidos: this.formData.apellidos,
@@ -184,4 +186,40 @@ export class PacientesComponent {
         });
     }
     
+    validarFormulario():boolean {
+        console.log(this.formData)
+
+        // Validamos los campos obligatorios para crear el registro de pacientes
+        if(this.formData.nombres == null || this.formData.nombres == '') {
+            this.messageService.add({ severity: 'warning', summary: 'El nombre es obligatorio para la creación del paciente' });
+            return false;
+        }
+
+        if(this.formData.apellidos == null || this.formData.apellidos == '') {
+            this.messageService.add({ severity: 'warning', summary: 'El apellido es obligatorio para la creación del paciente' });
+            return false;
+        }
+
+        if(this.formData.tipo_documento == null || this.formData.tipo_documento == '') {
+            this.messageService.add({ severity: 'warning', summary: 'El tipo de documento es obligatorio para la creación del paciente' });
+            return false;
+        }
+
+        if(this.formData.numero_documento == null || this.formData.numero_documento == '') {
+            this.messageService.add({ severity: 'warning', summary: 'El número de documento es obligatorio para la creación del paciente' });
+            return false;
+        }
+
+        if(this.formData.fecha_nacimiento == null || this.formData.fecha_nacimiento == '') {
+            this.messageService.add({ severity: 'warning', summary: 'La fecha de nacimiento es obligatoria para la creación del paciente' });
+            return false;
+        }
+
+        if(this.formData.telefono_contacto == null || this.formData.telefono_contacto == '') {
+            this.messageService.add({ severity: 'warning', summary: 'La núm. de telefóno es obligatorio para la creación del paciente' });
+            return false;
+        }
+
+        return true;
+    }
 }

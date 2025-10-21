@@ -96,7 +96,7 @@ export class VacunasComponent implements OnInit {
 
     cargarVacunas() {
         this.vacunaService.obtenerVacunas().subscribe((data) => {
-            this.vacunas = data;
+            this.vacunas = data.filter(e => e.estado == 'A');
         });
     }
 

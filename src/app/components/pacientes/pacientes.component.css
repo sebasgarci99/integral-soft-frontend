@@ -131,6 +131,11 @@ textarea {
     border-radius: 0.5rem;
 }
 
+.select_tipoDocumento {
+    width: 24%; 
+    margin-right: 0.5rem;
+}
+
 /* Sidebar en móviles: superpuesto */
 @media (max-width: 991.98px) {
     .dashboard {
@@ -139,7 +144,11 @@ textarea {
     }
 
     #dialog_registro {
-      width: 25rem;
+        width: 25rem;
+    }
+
+    .select_tipoDocumento {
+        width: 100%; 
     }
 }
 
