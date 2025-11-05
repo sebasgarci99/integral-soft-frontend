@@ -171,13 +171,37 @@
                                     <input pInputText [(ngModel)]="formData.telefono_contacto" class="w-100" />
                                     <label>Teléfono</label>
                                 </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                                    <input pInputText [(ngModel)]="formData.correo_electronico" class="w-100" />
+                                    <label>Correo electrónico</label>
+                                </p-floatlabel>
                             </div>
                         </ng-container>
 
                         <!-- Paso 2: Antecedentes -->
                         <ng-container *ngSwitchCase="1">
                             <div class="p-fluid grid p-formgrid">
-                                <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                                <div class="d-flex">
+                                    <label class="col-8 md:col-12">¿Padece alguna enfermedad actualmente o se encuentra en vigilancia médica por algún motivo?</label>
+                                    <div class="col-4 md:col-12 field-radiobutton mt-2 text-center">
+                                        <p-radioButton 
+                                            name="tiene_enfermedad_actual"
+                                            inputId="tiene_enfermedad_actual_si" 
+                                            [value]="true" 
+                                            [(ngModel)]="formData.tiene_enfermedad_actual">
+                                        </p-radioButton>
+                                        <label for="tiene_enfermedad_actual_si" class="me-2">Sí</label>
+                                        <p-radioButton 
+                                            name="tiene_enfermedad_actual" 
+                                            inputId="tiene_enfermedad_actual_no" 
+                                            [value]="false"
+                                            [(ngModel)]="formData.tiene_enfermedad_actual" >
+                                        </p-radioButton>
+                                        <label for="tiene_enfermedad_actual_no">No</label>
+                                    </div>
+                                </div>
+                                <p-floatlabel variant="on" class="col-12 md:col-6 mt-3" *ngIf="formData.tiene_enfermedad_actual === true">
                                     <textarea 
                                         pInputTextarea 
                                         [(ngModel)]="formData.enfermedades_actuales"
@@ -190,12 +214,36 @@
                                         maxlength="500">
                                     </textarea>
                                     <label for="enfermedades">Enfermedades actuales</label>
+                                    <small 
+                                        class="p-error text-error-small" 
+                                        *ngIf="formData.tiene_enfermedad_actual && enfermedades_actuales.invalid && enfermedades_actuales.touched">
+                                        Es obligatorio describir las enfermedades actuales o digitar el campo con N.A
+                                    </small>
                                 </p-floatlabel>
-                                <small class="p-error text-error-small" *ngIf="enfermedades_actuales.invalid && enfermedades_actuales.touched">
-                                    Es obligatorio describir las enfermedades actuales ó digitar el campo con N.A 
-                                </small>
+                                
+                                <hr>
 
-                                <p-floatlabel variant="on" class="col-12 mt-3">
+                                <div class="d-flex">
+                                <label class="col-8 md:col-12">¿Es alergico a algún medicamento, alimento o vacuna?</label>
+                                    <div class="col-4 md:col-12 field-radiobutton mt-2 text-center">
+                                        <p-radioButton 
+                                            name="es_alergico"
+                                            inputId="es_alergico_si" 
+                                            [value]="true" 
+                                            [(ngModel)]="formData.es_alergico" label="Si">
+                                        </p-radioButton>
+                                        <label for="es_alergico_si" class="me-2">Sí</label>
+                                        <p-radioButton 
+                                            name="es_alergico" 
+                                            inputId="es_alergico_no" 
+                                            [value]="false" 
+                                            [(ngModel)]="formData.es_alergico"
+                                            label="No">
+                                        </p-radioButton>
+                                        <label for="es_alergico_no">No</label>
+                                    </div>
+                                </div>
+                                <p-floatlabel variant="on" class="col-12 mt-3" *ngIf="formData.es_alergico === true">
                                     <textarea 
                                         pInputTextarea 
                                         rows="3" 
@@ -208,32 +256,80 @@
                                         maxlength="500">
                                     </textarea>
                                     <label>Uso de medicamentos inmunosupresores</label>
+                                    <small class="p-error text-error-small" *ngIf="formData.es_alergico === true && uso_medicamentos.invalid && uso_medicamentos.touched">
+                                        Es obligatorio describir el uso de medicamentos ó digitar el campo con N.A 
+                                    </small>
                                 </p-floatlabel>
-                                <small class="p-error text-error-small" *ngIf="uso_medicamentos.invalid && uso_medicamentos.touched">
-                                    Es obligatorio describir el uso de medicamentos ó digitar el campo con N.A 
-                                </small>
 
-                                <div class="col-12 d-flex">
-                                    <p-floatlabel variant="on" class="col-6 mt-3">
-                                        <p-dropdown 
-                                            [options]="[{ label: 'Sí', value: true }, { label: 'No', value: false }]" 
-                                            [(ngModel)]="formData.esta_embarazada"
-                                            class="w-75 ms-2"
-                                        ></p-dropdown>
-                                        <label>¿Embarazada?</label>
-                                    </p-floatlabel>
+                                <hr>
 
-                                    <p-floatlabel variant="on" class="col-6 mt-3">
-                                        <p-dropdown 
-                                            [options]="[{ label: 'Sí', value: true }, { label: 'No', value: false }]" 
-                                            [(ngModel)]="formData.esta_lactando"
-                                            class="w-75"
-                                        ></p-dropdown>
-                                        <label>¿Lactando?</label>
-                                    </p-floatlabel>
+                                <div class="d-flex">
+                                    <label class="col-8 md:col-12">¿Tiene fiebre actualmente?</label>
+                                    <div class="col-4 md:col-12 field-radiobutton mt-2 text-center">
+                                        <p-radioButton 
+                                            name="tiene_fiebre_actual"
+                                            inputId="tiene_fiebre_actual_si" 
+                                            [value]="true" 
+                                            [(ngModel)]="formData.tiene_fiebre_actual" label="Si">
+                                        </p-radioButton>
+                                        <label for="tiene_fiebre_actual_si" class="me-2">Sí</label>
+                                        <p-radioButton 
+                                            name="tiene_fiebre_actual" 
+                                            inputId="tiene_fiebre_actual_no" 
+                                            [value]="false" 
+                                            [(ngModel)]="formData.tiene_fiebre_actual"
+                                            label="No">
+                                        </p-radioButton>
+                                        <label for="tiene_fiebre_actual_no">No</label>
+                                    </div>
                                 </div>
 
-                                <p-floatlabel variant="on" class="col-12 mt-3">
+                                <hr>
+
+                                <div class="d-flex">
+                                    <label class="col-8 md:col-12">¿Ha tenido convulsiones o algún transtorno neurológico? (solo para niños)</label>
+                                    <div class="col-4 md:col-12 field-radiobutton mt-2 text-center">
+                                        <p-radioButton 
+                                            name="padece_convulsiones"
+                                            inputId="padece_convulsiones_si" 
+                                            [value]="true" 
+                                            [(ngModel)]="formData.padece_convulsiones" label="Si">
+                                        </p-radioButton>
+                                        <label for="padece_convulsiones_si" class="me-2">Sí</label>
+                                        <p-radioButton 
+                                            name="padece_convulsiones" 
+                                            inputId="padece_convulsiones_no" 
+                                            [value]="false" 
+                                            [(ngModel)]="formData.padece_convulsiones"
+                                            label="No">
+                                        </p-radioButton>
+                                        <label for="padece_convulsiones_no">No</label>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div class="d-flex">
+                                    <label class="col-8 md:col-12">¿Ha presentado reacción grave tras la administración de alguna vacuna ó le han contraindicado alguna vacuna?</label>
+                                    <div class="col-4 md:col-12 field-radiobutton mt-2 text-center">
+                                        <p-radioButton 
+                                            name="reaccion_vacuna"
+                                            inputId="reaccion_vacuna_si" 
+                                            [value]="true" 
+                                            [(ngModel)]="formData.reaccion_vacuna" label="Si">
+                                        </p-radioButton>
+                                        <label for="reaccion_vacuna_si" class="me-2">Sí</label>
+                                        <p-radioButton 
+                                            name="reaccion_vacuna" 
+                                            inputId="reaccion_vacuna_no" 
+                                            [value]="false" 
+                                            [(ngModel)]="formData.reaccion_vacuna"
+                                            label="No">
+                                        </p-radioButton>
+                                        <label for="reaccion_vacuna_no">No</label>
+                                    </div>
+                                </div>
+                                <p-floatlabel variant="on" class="col-12 mt-3" *ngIf="formData.reaccion_vacuna === true">
                                     <textarea 
                                         pInputTextarea 
                                         rows="3" 
@@ -245,10 +341,35 @@
                                         maxlength="500">
                                         </textarea>
                                     <label>Reacciones previas a vacunas</label>
+                                    <small class="p-error text-error-small" *ngIf="formData.reaccion_vacuna === true && reacciones_previas_vacunas.invalid && reacciones_previas_vacunas.touched">
+                                        Es obligatorio indicar las reacciones a las vacunas o digitar el campo con N.A 
+                                    </small>
                                 </p-floatlabel>
-                                <small class="p-error text-error-small" *ngIf="reacciones_previas_vacunas.invalid && reacciones_previas_vacunas.touched">
-                                    Es obligatorio indicar las reacciones a las vacunas o digitar el campo con N.A 
-                                </small>
+
+                                <hr>
+
+                                <div class="d-flex">
+                                    <label class="col-8 md:col-12">Le han suministrado alguna vacuna en las últimas 4 (cuatro) semanas?</label>
+                                    <div class="col-4 md:col-12 field-radiobutton mt-2 text-center">
+                                        <p-radioButton 
+                                            name="tenido_vacuna_ultsemanas"
+                                            inputId="tenido_vacuna_ultsemanas_si" 
+                                            [value]="true" 
+                                            [(ngModel)]="formData.tenido_vacuna_ultsemanas" label="Si">
+                                        </p-radioButton>
+                                        <label for="tenido_vacuna_ultsemanas_si" class="me-2">Sí</label>
+                                        <p-radioButton 
+                                            name="tenido_vacuna_ultsemanas" 
+                                            inputId="tenido_vacuna_ultsemanas_no" 
+                                            [value]="false" 
+                                            [(ngModel)]="formData.tenido_vacuna_ultsemanas"
+                                            label="No">
+                                        </p-radioButton>
+                                        <label for="tenido_vacuna_ultsemanas_no">No</label>
+                                    </div>
+                                </div>
+
+                                <hr>
 
                                 <p-floatlabel variant="on" class="col-12 mt-3">
                                     <textarea 
@@ -261,11 +382,35 @@
                                         required  
                                         maxlength="500">
                                         </textarea>
-                                    <label>Alergias graves</label>
+                                    <label>Padece o tiene conocimiento de alguna alergia grave</label>
                                 </p-floatlabel>
                                 <small class="p-error text-error-small" *ngIf="alergias_graves.invalid && alergias_graves.touched">
                                     Es obligatorio indicar las alergias a las vacunas ó digitar el campo con N.A 
                                 </small>
+
+                                <div class="col-12 d-flex">
+                                    <p-floatlabel variant="on" class="col-6 mt-3">
+                                        <p-dropdown 
+                                            [options]="[{ label: 'Sí', value: true }, { label: 'No', value: false }]" 
+                                            [(ngModel)]="formData.esta_embarazada"
+                                            class="w-75 ms-2"
+                                            appendTo="body"
+                                            panelClass="dropdown-up"
+                                        ></p-dropdown>
+                                        <label>¿Esta embarazada?</label>
+                                    </p-floatlabel>
+
+                                    <p-floatlabel variant="on" class="col-6 mt-3">
+                                        <p-dropdown 
+                                            [options]="[{ label: 'Sí', value: true }, { label: 'No', value: false }]" 
+                                            [(ngModel)]="formData.esta_lactando"
+                                            appendTo="body"
+                                            panelClass="dropdown-up"
+                                            class="w-75"
+                                        ></p-dropdown>
+                                        <label>¿Esta lactando?</label>
+                                    </p-floatlabel>
+                                </div>
                             </div>
                         </ng-container>
 
@@ -299,12 +444,7 @@
                                 *ngIf="current===steps.length-1" 
                                 label="Guardar" 
                                 icon="fa fa-check" 
-                                [disabled]="
-                                    !formData.enfermedades_actuales || formData.enfermedades_actuales.trim() === ''
-                                    || !formData.uso_medicamentos || formData.uso_medicamentos.trim() === ''
-                                    || !formData.reacciones_previas_vacunas || formData.reacciones_previas_vacunas.trim() === ''
-                                    || !formData.alergias_graves || formData.alergias_graves.trim() === ''
-                                "
+                                [disabled]="validarBotonGuardar()"
                                 (onClick)="crearActualizarPaciente()">
                             </p-button>
                         </div>

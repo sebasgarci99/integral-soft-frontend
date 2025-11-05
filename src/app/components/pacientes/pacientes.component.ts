@@ -19,6 +19,7 @@ import { PaginatorModule } from 'primeng/paginator';
 import { FloatLabelModule  } from 'primeng/floatlabel';
 import { TabMenuModule } from 'primeng/tabmenu';
 import { DropdownModule } from 'primeng/dropdown';
+import { RadioButton } from 'primeng/radiobutton';
 
 import { localeEs } from '../../utils/locale-es';
 import { CalendarModule } from 'primeng/calendar';
@@ -44,7 +45,8 @@ import { StepsModule } from "primeng/steps";
     ReactiveFormsModule,
     CalendarModule,
     StepsModule,
-    TabMenuModule
+    TabMenuModule,
+    RadioButton
 ] ,
     templateUrl: './pacientes.component.html',
     styleUrl: './pacientes.component.css',
@@ -126,27 +128,6 @@ export class PacientesComponent {
     crearActualizarPaciente() {
         if(!this.validarFormulario()) return;
 
-        const payload = {
-            nombres: this.formData.nombres,
-            apellidos: this.formData.apellidos,
-            tipo_documento: this.formData.tipo_documento,
-            numero_documento: this.formData.numero_documento,
-            fecha_nacimiento: this.formData.fecha_nacimiento,
-            sexo: this.formData.sexo,
-            direccion_residencia: this.formData.direccion_residencia,
-            municipio_residencia: this.formData.municipio_residencia,
-            telefono_contacto: this.formData.telefono_contacto,
-            enfermedades_actuales: this.formData.enfermedades_actuales,
-            uso_medicamentos: this.formData.uso_medicamentos,
-            esta_embarazada: this.formData.esta_embarazada,
-            esta_lactando: this.formData.esta_lactando,
-            reacciones_previas_vacunas: this.formData.reacciones_previas_vacunas,
-            alergias_graves: this.formData.alergias_graves,
-            eps: this.formData.eps,
-            tipo_poblacion: this.formData.tipo_poblacion,
-            nombre_acompanante: this.formData.nombre_acompanante
-        };
-
         if (this.isEdit) {
             this.pacientesService.actualizarPaciente(this.formData).subscribe((res) => {
                 if (res.state === 'OK') {
@@ -221,5 +202,38 @@ export class PacientesComponent {
         }
 
         return true;
+    }
+
+    validarBotonGuardar():boolean{
+        console.log(this.formData)
+
+        if(this.formData.tiene_enfermedad_actual == true) {
+            if(!this.formData.enfermedades_actuales || this.formData.enfermedades_actuales.trim() === '') {
+                return true;
+            }
+        }
+
+        if(this.formData.es_alergico == true) {
+            if(!this.formData.uso_medicamentos || this.formData.uso_medicamentos.trim() === '') {
+                return true;
+            }
+        }
+
+        if(this.formData.reaccion_vacuna == true) {
+            if(!this.formData.reacciones_previas_vacunas || this.formData.reacciones_previas_vacunas.trim() === '') {
+                return true;
+            }
+        }
+
+        if(!this.formData.alergias_graves || this.formData.alergias_graves.trim() === '') {
+            return true;
+        }
+        
+        if(!this.formData.eps || this.formData.eps.trim() === '') return true;
+        if(!this.formData.tipo_poblacion || this.formData.tipo_poblacion.trim() === '') return true;
+        if(!this.formData.nombre_acompanante || this.formData.nombre_acompanante.trim() === '') return true;
+
+        
+        return false;
     }
 }

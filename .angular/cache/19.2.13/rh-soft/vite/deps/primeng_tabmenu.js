@@ -1,18 +1,8 @@
 import {
-  ActivatedRoute,
-  Router,
-  RouterLink,
-  RouterLinkActive,
-  RouterModule
-} from "./chunk-N7EM5UTR.js";
-import {
   Tooltip,
   TooltipModule
 } from "./chunk-ZWBNV3XB.js";
-import "./chunk-DCVU3JPE.js";
-import "./chunk-JVBOKW6K.js";
 import "./chunk-NMOYQVAO.js";
-import "./chunk-TTPXWPGZ.js";
 import {
   Badge,
   BadgeModule
@@ -43,6 +33,15 @@ import {
   resolve
 } from "./chunk-SN7RFI2O.js";
 import {
+  ActivatedRoute,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterModule
+} from "./chunk-LAQZIOYQ.js";
+import "./chunk-EDFWISRF.js";
+import "./chunk-TTPXWPGZ.js";
+import {
   CommonModule,
   NgClass,
   NgForOf,
@@ -50,6 +49,7 @@ import {
   NgStyle,
   NgTemplateOutlet
 } from "./chunk-OL7WVFLG.js";
+import "./chunk-JVBOKW6K.js";
 import {
   isPlatformBrowser
 } from "./chunk-P3LJCSKC.js";

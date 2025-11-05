@@ -1,17 +1,8 @@
 import {
-  ActivatedRoute,
-  Router,
-  RouterLink,
-  RouterModule
-} from "./chunk-N7EM5UTR.js";
-import {
   Tooltip,
   TooltipModule
 } from "./chunk-ZWBNV3XB.js";
-import "./chunk-DCVU3JPE.js";
-import "./chunk-JVBOKW6K.js";
 import "./chunk-NMOYQVAO.js";
-import "./chunk-TTPXWPGZ.js";
 import "./chunk-5G7WYC4N.js";
 import {
   BaseComponent
@@ -26,11 +17,20 @@ import {
   findSingle
 } from "./chunk-SN7RFI2O.js";
 import {
+  ActivatedRoute,
+  Router,
+  RouterLink,
+  RouterModule
+} from "./chunk-LAQZIOYQ.js";
+import "./chunk-EDFWISRF.js";
+import "./chunk-TTPXWPGZ.js";
+import {
   CommonModule,
   NgClass,
   NgIf,
   NgStyle
 } from "./chunk-OL7WVFLG.js";
+import "./chunk-JVBOKW6K.js";
 import "./chunk-P3LJCSKC.js";
 import {
   ChangeDetectionStrategy,

@@ -1,7 +1,4 @@
 import {
-  withHttpTransferCache
-} from "./chunk-JVBOKW6K.js";
-import {
   DomRendererFactory2,
   EVENT_MANAGER_PLUGINS,
   EventManager,
@@ -14,6 +11,9 @@ import {
   getDOM,
   setRootDomAdapter
 } from "./chunk-OL7WVFLG.js";
+import {
+  withHttpTransferCache
+} from "./chunk-JVBOKW6K.js";
 import {
   DOCUMENT,
   PLATFORM_BROWSER_ID,
@@ -1298,4 +1298,4 @@ export {
    * License: MIT
    *)
 */
-//# sourceMappingURL=chunk-DCVU3JPE.js.map
+//# sourceMappingURL=chunk-EDFWISRF.js.map

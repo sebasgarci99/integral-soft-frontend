@@ -1,16 +1,13 @@
 import {
-  IconField
-} from "./chunk-WKYI26HU.js";
-import {
   InputIcon
 } from "./chunk-D6RR4XWR.js";
-import {
-  Scroller
-} from "./chunk-LNJBALYS.js";
 import {
   Overlay,
   OverlayModule
 } from "./chunk-5KUKXIXD.js";
+import {
+  Scroller
+} from "./chunk-LNJBALYS.js";
 import {
   Tooltip,
   TooltipModule
@@ -18,17 +15,10 @@ import {
 import {
   InputText,
   InputTextModule
-} from "./chunk-JCEHL6KN.js";
-import {
-  NG_VALUE_ACCESSOR
-} from "./chunk-L5KMPDLA.js";
+} from "./chunk-WFQ3T533.js";
 import "./chunk-M5RC4ZQ2.js";
 import "./chunk-4MR53TTZ.js";
 import "./chunk-NMOYQVAO.js";
-import {
-  AutoFocus,
-  AutoFocusModule
-} from "./chunk-A5JWLIIP.js";
 import {
   Ripple
 } from "./chunk-YZ4CXD4A.js";
@@ -39,6 +29,13 @@ import {
   SearchIcon,
   TimesIcon
 } from "./chunk-V6PZLO3Y.js";
+import {
+  IconField
+} from "./chunk-WKYI26HU.js";
+import {
+  AutoFocus,
+  AutoFocusModule
+} from "./chunk-A5JWLIIP.js";
 import "./chunk-5G7WYC4N.js";
 import {
   BaseComponent
@@ -68,6 +65,9 @@ import {
   unblockBodyScroll,
   uuid
 } from "./chunk-SN7RFI2O.js";
+import {
+  NG_VALUE_ACCESSOR
+} from "./chunk-L5KMPDLA.js";
 import {
   CommonModule,
   NgClass,

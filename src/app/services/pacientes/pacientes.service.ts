@@ -29,9 +29,9 @@ export class PacientesService {
         return this.http.post<any>(
         this.urlApp + this.urlAppAPI + 'getPacientes',
         body,
-        { headers: headersWS }
+            { headers: headersWS }
         ).pipe(
-        map(response => response.body as any[])
+            map(response => response.body as any[])
         );
     }
 
@@ -56,6 +56,7 @@ export class PacientesService {
             direccion_residencia: data.direccion_residencia,
             municipio_residencia: data.municipio_residencia,
             telefono_contacto: data.telefono_contacto,
+            correo_electronico: data.correo_electronico,
 
             // 2️⃣ Antecedentes médicos
             enfermedades_actuales: data.enfermedades_actuales,
@@ -64,6 +65,12 @@ export class PacientesService {
             esta_lactando: data.esta_lactando,
             reacciones_previas_vacunas: data.reacciones_previas_vacunas,
             alergias_graves: data.alergias_graves,
+            tiene_enfermedad_actual: data.tiene_enfermedad_actual,
+            es_alergico: data.es_alergico,
+            tiene_fiebre_actual: data.tiene_fiebre_actual,
+            padece_convulsiones: data.padece_convulsiones,
+            reaccion_vacuna: data.reaccion_vacuna,
+            tenido_vacuna_ultsemanas: data.tenido_vacuna_ultsemanas,
 
             // 3️⃣ Datos administrativos
             eps: data.eps,
@@ -92,6 +99,7 @@ export class PacientesService {
         const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
         const body = {
+            // 1️⃣ Datos personales
             id_paciente: data.id_paciente, // obligatorio
             // Los campos pueden venir parciales o completos
             nombres: data.nombres,
@@ -103,14 +111,23 @@ export class PacientesService {
             direccion_residencia: data.direccion_residencia,
             municipio_residencia: data.municipio_residencia,
             telefono_contacto: data.telefono_contacto,
+            correo_electronico: data.correo_electronico,
 
+            // 2️⃣ Antecedentes médicos
             enfermedades_actuales: data.enfermedades_actuales,
             uso_medicamentos: data.uso_medicamentos,
             esta_embarazada: data.esta_embarazada,
             esta_lactando: data.esta_lactando,
             reacciones_previas_vacunas: data.reacciones_previas_vacunas,
             alergias_graves: data.alergias_graves,
+            tiene_enfermedad_actual: data.tiene_enfermedad_actual,
+            es_alergico: data.es_alergico,
+            tiene_fiebre_actual: data.tiene_fiebre_actual,
+            padece_convulsiones: data.padece_convulsiones,
+            reaccion_vacuna: data.reaccion_vacuna,
+            tenido_vacuna_ultsemanas: data.tenido_vacuna_ultsemanas,
 
+            // 3️⃣ Datos administrativos
             eps: data.eps,
             tipo_poblacion: data.tipo_poblacion,
             nombre_acompanante: data.nombre_acompanante,
