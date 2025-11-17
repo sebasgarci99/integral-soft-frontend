@@ -11,6 +11,7 @@ import { RegRecoleccionComponent } from './components/reg-recoleccion/reg-recole
 import { ReportesComponent } from './components/reportes/reportes.component';
 import { VacunasComponent } from './components/vacunas/vacunas.component';
 import { PacientesComponent } from './components/pacientes/pacientes.component';
+import { RegVacunacionComponent } from './components/reg-vacunacion/reg-vacunacion.component';
 
 export const routes: Routes = [
     {
@@ -56,6 +57,11 @@ export const routes: Routes = [
     },
     {
         path: 'pacientes', component: PacientesComponent, canActivate: [
+            authGuard
+        ]
+    },
+    {
+        path: 'reg_vacunacion', component: RegVacunacionComponent, canActivate: [
             authGuard
         ]
     }
