@@ -16,11 +16,11 @@
             <div class="card-body">
                 
                 <div class="flex justify-content-between mb-3">
-                    <h3 class="text-center">Registros de Vacunación</h3>
+                    <h3 class="text-center">Gestión de la vacunación de los pacientes</h3>
                 </div>
 
                 <!-- BUSCADOR -->
-                <div class="flex justify-content-end mb-2">
+                <div class="flex justify-content-end mb-2 text-end">
                     <input 
                         #gbInput
                         pInputText 
@@ -30,14 +30,14 @@
                     />
                 </div>
 
-                <!-- TABLA DE PACIENTES -->
+                <!-- TABLA DE PACIENTES - PRINCIPAL EN LA FORMA -->
                 <p-table 
                     #tablaPacientes
                     [value]="pacientes" 
                     responsiveLayout="scroll"
                     [paginator]="true" 
-                    [rows]="10"
-                    [globalFilterFields]="['nombres','apellidos','identificacion','telefono']">
+                    [rows]="8"
+                    [globalFilterFields]="['nombres','apellidos','numero_documento','telefono_contacto']">
 
                     <ng-template pTemplate="header">
                         <tr>
@@ -51,11 +51,12 @@
                     <ng-template pTemplate="body" let-row>
                         <tr>
                             <td>{{ row.nombres }} {{ row.apellidos }}</td>
-                            <td>{{ row.identificacion }}</td>
-                            <td>{{ row.telefono }}</td>
+                            <td>{{ row.numero_documento }}</td>
+                            <td>{{ row.telefono_contacto }}</td>
                             <td>
                                 <p-button 
                                     icon="fa fa-plus" 
+                                    label="Registrar vac."
                                     class="p-button-text p-button-sm" 
                                     (onClick)="crearRegistroVacunacion(row)">
                                 </p-button>
@@ -81,15 +82,163 @@
 
                 </p-table>
 
+                <!-- DIALOG REGISTRO DE VACUNACIÓN -->
+                <p-dialog 
+                    header="Registro de vacunación al paciente"
+                    [(visible)]="dialogCrearVacuna"
+                    [modal]="true"
+                    [style]="{ width: '40vw' }"
+                    appendTo="body"
+                >
+
+                    <div class="p-fluid formgrid grid text-center">
+                        <!-- DATOS DEL PACIENTE -->
+                        <div class="col-12 d-md-flex d-sm-grid">
+                            <p-floatlabel variant="on" class="col-lg-7 col-md-12 mt-3 me-4">
+                                <label>Paciente</label>
+                                <input pInputText class="w-100" [value]="selectedPaciente?.nombres + ' ' + selectedPaciente?.apellidos" disabled>
+                            </p-floatlabel>
+
+                            <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3">
+                                <label>Identificación</label>
+                                <input pInputText class="w-100" [value]="selectedPaciente?.numero_documento" disabled>
+                            </p-floatlabel>
+                        </div>
+
+                        <div class="col-12 d-md-flex d-sm-grid">
+                            <p-floatlabel variant="on" class="col-lg-7 col-md-12 mt-3 me-4">
+                                <label>Correo</label>
+                                <input pInputText class="w-100" [value]="selectedPaciente?.correo_electronico " disabled>
+                            </p-floatlabel>
+
+                            <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3">
+                                <label>Teléfono</label>
+                                <input pInputText class="w-100" [value]="selectedPaciente?.telefono_contacto" disabled>
+                            </p-floatlabel>
+                        </div>
+
+                        <!-- SELECT MULTIPLE DE VACUNAS -->
+                        <div class="col-12 mt-4">
+                            <label class="font-semibold" class="me-4">Vacunas a aplicar: </label>
+                            <p-multiSelect 
+                                [options]="listaVacunas" 
+                                optionLabel="nombre_vacuna"
+                                optionValue="id"
+                                [(ngModel)]="formData.vacunas"
+                                placeholder="Seleccione una o varias vacunas"
+                                display="chip"
+                                class="w-100"
+                            ></p-multiSelect>
+
+                            <small class="p-error" *ngIf="formSubmitted && formData.vacunas.length === 0">
+                                Debe seleccionar al menos una vacuna.
+                            </small>
+                        </div>
+
+                        <!-- RADIO: APLICA ACUDIENTE -->
+                        <div class="col-12 mt-3">
+                            <label class="font-semibold">¿Aplica acudiente? *</label>
+                            <div class="flex gap-4 mt-2">
+                                <p-radioButton 
+                                    inputId="aplica_acudiente_si" 
+                                    name="aplica" 
+                                    value="N" 
+                                    label="No" 
+                                    [(ngModel)]="formData.aplica_acudiente">
+                                </p-radioButton>
+                                <label for="aplica_acudiente_si" class="me-2">No</label>
+                                
+                                <p-radioButton 
+                                    inputId="aplica_acudiente_no" 
+                                    name="aplica" 
+                                    value="S" 
+                                    label="Sí" 
+                                    [(ngModel)]="formData.aplica_acudiente">
+                                </p-radioButton>
+                                <label for="aplica_acudiente_no" class="me-2">Sí</label>
+                            </div>
+                        </div>
+
+                        <!-- CAMPOS DE ACUDIENTE -->
+                        <ng-container *ngIf="formData.aplica_acudiente === 'S'">
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-4">
+                                    <input 
+                                        pInputText 
+                                        [(ngModel)]="formData.acudiente" 
+                                        #acudiente="ngModel"
+                                        maxlength="80"
+                                        class="w-100" >
+                                    <label>Nombre completo acudiente *</label>
+                                    <small class="p-error" *ngIf="formSubmitted && !formData.acudiente">
+                                        Campo obligatorio.
+                                    </small>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-lg-5 col-md-12 mt-3 me-4">
+                                    <input 
+                                        pInputText 
+                                        [(ngModel)]="formData.num_doc_acudiente" 
+                                        #num_doc_acudiente="ngModel"
+                                        maxlength="80"
+                                        class="w-100" >
+                                    <label>N° Documento acudiente *</label>
+                                    <small class="p-error" *ngIf="formSubmitted && !formData.num_doc_acudiente">
+                                        Campo obligatorio.
+                                    </small>
+                                </p-floatlabel>
+                            </div>
+                        </ng-container>
+
+                        <!-- FIRMA -->
+                        <div class="col-12 mt-4 text-center">
+                            <h5 class="block mb-2 font-medium text-gray-500">Firma del responsable</h5>
+                            <p-floatlabel  variant="on" class="col-12 md:col-6">
+
+                                <div class="field col-12 t-center">
+                                    <app-signature-canvas #firmaPad></app-signature-canvas>
+                                </div>    
+
+                                <small class="p-error text-error-small" *ngIf="formData.firma == null">
+                                    Debes registrar la firma.
+                                </small>
+                                <p-tag severity="success" *ngIf="firmaOK" value="Firma registrada correctamente." />
+                                
+                                <div class="mt-2 flex gap-2">
+                                    <p-button label="Maximixar" severity="danger" icon="fa fa-expand" (click)="openFullscreen()"></p-button>
+                                    <p-button label="Limpiar firma" icon="fa fa-trash" (onClick)="firmaPad.clear()"></p-button>
+                                    <p-button label="Guardar firma" icon="fa fa-check" (onClick)="guardarFirma()"></p-button>
+                                </div>
+                            </p-floatlabel>
+                        </div>
+
+                    </div>
+
+                    <ng-template pTemplate="footer">
+                        <p-button 
+                            label="Guardar registro"
+                            icon="fa fa-save"
+                            [disabled]="!botonGuardarHabilitado()"
+                            (onClick)="confirmarGuardar()"
+                        ></p-button>
+                    </ng-template>
+
+                </p-dialog>
+
+
                 <!-- DIALOG HISTORICO VACUNAS -->
                 <p-dialog 
-                    header="Histórico de Vacunas del Paciente"
+                    header="Histórico de Vacunas del paciente"
                     [(visible)]="dialogVacunas"
                     [modal]="true"
                     [style]="{ width: '65vw' }"
                     appendTo="body"
                 >
-                    <p-table [value]="historicoVacunas" responsiveLayout="scroll">
+                    <p-table 
+                        [value]="historicoVacunas" 
+                        responsiveLayout="scroll"
+                        [paginator]="true" 
+                        [rows]="10">
                         <ng-template pTemplate="header">
                             <tr>
                                 <th>Vacuna</th>
@@ -112,13 +261,17 @@
 
                 <!-- DIALOG HISTORICO CONSENTIMIENTOS -->
                 <p-dialog 
-                    header="Histórico de Consentimientos"
+                    header="Histórico de consentimientos generados"
                     [(visible)]="dialogConsentimientos"
                     [modal]="true"
-                    [style]="{ width: '50vw' }"
+                    [style]="{ width: '70vw' }"
                     appendTo="body"
                 >
-                    <p-table [value]="historicoConsentimientos" responsiveLayout="scroll">
+                    <p-table 
+                        [value]="historicoConsentimientos" 
+                        responsiveLayout="scroll"
+                        [paginator]="true" 
+                        [rows]="10">
                         <ng-template pTemplate="header">
                             <tr>
                                 <th>Paciente</th>
@@ -137,7 +290,7 @@
                                     <p-button 
                                         icon="fa fa-file-pdf" 
                                         class="p-button-text p-button-sm"
-                                        (onClick)="generarPDFConsentimiento(c)"
+                                        (onClick)="generarPDF(c)"
                                     ></p-button>
                                 </td>
                             </tr>
@@ -148,6 +301,17 @@
             </div>
         </div>
     </div>
+</div>
+
+<div class="fullscreen-overlay" *ngIf="fullscreen">
+    <div class="fullscreen-header">
+        <button class="p-button p-button-danger" (click)="closeFullscreen()">Cerrar</button>
+    </div>
+    <div class="mt-2 flex gap-2">
+        <p-button label="Limpiar firma" icon="fa fa-trash" (onClick)="firmaPadFull.clear()"></p-button>
+        <p-button label="Guardar firma" icon="fa fa-check" (onClick)="guardarFirmaFull()"></p-button>
+    </div>
+    <app-signature-canvas #firmaPadFull></app-signature-canvas>
 </div>
 
 <p-toast></p-toast>

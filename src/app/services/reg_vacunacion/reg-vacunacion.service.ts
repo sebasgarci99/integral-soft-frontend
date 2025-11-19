@@ -36,4 +36,20 @@ export class RegVacunacionService {
             );
     }
 
+    // ================================
+    // POST - crear o actualizar registro de vacunación
+    // ================================
+    crearActualizarRegVacunacion(data: any): Observable<any> {
+        let token = localStorage.getItem('token');
+        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'crearActualizarRegVacunacion',
+            data,
+            { headers: headersWS }
+        ).pipe(
+            map((response: any) => response.body)
+        );
+    }
+
 }

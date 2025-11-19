@@ -18,15 +18,18 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { Tag } from 'primeng/tag';
- 
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { MultiSelect } from 'primeng/multiselect';
+import { RadioButton } from 'primeng/radiobutton'
+
+import { jsPDF } from "jspdf"; 
 
 import { ConfirmationService, MenuItem, MessageService, SelectItem } from 'primeng/api';
 import { SignatureCanvasComponent } from '../../utils/signature-canvas.component';
+
 import { PacientesService } from '../../services/pacientes/pacientes.service';
 import { RegVacunacionService } from '../../services/reg_vacunacion/reg-vacunacion.service';
 import { ConsentimientoService } from '../../services/documentos/consentimiento.service';
+import { VacunaService } from '../../services/vacunas/vacuna.service';
 
 @Component({
     selector: 'app-reg-vacunacion',
@@ -47,14 +50,21 @@ import { ConsentimientoService } from '../../services/documentos/consentimiento.
         ToastModule,
         ConfirmDialogModule,
         SignatureCanvasComponent,
-        Tag
+        Tag,
+        MultiSelect,
+        RadioButton
     ],
     templateUrl: './reg-vacunacion.component.html',
     styleUrl: './reg-vacunacion.component.css',
     providers: [MessageService, ConfirmationService]
 })
 export class RegVacunacionComponent implements OnInit{
-[x: string]: any;
+
+    @ViewChild('firmaPad') firmaPad!: SignatureCanvasComponent;
+    @ViewChild('firmaPadFull') firmaPadFull!: SignatureCanvasComponent;
+
+    fullscreen = false;
+
     pacientes: any[] = [];
     historicoVacunas: any[] = [];
     historicoConsentimientos: any[] = [];
@@ -62,10 +72,28 @@ export class RegVacunacionComponent implements OnInit{
     dialogVacunas: boolean = false;
     dialogConsentimientos: boolean = false;
 
+    dialogCrearVacuna: boolean = false;
+    selectedPaciente: any = null;
+    listaVacunas: any[] = [];
+
+    formSubmitted = false;
+    firmaOK = false;
+
+    formData = {
+        vacunas: [] as number[],
+        aplica_acudiente: "N",
+        acudiente: "",
+        num_doc_acudiente: "",
+        firma: null as string | null
+    };
+
     constructor(
         private pacientesService: PacientesService,
         private regVacunacionService: RegVacunacionService,
-        private consentimientoService: ConsentimientoService
+        private consentimientoService: ConsentimientoService,
+        private vacunaService: VacunaService,
+        private confirmService: ConfirmationService,
+        private messageService: MessageService
     ) {}
 
     ngOnInit() {
@@ -80,7 +108,34 @@ export class RegVacunacionComponent implements OnInit{
     }
 
     crearRegistroVacunacion(paciente: any) {
-        // abrir formulario de registro de vacunación
+        console.log(paciente)
+        this.selectedPaciente = paciente;
+        this.dialogCrearVacuna = true;
+        this.formSubmitted = false;
+        this.firmaOK = false;
+
+        this.formData = {
+            vacunas: [],
+            aplica_acudiente: "N",
+            acudiente: "",
+            num_doc_acudiente: "",
+            firma: null 
+        };
+
+        setTimeout(() => {
+            this.firmaPad.reinitPad();
+            this.firmaPad.canvasRef.nativeElement.width = 450;
+            const c = this.firmaPad.canvasRef.nativeElement;
+            console.log('Canvas size:', c.width, c.height, 'offset:', c.offsetWidth, c.offsetHeight);
+        }, 100);
+
+        this.cargarVacunas();
+    }
+
+    cargarVacunas() {
+        this.vacunaService.obtenerVacunas().subscribe((data) => {
+            this.listaVacunas = data.filter(e => e.estado == 'A');
+        });
     }
 
     abrirHistoricoVacunas(paciente: any) {
@@ -97,63 +152,129 @@ export class RegVacunacionComponent implements OnInit{
         });
     }
 
-    async generarPDFConsentimiento(consentimiento: any) {
-        if (!consentimiento.f_procesar_datos_consentimiento) {
-            console.error("No hay HTML para generar el PDF");
-            return;
-        }
+    async generarPDF(htmlString: any) {
+        // Crear instancia con tamaño carta o A4
+        const doc = new jsPDF({
+            unit: 'pt',      // puntos (1/72 de pulgada)
+            format: 'letter', // o 'a4'
+        });
 
-        const hiddenDiv = document.createElement("div");
-        hiddenDiv.style.position = "fixed";
-        hiddenDiv.style.left = "-9999px";
-        hiddenDiv.style.top = "0";
-        hiddenDiv.style.width = "800px";
-        hiddenDiv.innerHTML = consentimiento.f_procesar_datos_consentimiento;
-        document.body.appendChild(hiddenDiv);
+        // Creamos un contenedor temporal para renderizar el HTML
+        const div = document.createElement('div');
+        div.innerHTML = htmlString.f_procesar_datos_consentimiento;
+        div.style.width = "600px"; // controla el ancho del PDF
+        document.body.appendChild(div); // (necesario para permitir html2canvas)
 
-        try {
+        const margins = {
+            top: 40,
+            bottom: 40,
+            left: 40,
+            right: 40,
+        };
 
-            // 🔥 SOLUCIÓN: remover imágenes inválidas
-            const imgs = hiddenDiv.querySelectorAll("img");
-            imgs.forEach(img => {
-                if (!img.src || img.src === "data:image/jpeg;base64," || img.src.trim() === "") {
-                    console.warn("Imagen inválida eliminada:", img);
-                    img.remove();
+        await doc.html(
+            div, 
+            {
+                x: margins.left,
+                y: margins.top,
+                html2canvas: {
+                    scale: 0.9, // evita que el contenido se desborde
+                },
+                autoPaging: 'text', // fuerza saltos de página automáticos
+                callback: (doc) => {
+                    doc.save(`ConsentimientoInformado_${htmlString.id_consentimiento    }.pdf`); 
+                    document.body.removeChild(div); //  limpiar
                 }
-            });
-
-            const canvas = await html2canvas(hiddenDiv, { scale: 2 });
-            const pdf = new jsPDF("p", "pt", "letter");
-
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-
-            const margin = 20;
-            const imgWidth = pdfWidth - margin * 2;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-            let heightLeft = imgHeight;
-            let position = margin;
-
-            const imgData = canvas.toDataURL("image/png");
-
-            pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
-            heightLeft -= (pdfHeight - margin * 2);
-
-            while (heightLeft > 0) {
-                pdf.addPage();
-                position = margin - (imgHeight - heightLeft);
-                pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
-                heightLeft -= (pdfHeight - margin * 2);
             }
+        );
+    }
 
-            pdf.save(`Consentimiento_${consentimiento.id}.pdf`);
-
-        } catch (err) {
-            console.error("Error generando PDF:", err);
-        } finally {
-            document.body.removeChild(hiddenDiv);
+    // Guarda solo la firma en base64
+    guardarFirma(): void {
+        if (this.firmaPad && !this.firmaPad.isEmpty()) {
+            // Obtiene solo el base64 (sin el prefijo data:image/png;base64)
+            this.formData.firma = this.firmaPad.toDataBase64();
+            console.log('Base64 puro:', this.formData.firma);
+            
+            // Si necesitas reconstruir el dataURL completo después:
+            const fullDataUrl = `data:image/png;base64,${this.formData.firma}`;
+            this.firmaOK = true;
         }
+    }
+
+    guardarFirmaFull(): void {
+        if(this.firmaPadFull && !this.firmaPadFull.isEmpty()) {
+            this.formData.firma = this.firmaPadFull.toDataBase64();
+            this.firmaPad.fromDataBase64(this.firmaPadFull.toDataBase64());
+            this.firmaOK = true;
+            this.fullscreen = false;
+        }
+    }
+
+    botonGuardarHabilitado() {
+        if (this.formData.vacunas.length === 0) return false;
+        if (!this.formData.firma) return false;
+        if (this.formData.aplica_acudiente === "S") {
+            if (!this.formData.acudiente || !this.formData.num_doc_acudiente) return false;
+        }
+        return true;
+    }
+
+    confirmarGuardar() {
+        this.formSubmitted = true;
+
+        if (!this.botonGuardarHabilitado()) return;
+
+        const vacunasNombres = this.listaVacunas
+            .filter(v => this.formData.vacunas.includes(v.id))
+            .map(v => v.nombre_vacuna)
+            .join(", ");
+
+        this.confirmService.confirm({
+            message: `¿Confirmas que deseas registrar las vacunas: <b>${vacunasNombres}</b>?`,
+            header: "Confirmar registro",
+            icon: "pi pi-check",
+            accept: () => this.guardarRegistro()
+        });
+    }
+
+    guardarRegistro() {
+        const payload = {
+            id_paciente: this.selectedPaciente.id_paciente,
+            fecha_registro: new Date(),
+            aplica_acudiente: this.formData.aplica_acudiente === "S",
+            acudiente: this.formData.aplica_acudiente === "S" ? this.formData.acudiente : null,
+            num_documento_acudiente: this.formData.aplica_acudiente === "S" ? this.formData.num_doc_acudiente : null,
+            estado: "A",
+            id_empresa: 1, // AJUSTAR SI ES VARIABLE
+            vacunas_aplicadas: [
+                { id_vacuna: this.formData.vacunas }
+            ],
+            firma_usuario_acudiente: this.formData.firma
+        };
+
+        this.regVacunacionService.crearActualizarRegVacunacion(payload).subscribe({
+            next: () => {
+                this.messageService.add({ severity: "success", summary: "OK", detail: "Registro guardado" });
+                this.dialogCrearVacuna = false;
+            },
+            error: () => {
+                this.messageService.add({ severity: "error", summary: "Error", detail: "Error al guardar" });
+            }
+        });
+    }
+
+    openFullscreen() {
+        this.fullscreen = true;
+        setTimeout(() => {
+            this.firmaPadFull.reinitPad();
+            this.firmaPadFull.canvasRef.nativeElement.style.height = '80vh';
+        }, 200);
+    }
+
+    closeFullscreen() {
+        this.fullscreen = false;
+        setTimeout(() => this.firmaPad.reinitPad());
     }
 
 

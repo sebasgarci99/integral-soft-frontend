@@ -80,6 +80,17 @@ export class SignatureCanvasComponent implements AfterViewInit {
         return this.pad.toDataURL('image/png');
     }
 
+    public reinitPad() {
+        const canvas = this.canvasRef.nativeElement;
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+
+        canvas.width  = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext('2d')!.scale(ratio, ratio);
+
+        this.pad.clear();
+    }
+
     /* ------------- ajustar tamaño al redimensionar ------------- */
     @HostListener('window:resize') resize(): void {
         const canvas = this.canvasRef.nativeElement;
