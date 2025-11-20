@@ -166,10 +166,10 @@ export class RegVacunacionComponent implements OnInit{
         document.body.appendChild(div); // (necesario para permitir html2canvas)
 
         const margins = {
-            top: 40,
-            bottom: 40,
-            left: 40,
-            right: 40,
+            top: 35,
+            bottom: 35,
+            left: 35,
+            right: 35,
         };
 
         await doc.html(
@@ -182,7 +182,7 @@ export class RegVacunacionComponent implements OnInit{
                 },
                 autoPaging: 'text', // fuerza saltos de página automáticos
                 callback: (doc) => {
-                    doc.save(`ConsentimientoInformado_${htmlString.id_consentimiento    }.pdf`); 
+                    doc.save(`ConsentimientoInformado_${htmlString.id_consentimiento}.pdf`); 
                     document.body.removeChild(div); //  limpiar
                 }
             }
@@ -233,12 +233,14 @@ export class RegVacunacionComponent implements OnInit{
         this.confirmService.confirm({
             message: `¿Confirmas que deseas registrar las vacunas: <b>${vacunasNombres}</b>?`,
             header: "Confirmar registro",
-            icon: "pi pi-check",
+            icon: "fa fa-check",
+            acceptLabel: 'Sí',
+            rejectLabel: 'No',
             accept: () => this.guardarRegistro()
         });
     }
 
-    guardarRegistro() {
+    async guardarRegistro() {
         const payload = {
             id_paciente: this.selectedPaciente.id_paciente,
             fecha_registro: new Date(),
@@ -246,7 +248,6 @@ export class RegVacunacionComponent implements OnInit{
             acudiente: this.formData.aplica_acudiente === "S" ? this.formData.acudiente : null,
             num_documento_acudiente: this.formData.aplica_acudiente === "S" ? this.formData.num_doc_acudiente : null,
             estado: "A",
-            id_empresa: 1, // AJUSTAR SI ES VARIABLE
             vacunas_aplicadas: [
                 { id_vacuna: this.formData.vacunas }
             ],
@@ -254,11 +255,13 @@ export class RegVacunacionComponent implements OnInit{
         };
 
         this.regVacunacionService.crearActualizarRegVacunacion(payload).subscribe({
-            next: () => {
-                this.messageService.add({ severity: "success", summary: "OK", detail: "Registro guardado" });
+            next: async (e) => {
+                this.messageService.add({ severity: "success", summary: "OK", detail: "Registro de vacunación guardado correctamente" });
+                await this.generarPDF(e)
                 this.dialogCrearVacuna = false;
             },
-            error: () => {
+            error: (e) => {
+                console.log(e);
                 this.messageService.add({ severity: "error", summary: "Error", detail: "Error al guardar" });
             }
         });
