@@ -243,7 +243,7 @@ export class RegVacunacionComponent implements OnInit{
     async guardarRegistro() {
         const payload = {
             id_paciente: this.selectedPaciente.id_paciente,
-            fecha_registro: new Date(),
+            fecha_registro: this.toIsoLocal(new Date()),
             aplica_acudiente: this.formData.aplica_acudiente === "S",
             acudiente: this.formData.aplica_acudiente === "S" ? this.formData.acudiente : null,
             num_documento_acudiente: this.formData.aplica_acudiente === "S" ? this.formData.num_doc_acudiente : null,
@@ -278,6 +278,26 @@ export class RegVacunacionComponent implements OnInit{
     closeFullscreen() {
         this.fullscreen = false;
         setTimeout(() => this.firmaPad.reinitPad());
+    }
+
+    /**
+     * Convierte una fecha a formato ISO 8601 local (YYYY-MM-DDTHH:mm:ss)
+     * @param date - Fecha a convertir (puede ser null o undefined)
+     * @returns String en formato ISO local o null si la entrada es null/undefined
+     */
+    toIsoLocal<T extends Date | null | undefined>(date: T): T extends Date ? string : null {
+        if (!date) return null as any;
+        
+        const pad = (num: number) => num.toString().padStart(2, '0');
+        
+        const year = date.getFullYear();
+        const month = pad(date.getMonth() + 1);
+        const day = pad(date.getDate());
+        const hours = pad(date.getHours());
+        const minutes = pad(date.getMinutes());
+        const seconds = pad(date.getSeconds());
+        
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}` as any;
     }
 
 
