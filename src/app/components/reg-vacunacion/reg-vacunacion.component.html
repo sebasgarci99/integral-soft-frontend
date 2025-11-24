@@ -51,7 +51,7 @@
                     <ng-template pTemplate="body" let-row>
                         <tr>
                             <td>{{ row.nombres }} {{ row.apellidos }}</td>
-                            <td>{{ row.numero_documento }}</td>
+                            <td>{{ row.tipo_documento }}-{{ row.numero_documento }}</td>
                             <td>{{ row.telefono_contacto }}</td>
                             <td>
                                 <p-button 
@@ -235,22 +235,36 @@
                     [style]="{ width: '65vw' }"
                     appendTo="body"
                 >
+                    <!-- BUSCADOR -->
+                    <div class="flex justify-content-end mb-2 text-end">
+                        <input 
+                            #gbInputVacunas
+                            pInputText 
+                            type="text"
+                            (input)="tablaHistoricoVacunas.filterGlobal(gbInputVacunas.value, 'contains')" 
+                            placeholder="Buscar vacuna..."
+                        />
+                    </div>
                     <p-table 
+                        #tablaHistoricoVacunas
                         [value]="historicoVacunas" 
                         responsiveLayout="scroll"
                         [paginator]="true" 
-                        [rows]="10">
+                        [rows]="10"
+                        [globalFilterFields]="['nombre_vacuna','fecha']">
                         <ng-template pTemplate="header">
                             <tr>
-                                <th>Vacuna</th>
+                                <th>Reg. de vacunación</th>
+                                <th>Vacuna aplicada</th>
                                 <th>Nombre comercial</th>
                                 <th>Fecha y hora</th>
-                                <th>Dosis</th>
+                                <th>Dosis parametrizada</th>
                             </tr>
                         </ng-template>
 
                         <ng-template pTemplate="body" let-v>
                             <tr>
+                                <td>{{ v.id_vacunacion }}</td>
                                 <td>{{ v.nombre_vacuna }}</td>
                                 <td>{{ v.presentacion_comercial }}</td>
                                 <td>{{ v.fecha }}</td>

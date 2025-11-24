@@ -108,7 +108,6 @@ export class RegVacunacionComponent implements OnInit{
     }
 
     crearRegistroVacunacion(paciente: any) {
-        console.log(paciente)
         this.selectedPaciente = paciente;
         this.dialogCrearVacuna = true;
         this.formSubmitted = false;
@@ -243,7 +242,7 @@ export class RegVacunacionComponent implements OnInit{
     async guardarRegistro() {
         const payload = {
             id_paciente: this.selectedPaciente.id_paciente,
-            fecha_registro: this.toIsoLocal(new Date()),
+            fecha_registro: this.obtenerFechaHoraActualFormatoIso(new Date()),
             aplica_acudiente: this.formData.aplica_acudiente === "S",
             acudiente: this.formData.aplica_acudiente === "S" ? this.formData.acudiente : null,
             num_documento_acudiente: this.formData.aplica_acudiente === "S" ? this.formData.num_doc_acudiente : null,
@@ -280,25 +279,28 @@ export class RegVacunacionComponent implements OnInit{
         setTimeout(() => this.firmaPad.reinitPad());
     }
 
-    /**
-     * Convierte una fecha a formato ISO 8601 local (YYYY-MM-DDTHH:mm:ss)
-     * @param date - Fecha a convertir (puede ser null o undefined)
-     * @returns String en formato ISO local o null si la entrada es null/undefined
-     */
-    toIsoLocal<T extends Date | null | undefined>(date: T): T extends Date ? string : null {
-        if (!date) return null as any;
-        
-        const pad = (num: number) => num.toString().padStart(2, '0');
-        
-        const year = date.getFullYear();
-        const month = pad(date.getMonth() + 1);
-        const day = pad(date.getDate());
-        const hours = pad(date.getHours());
-        const minutes = pad(date.getMinutes());
-        const seconds = pad(date.getSeconds());
-        
-        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}` as any;
-    }
+    public obtenerFechaHoraActualFormatoIso(
+        fecha: Date,
+        hora?: Date // Opcional
+    ) : string {
+        // Si el parametro de hora no se envia
+        // tomamos el valor de la fecha
+        hora = hora ?? fecha;
+
+		// Construimos a pedal la fecha en formato ISO String
+		// Ya que la función nativa nos cambia el UTC a 0
+		let fechaActualConvertida: string = 
+			fecha.getFullYear()
+			+ '-' + String(fecha.getMonth() + 1).padStart(2, '0')
+			+ '-' + String(fecha.getDate()).padStart(2, '0')
+			+ 'T' +
+			String(hora.getHours()).padStart(2, '0')
+			+ ':' + String(hora.getMinutes()).padStart(2, '0')
+			+ ':' + String(hora.getSeconds()).padStart(2, '0')
+		;
+
+		return fechaActualConvertida;
+	}
 
 
 }
