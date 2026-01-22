@@ -1,5 +1,6 @@
 .fila-hoy {
-  background-color: #d4f1ff !important; /* verde suave */
+  background-color: #d4f1ff !important;
+  /* verde suave */
   font-weight: bold;
 }
 
@@ -14,7 +15,7 @@
 .card {
   border: none;
   border-radius: 15px;
-  box-shadow: 0px 10px 20px rgba(0,0,0,0.1);
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 /* Título principal */
@@ -74,7 +75,7 @@
   background: #27AE60;
 }
 
-#progressbar li.active + li:after {
+#progressbar li.active+li:after {
   background: #27AE60;
 }
 
@@ -94,7 +95,8 @@ fieldset:first-of-type {
   text-align: left;
 }
 
-.action-button, .action-button-previous {
+.action-button,
+.action-button-previous {
   background: #27AE60;
   color: white;
   border: none;
@@ -111,10 +113,10 @@ fieldset:first-of-type {
 }
 
 .text-error-small {
-    font-size: 0.8rem; 
-    color: #e24c4c;
-    margin-top: 2px;
-    display: block;
+  font-size: 0.8rem;
+  color: #e24c4c;
+  margin-top: 2px;
+  display: block;
 }
 
 /* el propio cuadro blanco nunca tiene overflow */
@@ -123,51 +125,51 @@ fieldset:first-of-type {
 }
 
 .dashboard {
-    margin-left: 240px;
-    overflow: auto;
+  margin-left: 240px;
+  overflow: auto;
 }
 
 .signature-wrapper {
-    width: 100%;
-    height: 200px;
-    border: 1px solid #ccc;
+  width: 100%;
+  height: 200px;
+  border: 1px solid #ccc;
 }
 
 .signature-canvas {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .fullscreen-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    z-index: 9999;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 9999;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 .fullscreen-header {
-    text-align: right;
-    margin-bottom: 10px;
+  text-align: right;
+  margin-bottom: 10px;
 }
 
 .fullscreen-overlay app-signature-canvas {
-    flex: 1;
+  flex: 1;
 }
 
 
 /* Sidebar en móviles: superpuesto */
 @media (max-width: 991.98px) {
-    .dashboard {
-        margin-left: 0px;
-        overflow: auto;
-    }
+  .dashboard {
+    margin-left: 0px;
+    overflow: auto;
+  }
 
-    #dialog_registro {
-      width: 25rem;
-    }
+  #dialog_registro {
+    width: 25rem;
+  }
 }
 
 /* @media (max-width: 991.98px) {
@@ -179,10 +181,9 @@ fieldset:first-of-type {
 } */
 
 @media (max-width: 568px) {
-    ::ng-deep .p-dialog {
-        width: 24rem !important;
-        max-width: 24rem !important;
-        height: 88% !important;
-    }
+  ::ng-deep .p-dialog {
+    width: 24rem !important;
+    max-width: 24rem !important;
+    height: 88% !important;
+  }
 }
-

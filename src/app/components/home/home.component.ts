@@ -7,19 +7,21 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { ChartModule, UIChart } from 'primeng/chart';
+import { firstValueFrom } from 'rxjs';
+import { GraficaUsuario } from '../../interfaces/GraficaUsuario';
 
 @Component({
-  selector: 'app-home',
-  imports: [SidebarComponent, CommonModule, UIChart],
-  templateUrl: './home.component.html',
-  styleUrl: './home.component.css'
+    selector: 'app-home',
+    imports: [SidebarComponent, CommonModule, UIChart],
+    templateUrl: './home.component.html',
+    styleUrl: './home.component.css'
 })
-export class HomeComponent implements OnInit, OnDestroy{
+export class HomeComponent implements OnInit, OnDestroy {
 
     // @ViewChild('graficaMesActualConsultorio') chartComponent: any;
 
-    usuarioLogeado : boolean = false;
-    datosUsuario : any;
+    usuarioLogeado: boolean = false;
+    datosUsuario: any;
 
     chartData: any;
     chartOptions: any;
@@ -30,13 +32,12 @@ export class HomeComponent implements OnInit, OnDestroy{
     chartDataMesActualConsultorio: any;
     chartOptionsMesActualConsultorio: any;
 
-    private login: any;
-    private dataUser: any;
+    graficaxUsuario: any;
+
     menuVisible = false;
 
-
     constructor(
-        private loginService:LoginService,
+        private loginService: LoginService,
         public router: Router,
         private ReportesService: ReportesService
     ) {
@@ -47,9 +48,9 @@ export class HomeComponent implements OnInit, OnDestroy{
         console.log('OnInit');
         await this.cargarDatosUsuario();
 
-        this.cargarGraficaResumenMes();
-        this.cargarGraficaPolarResumenMesActual();
-        this.cargarGraficaResumenMesConsultorio();
+        // this.cargarGraficaResumenMes();
+        // this.cargarGraficaPolarResumenMesActual();
+        // this.cargarGraficaResumenMesConsultorio();
     }
 
     ngOnDestroy(): void {
@@ -78,8 +79,8 @@ export class HomeComponent implements OnInit, OnDestroy{
         this.ReportesService.obtenerReporteResumenMes().subscribe((data) => {
             const response = data;
 
-            const meses = response.map((e:any) => e.nombre_mes);
-            
+            const meses = response.map((e: any) => e.nombre_mes);
+
             const categorias = [
                 'no_aprovechables',
                 'biosanitarios',
@@ -94,16 +95,16 @@ export class HomeComponent implements OnInit, OnDestroy{
             ];
 
             const datasets = data.map((mesItem: any) => {
-            const valores = categorias.map(cat => parseFloat(mesItem[cat]));
+                const valores = categorias.map(cat => parseFloat(mesItem[cat]));
 
-            return {
-                label: mesItem.nombre_mes,
-                data: valores,
-                fill: false,
-                tension: 0.4, // líneas suavizadas
-                pointRadius: 4,
-                pointHoverRadius: 6
-                // sin color definido, Chart.js asignará automáticamente
+                return {
+                    label: mesItem.nombre_mes,
+                    data: valores,
+                    fill: false,
+                    tension: 0.4, // líneas suavizadas
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                    // sin color definido, Chart.js asignará automáticamente
                 };
             });
 
@@ -118,7 +119,7 @@ export class HomeComponent implements OnInit, OnDestroy{
                 plugins: {
                     legend: {
                         labels: {
-                        color: '#444'
+                            color: '#444'
                         }
                     }
                 },
@@ -194,7 +195,7 @@ export class HomeComponent implements OnInit, OnDestroy{
                     },
                     tooltip: {
                         callbacks: {
-                            label: function(context: any) {
+                            label: function (context: any) {
                                 return `${context.label}: ${context.parsed.r}`;
                             }
                         }
@@ -217,7 +218,7 @@ export class HomeComponent implements OnInit, OnDestroy{
                 datasets: [
                     {
                         label: `∑ total de residuos`,
-                        data: valores, 
+                        data: valores,
                         fill: false,
                         borderWidth: 1,
                         tension: 0.4,
@@ -240,7 +241,7 @@ export class HomeComponent implements OnInit, OnDestroy{
                     },
                     tooltip: {
                         callbacks: {
-                            label: function(context: any) {
+                            label: function (context: any) {
                                 return `Peso total: ${context.parsed.x}`;
                             }
                         }
@@ -277,17 +278,61 @@ export class HomeComponent implements OnInit, OnDestroy{
         });
     }
 
-    formatCategoria(cat: string): string {
-        return cat
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, l => l.toUpperCase());
+    async cargarGraficasxUsuario(): Promise<void> {
+        try {
+            const graficas = await firstValueFrom(this.ReportesService.obtenerReportesxUsuario());
+
+            this.graficaxUsuario = graficas.map((grafica: any) => {
+                console.log(grafica);
+                const categorias: string[] = grafica.configuracion?.categorias || [];
+                const datos: any[] = grafica.datos || [];
+
+                const datasets = datos.map((item: any) => ({
+                    label: item.nombre_mes,
+                    data: categorias.map(cat => Number(item?.[cat] ?? 0)),
+                    fill: false,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }));
+
+                return {
+                    ...grafica,
+                    chartData: {
+                        labels: categorias.map(cat => this.formatCategoria(cat)),
+                        datasets
+                    }
+                };
+            });
+        } catch (error) {
+            console.error('Error cargando gráficas por usuario', error);
+            this.graficaxUsuario = [];
+        }
     }
 
-    async cargarDatosUsuario(){
+    formatCategoria(cat: string): string {
+        return cat
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, l => l.toUpperCase());
+    }
+
+    async cargarDatosUsuario() {
         this.datosUsuario = {
-            "idEmpresa" : localStorage.getItem('idEmpresa'),
-            "idRol" : localStorage.getItem('idRol'),
+            "idEmpresa": localStorage.getItem('idEmpresa'),
+            "idRol": localStorage.getItem('idRol'),
             "tieneModuloRegPeso": localStorage.getItem('moduloRegPeso')
         }
+
+        await this.cargarGraficasxUsuario();
+    }
+
+    getGraficasEnFilas(): any[][] {
+        const filas: any[][] = [];
+
+        for (let i = 0; i < this.graficaxUsuario.length; i += 2) {
+            filas.push(this.graficaxUsuario.slice(i, i + 2));
+        }
+
+        return filas;
     }
 }

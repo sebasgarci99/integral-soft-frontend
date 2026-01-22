@@ -14,9 +14,9 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { HttpClientModule } from '@angular/common/http'; 
+import { HttpClientModule } from '@angular/common/http';
 import { PaginatorModule } from 'primeng/paginator';
-import { FloatLabelModule  } from 'primeng/floatlabel';
+import { FloatLabelModule } from 'primeng/floatlabel';
 import Swal from 'sweetalert2';
 import { SelectItem } from 'primeng/api';
 import { DropdownModule } from 'primeng/dropdown';
@@ -43,7 +43,7 @@ import { CalendarModule } from 'primeng/calendar';
         DropdownModule,
         ReactiveFormsModule,
         CalendarModule
-  ] ,
+    ],
     templateUrl: './vacunas.component.html',
     styleUrl: './vacunas.component.css',
     providers: [MessageService, ConfirmationService]
@@ -51,7 +51,7 @@ import { CalendarModule } from 'primeng/calendar';
 export class VacunasComponent implements OnInit {
 
     // Variable local de traducción del lenguaje de los calendar
-    local_espaniol:any = null;
+    local_espaniol: any = null;
 
     vacunas: Vacunas[] = [];
     selectedVacuna: Vacunas | null = null;
@@ -66,7 +66,7 @@ export class VacunasComponent implements OnInit {
         private vacunaService: VacunaService,
         private messageService: MessageService,
         private confirmService: ConfirmationService
-    ) {}
+    ) { }
 
     ngOnInit(): void {
         this.local_espaniol = localeEs;
@@ -86,7 +86,7 @@ export class VacunasComponent implements OnInit {
             fecha_lote: new Date(),
             fecha_vencimiento: new Date(),
             id_laboratorio: 0,
-            registro_sanitario: 0,
+            registro_sanitario: 'ABC0',
             cantidad_dosis: 0,
             estado: 'A',
             id_empresa: 0,   // backend lo puede rellenar
@@ -101,7 +101,7 @@ export class VacunasComponent implements OnInit {
     }
 
     cargarLaboratorios() {
-         this.vacunaService.obtenerLaboratorios().subscribe((data) => {
+        this.vacunaService.obtenerLaboratorios().subscribe((data) => {
             this.laboratorios = data;
         });
     }
@@ -114,10 +114,10 @@ export class VacunasComponent implements OnInit {
 
     editarVacuna(vacuna: Vacunas) {
         this.isEdit = true;
-        this.formData = { 
+        this.formData = {
             ...vacuna,
-            fecha_lote: new Date(vacuna.fecha_lote+"T00:00:00"),
-            fecha_vencimiento: new Date(vacuna.fecha_vencimiento+"T00:00:00")
+            fecha_lote: new Date(vacuna.fecha_lote + "T00:00:00"),
+            fecha_vencimiento: new Date(vacuna.fecha_vencimiento + "T00:00:00")
         };
         this.displayDialog = true;
     }

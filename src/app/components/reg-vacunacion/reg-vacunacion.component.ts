@@ -1,4 +1,4 @@
-import { Component  } from '@angular/core';
+import { Component } from '@angular/core';
 import { OnInit } from '@angular/core';
 import { ViewChild } from '@angular/core';
 
@@ -21,7 +21,7 @@ import { Tag } from 'primeng/tag';
 import { MultiSelect } from 'primeng/multiselect';
 import { RadioButton } from 'primeng/radiobutton'
 
-import { jsPDF } from "jspdf"; 
+import { jsPDF } from "jspdf";
 
 import { ConfirmationService, MenuItem, MessageService, SelectItem } from 'primeng/api';
 import { SignatureCanvasComponent } from '../../utils/signature-canvas.component';
@@ -58,7 +58,7 @@ import { VacunaService } from '../../services/vacunas/vacuna.service';
     styleUrl: './reg-vacunacion.component.css',
     providers: [MessageService, ConfirmationService]
 })
-export class RegVacunacionComponent implements OnInit{
+export class RegVacunacionComponent implements OnInit {
 
     @ViewChild('firmaPad') firmaPad!: SignatureCanvasComponent;
     @ViewChild('firmaPadFull') firmaPadFull!: SignatureCanvasComponent;
@@ -75,12 +75,18 @@ export class RegVacunacionComponent implements OnInit{
     dialogCrearVacuna: boolean = false;
     selectedPaciente: any = null;
     listaVacunas: any[] = [];
+    vacunasSeleccionadas: any[] = [];
 
     formSubmitted = false;
     firmaOK = false;
 
     formData = {
-        vacunas: [] as number[],
+        vacunas: [] as {
+            id_vacuna: number;
+            nombre_vacuna: string;
+            dosis: number;
+            cant_dosis_max: number;
+        }[],
         aplica_acudiente: "N",
         acudiente: "",
         num_doc_acudiente: "",
@@ -94,7 +100,7 @@ export class RegVacunacionComponent implements OnInit{
         private vacunaService: VacunaService,
         private confirmService: ConfirmationService,
         private messageService: MessageService
-    ) {}
+    ) { }
 
     ngOnInit() {
         this.cargarPacientes();
@@ -114,11 +120,16 @@ export class RegVacunacionComponent implements OnInit{
         this.firmaOK = false;
 
         this.formData = {
-            vacunas: [],
+            vacunas: [] as {
+                id_vacuna: number;
+                nombre_vacuna: string;
+                dosis: number;
+                cant_dosis_max: number;
+            }[],
             aplica_acudiente: "N",
             acudiente: "",
             num_doc_acudiente: "",
-            firma: null 
+            firma: null
         };
 
         setTimeout(() => {
@@ -172,7 +183,7 @@ export class RegVacunacionComponent implements OnInit{
         };
 
         await doc.html(
-            div, 
+            div,
             {
                 x: margins.left,
                 y: margins.top,
@@ -181,7 +192,7 @@ export class RegVacunacionComponent implements OnInit{
                 },
                 autoPaging: 'text', // fuerza saltos de página automáticos
                 callback: (doc) => {
-                    doc.save(`ConsentimientoInformado_${htmlString.id_consentimiento}.pdf`); 
+                    doc.save(`ConsentimientoInformado_${htmlString.id_consentimiento}.pdf`);
                     document.body.removeChild(div); //  limpiar
                 }
             }
@@ -194,7 +205,7 @@ export class RegVacunacionComponent implements OnInit{
             // Obtiene solo el base64 (sin el prefijo data:image/png;base64)
             this.formData.firma = this.firmaPad.toDataBase64();
             console.log('Base64 puro:', this.formData.firma);
-            
+
             // Si necesitas reconstruir el dataURL completo después:
             const fullDataUrl = `data:image/png;base64,${this.formData.firma}`;
             this.firmaOK = true;
@@ -202,7 +213,7 @@ export class RegVacunacionComponent implements OnInit{
     }
 
     guardarFirmaFull(): void {
-        if(this.firmaPadFull && !this.firmaPadFull.isEmpty()) {
+        if (this.firmaPadFull && !this.firmaPadFull.isEmpty()) {
             this.formData.firma = this.firmaPadFull.toDataBase64();
             this.firmaPad.fromDataBase64(this.firmaPadFull.toDataBase64());
             this.firmaOK = true;
@@ -212,10 +223,14 @@ export class RegVacunacionComponent implements OnInit{
 
     botonGuardarHabilitado() {
         if (this.formData.vacunas.length === 0) return false;
+        if (this.formData.vacunas.some(v => v.dosis > v.cant_dosis_max)) return false;
         if (!this.formData.firma) return false;
+
         if (this.formData.aplica_acudiente === "S") {
-            if (!this.formData.acudiente || !this.formData.num_doc_acudiente) return false;
+            if (!this.formData.acudiente || !this.formData.num_doc_acudiente)
+                return false;
         }
+
         return true;
     }
 
@@ -224,10 +239,9 @@ export class RegVacunacionComponent implements OnInit{
 
         if (!this.botonGuardarHabilitado()) return;
 
-        const vacunasNombres = this.listaVacunas
-            .filter(v => this.formData.vacunas.includes(v.id))
-            .map(v => v.nombre_vacuna)
-            .join(", ");
+        const vacunasNombres = this.formData.vacunas
+            .map(v => `${v.nombre_vacuna} - ${this.obtenerTextoDosis(v.dosis, v.cant_dosis_max)}`)
+            .join(', ');
 
         this.confirmService.confirm({
             message: `¿Confirmas que deseas registrar las vacunas: <b>${vacunasNombres}</b>?`,
@@ -247,9 +261,10 @@ export class RegVacunacionComponent implements OnInit{
             acudiente: this.formData.aplica_acudiente === "S" ? this.formData.acudiente : null,
             num_documento_acudiente: this.formData.aplica_acudiente === "S" ? this.formData.num_doc_acudiente : null,
             estado: "A",
-            vacunas_aplicadas: [
-                { id_vacuna: this.formData.vacunas }
-            ],
+            vacunas_aplicadas: this.formData.vacunas.map(v => ({
+                id_vacuna: v.id_vacuna,
+                dosis_aplicada: v.dosis
+            })),
             firma_usuario_acudiente: this.formData.firma
         };
 
@@ -282,25 +297,81 @@ export class RegVacunacionComponent implements OnInit{
     public obtenerFechaHoraActualFormatoIso(
         fecha: Date,
         hora?: Date // Opcional
-    ) : string {
+    ): string {
         // Si el parametro de hora no se envia
         // tomamos el valor de la fecha
         hora = hora ?? fecha;
 
-		// Construimos a pedal la fecha en formato ISO String
-		// Ya que la función nativa nos cambia el UTC a 0
-		let fechaActualConvertida: string = 
-			fecha.getFullYear()
-			+ '-' + String(fecha.getMonth() + 1).padStart(2, '0')
-			+ '-' + String(fecha.getDate()).padStart(2, '0')
-			+ 'T' +
-			String(hora.getHours()).padStart(2, '0')
-			+ ':' + String(hora.getMinutes()).padStart(2, '0')
-			+ ':' + String(hora.getSeconds()).padStart(2, '0')
-		;
+        // Construimos a pedal la fecha en formato ISO String
+        // Ya que la función nativa nos cambia el UTC a 0
+        let fechaActualConvertida: string =
+            fecha.getFullYear()
+            + '-' + String(fecha.getMonth() + 1).padStart(2, '0')
+            + '-' + String(fecha.getDate()).padStart(2, '0')
+            + 'T' +
+            String(hora.getHours()).padStart(2, '0')
+            + ':' + String(hora.getMinutes()).padStart(2, '0')
+            + ':' + String(hora.getSeconds()).padStart(2, '0')
+            ;
 
-		return fechaActualConvertida;
-	}
+        return fechaActualConvertida;
+    }
 
+    onVacunasChange(event: any) {
+        const seleccionadas = event.value;
+
+        this.formData.vacunas = seleccionadas.map((v: any) => {
+            const existente = this.formData.vacunas.find(
+                x => x.id_vacuna === v.id
+            );
+
+            // En caso de que la cantidad de dosis parametrizada sea 1,
+            // se asigna 1 como valor por defecto
+            // Y se inactiva el campo de dosis
+            return existente ?? {
+                id_vacuna: v.id,
+                nombre_vacuna: v.nombre_vacuna,
+                dosis: v.cantidad_dosis == 1 ? 1 : v.dosis,
+                cant_dosis_max: v.cantidad_dosis
+            };
+        });
+    }
+
+    obtenerTextoDosis(dosis: number, cant_dosis_max: number): string {
+        switch (dosis) {
+            case 1: return cant_dosis_max == 1 ? 'única dosis' : 'primera dosis';
+            case 2: return 'segunda dosis';
+            case 3: return 'tercera dosis';
+            case 4: return 'cuarta dosis';
+            case 5: return 'quinta dosis';
+            case 6: return 'sexta dosis';
+            case 7: return 'septima dosis';
+            case 8: return 'octava dosis';
+            case 9: return 'novena dosis';
+            case 10: return 'decima dosis';
+            default: return `${dosis}ª dosis`;
+        }
+    }
+
+    resetFormularioVacunacion() {
+        this.formSubmitted = false;
+        this.firmaOK = false;
+
+        this.formData = {
+            vacunas: [],
+            aplica_acudiente: 'N',
+            acudiente: '',
+            num_doc_acudiente: '',
+            firma: null
+        };
+
+        this.vacunasSeleccionadas = [];
+        this.selectedPaciente = null;
+
+        // Limpia la firma
+        if (this.firmaPad) {
+            this.firmaPad.clear();
+        }
+    }
 
 }
