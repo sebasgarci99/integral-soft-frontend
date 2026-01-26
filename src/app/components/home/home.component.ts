@@ -280,21 +280,39 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     async cargarGraficasxUsuario(): Promise<void> {
         try {
-            const graficas = await firstValueFrom(this.ReportesService.obtenerReportesxUsuario());
+            const graficas = await firstValueFrom(
+                this.ReportesService.obtenerReportesxUsuario()
+            );
 
             this.graficaxUsuario = graficas.map((grafica: any) => {
-                console.log(grafica);
-                const categorias: string[] = grafica.configuracion?.categorias || [];
-                const datos: any[] = grafica.datos || [];
 
-                const datasets = datos.map((item: any) => ({
-                    label: item.nombre_mes,
-                    data: categorias.map(cat => Number(item?.[cat] ?? 0)),
-                    fill: false,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointHoverRadius: 6
-                }));
+                const config = grafica.configuracion || {};
+                const categorias: string[] = config.categorias || [];
+                let datos: any[] = [];
+
+                if (Array.isArray(grafica.datos)) {
+                    if (typeof grafica.datos[0] === 'number') {
+                        datos = [{ total_pacientes: grafica.datos[0] }];
+                    } else {
+                        datos = grafica.datos;
+                    }
+                }
+
+                const isSingleDataset = ['polarArea', 'doughnut'].includes(
+                    config.chartType
+                );
+
+                const datasets = isSingleDataset
+                    ? [{
+                        data: categorias.map(cat => Number(datos[0]?.[cat] ?? 0))
+                    }]
+                    : datos.map((item: any, index: number) => ({
+                        label: this.resolveDatasetLabel(item, index, grafica),
+                        data: categorias.map(cat => Number(item?.[cat] ?? 0)),
+                        fill: false,
+                        tension: 0.4,
+                        pointRadius: 4
+                    }));
 
                 return {
                     ...grafica,
@@ -304,11 +322,13 @@ export class HomeComponent implements OnInit, OnDestroy {
                     }
                 };
             });
+
         } catch (error) {
             console.error('Error cargando gráficas por usuario', error);
             this.graficaxUsuario = [];
         }
     }
+
 
     formatCategoria(cat: string): string {
         return cat
@@ -334,5 +354,20 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
 
         return filas;
+    }
+
+    private resolveDatasetLabel(
+        item: any,
+        index: number,
+        grafica: any
+    ): string {
+
+        const labelField = grafica?.configuracion?.labelField;
+
+        if (labelField && item?.[labelField] !== undefined) {
+            return String(item[labelField]);
+        }
+
+        return `Serie ${index + 1}`;
     }
 }

@@ -187,4 +187,58 @@ export class ReportesService {
             map(resp => resp.body.graficas)
         );
     }
+
+    /* ─────────────────────────────────────────────
+        LISTAR (GET) ─ getReporteVacunacion
+    ───────────────────────────────────────────── */
+    obtenerReporteVacunacion(
+        fechaInicio: Date,
+        fechaFin: Date,
+        paciente: number | null
+    ): Observable<any[]> {
+
+        const token = localStorage.getItem('token')
+
+        const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        const body = {
+            fecha_inicio: fechaInicio,
+            fecha_fin: fechaFin,
+            paciente: paciente
+        };
+
+        return this.http.post<any>(
+            `${this.urlApp}${this.urlAppAPI}getReporteVacunacion`,
+            body,
+            { headers }
+        ).pipe(
+            map(resp => resp.body)
+        );
+    }
+
+    /* ─────────────────────────────────────────────
+        LISTAR (GET) ─ getReporteVacunasAplicadas
+    ───────────────────────────────────────────── */
+    obtenerReporteVacunasAplicadas(
+        fechaInicio: Date,
+        fechaFin: Date,
+        vacuna: number | null
+    ): Observable<any[]> {
+
+        const token = localStorage.getItem('token')
+
+        const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        const body = {
+            fecha_inicio: fechaInicio,
+            fecha_fin: fechaFin,
+            idVacuna: vacuna
+        };
+
+        return this.http.post<any>(
+            `${this.urlApp}${this.urlAppAPI}getReporteVacunasAplicadas`,
+            body,
+            { headers }
+        ).pipe(
+            map(resp => resp.body)
+        );
+    }
 }

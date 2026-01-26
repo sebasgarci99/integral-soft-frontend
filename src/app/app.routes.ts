@@ -12,14 +12,15 @@ import { ReportesComponent } from './components/reportes/reportes.component';
 import { VacunasComponent } from './components/vacunas/vacunas.component';
 import { PacientesComponent } from './components/pacientes/pacientes.component';
 import { RegVacunacionComponent } from './components/reg-vacunacion/reg-vacunacion.component';
+import { ReportesVacunacionComponent } from './components/reportes-vacunacion/reportes-vacunacion.component';
 
 export const routes: Routes = [
     {
         path: '', redirectTo: '/login', pathMatch: 'full'
     },
     {
-        path: 'login',  component: LoginComponent
-    }, 
+        path: 'login', component: LoginComponent
+    },
     {
         path: 'navbar', component: NavbarComponent, canActivate: [
             authGuard
@@ -62,6 +63,11 @@ export const routes: Routes = [
     },
     {
         path: 'reg_vacunacion', component: RegVacunacionComponent, canActivate: [
+            authGuard
+        ]
+    },
+    {
+        path: 'reportes_vacunacion', component: ReportesVacunacionComponent, canActivate: [
             authGuard
         ]
     }

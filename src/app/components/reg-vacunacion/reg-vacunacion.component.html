@@ -117,7 +117,7 @@
                             <span class="ms-2 me-2 mt-2"> <b>| Dosis a aplicar: </b></span>
 
                             <input type="number" min="1" [max]="vacuna.cant_dosis_max" [(ngModel)]="vacuna.dosis"
-                                class="p-inputtext p-component w-3rem" value="vacuna.dosis"
+                                class="p-inputtext p-component input-dosis" value="vacuna.dosis"
                                 [disabled]="vacuna.cant_dosis_max === 1" />
 
                             <small class="p-error text-error-small mt-2" *ngIf="vacuna.dosis > vacuna.cant_dosis_max">

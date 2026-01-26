@@ -1,22 +1,13 @@
 import {
-  Tooltip,
-  TooltipModule
-} from "./chunk-WXX3KDPU.js";
-import "./chunk-YW6KHY3T.js";
-import {
-  ActivatedRoute,
-  Router,
-  RouterLink,
-  RouterLinkActive,
-  RouterModule
-} from "./chunk-W4FFGZCF.js";
-import "./chunk-PKCPSCCD.js";
-import "./chunk-572L46WW.js";
-import "./chunk-YGJSNMBY.js";
-import {
   Badge,
   BadgeModule
 } from "./chunk-O5W2GOEH.js";
+import {
+  Tooltip,
+  TooltipModule
+} from "./chunk-UJRKTLXE.js";
+import "./chunk-GL4OBHJR.js";
+import "./chunk-5G7WYC4N.js";
 import {
   Ripple
 } from "./chunk-QJ77MDHF.js";
@@ -24,7 +15,6 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon
 } from "./chunk-YNUSVDCH.js";
-import "./chunk-5G7WYC4N.js";
 import {
   BaseComponent
 } from "./chunk-MGJFNUHH.js";
@@ -42,6 +32,16 @@ import {
   getWidth,
   resolve
 } from "./chunk-HXFYGQUB.js";
+import {
+  ActivatedRoute,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterModule
+} from "./chunk-W4FFGZCF.js";
+import "./chunk-PKCPSCCD.js";
+import "./chunk-572L46WW.js";
+import "./chunk-YGJSNMBY.js";
 import {
   CommonModule,
   NgClass,

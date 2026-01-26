@@ -186,4 +186,8 @@ fieldset:first-of-type {
     max-width: 24rem !important;
     height: 88% !important;
   }
+
+  .input-dosis {
+    width: 10%;
+  }
 }
