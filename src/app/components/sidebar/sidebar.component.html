@@ -3,20 +3,22 @@
     <!-- Agrega justo dentro del <nav> o al inicio de <div class="position-sticky"> -->
     <div class="d-lg-none d-flex justify-content-end px-3">
         <button class="btn my-1" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-            <i class="fa fa-times"></i> 
+            <i class="fa fa-times"></i>
         </button>
     </div>
     <div class="position-sticky">
         <div class="text-center">
             <a routerLink="/home" routerLinkActive="active">
-                <img src="logo.png" alt="Login logo" class="img-fluid w-50" />
+                <img src="logo.png" alt="Login logo" class="img-fluid w-75"
+                    style="transform: scale(1.4); margin-top: 1vh;" />
             </a>
         </div>
         <hr />
         <ul class="nav flex-column mb-auto px-3">
             <ng-container *ngFor="let item of datosUsuario.modulos">
                 <li class="nav-item">
-                    <a class="nav-link text-dark" [routerLink]="item.ruta" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+                    <a class="nav-link text-dark" [routerLink]="item.ruta" routerLinkActive="active"
+                        [routerLinkActiveOptions]="{ exact: true }">
                         <i [class]="item.icono"></i> {{ item.modulo }}
                     </a>
                 </li>
@@ -44,13 +46,15 @@
             <a class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle" id="dropdownUser1"
                 data-bs-toggle="dropdown" aria-expanded="false">
                 <!-- <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2" /> -->
-                <img [src]="logo" alt="" width="32" height="32" class="rounded-circle me-2" /> 
+                <img [src]="logo" alt="" width="32" height="32" class="rounded-circle me-2" />
                 <strong>{{ datosUsuario.nombre_completo }}</strong>
             </a>
             <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
                 <!-- <li><a class="dropdown-item" href="#">Perfil</a></li> -->
                 <li><a class="dropdown-item" *ngIf="datosUsuario.id_rol == '1'" href="#">Ajustes</a></li>
-                <li><hr class="dropdown-divider" /></li>
+                <li>
+                    <hr class="dropdown-divider" />
+                </li>
                 <li><a class="dropdown-item" (click)="cerrarSesion()">Salir</a></li>
             </ul>
         </div>

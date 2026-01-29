@@ -1,59 +1,50 @@
 <div class="login-container d-flex align-items-center justify-content-center">
     <div class="card login-card shadow-lg p-0">
         <div class="row g-0">
-        <div class="col-md-5 d-none d-md-flex align-items-center justify-content-center login-image-container">
-            <img src="img-login2.JPG" alt="Login image" class="img-fluid rounded-start login-image" />
-        </div>
-
-        <div class="col-md-7 d-flex align-items-center justify-content-center login-form-container">
-            <div class="card-body p-5 w-100">
-            <div class="text-center mb-2">
-                <img src="logo.png" alt="Login logo" class="rounded-start h-auto w-100" />
+            <div class="col-md-7 d-none d-md-flex align-items-center justify-content-center login-image-container">
+                <img src="img-login2.JPG" alt="Login image" class="img-fluid rounded-start login-image" />
             </div>
-            <form [formGroup]="formLogin">
-                <div class="mb-4 input-group">
-                    <span class="input-group-text bg-dark border-secondary text-light">
-                        <i class="fas fa-user"></i>
-                    </span>
-                    <input
-                        type="text"
-                        id="emailInput"
-                        class="form-control form-control-lg login-input"
-                        placeholder="Correo electrónico o usuario"
-                        name="email"
-                        formControlName="username"
-                        required
-                    />
-                    <div class="invalid-feedback d-block" *ngIf="formLogin.get('username')?.invalid && formLogin.get('username')?.touched">
-                        Nombre de usuario inválido (solo correos electrónicos o letras, números y guiones bajos).
-                    </div>
-                </div>
 
-                <div class="mb-4 input-group">
-                    <span class="input-group-text bg-dark border-secondary text-light">
-                        <i class="fas fa-lock"></i>
-                    </span>
-                    <input
-                        type="password"
-                        id="passwordInput"
-                        class="form-control form-control-lg login-input"
-                        placeholder="Contraseña"
-                        name="password"
-                        formControlName="password"
-                        required
-                    />
-                    <div class="invalid-feedback d-block" *ngIf="formLogin.get('password')?.invalid && formLogin.get('password')?.touched">
-                        Contraseña inválida (mínimo 6 caracteres, sin símbolos especiales peligrosos).
+            <div class="col-md-5 d-flex align-items-center justify-content-center login-form-container">
+                <div class="card-body p-5 w-100">
+                    <div class="text-center mb-2">
+                        <img src="logo.png" alt="Login logo" class="login-logo" />
                     </div>
+                    <form [formGroup]="formLogin">
+                        <div class="mb-4 input-group">
+                            <span class="input-group-text bg-dark border-secondary text-light">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <input type="text" id="emailInput" class="form-control form-control-lg login-input"
+                                placeholder="Correo electrónico o usuario" name="email" formControlName="username"
+                                required />
+                            <div class="invalid-feedback d-block"
+                                *ngIf="formLogin.get('username')?.invalid && formLogin.get('username')?.touched">
+                                Nombre de usuario inválido (solo correos electrónicos o letras, números y guiones
+                                bajos).
+                            </div>
+                        </div>
+
+                        <div class="mb-4 input-group">
+                            <span class="input-group-text bg-dark border-secondary text-light">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" id="passwordInput" class="form-control form-control-lg login-input"
+                                placeholder="Contraseña" name="password" formControlName="password" required />
+                            <div class="invalid-feedback d-block"
+                                *ngIf="formLogin.get('password')?.invalid && formLogin.get('password')?.touched">
+                                Contraseña inválida (mínimo 6 caracteres, sin símbolos especiales peligrosos).
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2 mb-4">
+                            <button type="submit" class="btn btn-turquoise btn-lg login-button"
+                                (click)="iniciarSesion()">
+                                <i class="fas fa-sign-in-alt me-2"></i> Iniciar
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <div class="d-grid gap-2 mb-4">
-                    <button type="submit" class="btn btn-turquoise btn-lg login-button" (click)="iniciarSesion()">
-                        <i class="fas fa-sign-in-alt me-2"></i> Iniciar
-                    </button>
-                </div>
-            </form>
             </div>
-        </div>
         </div>
     </div>
 </div>

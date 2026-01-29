@@ -1,4 +1,13 @@
 /* CSS ACTUALIZADO */
+.login-logo {
+  max-width: 320px;
+  /* controla el tamaño real */
+  width: 100%;
+  height: auto;
+  margin: 0 auto 10px;
+  display: block;
+  transform: scale(1.5);
+}
 
 .login-container {
   min-height: 100vh;
@@ -7,7 +16,7 @@
 }
 
 .login-card {
-  max-width: 900px;
+  max-width: 120vh;
   width: 100%;
   border-radius: 1rem;
   overflow: hidden;
@@ -18,7 +27,7 @@
 .login-image-container {
   background-color: #343a40;
   display: flex;
-  align-items: center;
+  align-items: c enter;
   justify-content: center;
   padding: 0;
 }
@@ -102,7 +111,8 @@
   .login-image-container {
     display: none;
   }
+
+  .login-logo {
+    max-width: 240px;
+  }
 }
-
-
-

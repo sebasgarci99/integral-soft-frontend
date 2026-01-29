@@ -1,12 +1,12 @@
 import {
-  Badge,
-  BadgeModule
-} from "./chunk-O5W2GOEH.js";
-import {
   Tooltip,
   TooltipModule
 } from "./chunk-UJRKTLXE.js";
 import "./chunk-GL4OBHJR.js";
+import {
+  Badge,
+  BadgeModule
+} from "./chunk-O5W2GOEH.js";
 import "./chunk-5G7WYC4N.js";
 import {
   Ripple

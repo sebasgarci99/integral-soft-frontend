@@ -1,0 +1,141 @@
+<!-- Header mobile -->
+<div class="d-lg-none d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
+    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+        <i class="fa fa-list"></i>
+    </button>
+</div>
+
+<div class="d-flex">
+    <app-sidebar></app-sidebar>
+
+    <div class="flex-grow-1 p-4 dashboard">
+        <div class="card mt-2">
+            <div class="card-body">
+
+                <div class="flex justify-content-between mb-3">
+                    <h3 class="text-center">Registro de Temperatura</h3>
+                    <p-button label="Nuevo registro" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" />
+                </div>
+
+                <div class="flex justify-content-end mb-2">
+                    <input #gbInput pInputText type="text" (input)="tabla.filterGlobal(gbInput.value, 'contains')"
+                        placeholder="Buscar..." />
+                </div>
+
+                <!-- Tabla -->
+                <p-table #tabla [value]="registros" [paginator]="true" [rows]="10" responsiveLayout="scroll"
+                    [globalFilterFields]="['area','responsable','horario','tipo_medida']">
+
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Área</th>
+                            <th>Responsable</th>
+                            <th>Fecha</th>
+                            <th>Horario</th>
+                            <th>Temperatura (°C)</th>
+                            <th>Humedad (%)</th>
+                            <th>Tipo medida</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-row>
+                        <tr>
+                            <td>{{ row.area }}</td>
+                            <td>{{ row.responsable }}</td>
+                            <td>{{ row.fecha_registro | date:'dd-MM-yyyy' }}</td>
+                            <td>{{ row.horario }}</td>
+                            <td>{{ row.temperatura }}</td>
+                            <td>{{ row.humedad }}</td>
+                            <td>{{ row.tipo_medida }}</td>
+                            <td>
+                                <p-button icon="fa fa-trash" class="p-button-text p-button-sm"
+                                    (onClick)="eliminarRegistro(row.id_registro)" />
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                </p-table>
+
+                <p-dialog header="Nuevo registro de temperatura" [(visible)]="displayDialog" [modal]="true"
+                    [style]="{ width: '32rem' }" [draggable]="false" appendTo="body">
+
+                    <!-- FORMULARIO -->
+                    <form #registroForm="ngForm" novalidate>
+
+                        <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
+
+                            <!-- Área / Responsable -->
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <p-floatlabel variant="on" class="col-lg-6 md:col-12 mt-3 me-2">
+                                    <input pInputText name="area" [(ngModel)]="formData.area" required />
+                                    <label>Área</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-lg-6 md:col-12 mt-3 me-2">
+                                    <input pInputText name="responsable" [(ngModel)]="formData.responsable" required />
+                                    <label>Responsable</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <!-- Fecha / Horario -->
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <p-floatlabel variant="on" class="col-lg-6 md:col-12 mt-3 me-2">
+                                    <p-calendar name="fecha" [(ngModel)]="formData.fecha" required [showTime]="true"
+                                        hourFormat="24" dateFormat="yy-mm-dd" appendTo="body"
+                                        (ngModelChange)="definirHorarioPorHora($event)">
+                                    </p-calendar>
+                                    <label>Fecha</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-lg-6 md:col-12 mt-3 me-2">
+                                    <p-dropdown name="horario" [(ngModel)]="formData.horario" [options]="horarios"
+                                        optionLabel="label" optionValue="value" required [disabled]="true">
+                                    </p-dropdown>
+                                </p-floatlabel>
+                            </div>
+
+                            <!-- Temperatura / Humedad -->
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <p-floatlabel variant="on" class="col-lg-6 md:col-12 mt-3 me-2">
+                                    <input type="number" pInputText name="temperatura"
+                                        [(ngModel)]="formData.temperatura" required />
+                                    <label>Temperatura (°C)</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-lg-6 md:col-12 mt-3 me-2">
+                                    <input type="number" pInputText name="humedad" [(ngModel)]="formData.humedad"
+                                        required />
+                                    <label>Humedad (%)</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <!-- Tipo medida -->
+                            <p-floatlabel variant="on" class="col-lg-5 md:col-8 mt-3 me-4">
+                                <input pInputText name="tipo_medida" [(ngModel)]="formData.tipo_medida" required />
+                                <label>Tipo de medida</label>
+                            </p-floatlabel>
+
+                        </div>
+                    </form>
+
+                    <!-- FOOTER (FUERA DEL FORM) -->
+                    <ng-template pTemplate="footer">
+                        <div class="flex justify-content-end gap-2">
+                            <p-button label="Cancelar" severity="secondary" icon="fa fa-times"
+                                (onClick)="cerrarDialog()" class="me-2" />
+
+                            <p-button label="Guardar" severity="info" icon="fa fa-check"
+                                [disabled]="registroForm.invalid" (onClick)="guardarRegistro()" />
+                        </div>
+                    </ng-template>
+
+                </p-dialog>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

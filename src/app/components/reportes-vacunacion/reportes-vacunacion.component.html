@@ -52,9 +52,17 @@
                                 </p-dropdown>
                             </div>
 
-                            <div class="col-12 col-md-2 d-flex align-items-end">
-                                <button pButton label="Generar" icon="fa-solid fa-search" class="w-100"
+                            <div class="col-12 col-md-2 d-flex gap-2 align-items-end">
+                                <button pButton icon="fa-solid fa-search" class="w-100" label="Generar"
                                     (click)="generarReportePacientes()">
+                                </button>
+
+                                <button pButton icon="fa-solid fa-file-excel" class="p-button-success"
+                                    [disabled]="!anioGrupos.length" (click)="exportarPacientesExcel()">
+                                </button>
+
+                                <button pButton icon="fa-solid fa-file-pdf" class="p-button-danger"
+                                    [disabled]="!anioGrupos.length" (click)="exportarPacientesPdf()">
                                 </button>
                             </div>
 
@@ -199,9 +207,17 @@
                                 </p-dropdown>
                             </div>
 
-                            <div class="col-12 col-md-2 d-flex align-items-end">
+                            <div class="col-12 col-md-2 d-flex gap-2 align-items-end">
                                 <button pButton label="Generar" icon="fa-solid fa-search" class="w-100"
                                     (click)="generarReporteVacunacion()">
+                                </button>
+
+                                <button pButton icon="fa-solid fa-file-excel" class="p-button-success"
+                                    [disabled]="!vacunacionAnios.length" (click)="exportarVacunacionExcel()">
+                                </button>
+
+                                <button pButton icon="fa-solid fa-file-pdf" class="p-button-danger"
+                                    [disabled]="!vacunacionAnios.length" (click)="exportarVacunacionPdf()">
                                 </button>
                             </div>
 
