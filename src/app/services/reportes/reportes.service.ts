@@ -192,8 +192,8 @@ export class ReportesService {
         LISTAR (GET) ─ getReporteVacunacion
     ───────────────────────────────────────────── */
     obtenerReporteVacunacion(
-        fechaInicio: Date,
-        fechaFin: Date,
+        fechaInicio: String,
+        fechaFin: String,
         paciente: number | null
     ): Observable<any[]> {
 
@@ -219,8 +219,8 @@ export class ReportesService {
         LISTAR (GET) ─ getReporteVacunasAplicadas
     ───────────────────────────────────────────── */
     obtenerReporteVacunasAplicadas(
-        fechaInicio: Date,
-        fechaFin: Date,
+        fechaInicio: String,
+        fechaFin: String,
         vacuna: number | null
     ): Observable<any[]> {
 

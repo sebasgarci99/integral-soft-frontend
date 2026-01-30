@@ -14,6 +14,8 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { CalendarModule } from 'primeng/calendar';
 import { DropdownModule } from 'primeng/dropdown';
 
+import { ChartModule } from 'primeng/chart';
+
 import { RegistroTemperaturaService } from '../../services/reg-temperatura/reg-temperatura.service';
 
 @Component({
@@ -31,7 +33,8 @@ import { RegistroTemperaturaService } from '../../services/reg-temperatura/reg-t
         ConfirmDialogModule,
         FloatLabelModule,
         CalendarModule,
-        DropdownModule
+        DropdownModule,
+        ChartModule
     ],
     templateUrl: './reg-temperatura.component.html',
     styleUrl: './reg-temperatura.component.css',
@@ -46,15 +49,98 @@ export class RegTemperaturaComponent implements OnInit {
 
     horarios: any[] = [];
 
+    chartData: any;
+    chartOptions: any;
+
+    registrosMesActual: any[] = [];
+
     constructor(
         private registroService: RegistroTemperaturaService,
         private messageService: MessageService,
         private confirmService: ConfirmationService
     ) { }
 
-    ngOnInit(): void {
-        this.cargarRegistros();
+    async ngOnInit() {
+        await this.cargarRegistros();
         this.cargarHorarios();
+    }
+
+    async cargarRegistrosMesActualGrafica() {
+        const hoy = new Date();
+        const mesActual = hoy.getMonth();
+        const anioActual = hoy.getFullYear();
+
+        // 1️⃣ Filtrar mes actual
+        this.registrosMesActual = this.registros
+            .filter(r => {
+                const fecha = new Date(r.fecha_registro);
+                return (
+                    fecha.getMonth() === mesActual &&
+                    fecha.getFullYear() === anioActual
+                );
+            })
+            // 2️⃣ Ordenar por fecha ascendente
+            .sort((a, b) =>
+                new Date(a.fecha_registro).getTime() - new Date(b.fecha_registro).getTime()
+            );
+
+        // 3️⃣ Construir gráfica
+        this.construirGrafica();
+    }
+
+    construirGrafica() {
+        const labels: string[] = [];
+        const temperaturas: number[] = [];
+
+        this.registrosMesActual.forEach(r => {
+            const fecha = new Date(r.fecha_registro);
+
+            const dia = fecha.getDate().toString().padStart(2, '0');
+            const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+            const anio = fecha.getFullYear();
+
+            labels.push(`${dia}/${mes}/${anio} - ${r.horario}`);
+            temperaturas.push(Number(r.temperatura));
+        });
+
+        console.log(labels);
+        console.log(temperaturas);
+
+        this.chartData = {
+            labels,
+            datasets: [
+                {
+                    label: 'Temperatura (°C)',
+                    data: temperaturas,
+                    fill: false,
+                    tension: 0 // Sin curvas
+                }
+            ]
+        };
+
+        this.chartOptions = {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Temperatura (°C)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Fecha'
+                    }
+                }
+            }
+        };
     }
 
     cargarHorarios() {
@@ -81,9 +167,12 @@ export class RegTemperaturaComponent implements OnInit {
         this.formData = this.resetForm();
     }
 
-    cargarRegistros() {
-        this.registroService.obtenerRegistros().subscribe((res) => {
+    async cargarRegistros() {
+        await this.registroService.obtenerRegistros().subscribe((res) => {
             this.registros = res;
+
+            // Cargamos los registros del mes actual para la gráfica
+            this.cargarRegistrosMesActualGrafica();
         });
     }
 

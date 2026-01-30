@@ -13,13 +13,22 @@
             <div class="card-body">
 
                 <div class="flex justify-content-between mb-3">
-                    <h3 class="text-center">Registro de Temperatura</h3>
-                    <p-button label="Nuevo registro" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" />
+                    <h3 class="text-center">Registro de toma de temperatura</h3>
                 </div>
 
-                <div class="flex justify-content-end mb-2">
-                    <input #gbInput pInputText type="text" (input)="tabla.filterGlobal(gbInput.value, 'contains')"
-                        placeholder="Buscar..." />
+                <!-- GRÁFICA -->
+                <div class="mb-2 col-12 w-75 mx-auto">
+                    <p-chart type="line" [data]="chartData" [options]="chartOptions"></p-chart>
+                </div>
+                <hr>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <!-- Botón izquierda -->
+                    <p-button label="Nuevo registro" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()">
+                    </p-button>
+
+                    <!-- Buscador derecha -->
+                    <input #gbInput pInputText type="text" class="ms-auto" placeholder="Buscar..."
+                        (input)="tabla.filterGlobal(gbInput.value, 'contains')" />
                 </div>
 
                 <!-- Tabla -->

@@ -104,8 +104,8 @@ export class ReportesVacunacionComponent {
 
         try {
             this.reportesService.obtenerReporteVacunacion(
-                new Date(this.filtro.fechaInicio),
-                new Date(this.filtro.fechaFin),
+                this.obtenerFechaHoraActualFormatoIso(this.filtro.fechaInicio),
+                this.obtenerFechaHoraActualFormatoIso(this.filtro.fechaFin),
                 this.filtro.paciente
             ).subscribe((data) => {
 
@@ -202,8 +202,8 @@ export class ReportesVacunacionComponent {
         this.expandedVacunas = {};
 
         this.reportesService.obtenerReporteVacunasAplicadas(
-            new Date(this.filtroVac.fechaInicio),
-            new Date(this.filtroVac.fechaFin),
+            this.obtenerFechaHoraActualFormatoIso(this.filtroVac.fechaInicio),
+            this.obtenerFechaHoraActualFormatoIso(this.filtroVac.fechaFin),
             this.filtroVac.vacuna
         ).subscribe(data => {
 
