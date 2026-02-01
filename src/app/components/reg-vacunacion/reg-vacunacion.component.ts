@@ -132,11 +132,10 @@ export class RegVacunacionComponent implements OnInit {
             firma: null
         };
 
+        // Reiniciamos la componente de firma y refrescamos la imagen
         setTimeout(() => {
             this.firmaPad.reinitPad();
-            this.firmaPad.canvasRef.nativeElement.width = 450;
-            const c = this.firmaPad.canvasRef.nativeElement;
-            console.log('Canvas size:', c.width, c.height, 'offset:', c.offsetWidth, c.offsetHeight);
+            this.firmaPadFull.refresh();
         }, 100);
 
         this.cargarVacunas();
@@ -283,10 +282,13 @@ export class RegVacunacionComponent implements OnInit {
 
     openFullscreen() {
         this.fullscreen = true;
+
         setTimeout(() => {
-            this.firmaPadFull.reinitPad();
-            this.firmaPadFull.canvasRef.nativeElement.style.height = '80vh';
-        }, 200);
+            if (this.firmaPadFull) {
+                // No es necesario setear .style.width/height manualmente si usamos el CSS de arriba
+                this.firmaPadFull.refresh();
+            }
+        }, 150); // Un margen de tiempo para que la animación de la modal termine
     }
 
     closeFullscreen() {

@@ -15,7 +15,7 @@
                             <span class="input-group-text bg-dark border-secondary text-light">
                                 <i class="fas fa-user"></i>
                             </span>
-                            <input type="text" id="emailInput" class="form-control form-control-lg login-input"
+                            <input type="text" id="emailInput" class="form-control form-control-md login-input"
                                 placeholder="Correo electrónico o usuario" name="email" formControlName="username"
                                 required />
                             <div class="invalid-feedback d-block"
@@ -29,7 +29,7 @@
                             <span class="input-group-text bg-dark border-secondary text-light">
                                 <i class="fas fa-lock"></i>
                             </span>
-                            <input type="password" id="passwordInput" class="form-control form-control-lg login-input"
+                            <input type="password" id="passwordInput" class="form-control form-control-md login-input"
                                 placeholder="Contraseña" name="password" formControlName="password" required />
                             <div class="invalid-feedback d-block"
                                 *ngIf="formLogin.get('password')?.invalid && formLogin.get('password')?.touched">
@@ -37,7 +37,7 @@
                             </div>
                         </div>
                         <div class="d-grid gap-2 mb-4">
-                            <button type="submit" class="btn btn-turquoise btn-lg login-button"
+                            <button type="submit" class="btn btn-turquoise btn-md login-button"
                                 (click)="iniciarSesion()">
                                 <i class="fas fa-sign-in-alt me-2"></i> Iniciar
                             </button>

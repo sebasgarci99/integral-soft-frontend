@@ -2,13 +2,13 @@ import { AfterViewInit, Component, ElementRef, HostListener, ViewChild } from '@
 import SignaturePad from 'signature_pad';
 
 @Component({
-  selector: 'app-signature-canvas',
-  standalone: true,
-  template: `
-    <!-- lienzo con borde PrimeFlex -->
-    <canvas #canvas
-            class="w-full border-1 surface-border border-round-2xl"
-            style="touch-action:none; height:150px;background-color:lightgray;border-radius:10px"></canvas>
+    selector: 'app-signature-canvas',
+    standalone: true,
+    template: `
+    <canvas #canvas 
+            class="signature-canvas border-1 surface-border"
+            style="touch-action: none; background-color: #f0f0f0; border-radius: 10px; width: 100%; height: 100%; display: block;">
+    </canvas>
   `
 })
 export class SignatureCanvasComponent implements AfterViewInit {
@@ -29,19 +29,19 @@ export class SignatureCanvasComponent implements AfterViewInit {
     /* ------------- API pública ------------- */
     clear(): void { this.pad.clear(); }
     isEmpty(): boolean { return this.pad.isEmpty(); }
-    
+
     /**
      * Carga una firma desde base64 al canvas
      * @param base64 - String base64 (con o sin prefijo data:image)
      */
     fromDataBase64(base64: string): void {
         if (!base64) return;
-        
+
         // Asegurarnos de que tenga el prefijo correcto
-        const fullDataUrl = base64.startsWith('data:image') 
-            ? base64 
+        const fullDataUrl = base64.startsWith('data:image')
+            ? base64
             : `data:image/png;base64,${base64}`;
-            
+
         // Crear una imagen temporal para cargar los datos
         const image = new Image();
         image.onload = () => {
@@ -50,15 +50,15 @@ export class SignatureCanvasComponent implements AfterViewInit {
             if (ctx) {
                 this.clear();
                 ctx.drawImage(image, 0, 0);
-                
+
                 // Convertir la imagen a datos que SignaturePad pueda manejar
                 const imageData = ctx.getImageData(
-                    0, 
-                    0, 
-                    this.canvasRef.nativeElement.width, 
+                    0,
+                    0,
+                    this.canvasRef.nativeElement.width,
                     this.canvasRef.nativeElement.height
                 );
-                
+
                 // Cargar los datos en SignaturePad
                 this.pad.fromDataURL(fullDataUrl);
             }
@@ -84,21 +84,45 @@ export class SignatureCanvasComponent implements AfterViewInit {
         const canvas = this.canvasRef.nativeElement;
         const ratio = Math.max(window.devicePixelRatio || 1, 1);
 
-        canvas.width  = canvas.offsetWidth * ratio;
+        canvas.width = canvas.offsetWidth * ratio;
         canvas.height = canvas.offsetHeight * ratio;
         canvas.getContext('2d')!.scale(ratio, ratio);
 
         this.pad.clear();
     }
 
-    /* ------------- ajustar tamaño al redimensionar ------------- */
-    @HostListener('window:resize') resize(): void {
+    @HostListener('window:resize')
+    resize(): void {
         const canvas = this.canvasRef.nativeElement;
-        const ratio  = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width  = canvas.offsetWidth  * ratio;
-        canvas.height = canvas.offsetHeight * ratio;
-        canvas.getContext('2d')!.scale(ratio, ratio);
-        // mantener lo dibujado al escalar (opcional):
-        this.pad?.clear();
+        // Usamos getBoundingClientRect para obtener el tamaño exacto en pantalla
+        const rect = canvas.getBoundingClientRect();
+
+        if (rect.width === 0 || rect.height === 0) return;
+
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+
+        // Guardamos la firma actual
+        const data = this.pad ? this.pad.toData() : [];
+
+        // Ajustamos el buffer interno
+        canvas.width = rect.width * ratio;
+        canvas.height = rect.height * ratio;
+
+        // Escalamos el contexto para que el dibujo coincida con los píxeles reales
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset primero
+            ctx.scale(ratio, ratio);
+        }
+
+        // Restauramos la firma
+        this.pad?.fromData(data);
+    }
+
+    // Añade este método para forzar el ajuste cuando abras el fullscreen
+    public refresh(): void {
+        setTimeout(() => {
+            this.resize();
+        }, 200); // Pequeño delay para esperar a que el CSS de la modal termine
     }
 }
