@@ -43,7 +43,7 @@
                                 </p-calendar>
                             </div>
 
-                            <div class="col-12 col-md-4 d-grid">
+                            <div class="col-12 col-md-3 d-grid">
                                 <label>Paciente</label>
                                 <p-dropdown [options]="pacientes" [(ngModel)]="filtro.paciente"
                                     optionLabel="nombreCompleto" optionValue="key" placeholder="Seleccione paciente"
@@ -52,7 +52,7 @@
                                 </p-dropdown>
                             </div>
 
-                            <div class="col-12 col-md-2 d-flex gap-2 align-items-end">
+                            <div class="col-12 col-md-3 d-flex gap-2 align-items-end">
                                 <button pButton icon="fa-solid fa-search" class="w-100" label="Generar"
                                     (click)="generarReportePacientes()">
                                 </button>
@@ -148,6 +148,8 @@
                                     <th>Lote</th>
                                     <th>Dosis</th>
                                     <th>Edad</th>
+                                    <th>Empresa/Entidad</th>
+                                    <th>Orden/Remisión</th>
                                 </tr>
                             </ng-template>
 
@@ -158,6 +160,8 @@
                                     <td>{{ v.lote }}</td>
                                     <td>{{ v.dosis }}</td>
                                     <td>{{ v.edad }}</td>
+                                    <td>{{ v.empresa_entidad }}</td>
+                                    <td>{{ v.orden_remision }}</td>
                                 </tr>
                             </ng-template>
 
@@ -199,7 +203,7 @@
                                 </p-calendar>
                             </div>
 
-                            <div class="col-12 col-md-4 d-grid">
+                            <div class="col-12 col-md-3 d-grid">
                                 <label>Vacuna</label>
                                 <p-dropdown [options]="vacunas" [(ngModel)]="filtroVac.vacuna"
                                     optionLabel="nombre_vacuna" optionValue="key" placeholder="Seleccione vacuna"
@@ -207,7 +211,7 @@
                                 </p-dropdown>
                             </div>
 
-                            <div class="col-12 col-md-2 d-flex gap-2 align-items-end">
+                            <div class="col-12 col-md-3 d-flex gap-2 align-items-end">
                                 <button pButton label="Generar" icon="fa-solid fa-search" class="w-100"
                                     (click)="generarReporteVacunacion()">
                                 </button>

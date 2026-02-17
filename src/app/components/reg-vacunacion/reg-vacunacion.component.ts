@@ -81,6 +81,7 @@ export class RegVacunacionComponent implements OnInit {
     firmaOK = false;
 
     formData = {
+        fecha_registro: new Date(),
         vacunas: [] as {
             id_vacuna: number;
             nombre_vacuna: string;
@@ -90,7 +91,10 @@ export class RegVacunacionComponent implements OnInit {
         aplica_acudiente: "N",
         acudiente: "",
         num_doc_acudiente: "",
-        firma: null as string | null
+        firma: null as string | null,
+        vacunacion_empresa: "N",
+        empresa_entidad: "",
+        orden_remision: ""
     };
 
     constructor(
@@ -120,6 +124,7 @@ export class RegVacunacionComponent implements OnInit {
         this.firmaOK = false;
 
         this.formData = {
+            fecha_registro: new Date(),
             vacunas: [] as {
                 id_vacuna: number;
                 nombre_vacuna: string;
@@ -129,7 +134,10 @@ export class RegVacunacionComponent implements OnInit {
             aplica_acudiente: "N",
             acudiente: "",
             num_doc_acudiente: "",
-            firma: null
+            firma: null,
+            vacunacion_empresa: "N",
+            empresa_entidad: "",
+            orden_remision: ""
         };
 
         // Reiniciamos la componente de firma y refrescamos la imagen
@@ -230,6 +238,11 @@ export class RegVacunacionComponent implements OnInit {
                 return false;
         }
 
+        if (this.formData.vacunacion_empresa === "S") {
+            if (!this.formData.empresa_entidad || !this.formData.orden_remision)
+                return false;
+        }
+
         return true;
     }
 
@@ -255,7 +268,7 @@ export class RegVacunacionComponent implements OnInit {
     async guardarRegistro() {
         const payload = {
             id_paciente: this.selectedPaciente.id_paciente,
-            fecha_registro: this.obtenerFechaHoraActualFormatoIso(new Date()),
+            fecha_registro: this.obtenerFechaHoraActualFormatoIso(this.formData.fecha_registro),
             aplica_acudiente: this.formData.aplica_acudiente === "S",
             acudiente: this.formData.aplica_acudiente === "S" ? this.formData.acudiente : null,
             num_documento_acudiente: this.formData.aplica_acudiente === "S" ? this.formData.num_doc_acudiente : null,
@@ -264,7 +277,10 @@ export class RegVacunacionComponent implements OnInit {
                 id_vacuna: v.id_vacuna,
                 dosis_aplicada: v.dosis
             })),
-            firma_usuario_acudiente: this.formData.firma
+            firma_usuario_acudiente: this.formData.firma,
+            vacunacion_empresa: this.formData.vacunacion_empresa,
+            empresa_entidad: this.formData.vacunacion_empresa === "S" ? this.formData.empresa_entidad : null,
+            orden_remision: this.formData.vacunacion_empresa === "S" ? this.formData.orden_remision : null
         };
 
         this.regVacunacionService.crearActualizarRegVacunacion(payload).subscribe({
@@ -360,11 +376,15 @@ export class RegVacunacionComponent implements OnInit {
         this.firmaOK = false;
 
         this.formData = {
+            fecha_registro: new Date(),
             vacunas: [],
             aplica_acudiente: 'N',
             acudiente: '',
             num_doc_acudiente: '',
-            firma: null
+            firma: null,
+            vacunacion_empresa: "N",
+            empresa_entidad: "",
+            orden_remision: ""
         };
 
         this.vacunasSeleccionadas = [];

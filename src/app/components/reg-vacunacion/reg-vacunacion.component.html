@@ -67,6 +67,16 @@
                     [style]="{ width: '50vw' }" appendTo="body" (onHide)="resetFormularioVacunacion()">
 
                     <div class="p-fluid formgrid grid text-center">
+                        <div class="col-12 d-md-flex d-sm-grid">
+
+                            <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-4">
+                                <p-calendar [(ngModel)]="formData.fecha_registro" [showTime]="true" hourFormat="24"
+                                    dateFormat="yy-mm-dd" inputId="fecha_registro" appendTo="body" class="w-100">
+                                </p-calendar>
+                                <label>Fecha y hora registro *</label>
+                            </p-floatlabel>
+                        </div>
+
                         <!-- DATOS DEL PACIENTE -->
                         <div class="col-12 d-md-flex d-sm-grid">
                             <p-floatlabel variant="on" class="col-lg-7 col-md-12 mt-3 me-4">
@@ -93,6 +103,91 @@
                                 <input pInputText class="w-100" [value]="selectedPaciente?.telefono_contacto" disabled>
                             </p-floatlabel>
                         </div>
+
+                        <!-- RADIO: VACUNACIÓN POR EMPRESA -->
+                        <div class="col-12 d-md-flex d-sm-grid">
+                            <div class="col-12 col-md-6 mt-3">
+                                <label class="font-semibold">¿Vacunación solicitada por empresa?</label>
+                                <div class="flex gap-4 mt-2">
+                                    <p-radioButton inputId="empresa_no" name="vac_empresa" value="N"
+                                        [(ngModel)]="formData.vacunacion_empresa">
+                                    </p-radioButton>
+                                    <label for="empresa_no" class="me-2">No</label>
+
+                                    <p-radioButton inputId="empresa_si" name="vac_empresa" value="S"
+                                        [(ngModel)]="formData.vacunacion_empresa">
+                                    </p-radioButton>
+                                    <label for="empresa_si" class="me-2">Sí</label>
+                                </div>
+                            </div>
+                            <!-- RADIO: APLICA ACUDIENTE -->
+                            <div class="col-12 col-md-6 mt-3">
+                                <label class="font-semibold">¿Aplica acudiente? *</label>
+                                <div class="flex gap-4 mt-2">
+                                    <p-radioButton inputId="aplica_acudiente_si" name="aplica" value="N" label="No"
+                                        [(ngModel)]="formData.aplica_acudiente">
+                                    </p-radioButton>
+                                    <label for="aplica_acudiente_si" class="me-2">No</label>
+
+                                    <p-radioButton inputId="aplica_acudiente_no" name="aplica" value="S" label="Sí"
+                                        [(ngModel)]="formData.aplica_acudiente">
+                                    </p-radioButton>
+                                    <label for="aplica_acudiente_no" class="me-2">Sí</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CAMPOS DE VACUNACIÓN POR EMPRESA -->
+                        <ng-container *ngIf="formData.vacunacion_empresa === 'S'">
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-4">
+                                    <input pInputText [(ngModel)]="formData.empresa_entidad" maxlength="120"
+                                        class="w-100">
+                                    <label>Empresa o entidad *</label>
+
+                                    <small class="p-error text-error-small"
+                                        *ngIf="formSubmitted && !formData.empresa_entidad">
+                                        Campo obligatorio.
+                                    </small>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-lg-5 col-md-12 mt-3">
+                                    <input pInputText [(ngModel)]="formData.orden_remision" maxlength="80"
+                                        class="w-100">
+                                    <label>Orden de remisión *</label>
+
+                                    <small class="p-error text-error-small"
+                                        *ngIf="formSubmitted && !formData.orden_remision">
+                                        Campo obligatorio.
+                                    </small>
+                                </p-floatlabel>
+                            </div>
+                        </ng-container>
+
+                        <!-- CAMPOS DE ACUDIENTE -->
+                        <ng-container *ngIf="formData.aplica_acudiente === 'S'">
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-4">
+                                    <input pInputText [(ngModel)]="formData.acudiente" #acudiente="ngModel"
+                                        maxlength="80" class="w-100">
+                                    <label>Nombre completo acudiente *</label>
+                                    <small class="p-error text-error-small"
+                                        *ngIf="formSubmitted && !formData.acudiente">
+                                        Campo obligatorio.
+                                    </small>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-lg-5 col-md-12 mt-3 me-4">
+                                    <input pInputText [(ngModel)]="formData.num_doc_acudiente"
+                                        #num_doc_acudiente="ngModel" maxlength="80" class="w-100">
+                                    <label>N° Documento acudiente *</label>
+                                    <small class="p-error text-error-small"
+                                        *ngIf="formSubmitted && !formData.num_doc_acudiente">
+                                        Campo obligatorio.
+                                    </small>
+                                </p-floatlabel>
+                            </div>
+                        </ng-container>
 
                         <hr>
 
@@ -126,47 +221,6 @@
                         </div>
 
                         <hr>
-
-                        <!-- RADIO: APLICA ACUDIENTE -->
-                        <div class="col-12 mt-3">
-                            <label class="font-semibold">¿Aplica acudiente? *</label>
-                            <div class="flex gap-4 mt-2">
-                                <p-radioButton inputId="aplica_acudiente_si" name="aplica" value="N" label="No"
-                                    [(ngModel)]="formData.aplica_acudiente">
-                                </p-radioButton>
-                                <label for="aplica_acudiente_si" class="me-2">No</label>
-
-                                <p-radioButton inputId="aplica_acudiente_no" name="aplica" value="S" label="Sí"
-                                    [(ngModel)]="formData.aplica_acudiente">
-                                </p-radioButton>
-                                <label for="aplica_acudiente_no" class="me-2">Sí</label>
-                            </div>
-                        </div>
-
-                        <!-- CAMPOS DE ACUDIENTE -->
-                        <ng-container *ngIf="formData.aplica_acudiente === 'S'">
-                            <div class="col-12 d-md-flex d-sm-grid">
-                                <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-4">
-                                    <input pInputText [(ngModel)]="formData.acudiente" #acudiente="ngModel"
-                                        maxlength="80" class="w-100">
-                                    <label>Nombre completo acudiente *</label>
-                                    <small class="p-error text-error-small"
-                                        *ngIf="formSubmitted && !formData.acudiente">
-                                        Campo obligatorio.
-                                    </small>
-                                </p-floatlabel>
-
-                                <p-floatlabel variant="on" class="col-lg-5 col-md-12 mt-3 me-4">
-                                    <input pInputText [(ngModel)]="formData.num_doc_acudiente"
-                                        #num_doc_acudiente="ngModel" maxlength="80" class="w-100">
-                                    <label>N° Documento acudiente *</label>
-                                    <small class="p-error text-error-small"
-                                        *ngIf="formSubmitted && !formData.num_doc_acudiente">
-                                        Campo obligatorio.
-                                    </small>
-                                </p-floatlabel>
-                            </div>
-                        </ng-container>
 
                         <!-- FIRMA -->
                         <div class="col-12 mt-4 text-center">
@@ -206,7 +260,7 @@
 
                 <!-- DIALOG HISTORICO VACUNAS -->
                 <p-dialog header="Histórico de Vacunas del paciente" [(visible)]="dialogVacunas" [modal]="true"
-                    [style]="{ width: '70vw' }" appendTo="body">
+                    [style]="{ width: '80vw' }" appendTo="body">
                     <!-- BUSCADOR -->
                     <div class="flex justify-content-end mb-2 text-end">
                         <input #gbInputVacunas pInputText type="text"
@@ -224,6 +278,8 @@
                                 <th>Dosis parametrizada</th>
                                 <th>Dosis aplicada</th>
                                 <th>Lote o reg. sanitario</th>
+                                <th>Empresa/Entidad</th>
+                                <th>Orden</th>
                             </tr>
                         </ng-template>
 
@@ -236,6 +292,8 @@
                                 <td>{{ v.cantidad_dosis }}</td>
                                 <td>{{ obtenerTextoDosis(v.dosis_aplicada, v.cantidad_dosis) }}</td>
                                 <td>{{ v.registro_sanitario_vacuna }}</td>
+                                <td>{{ v.empresa_entidad }}</td>
+                                <td>{{ v.orden_remision }}</td>
                             </tr>
                         </ng-template>
                     </p-table>

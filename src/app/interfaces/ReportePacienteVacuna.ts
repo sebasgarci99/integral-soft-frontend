@@ -24,6 +24,8 @@ export interface VacunaDetalle {
     lote: string;
     dosis: string;
     edad: string;
+    empresa_entidad?: string;
+    orden_remision?: string;
 }
 
 export interface PacienteGrupo {

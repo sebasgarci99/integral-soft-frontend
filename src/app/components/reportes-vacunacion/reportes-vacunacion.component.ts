@@ -97,6 +97,7 @@ export class ReportesVacunacionComponent {
     async ngOnInit(): Promise<void> {
         await this.obtenerPacientes();
         await this.obtenerVacunas();
+        this.setFechaHoraDefecto();
     }
 
     async generarReportePacientes() {
@@ -105,7 +106,7 @@ export class ReportesVacunacionComponent {
         try {
             this.reportesService.obtenerReporteVacunacion(
                 this.obtenerFechaHoraActualFormatoIso(this.filtro.fechaInicio),
-                this.obtenerFechaHoraActualFormatoIso(this.filtro.fechaFin),
+                this.obtenerFechaHoraActualFormatoIso(this.filtro.fechaFin, true),
                 this.filtro.paciente
             ).subscribe((data) => {
 
@@ -146,7 +147,9 @@ export class ReportesVacunacionComponent {
                         fechaVacuna: new Date(item.fecha_vacunacion),
                         lote: item.lote_vacuna_aplicada,
                         dosis: item.dosis_aplicada,
-                        edad: item.edad_vacuna
+                        edad: item.edad_vacuna,
+                        empresa_entidad: item.empresa_entidad,
+                        orden_remision: item.orden_remision
                     });
                 });
 
@@ -160,25 +163,18 @@ export class ReportesVacunacionComponent {
 
     public obtenerFechaHoraActualFormatoIso(
         fecha: Date,
-        hora?: Date // Opcional
+        esFin: boolean = false
     ): string {
-        // Si el parametro de hora no se envia
-        // tomamos el valor de la fecha
-        hora = hora ?? fecha;
 
-        // Construimos a pedal la fecha en formato ISO String
-        // Ya que la función nativa nos cambia el UTC a 0
-        let fechaActualConvertida: string =
-            fecha.getFullYear()
-            + '-' + String(fecha.getMonth() + 1).padStart(2, '0')
-            + '-' + String(fecha.getDate()).padStart(2, '0')
-            + 'T' +
-            String(hora.getHours()).padStart(2, '0')
-            + ':' + String(hora.getMinutes()).padStart(2, '0')
-            + ':' + String(hora.getSeconds()).padStart(2, '0')
-            ;
+        const year = fecha.getFullYear();
+        const month = String(fecha.getMonth() + 1).padStart(2, '0');
+        const day = String(fecha.getDate()).padStart(2, '0');
 
-        return fechaActualConvertida;
+        const horas = esFin ? '23' : '00';
+        const minutos = esFin ? '59' : '00';
+        const segundos = esFin ? '59' : '00';
+
+        return `${year}-${month}-${day}T${horas}:${minutos}:${segundos}`;
     }
 
     async obtenerPacientes() {
@@ -203,7 +199,7 @@ export class ReportesVacunacionComponent {
 
         this.reportesService.obtenerReporteVacunasAplicadas(
             this.obtenerFechaHoraActualFormatoIso(this.filtroVac.fechaInicio),
-            this.obtenerFechaHoraActualFormatoIso(this.filtroVac.fechaFin),
+            this.obtenerFechaHoraActualFormatoIso(this.filtroVac.fechaFin, true),
             this.filtroVac.vacuna
         ).subscribe(data => {
 
@@ -499,5 +495,9 @@ export class ReportesVacunacionComponent {
         }
     }
 
+    setFechaHoraDefecto() {
+        this.filtroVac.fechaInicio.setHours(0, 0, 0, 0);
+        this.filtroVac.fechaFin.setHours(23, 59, 59, 999);
+    }
 
 }
