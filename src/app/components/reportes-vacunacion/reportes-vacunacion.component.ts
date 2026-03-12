@@ -303,6 +303,74 @@ export class ReportesVacunacionComponent {
         saveAs(new Blob([excelBuffer]), 'reporte_pacientes.xlsx');
     }
 
+    exportarTodosRegistrosPacientesExcel() {
+
+        const registros: any[] = [];
+
+        // Aplanar datos
+        this.anioGrupos.forEach(anio => {
+            anio.pacientes.forEach(p => {
+                p.vacunas.forEach(v => {
+                    registros.push({
+                        fecha: v.fechaVacuna,
+                        paciente: p.nombreCompleto,
+                        documento: p.documento,
+                        sexo: p.sexo,
+                        telefono: p.telefono,
+                        email: p.email,
+                        vacuna: v.vacuna,
+                        lote: v.lote,
+                        dosis: v.dosis,
+                        edad: v.edad
+                    });
+                });
+            });
+        });
+
+        // Ordenar por fecha y paciente
+        registros.sort((a, b) => {
+            const f = new Date(a.fecha).getTime() - new Date(b.fecha).getTime();
+            if (f !== 0) return f;
+            return a.documento.localeCompare(b.documento);
+        });
+
+        const rows: any[] = [];
+
+        let ultimaFecha = "";
+        let ultimoDocumento = "";
+
+        registros.forEach(r => {
+
+            const nuevaFecha = r.fecha !== ultimaFecha;
+            const nuevoPaciente = r.documento !== ultimoDocumento;
+
+            rows.push({
+                Fecha: nuevaFecha ? r.fecha : "",
+                Paciente: nuevoPaciente ? r.paciente : "",
+                Documento: nuevoPaciente ? r.documento : "",
+                Sexo: nuevoPaciente ? r.sexo : "",
+                Teléfono: nuevoPaciente ? r.telefono : "",
+                Email: nuevoPaciente ? r.email : "",
+                Vacuna: r.vacuna,
+                Lote: r.lote,
+                Dosis: r.dosis,
+                Edad: r.edad
+            });
+
+            ultimaFecha = r.fecha;
+            ultimoDocumento = r.documento;
+
+        });
+
+        const ws = XLSX.utils.json_to_sheet(rows);
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Pacientes total');
+
+        const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        saveAs(new Blob([excelBuffer]), 'reporte_total_pacientes.xlsx');
+    }
+
     exportarPacientesPdf() {
         const doc = new jsPDF() as jsPDF & { lastAutoTable?: any };
 
