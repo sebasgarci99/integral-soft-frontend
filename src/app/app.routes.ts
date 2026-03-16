@@ -14,6 +14,7 @@ import { PacientesComponent } from './components/pacientes/pacientes.component';
 import { RegVacunacionComponent } from './components/reg-vacunacion/reg-vacunacion.component';
 import { ReportesVacunacionComponent } from './components/reportes-vacunacion/reportes-vacunacion.component';
 import { RegTemperaturaComponent } from './components/reg-temperatura/reg-temperatura.component';
+import { ClientesComponent } from './components/clientes/clientes.component';
 
 export const routes: Routes = [
     {
@@ -74,6 +75,11 @@ export const routes: Routes = [
     },
     {
         path: 'reg_temperatura', component: RegTemperaturaComponent, canActivate: [
+            authGuard
+        ]
+    },
+    {
+        path: 'clientes', component: ClientesComponent, canActivate: [
             authGuard
         ]
     }
