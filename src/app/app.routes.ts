@@ -15,6 +15,7 @@ import { RegVacunacionComponent } from './components/reg-vacunacion/reg-vacunaci
 import { ReportesVacunacionComponent } from './components/reportes-vacunacion/reportes-vacunacion.component';
 import { RegTemperaturaComponent } from './components/reg-temperatura/reg-temperatura.component';
 import { ClientesComponent } from './components/clientes/clientes.component';
+import { CuentasCobroComponent } from './components/cuentas-cobro/cuentas-cobro.component';
 
 export const routes: Routes = [
     {
@@ -80,6 +81,11 @@ export const routes: Routes = [
     },
     {
         path: 'clientes', component: ClientesComponent, canActivate: [
+            authGuard
+        ]
+    },
+    {
+        path: 'cuentas_cobro', component: CuentasCobroComponent, canActivate: [
             authGuard
         ]
     }

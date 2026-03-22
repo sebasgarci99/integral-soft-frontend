@@ -1,0 +1,217 @@
+<div class="d-lg-none d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
+    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
+        aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-list"></i>
+    </button>
+</div>
+
+<div class="d-flex">
+    <app-sidebar></app-sidebar>
+
+    <div class="flex-grow-1 p-4 dashboard">
+        <div class="card mt-2">
+            <div class="card-body">
+                <div class="flex justify-content-between mb-3">
+                    <h3 class="text-center">Cuentas de Cobro</h3>
+                    <p-button label="Crear cuenta" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" />
+                </div>
+
+                <div class="flex justify-content-between mb-2 text-end">
+                    <input 
+                        #gbInput
+                        pInputText 
+                        type="text"
+                        (input)="tabla.filterGlobal(gbInput.value, 'contains')" 
+                        placeholder="Buscar..."
+                    />
+                </div>
+
+                <p-table 
+                    #tabla
+                    [value]="cuentasCobro" 
+                    [paginator]="true" 
+                    [rows]="10" 
+                    responsiveLayout="scroll"
+                    [globalFilterFields]="['nombre_cliente', 'descripcion_servicio', 'valor_cobrar', 'fecha_emision']"
+                    >
+                    <ng-template pTemplate="header">
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Descripción del Servicio</th>
+                        <th>Valor a Cobrar</th>
+                        <th>Fecha de Emisión</th>
+                        <th>Periodicidad</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row>
+                    <tr>
+                        <td>{{ row.nombre_cliente }}</td>
+                        <td>{{ row.descripcion_servicio }}</td>
+                        <td>{{ formatearValor(row.valor_cobrar) }}</td>
+                        <td>{{ formatearFecha(row.fecha_emision) }}</td>
+                        <td>{{ formatearPeriodicidad(row.info_periodicidad) }}</td>
+                        <td>
+                            <span [class]="'badge bg-' + (row.estado === 'A' ? 'success' : 'secondary')">
+                                {{ row.estado === 'A' ? 'Activo' : 'Inactivo' }}
+                            </span>
+                        </td>
+                        <td>
+                            <p-button icon="fa fa-file-pdf" class="p-button-text p-button-sm" pTooltip="Generar PDF" (onClick)="generarPdf(row.id_cuenta_cobro)" />
+                            <p-button icon="fa fa-trash" class="p-button-text p-button-sm p-button-danger" pTooltip="Inactivar" (onClick)="inactivarCuentaCobro(row.id_cuenta_cobro)" />
+                        </td>
+                    </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="7" class="text-center">No se encontraron cuentas de cobro.</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+
+                <p-dialog 
+                    header="Crear Cuenta de Cobro" 
+                    [(visible)]="displayDialog" 
+                    *ngIf="displayDialog"
+                    [modal]="true" 
+                    [style]="{ width: '47rem', 'max-height': '80vh', height: '80%' }"
+                    [contentStyle]="{ 'overflow-y': 'auto' }"
+                    [draggable]="false"
+                    appendTo="body"
+                    >
+                    <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
+                        <div class="col-12 d-md-flex d-sm-grid">
+                            <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                <p-calendar 
+                                    [(ngModel)]="formData.fecha_emision" 
+                                    dateFormat="yy-mm-dd"
+                                    [showIcon]="true" 
+                                    class="w-100"
+                                    inputId="fecha_emision"
+                                >
+                                </p-calendar>
+                                <label for="fecha_emision">Fecha de Emisión</label>
+                            </p-floatlabel>
+
+                            <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                <p-dropdown 
+                                    [options]="clientes"
+                                    [(ngModel)]="formData.id_cliente"
+                                    optionLabel="nombre_razon_social"
+                                    optionValue="id"
+                                    [showClear]="true"
+                                    [filter]="true"
+                                    filterPlaceholder="Buscar cliente..."
+                                    placeholder=" "
+                                    class="w-100"
+                                    inputId="id_cliente"
+                                    [ngClass]="{ 'p-inputwrapper-filled': formData.id_cliente }"
+                                >
+                                </p-dropdown>
+                                <label for="id_cliente">Cliente</label>
+                            </p-floatlabel>
+                        </div>
+
+                        <p-floatlabel variant="on" class="col-12 mt-3">
+                            <textarea pInputTextarea [(ngModel)]="formData.descripcion_servicio" rows="3" class="w-100"></textarea>
+                            <label>Descripción del Servicio</label>
+                        </p-floatlabel>
+
+                        <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                            <input 
+                                pInputText 
+                                [value]="formatearValorInput(formData.valor_cobrar)"
+                                (input)="onValorInput($event)"
+                                class="w-100"
+                                inputId="valor_cobrar"
+                            />
+                            <label for="valor_cobrar">Valor a Cobrar</label>
+                        </p-floatlabel>
+
+                        <div class="col-12 mt-4">
+                            <div class="d-flex align-items-center">
+                                <p-radioButton 
+                                    name="configurar_periodicidad"
+                                    [value]="false"
+                                    [(ngModel)]="formData.configurar_periodicidad"
+                                    inputId="sin_periodicidad"
+                                >
+                                </p-radioButton>
+                                <label for="sin_periodicidad" class="ms-2 me-4 mb-0">Sin periodicidad</label>
+                                
+                                <p-radioButton 
+                                    name="configurar_periodicidad"
+                                    [value]="true"
+                                    [(ngModel)]="formData.configurar_periodicidad"
+                                    inputId="con_periodicidad"
+                                >
+                                </p-radioButton>
+                                <label for="con_periodicidad" class="ms-2 mb-0">Configurar periodicidad</label>
+                            </div>
+                        </div>
+
+                        @if (formData.configurar_periodicidad === true) {
+                            <div class="col-12 mt-3">
+                                <div class="col-12 d-md-flex d-sm-grid">
+                                    <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-2">
+                                        <p-dropdown 
+                                            [options]="opcionesPeriodicidad" 
+                                            [(ngModel)]="formData.periodicidad" 
+                                            class="w-100" 
+                                            inputId="periodicidad"
+                                            placeholder=" "
+                                            [ngClass]="{ 'p-inputwrapper-filled': formData.periodicidad }"
+                                        >
+                                        </p-dropdown>
+                                        <label for="periodicidad">Periodicidad</label>
+                                    </p-floatlabel>
+
+                                    <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-2">
+                                        <p-inputnumber 
+                                            [(ngModel)]="formData.dia_del_mes" 
+                                            inputId="dia_del_mes"
+                                            [min]="1" 
+                                            [max]="30"
+                                            class="w-100"
+                                        >
+                                        </p-inputnumber>
+                                        <label for="dia_del_mes">Día del Mes (1-30)</label>
+                                    </p-floatlabel>
+
+                                    <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3">
+                                        <p-calendar 
+                                            [(ngModel)]="formData.hora_ejecucion" 
+                                            inputId="hora_ejecucion"
+                                            [timeOnly]="true"
+                                            [hourFormat]="'24'"
+                                            class="w-100"
+                                        >
+                                        </p-calendar>
+                                        <label for="hora_ejecucion">Hora de Ejecución</label>
+                                    </p-floatlabel>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <ng-template pTemplate="footer">
+                        <div class="flex justify-content-end gap-2">
+                            <p-button label="Cancelar" class="m-2" icon="fa fa-times" severity="secondary" (onClick)="cerrarDialogo()" />
+                            <p-button 
+                                label="Guardar" 
+                                class="m-2" 
+                                icon="fa fa-check" 
+                                severity="info"
+                                (onClick)="crearCuentaCobro()" 
+                            />
+                        </div>
+                    </ng-template>
+                </p-dialog>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
