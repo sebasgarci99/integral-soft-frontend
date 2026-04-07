@@ -56,7 +56,7 @@ export class CuentasCobroService {
         };
 
         return this.http.post<any>(
-            this.urlApp + this.urlAppAPI + 'crearCuentaCobro',
+            this.urlApp + this.urlAppAPI + 'crearCuentaDeCobro',
             body,
             { headers: headersWS }
         );
@@ -74,6 +74,17 @@ export class CuentasCobroService {
             this.urlApp + this.urlAppAPI + 'inactivarCuentaDeCobro',
             body,
             { headers: headersWS }
+        );
+    }
+
+    generarDocumento(id: number): Observable<any> {
+        const token = localStorage.getItem('token');
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'generarDocumento',
+            { id: id },
+            { headers: headersWS, responseType: 'text' as 'json' }
         );
     }
 

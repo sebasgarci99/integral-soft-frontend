@@ -1,0 +1,125 @@
+<div class="d-lg-none d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
+    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
+        aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-list"></i>
+    </button>
+</div>
+
+<div class="d-flex">
+    <app-sidebar></app-sidebar>
+
+    <div class="flex-grow-1 p-4 dashboard">
+        <div class="card mt-2">
+            <div class="card-body">
+                <div class="flex justify-content-between mb-3">
+                    <h3 class="text-center">Archivos Adjuntos - Cuentas de Cobro</h3>
+                    <p-button label="Crear Tipo de Archivo" icon="fa fa-plus" severity="info" (onClick)="abrirDialogoCrear()" />
+                </div>
+
+                <div class="flex justify-content-between mb-2 text-end">
+                    <input #gbInput pInputText type="text" (input)="tabla.filterGlobal(gbInput.value, 'contains')"
+                        placeholder="Buscar..." />
+                </div>
+
+                <p-table #tabla [value]="tiposArchivos" [paginator]="true" [rows]="10" responsiveLayout="scroll"
+                    [globalFilterFields]="['nombre_tipo', 'descripcion', 'nombre_archivo']">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                            <th>Archivo</th>
+                            <th>Nombre Archivo</th>
+                            <th>Fecha Carga</th>
+                            <th>Opciones</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row>
+                        <tr>
+                            <td>{{ row.nombre_tipo }}</td>
+                            <td>{{ row.descripcion }}</td>
+                            <td>
+                                <span [class]="'badge bg-' + (row.tiene_archivo ? 'success' : 'warning')">
+                                    {{ row.tiene_archivo ? 'Cargado' : 'Sin cargar' }}
+                                </span>
+                            </td>
+                            <td>{{ row.nombre_archivo || '-' }}</td>
+                            <td>{{ formatearFecha(row.fecha_carga) }}</td>
+                            <td>
+                                <p-button icon="fa fa-upload" class="p-button-text p-button-sm" pTooltip="Subir archivo"
+                                    (onClick)="abrirDialogoSubir(row)" />
+                                <p-button icon="fa fa-download" class="p-button-text p-button-sm" pTooltip="Descargar archivo"
+                                    [disabled]="!row.tiene_archivo" (onClick)="descargarArchivo(row)" />
+                                <p-button icon="fa fa-edit" class="p-button-text p-button-sm" pTooltip="Editar"
+                                    (onClick)="abrirDialogoEditar(row)" />
+                                <p-button icon="fa fa-trash" class="p-button-text p-button-sm p-button-danger" pTooltip="Eliminar"
+                                    (onClick)="inactivarTipo(row)" />
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="6" class="text-center">No se encontraron tipos de archivos.</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+
+                <p-dialog [header]="esEdicion ? 'Editar Tipo de Archivo' : 'Crear Tipo de Archivo'" [(visible)]="displayDialog"
+                    [modal]="true" [style]="{ width: '30rem' }" [draggable]="false" appendTo="body">
+                    <div class="p-fluid grid p-formgrid" style="padding: 1rem;">
+                        <p-floatlabel variant="on" class="col-12 mt-3">
+                            <input pInputText [(ngModel)]="formData.nombre_tipo" id="nombre_tipo"
+                                class="w-100" maxlength="100" />
+                            <label>Nombre del Tipo *</label>
+                        </p-floatlabel>
+                        <p-floatlabel variant="on" class="col-12 mt-3">
+                            <textarea pInputTextarea [(ngModel)]="formData.descripcion" id="descripcion"
+                                rows="3" class="w-100" maxlength="500"></textarea>
+                            <label>Descripción *</label>
+                        </p-floatlabel>
+                    </div>
+                    <ng-template pTemplate="footer">
+                        <div class="flex justify-content-center gap-2">
+                            <p-button label="Cancelar" icon="fa fa-times" severity="secondary"
+                                (onClick)="cerrarDialogo()" class="m-2">
+                            </p-button>
+                            <p-button label="Guardar" icon="fa fa-check" severity="info"
+                                (onClick)="guardarTipoArchivo()" class="m-2">
+                            </p-button>
+                        </div>
+                    </ng-template>
+                </p-dialog>
+
+                <p-dialog header="Subir Archivo" [(visible)]="displayUploadDialog"
+                    [modal]="true" [style]="{ width: '30rem' }" [draggable]="false" appendTo="body">
+                    <div class="p-fluid grid p-formgrid" style="padding: 1rem;">
+                        <div class="col-12 mt-3">
+                            <label class="form-label">Tipo de Archivo</label>
+                            <input pInputText [value]="tipoSeleccionado?.nombre_tipo" class="w-100" readonly />
+                        </div>
+                        <div class="col-12 mt-3">
+                            <label class="form-label">Seleccionar Archivo (PDF, JPG, PNG)</label>
+                            <input type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png"
+                                (change)="onFileSelected($event)" />
+                        </div>
+                        <div class="col-12 mt-2 text-muted">
+                            <small *ngIf="archivoSeleccionado">Archivo seleccionado: {{ archivoSeleccionado.name }}</small>
+                        </div>
+                    </div>
+                    <ng-template pTemplate="footer">
+                        <div class="flex justify-content-center gap-2">
+                            <p-button label="Cancelar" icon="fa fa-times" severity="secondary"
+                                (onClick)="cerrarDialogoSubir()" class="m-2">
+                            </p-button>
+                            <p-button label="Subir" icon="fa fa-upload" severity="info"
+                                (onClick)="subirArchivo()" class="m-2">
+                            </p-button>
+                        </div>
+                    </ng-template>
+                </p-dialog>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

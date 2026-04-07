@@ -16,6 +16,8 @@ import { ReportesVacunacionComponent } from './components/reportes-vacunacion/re
 import { RegTemperaturaComponent } from './components/reg-temperatura/reg-temperatura.component';
 import { ClientesComponent } from './components/clientes/clientes.component';
 import { CuentasCobroComponent } from './components/cuentas-cobro/cuentas-cobro.component';
+import { ActividadesComponent } from './components/actividades/actividades.component';
+import { ArchivosCobroComponent } from './components/archivos-cobro/archivos-cobro.component';
 
 export const routes: Routes = [
     {
@@ -86,6 +88,16 @@ export const routes: Routes = [
     },
     {
         path: 'cuentas_cobro', component: CuentasCobroComponent, canActivate: [
+            authGuard
+        ]
+    },
+    {
+        path: 'actividades', component: ActividadesComponent, canActivate: [
+            authGuard
+        ]
+    },
+    {
+        path: 'archivos_cobro', component: ArchivosCobroComponent, canActivate: [
             authGuard
         ]
     }

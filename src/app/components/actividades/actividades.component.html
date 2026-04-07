@@ -1,0 +1,525 @@
+<div class="d-lg-none d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
+    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
+        aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-list"></i>
+    </button>
+</div>
+
+<div class="d-flex">
+    <app-sidebar></app-sidebar>
+
+    <div class="flex-grow-1 p-4 dashboard">
+        <div class="page-header mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-1"><i class="fa fa-calendar-plus-o me-2"></i>Programador de Actividades</h3>
+                    <!-- <p class="text-muted mb-0 small">Administra y programa tus actividades recurrentes</p> -->
+                </div>
+                <p-button *ngIf="esAdmin" label="Nueva Actividad" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="fa fa-calendar me-2 text-primary"></i>Calendario</h5>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="custom-calendar">
+                            <div class="calendar-header d-flex justify-content-between align-items-center mb-3">
+                                <button class="btn btn-outline-primary btn-sm" (click)="mesAnterior()">
+                                    <i class="fa fa-chevron-left"></i>
+                                </button>
+                                <h5 class="mb-0 fw-bold">{{ getNombreMesActual() }}</h5>
+                                <button class="btn btn-outline-primary btn-sm" (click)="mesSiguiente()">
+                                    <i class="fa fa-chevron-right"></i>
+                                </button>
+                            </div>
+
+                            <div class="calendar-grid">
+                                <div class="calendar-weekdays">
+                                    <div class="weekday" *ngFor="let dia of nombreDias">{{ dia }}</div>
+                                </div>
+                                <div class="calendar-days">
+                                    <div *ngFor="let dia of diasCalendario" class="calendar-day"
+                                        [class.other-month]="!dia.esMesActual" [class.today]="esHoy(dia.fecha)"
+                                        [class.selected]="esFechaSeleccionada(dia.fecha)"
+                                        [class.has-activities]="dia.instancias.length > 0"
+                                        (click)="seleccionarFecha(dia)">
+                                        <span class="day-number">{{ dia.dia }}</span>
+                                        <div class="day-indicators" *ngIf="dia.instancias.length > 0">
+                                            <span *ngFor="let inst of dia.instancias.slice(0, 3)" class="day-dot"
+                                                [class]="'dot-' + inst.estado" [title]="inst.actividad?.titulo">
+                                            </span>
+                                            <span *ngIf="dia.instancias.length > 3" class="day-more">+</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="legend-container mt-4">
+                            <div class="d-flex justify-content-center gap-4 flex-wrap">
+                                <span class="legend-item">
+                                    <span class="legend-dot badge-programada"></span>
+                                    <span class="small">Programada</span>
+                                </span>
+                                <span class="legend-item">
+                                    <span class="legend-dot badge-iniciada"></span>
+                                    <span class="small">Iniciada</span>
+                                </span>
+                                <span class="legend-item">
+                                    <span class="legend-dot badge-completada"></span>
+                                    <span class="small">Completada</span>
+                                </span>
+                                <span class="legend-item">
+                                    <span class="legend-dot badge-cancelada"></span>
+                                    <span class="small">Cancelada</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">
+                            <i class="fa fa-list-alt me-2 text-primary"></i>
+                            Actividades del {{ formatDateFull(fechaSeleccionada) }}
+                        </h5>
+                        <small class="text-muted d-block mt-1" *ngIf="esHoy(fechaSeleccionada)">
+                            <i class="fa fa-clock-o me-1"></i>{{ getFechaActual() }} - {{ getHoraActual() }}
+                        </small>
+                    </div>
+                    <div class="card-body p-0">
+                        <div *ngIf="getInstanciasDelDia(fechaSeleccionada).length === 0"
+                            class="text-center text-muted py-5">
+                            <i class="fa fa-calendar-times-o fa-3x mb-3 text-secondary"></i>
+                            <p class="mb-0">No hay actividades programadas</p>
+                        </div>
+                        <div class="activities-list">
+                            <div *ngFor="let inst of getInstanciasDelDia(fechaSeleccionada)"
+                                class="activity-item px-3 py-3 border-bottom" (click)="abrirDetalleInstancia(inst)">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ inst.actividad?.titulo }}</h6>
+                                        <div class="small text-muted">
+                                            <i class="fa fa-clock-o me-1"></i>
+                                            {{ formatearHora(inst.hora_inicio) }} - {{ formatearHora(inst.hora_fin) }}
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span *ngIf="esHoy(fechaSeleccionada)" [class]="getEstadoActividad(inst).class + ' badge-sm d-block mb-1'">
+                                            {{ getEstadoActividad(inst).label }}
+                                        </span>
+                                        <span [class]="getBadgeClass(inst.estado) + ' badge-sm'">{{ inst.estado }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mt-4" *ngIf="esAdmin">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fa fa-list me-2 text-primary"></i>Todas las Actividades</h5>
+                    <input #gbInput pInputText type="text" (input)="tabla.filterGlobal(gbInput.value, 'contains')"
+                        placeholder="Buscar..." class="form-control form-control-sm" style="width: auto;" />
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <p-table #tabla [value]="actividades" [paginator]="true" [rows]="10" responsiveLayout="scroll"
+                    [globalFilterFields]="['titulo', 'descripcion', 'tipo_periodicidad']" styleClass="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th class="bg-light">Título</th>
+                            <th class="bg-light">Periodicidad</th>
+                            <th class="bg-light">Fecha Inicio</th>
+                            <th class="bg-light">Fecha Fin</th>
+                            <th class="bg-light">Estado</th>
+                            <th class="bg-light text-center">Acciones</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row>
+                        <tr>
+                            <td>
+                                <strong>{{ row.titulo }}</strong>
+                                <div *ngIf="row.descripcion" class="small text-muted text-truncate"
+                                    style="max-width: 200px;">
+                                    {{ row.descripcion }}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ row.tipo_periodicidad | titlecase }}</span>
+                            </td>
+                            <td>{{ formatearFechaVisual(row.fecha_inicio) }}</td>
+                            <td>{{ row.fecha_fin ? formatearFechaVisual(row.fecha_fin) : 'Indefinida' }}</td>
+                            <td>
+                                <span
+                                    [class]="'badge ' + getBadgeClass(row.estado === 'A' ? 'programada' : 'cancelada')">
+                                    {{ row.estado === 'A' ? 'Activa' : 'Inactiva' }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <p-button icon="fa fa-edit" class="p-button-text p-button-sm" pTooltip="Editar"
+                                    (onClick)="abrirFormulario(row)" />
+                                <p-button icon="fa fa-trash" class="p-button-text p-button-sm p-button-danger"
+                                    pTooltip="Eliminar" (onClick)="eliminarActividad(row.id_actividad)" />
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <i class="fa fa-inbox fa-3x text-muted mb-2 d-block"></i>
+                                No hay actividades registradas.
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-dialog [header]="actividadEdicion ? 'Editar Actividad' : 'Nueva Actividad'" [(visible)]="displayDialog"
+    [modal]="true" [style]="{ width: '55rem', height: '70%' }"
+    [contentStyle]="{ 'max-height': '75vh', 'overflow-y': 'auto' }" [draggable]="false" appendTo="body">
+    <p-tabMenu [model]="steps" [(activeItem)]="activeItem" [styleClass]="'mb-4'"></p-tabMenu>
+
+    <ng-container [ngSwitch]="currentStep">
+        <ng-container *ngSwitchCase="0">
+            <div class="form-section">
+                <div class="mb-1">
+                    <label class="form-label">Título de la Actividad *</label>
+                    <input pInputText [(ngModel)]="formData.titulo" class="form-control"
+                        placeholder="Ej: Reunión semanal de seguimiento" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Descripción</label>
+                    <textarea pInputTextarea rows="3" [(ngModel)]="formData.descripcion" class="form-control"
+                        placeholder="Describe los detalles de la actividad..."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Tipo de Actividad</label>
+                    <p-dropdown [options]="tiposActividad" optionLabel="nombre" optionValue="id_tipo"
+                        [(ngModel)]="formData.id_tipo_actividad" [style]="{'width': '100%'}"
+                        placeholder="Seleccione un tipo" [showClear]="true">
+                    </p-dropdown>
+                </div>
+
+                <div class="row d-flex">
+                    <div class="col-md-12 col-lg-6">
+                        <label class="form-label">Fecha de Inicio *</label>
+                        <p-calendar [(ngModel)]="formData.fecha_inicio" [showIcon]="true" dateFormat="yy-mm-dd"
+                            [style]="{'width': '100%'}">
+                        </p-calendar>
+                    </div>
+                    <div class="col-md-12 col-lg-6">
+                        <label class="form-label">Fecha Fin (opcional)</label>
+                        <p-calendar [(ngModel)]="formData.fecha_fin" [showIcon]="true" dateFormat="yy-mm-dd"
+                            [style]="{'width': '100%'}">
+                        </p-calendar>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="1">
+            <div class="form-section">
+                <div class="row d-flex">
+                    <div class="col-lg-6 col-md-12">
+                        <label class="form-label">Tipo de Periodicidad</label>
+                        <p-dropdown [options]="opcionesPeriodicidad" [(ngModel)]="formData.tipo_periodicidad"
+                            [style]="{'width': '100%'}">
+                        </p-dropdown>
+                    </div>
+                    <div class="col-lg-6 col-md-12">
+                        <label class="form-label">Duración (minutos)</label>
+                        <p-inputnumber [(ngModel)]="formData.duracion_minutos" [min]="5" [max]="480"
+                            [showButtons]="true" [style]="{'width': '100%'}">
+                        </p-inputnumber>
+                    </div>
+                </div>
+
+                <div class="mt-1"
+                    *ngIf="formData.tipo_periodicidad === 'semanal' || formData.tipo_periodicidad === 'personalizada'">
+                    <label class="form-label fw-bold mb-1">Días de la Semana *</label>
+                    <div class="dias-semana-container">
+                        <div *ngFor="let dia of diasSemanaOpciones" class="dia-checkbox text-center">
+                            <p-checkbox [(ngModel)]="formData.dias_semana" [value]="dia.value"
+                                [inputId]="'dia-' + dia.value">
+                            </p-checkbox>
+                            <label [for]="'dia-' + dia.value" class="d-block mt-1 small">{{ dia.label }}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-1">
+                    <div class="col-lg-6 col-md-12" *ngIf="formData.tipo_periodicidad === 'personalizada'">
+                        <label class="form-label">Cada N Días</label>
+                        <p-inputnumber [(ngModel)]="formData.cada_n_dias" [min]="1" [max]="365" [showButtons]="true"
+                            [style]="{'width': '100%'}">
+                        </p-inputnumber>
+                    </div>
+                </div>
+                <div class="row mt-1 d-flex">
+                    <div class="col-lg-6 col-md-12" *ngIf="formData.tipo_periodicidad === 'semanal'">
+                        <label class="form-label">Intervalo (semanas)</label>
+                        <p-inputnumber [(ngModel)]="formData.intervalo_semanas" [min]="1" [max]="12"
+                            [showButtons]="true" [style]="{'width': '100%'}">
+                        </p-inputnumber>
+                    </div>
+                    <div class="col-md-12 col-lg-6">
+                        <label class="form-label">Hora por Defecto</label>
+                        <p-calendar [(ngModel)]="formData.hora_default" [timeOnly]="true" [showIcon]="true"
+                            [style]="{'width': '100%'}">
+                        </p-calendar>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="2">
+            <div class="form-section">
+                <div class="mb-1">
+                    <label class="form-label">Seleccionar Usuarios</label>
+                    <p-multiSelect [options]="usuariosEmpresa" optionLabel="usuario" optionValue="id"
+                        [(ngModel)]="formData.invitados" [showHeader]="true" [style]="{'width': '100%'}"
+                        placeholder="Busque y seleccione usuarios...">
+                        <ng-template let-user pTemplate="item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span></span>
+                                <small class="text-muted">{{ user.usuario }} - {{ user.nombre_completo }}</small>
+                            </div>
+                        </ng-template>
+                    </p-multiSelect>
+                    <small class="text-muted d-block mt-2">
+                        <i class="fa fa-info-circle me-1"></i>
+                        Los usuarios invitados podrán iniciar y finalizar las instancias de esta actividad.
+                    </small>
+                </div>
+
+                <div class="invitados-preview mt-4" *ngIf="formData.invitados && formData.invitados.length > 0">
+                    <label class="form-label fw-bold">
+                        Invitados Seleccionados ({{ formData.invitados.length }})
+                    </label>
+                    <div class="invitados-list mt-2">
+                        <span *ngFor="let idInv of formData.invitados" class="invitado-badge">
+                            <i class="fa fa-user me-1"></i>{{ getUsuarioNombre(idInv) }}
+                        </span>
+                    </div>
+                </div>
+
+                <div *ngIf="!formData.invitados || formData.invitados.length === 0" class="text-center text-muted py-4">
+                    <i class="fa fa-user-plus fa-3x mb-2 d-block opacity-25"></i>
+                    <p class="mb-0">No hay usuarios invitados</p>
+                </div>
+            </div>
+        </ng-container>
+    </ng-container>
+
+    <ng-template pTemplate="footer">
+        <div class="d-flex justify-content-between">
+            <div class="d-flex gap-2">
+                <p-button label="Cancelar" icon="fa fa-times" severity="secondary" (onClick)="cerrarDialogo()" />
+                <p-button *ngIf="currentStep > 0" label="Anterior" icon="fa fa-arrow-left" severity="secondary"
+                    (onClick)="prevStep()" />
+                <p-button *ngIf="currentStep < steps.length - 1" label="Siguiente" icon="fa fa-arrow-right"
+                    iconPos="right" severity="info" (onClick)="nextStep()" />
+                <p-button *ngIf="currentStep === steps.length - 1" label="Guardar Actividad" icon="fa fa-check"
+                    severity="info" (onClick)="guardarActividad()" />
+            </div>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Actividades del Día" [(visible)]="displayDetalleDialog" [modal]="true" [style]="{ width: '50rem' }"
+    [draggable]="false" appendTo="body">
+    <ng-container *ngIf="getInstanciasDelDia(fechaSeleccionada).length > 0; else noActividades">
+        <div *ngFor="let inst of getInstanciasDelDia(fechaSeleccionada); let last = last" class="instancia-detail"
+            [class.mb-4]="!last">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h5 class="mb-1"><i class="fa fa-calendar me-2 text-primary"></i>{{ inst.actividad?.titulo }}</h5>
+                    <span [class]="'badge ' + getBadgeClass(inst.estado)">{{ inst.estado }}</span>
+                </div>
+                <div class="text-end">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="fa fa-clock-o text-muted"></i>
+                        <strong>{{ formatearHora(inst.hora_inicio) }} - {{ formatearHora(inst.hora_fin) }}</strong>
+                    </div>
+                    <div class="small text-muted">
+                        <i class="fa fa-repeat me-1"></i>{{ inst.actividad?.tipo_periodicidad }}
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="inst.actividad?.descripcion" class="alert alert-light mb-3">
+                <i class="fa fa-align-left me-2 text-muted"></i>
+                {{ inst.actividad?.descripcion }}
+            </div>
+
+            <div *ngIf="inst.actividad && (inst.actividad.invitados?.length ?? 0) > 0" class="mb-3">
+                <label class="text-muted small mb-2">
+                    <i class="fa fa-users me-1"></i>Invitados:
+                </label>
+                <div class="d-flex flex-wrap gap-2">
+                    <span *ngFor="let inv of inst.actividad?.invitados" class="invitado-mini">
+                        {{ inv.usuarioInvitado?.nombre }} {{ inv.usuarioInvitado?.apellido }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Sección de Cumplimientos -->
+            <div class="cumplimientos-section mt-3" *ngIf="cumplimientos.length > 0">
+                <h6 class="border-bottom pb-2 mb-3">
+                    <i class="fa fa-check-square-o me-2"></i>Registro de Cumplimiento
+                </h6>
+
+                <!-- Registro de Inicio -->
+                <div class="cumplimiento-item mb-3 p-3 bg-light rounded" *ngIf="getCumplimientoInicio() as inicio">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-primary me-2">INICIO</span>
+                        <small class="text-muted">
+                            <i class="fa fa-calendar me-1"></i>{{ formatearFechaHora(inicio.fecha_hora) }}
+                        </small>
+                    </div>
+                    <div *ngIf="inicio.observaciones" class="mb-2">
+                        <strong class="small text-muted">Observaciones:</strong>
+                        <p class="mb-0 small">{{ inicio.observaciones }}</p>
+                    </div>
+                    <div *ngIf="inicio.evidencia && inicio.evidencia.length > 0" class="mb-2">
+                        <strong class="small text-muted d-block mb-1">Evidencia:</strong>
+                        <div *ngFor="let ev of inicio.evidencia" class="d-inline-block me-2">
+                            <span class="badge bg-secondary" style="cursor: pointer" (click)="descargarEvidencia(ev)">
+                                <i class="fa fa-file me-1"></i>{{ ev.url }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Registro de Fin -->
+                <div class="cumplimiento-item p-3 bg-light rounded" *ngIf="getCumplimientoFin() as fin">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-success me-2">FINALIZACIÓN</span>
+                        <small class="text-muted">
+                            <i class="fa fa-calendar me-1"></i>{{ formatearFechaHora(fin.fecha_hora) }}
+                        </small>
+                    </div>
+                    <div *ngIf="fin.observaciones" class="mb-2">
+                        <strong class="small text-muted">Observaciones:</strong>
+                        <p class="mb-0 small">{{ fin.observaciones }}</p>
+                    </div>
+                    <div *ngIf="fin.evidencia && fin.evidencia.length > 0" class="mb-2">
+                        <strong class="small text-muted d-block mb-1">Evidencia:</strong>
+                        <div *ngFor="let ev of fin.evidencia" class="d-inline-block me-2">
+                            <span class="badge bg-info" style="cursor: pointer" (click)="descargarEvidencia(ev)">
+                                <i class="fa fa-file me-1"></i>{{ ev.url }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end border-top pt-3 mt-3">
+                <p-button *ngIf="esHoy(fechaSeleccionada) && inst.estado === 'programada'" label="Iniciar Actividad" icon="fa fa-play"
+                    severity="success" (onClick)="abrirIniciarDialog(inst)" />
+                <p-button *ngIf="esHoy(fechaSeleccionada) && inst.estado === 'iniciada'" label="Finalizar Actividad" icon="fa fa-check"
+                    severity="info" (onClick)="abrirFinalizarDialog(inst)" />
+            </div>
+        </div>
+    </ng-container>
+    <ng-template #noActividades>
+        <div class="text-center text-muted py-5">
+            <i class="fa fa-calendar-times-o fa-4x mb-3 text-secondary"></i>
+            <p class="mb-0">No hay actividades para este día</p>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Iniciar Actividad" [(visible)]="displayIniciarDialog" [modal]="true" [style]="{ width: '28rem' }"
+    [draggable]="false" appendTo="body">
+    <div *ngIf="instanciaSeleccionada" class="py-2">
+        <div class="alert alert-info mb-3">
+            <div class="d-flex align-items-center">
+                <i class="fa fa-calendar me-2"></i>
+                <strong>{{ instanciaSeleccionada.actividad?.titulo }}</strong>
+            </div>
+            <hr class="my-2">
+            <div class="small mb-0">
+                <i class="fa fa-calendar me-1"></i>{{ formatearFechaVisual(instanciaSeleccionada.fecha) }} |
+                <i class="fa fa-clock-o ms-2 me-1"></i>{{ formatearHora(instanciaSeleccionada.hora_inicio) }} - {{
+                formatearHora(instanciaSeleccionada.hora_fin) }}
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Observaciones (opcional)</label>
+            <textarea pInputTextarea rows="3" [(ngModel)]="formIniciar.observaciones" class="form-control"
+                placeholder="Agregue observaciones sobre el inicio de la actividad..."></textarea>
+        </div>
+    </div>
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" severity="secondary" (onClick)="displayIniciarDialog = false" />
+        <p-button label="Iniciar" icon="fa fa-play" severity="success" (onClick)="iniciarActividad()" />
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Finalizar Actividad" [(visible)]="displayFinalizarDialog" [modal]="true" [style]="{ width: '32rem' }"
+    [draggable]="false" appendTo="body">
+    <div *ngIf="instanciaSeleccionada" class="py-2">
+        <div class="alert alert-info mb-3">
+            <div class="d-flex align-items-center">
+                <i class="fa fa-calendar me-2"></i>
+                <strong>{{ instanciaSeleccionada.actividad?.titulo }}</strong>
+            </div>
+            <hr class="my-2">
+            <div class="small mb-0">
+                <i class="fa fa-calendar me-1"></i>{{ formatearFechaVisual(instanciaSeleccionada.fecha) }} |
+                <i class="fa fa-clock-o ms-2 me-1"></i>{{ formatearHora(instanciaSeleccionada.hora_inicio) }} - {{
+                formatearHora(instanciaSeleccionada.hora_fin) }}
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Observaciones</label>
+            <textarea pInputTextarea rows="3" [(ngModel)]="formFinalizar.observaciones" class="form-control"
+                placeholder="Agregue observaciones sobre la finalización..."></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Evidencia (fotos, documentos)</label>
+            <p-fileUpload mode="basic" name="evidencia[]" [multiple]="true" accept="image/*,.pdf,.doc,.docx"
+                [maxFileSize]="10000000" (onSelect)="onFileSelect($event)" [auto]="true" chooseLabel="Adjuntar archivos"
+                [style]="{'width': '100%'}">
+            </p-fileUpload>
+
+            <div *ngIf="evidenciaFiles.length > 0" class="mt-3">
+                <label class="form-label small text-muted">Archivos adjuntos:</label>
+                <div *ngFor="let file of evidenciaFiles; let i = index"
+                    class="file-item d-flex justify-content-between align-items-center p-2 border rounded mb-2 bg-light">
+                    <span class="small">
+                        <i class="fa fa-file me-2 text-secondary"></i>{{ file.name }}
+                    </span>
+                    <p-button icon="fa fa-times" class="p-button-text p-button-sm p-button-danger"
+                        (onClick)="removeFile(i)"></p-button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" severity="secondary" (onClick)="displayFinalizarDialog = false" />
+        <p-button label="Finalizar" icon="fa fa-check" severity="success" (onClick)="finalizarActividad()" />
+    </ng-template>
+</p-dialog>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

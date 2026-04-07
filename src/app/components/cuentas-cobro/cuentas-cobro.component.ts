@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormGroup, FormsModule } from '@angular/forms';
 import { SidebarComponent } from "../sidebar/sidebar.component";
 
 import { CuentasCobroService } from '../../services/cuentas-cobro/cuentas-cobro.service';
@@ -22,6 +22,8 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { CalendarModule } from 'primeng/calendar';
 import { InputTextarea } from 'primeng/inputtextarea';
 import { RadioButtonModule } from 'primeng/radiobutton';
+import { TabMenuModule } from 'primeng/tabmenu';
+import { Checkbox } from 'primeng/checkbox';
 
 @Component({
     selector: 'app-cuentas-cobro',
@@ -43,7 +45,9 @@ import { RadioButtonModule } from 'primeng/radiobutton';
         InputNumberModule,
         CalendarModule,
         InputTextarea,
-        RadioButtonModule
+        RadioButtonModule,
+        TabMenuModule,
+        Checkbox
     ],
     templateUrl: './cuentas-cobro.component.html',
     styleUrl: './cuentas-cobro.component.css',
@@ -55,14 +59,15 @@ export class CuentasCobroComponent implements OnInit {
     displayDialog: boolean = false;
 
     formData: any = {
-        fecha_emision: null,
+        fecha_emision: new Date(),
         id_cliente: null,
         descripcion_servicio: '',
         valor_cobrar: null,
         configurar_periodicidad: false,
         periodicidad: 'mensual',
         dia_del_mes: 1,
-        hora_ejecucion: null
+        hora_ejecucion: null,
+        aplica_archivos_adjuntos: 'N'
     };
 
     opcionesPeriodicidad = [
@@ -72,12 +77,25 @@ export class CuentasCobroComponent implements OnInit {
         { label: 'Mensual', value: 'mensual' }
     ];
 
+    opcionesSiNo = [
+        { label: 'Sí', value: 'S' },
+        { label: 'No', value: 'N' }
+    ];
+
+    steps = [
+        { label: 'Datos de la Cuenta', command: () => this.current = 0 },
+        { label: 'Periodicidad', command: () => this.current = 1 }
+    ];
+
+    current = 0;
+    activeItem = this.steps[0];
+
     constructor(
         private cuentasCobroService: CuentasCobroService,
         private clienteService: ClienteService,
         private messageService: MessageService,
         private confirmService: ConfirmationService
-    ) {}
+    ) { }
 
     ngOnInit(): void {
         this.cargarCuentasCobro();
@@ -99,7 +117,7 @@ export class CuentasCobroComponent implements OnInit {
     cargarClientes() {
         this.clienteService.obtenerDatosClientes().subscribe({
             next: (data) => {
-                this.clientes = data;
+                this.clientes = data.filter(e => e.estado == 'A');
             },
             error: (err) => {
                 console.error('Error al cargar clientes:', err);
@@ -108,15 +126,20 @@ export class CuentasCobroComponent implements OnInit {
     }
 
     abrirFormulario() {
+        let now = new Date();
+        now.setMinutes(0);
+        now.setSeconds(0);
+
         this.formData = {
-            fecha_emision: null,
+            fecha_emision: new Date(),
             id_cliente: null,
             descripcion_servicio: '',
             valor_cobrar: null,
             configurar_periodicidad: false,
             periodicidad: 'mensual',
             dia_del_mes: 1,
-            hora_ejecucion: null
+            hora_ejecucion: now,
+            aplica_archivos_adjuntos: 'N'
         };
         this.displayDialog = true;
     }
@@ -135,7 +158,8 @@ export class CuentasCobroComponent implements OnInit {
             descripcion_servicio: this.formData.descripcion_servicio,
             valor_cobrar: this.formData.valor_cobrar,
             fecha_emision: this.formatearFechaEnvio(this.formData.fecha_emision),
-            configurar_periodicidad: this.formData.configurar_periodicidad
+            configurar_periodicidad: this.formData.configurar_periodicidad,
+            aplica_archivos_adjuntos: this.formData.aplica_archivos_adjuntos
         };
 
         if (this.formData.configurar_periodicidad) {
@@ -219,7 +243,50 @@ export class CuentasCobroComponent implements OnInit {
     }
 
     generarPdf(id: number) {
-        this.cuentasCobroService.generarPdf(id);
+        this.cuentasCobroService.generarDocumento(id).subscribe({
+            next: (res) => {
+                let response = JSON.parse(res);
+                if (response.state == 'OK') {
+                    const html = response.body.html;
+
+                    const cssPrint = `
+                        @page {
+                            margin: 15mm;
+                            size: auto;
+                        }
+                        body {
+                            margin: 0;
+                            padding: 0;
+                        }
+                    `;
+
+                    const htmlCompleto = `
+                        <html>
+                        <head>
+                            <style>${cssPrint}</style>
+                        </head>
+                        <body>${html}</body>
+                        </html>
+                    `;
+
+                    const ventana = window.open('', '_blank');
+                    if (ventana) {
+                        ventana.document.write(htmlCompleto);
+                        ventana.document.close();
+                        ventana.onload = () => {
+                            setTimeout(() => {
+                                ventana.print();
+                            }, 500);
+                        };
+                    }
+                } else {
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el documento.' });
+                }
+            },
+            error: (err) => {
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el documento.' });
+            }
+        });
     }
 
     formatearValor(valor: string | number): string {
@@ -262,5 +329,31 @@ export class CuentasCobroComponent implements OnInit {
     formatearValorInput(value: number | null): string {
         if (!value) return '';
         return this.formatCurrency(value);
+    }
+
+    next() {
+        if (this.current < this.steps.length - 1) {
+            this.current++;
+            this.activeItem = this.steps[this.current];
+        }
+    }
+
+    prev() {
+        if (this.current > 0) {
+            this.current--;
+            this.activeItem = this.steps[this.current];
+        }
+    }
+
+    fixDiaMes() {
+        if (this.formData.dia_del_mes == null) return;
+
+        if (this.formData.dia_del_mes < 1) {
+            this.formData.dia_del_mes = 1;
+        }
+
+        if (this.formData.dia_del_mes > 31) {
+            this.formData.dia_del_mes = 31;
+        }
     }
 }

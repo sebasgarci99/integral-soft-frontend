@@ -5,11 +5,16 @@ This document provides instructions for AI agents working in this repository.
 ## Project Overview
 
 This is an Angular 19 application (RH-Soft) - a healthcare/medical records management system. It uses:
-- Angular 19 with TypeScript
+- Angular 19 with TypeScript (standalone components)
 - PrimeNG UI components
-- Bootstrap 5 for styling
+- Bootstrap 5 + Bootstrap Icons
 - Chart.js for visualizations
-- jsPDF for PDF generation
+- jsPDF + jspdf-autotable for PDF generation
+- xlsx for Excel exports
+- file-saver for file downloads
+- SweetAlert2 for dialogs
+- Signature Pad for digital signatures
+- RxJS for reactive state management
 
 ## Build, Lint, and Test
 
@@ -30,7 +35,8 @@ ng lint
 
 ```bash
 npm run test                # Run all tests
-ng test --include=src/app/components/your-component/your-component.spec.ts  # Single test file
+ng test --include='src/app/components/pacientes/pacientes.component.spec.ts'  # Single component test
+ng test --include='src/app/services/pacientes/pacientes.service.spec.ts'       # Single service test
 ```
 
 ### Development Server
@@ -39,24 +45,37 @@ ng test --include=src/app/components/your-component/your-component.spec.ts  # Si
 npm start                   # Start dev server (default: http://localhost:4200)
 ```
 
+## Project Structure
+
+```
+src/app/
+├── components/     # Feature components (kebab-case directories)
+│   ├── pacientes/
+│   ├── consultas/
+│   └── ...
+├── interfaces/     # TypeScript interfaces (PascalCase, singular names)
+├── services/       # Angular services (PascalCase)
+├── utils/          # Guards, utilities, shared components
+└── app.config.ts   # Application configuration
+```
+
 ## Code Style
 
 ### General Principles
 
-- This is an Angular project using TypeScript with strict mode enabled.
-- Since there is no Prettier or ESLint configuration, pay close attention to the existing code style and maintain consistency.
-- Use 4-space indentation for TypeScript and HTML files.
+- Angular 19 project with TypeScript strict mode enabled
+- No Prettier/ESLint - follow existing code style and use 4-space indentation
+- Avoid `any` type unless absolutely necessary
 
-### Project Structure
+### Strict Mode Configuration
 
-```
-src/app/
-├── components/     # Feature components (PascalCase directory names)
-├── interfaces/      # TypeScript interfaces (PascalCase, singular names)
-├── services/        # Angular services (PascalCase)
-├── utils/           # Utility functions and constants
-└── app.config.ts    # Application configuration
-```
+- `noImplicitOverride`: All overriding members must have the `override` keyword
+- `noPropertyAccessFromIndexSignature`: Access only defined properties
+- `noImplicitReturns`: All code paths must return a value if function has return type
+- `noFallthroughCasesInSwitch`: No fallthrough cases in switch statements
+- `strictInjectionParameters`: DI parameters must be correctly typed
+- `strictInputAccessModifiers`: Component inputs require access modifiers
+- `strictTemplates`: Templates have strict type checking
 
 ### Naming Conventions
 
@@ -64,8 +83,8 @@ src/app/
 |-------------------|---------------------|----------------------------------|
 | Components        | PascalCase          | `PacientesComponent`             |
 | Services          | PascalCase          | `LoginService`                   |
-| Interfaces        | PascalCase          | `LoginInterface`, `Pacientes`    |
-| Component files   | kebab-case          | `pacientes.component.ts`         |
+| Interfaces        | PascalCase          | `Pacientes`, `LoginInterface`    |
+| Component files   | kebab-case          | `pacientes.component.ts`        |
 | Template files    | kebab-case          | `pacientes.component.html`       |
 | Style files       | kebab-case          | `pacientes.component.css`        |
 | Variables         | camelCase           | `currentUser`, `pacientesList`   |
@@ -73,77 +92,99 @@ src/app/
 | Constants         | camelCase           | `localEspaniol`                  |
 | CSS classes       | kebab-case          | `btn-primary`, `text-center`     |
 
-### TypeScript Guidelines
+### Imports Order
 
-- **Types**: Use types wherever possible. Avoid `any` unless absolutely necessary.
-- **Interfaces**: Define interfaces for all data structures in `src/app/interfaces/`.
-- **Strict Mode**: The project has strict mode enabled with these rules:
-  - `noImplicitOverride`: All overriding members must have the `override` keyword.
-  - `noPropertyAccessFromIndexSignature`: Access only defined properties.
-  - `noImplicitReturns`: All code paths must return a value if the function has a return type.
-  - `noFallthroughCasesInSwitch`: No fallthrough cases in switch statements.
-- **Angular Strict Mode**:
-  - `strictInjectionParameters`: Dependency injection parameters must be correctly typed.
-  - `strictInputAccessModifiers`: Component inputs require access modifiers.
-  - `strictTemplates`: Templates have strict type checking.
+Organize imports with blank lines between groups:
 
-### Imports
-
-Organize imports in this order:
-
-1. Angular core modules (e.g., `@angular/core`, `@angular/common`)
-2. Angular features (e.g., `@angular/forms`, `@angular/router`)
-3. Third-party libraries (e.g., `rxjs`, `primeng/*`)
-4. Application-level modules and services (e.g., `../../services/...`, `../../interfaces/...`)
-5. Relative imports for current feature module
-
-Group imports with a blank line between groups. Example:
-
-```typescript
-import { Component } from '@angular/core';
-import { OnInit } from '@angular/core';
-
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-
-import { TableModule } from 'primeng/table';
-import { DialogModule } from 'primeng/dialog';
-
-import { PacientesService } from '../../services/pacientes/pacientes.service';
-import { Pacientes } from '../../interfaces/pacientes';
-```
-
-### Error Handling
-
-- Use `try...catch` blocks for code that might throw errors (e.g., HTTP requests).
-- Use RxJS `catchError` operator for handling errors in observables.
-- Log errors to console for debugging using `console.error()`.
-- Display user-friendly error messages via PrimeNG toast messages.
-- Use `console.log()` sparingly and only for debugging; remove before committing.
+1. Angular core (`@angular/core`, `@angular/common`)
+2. Angular features (`@angular/forms`, `@angular/router`)
+3. Third-party (`rxjs`, `primeng/*`)
+4. Application-level (`../../services/...`, `../../interfaces/...`)
 
 ### Component Guidelines
 
-- Use standalone components (Angular 19 default).
-- Define component inputs with `@Input()` decorator (required due to `strictInputAccessModifiers`).
-- Use the `inject()` function for dependency injection where appropriate, or constructor injection.
-- Always implement `OnInit` interface if using `ngOnInit()` lifecycle hook.
-- Template logic should be minimal; move complex logic to component methods.
+- Use standalone components
+- Define inputs with `@Input()` decorator (required by strictInputAccessModifiers)
+- Use constructor injection or `inject()` for DI
+- Implement `OnInit` if using `ngOnInit()`
+- Use signal-based bindings where appropriate
+- Keep template logic minimal; extract to methods
+
+```typescript
+@Component({
+    selector: 'app-pacientes',
+    imports: [CommonModule, FormsModule, TableModule, ...],
+    templateUrl: './pacientes.component.html',
+    styleUrl: './pacientes.component.css',
+    providers: [MessageService]
+})
+export class PacientesComponent implements OnInit {
+    pacientes: Pacientes[] = [];
+    
+    constructor(private pacientesService: PacientesService) {}
+    
+    ngOnInit(): void {
+        this.cargarPacientes();
+    }
+}
+```
 
 ### Service Guidelines
 
-- Mark services with `@Injectable({ providedIn: 'root' })` for app-wide singletons.
-- Use proper return types for methods (prefer `Observable<T>` for HTTP calls).
-- Use BehaviorSubject for reactive state management.
+- Use `@Injectable({ providedIn: 'root' })` for app-wide singletons
+- Return proper types (prefer `Observable<T>` for HTTP)
+- Use BehaviorSubject for reactive state
+- Handle HTTP errors with RxJS `catchError`
 
-### Comments
-
-- Add comments to explain complex business logic or non-obvious decisions.
-- Do not add comments for obvious code.
-- Use `//` for single-line comments and `/** ... */` for multi-line documentation.
-- Remove commented-out code before committing.
+```typescript
+@Injectable({ providedIn: 'root' })
+export class PacientesService {
+    private currentUserData = new BehaviorSubject<any>({});
+    
+    getPacientes(): Observable<Pacientes[]> {
+        return this.http.get<Pacientes[]>(`${this.url}/pacientes`).pipe(
+            catchError(error => {
+                console.error('Error fetching pacientes:', error);
+                return throwError(() => error);
+            })
+        );
+    }
+}
+```
 
 ### Template Guidelines
 
-- Use Angular control flow syntax (`@if`, `@for`, `@switch`) over structural directives (`*ngIf`, `*ngFor`) when possible.
-- Use two-way binding with `[(ngModel)]` or signal-based bindings.
-- Keep templates readable; extract complex logic to component methods.
+- Use Angular control flow (`@if`, `@for`, `@switch`) over `*ngIf`/`*ngFor`
+- Use two-way binding with `[(ngModel)]` or signal-based bindings
+- Keep templates readable; extract logic to component methods
+
+### Error Handling
+
+- Use `try...catch` for code that might throw
+- Use RxJS `catchError` for observables
+- Log errors with `console.error()`
+- Display user-friendly messages via PrimeNG Toast or SweetAlert2
+- Remove `console.log()` before committing
+
+### Comments
+
+- Add comments for complex business logic
+- Do not comment obvious code
+- Use `//` for single-line, `/** ... */` for multi-line
+- Remove commented-out code before committing
+
+### PrimeNG Usage
+
+Key components: TableModule, PaginatorModule, DialogModule, ConfirmDialogModule, ButtonModule, InputTextModule, ToastModule, CalendarModule, DropdownModule, ChartModule, StepsModule, TabViewModule.
+
+Import in component's `imports` array for standalone components.
+
+### Common Libraries
+
+- PDF: `jspdf` + `jspdf-autotable`
+- Excel: `xlsx` (SheetJS)
+- File saving: `file-saver`
+- Dialogs: `SweetAlert2` (Swal.fire())
+- Charts: `chart.js` via PrimeNG ChartModule
+- Icons: PrimeIcons, FontAwesome (`fa-solid fa-*`)
+- Signatures: `signature_pad`
