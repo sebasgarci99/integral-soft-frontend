@@ -110,16 +110,17 @@
                                     <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
                                         <input pInputText [(ngModel)]="formData.numero_documento" class="w-100"
                                             maxlength="12" />
-                                        <label>Número Documento</label>
+                                        <label>Número de documento</label>
                                     </p-floatlabel>
                                 </div>
 
                                 <div class="col-12 d-md-flex d-sm-grid">
                                     <p-floatlabel variant="on" class="col-md-6 col-sm-12 mt-3 ms-2">
-                                        <p-calendar [(ngModel)]="formData.fecha_nacimiento" dateFormat="yy-mm-dd"
-                                            [locale]="local_espaniol" showIcon="true" class="w-100 ms-2">
+                                        <p-calendar id="fecha_nacimiento" [(ngModel)]="formData.fecha_nacimiento"
+                                            dateFormat="yy-mm-dd" [locale]="local_espaniol" showIcon="true"
+                                            class="w-100 ms-2" showIcon="true" required #fecha_nacimiento="ngModel">
                                         </p-calendar>
-                                        <label>Fecha Nacimiento</label>
+                                        <label>Fecha de nacimiento</label>
                                     </p-floatlabel>
                                     <p-floatlabel variant="on" class="col-md-6 col-sm-12 mt-3">
                                         <input pInputText [(ngModel)]="formData.municipio_residencia" class="w-100" />

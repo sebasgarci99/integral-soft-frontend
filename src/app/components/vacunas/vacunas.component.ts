@@ -20,6 +20,7 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import Swal from 'sweetalert2';
 import { SelectItem } from 'primeng/api';
 import { DropdownModule } from 'primeng/dropdown';
+import { CheckboxModule } from 'primeng/checkbox';
 
 import { localeEs } from '../../utils/locale-es';
 import { CalendarModule } from 'primeng/calendar';
@@ -42,7 +43,8 @@ import { CalendarModule } from 'primeng/calendar';
         InputTextModule,
         DropdownModule,
         ReactiveFormsModule,
-        CalendarModule
+        CalendarModule,
+        CheckboxModule
     ],
     templateUrl: './vacunas.component.html',
     styleUrl: './vacunas.component.css',
@@ -88,9 +90,10 @@ export class VacunasComponent implements OnInit {
             id_laboratorio: 0,
             registro_sanitario: 'ABC0',
             cantidad_dosis: 0,
+            aplica_refuerzo: false,
             estado: 'A',
             id_empresa: 0,   // backend lo puede rellenar
-            id_usuario: 0    // backend lo puede rellenar
+            id_usuario: 0    // backend lo puederella
         };
     }
 

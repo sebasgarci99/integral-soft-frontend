@@ -31,6 +31,7 @@
 
                     <ng-template pTemplate="header">
                         <tr>
+                            <th>Últ. fecha atención</th>
                             <th>Paciente</th>
                             <th>Identificación</th>
                             <th>Teléfono</th>
@@ -40,6 +41,7 @@
 
                     <ng-template pTemplate="body" let-row>
                         <tr>
+                            <td>{{ row.ultima_atencion }} </td>
                             <td>{{ row.nombres }} {{ row.apellidos }}</td>
                             <td>{{ row.tipo_documento }}-{{ row.numero_documento }}</td>
                             <td>{{ row.telefono_contacto }}</td>
@@ -209,13 +211,26 @@
 
                         <div *ngFor="let vacuna of formData.vacunas" class="mt-2 border-1" id="divVacunasSeleccionadas">
                             <span class="me-2 mt-2"> <b>✔ Vacuna:</b> {{ vacuna.nombre_vacuna }}</span>
+
                             <span class="ms-2 me-2 mt-2"> <b>| Dosis a aplicar: </b></span>
 
+                            @if (vacuna.es_refuerzo) {
+                            <input pInputText class="p-inputtext p-component input-dosis" value="Refuerzo" disabled />
+                            } @else {
                             <input type="number" min="1" [max]="vacuna.cant_dosis_max" [(ngModel)]="vacuna.dosis"
                                 class="p-inputtext p-component input-dosis" value="vacuna.dosis"
                                 [disabled]="vacuna.cant_dosis_max === 1" />
+                            }
 
-                            <small class="p-error text-error-small mt-2" *ngIf="vacuna.dosis > vacuna.cant_dosis_max">
+                            @if (vacuna.aplica_refuerzo) {
+                            <span class="ms-2 me-2 mt-2"> <b>| Aplicar refuerzo: </b></span>
+                            <p-checkbox [(ngModel)]="vacuna.es_refuerzo" [binary]="true"
+                                (onChange)="onRefuerzoChange(vacuna)" class="me-2 checkbox-aplica-refuerzo">
+                            </p-checkbox>
+                            }
+
+                            <small class="p-error text-error-small mt-2"
+                                *ngIf="!vacuna.es_refuerzo && vacuna.dosis > vacuna.cant_dosis_max">
                                 No se pueden aplicar más dosis de las parametrizadas para la vacuna.
                             </small>
                         </div>

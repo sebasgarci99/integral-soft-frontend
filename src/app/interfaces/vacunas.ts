@@ -10,6 +10,7 @@ export interface Vacunas {
     id_laboratorio: number
     registro_sanitario: string;
     cantidad_dosis: number;
+    aplica_refuerzo: boolean;
     estado: string;
     id_empresa: number;
     id_usuario: number;

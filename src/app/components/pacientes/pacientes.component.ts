@@ -14,40 +14,41 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { HttpClient, HttpClientModule } from '@angular/common/http'; 
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { PaginatorModule } from 'primeng/paginator';
-import { FloatLabelModule  } from 'primeng/floatlabel';
+import { FloatLabelModule } from 'primeng/floatlabel';
 import { TabMenuModule } from 'primeng/tabmenu';
 import { DropdownModule } from 'primeng/dropdown';
 import { RadioButton } from 'primeng/radiobutton';
 
 import { localeEs } from '../../utils/locale-es';
 import { CalendarModule } from 'primeng/calendar';
+import Swal from 'sweetalert2';
 import { StepsModule } from "primeng/steps";
 
 @Component({
     selector: 'app-consultorios',
     imports: [
-    SidebarComponent,
-    CommonModule,
-    FormsModule,
-    HttpClientModule,
-    TableModule,
-    DialogModule,
-    ButtonModule,
-    InputTextModule,
-    ToastModule,
-    ConfirmDialogModule,
-    PaginatorModule,
-    FloatLabelModule,
-    InputTextModule,
-    DropdownModule,
-    ReactiveFormsModule,
-    CalendarModule,
-    StepsModule,
-    TabMenuModule,
-    RadioButton
-] ,
+        SidebarComponent,
+        CommonModule,
+        FormsModule,
+        HttpClientModule,
+        TableModule,
+        DialogModule,
+        ButtonModule,
+        InputTextModule,
+        ToastModule,
+        ConfirmDialogModule,
+        PaginatorModule,
+        FloatLabelModule,
+        InputTextModule,
+        DropdownModule,
+        ReactiveFormsModule,
+        CalendarModule,
+        StepsModule,
+        TabMenuModule,
+        RadioButton
+    ],
     templateUrl: './pacientes.component.html',
     styleUrl: './pacientes.component.css',
     providers: [MessageService, ConfirmationService]
@@ -60,38 +61,38 @@ export class PacientesComponent {
     isEdit = false;
     current = 0;
     steps = [
-        { 
-            label: 'Datos personales', 
-            icon: 'fa-solid fa-id-card', 
+        {
+            label: 'Datos personales',
+            icon: 'fa-solid fa-id-card',
             command: () => {
                 this.current = 0;
             }
         },
-        { 
-            label: 'Antecedentes médicos', 
+        {
+            label: 'Antecedentes médicos',
             icon: 'fa-solid fa-book-medical',
             command: () => {
                 this.current = 1;
             }
         },
-        { 
-            label: 'Datos administrativos', 
+        {
+            label: 'Datos administrativos',
             icon: 'fa-solid fa-circle-info',
-             command: () => {
+            command: () => {
                 this.current = 2;
             }
         }
     ];
 
     formData: any = {};
-    local_espaniol = { firstDayOfWeek: 1, dayNamesMin: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'], monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'] };
+    local_espaniol = { firstDayOfWeek: 1, dayNamesMin: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'], monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'] };
 
     constructor(
         private http: HttpClient,
         private messageService: MessageService,
         private confirmService: ConfirmationService,
         private pacientesService: PacientesService
-    ) {}
+    ) { }
 
     ngOnInit() {
         this.cargarPacientes();
@@ -126,7 +127,7 @@ export class PacientesComponent {
     }
 
     crearActualizarPaciente() {
-        if(!this.validarFormulario()) return;
+        if (!this.validarFormulario()) return;
 
         if (this.isEdit) {
             this.pacientesService.actualizarPaciente(this.formData).subscribe((res) => {
@@ -166,74 +167,70 @@ export class PacientesComponent {
             }
         });
     }
-    
-    validarFormulario():boolean {
-        console.log(this.formData)
 
-        // Validamos los campos obligatorios para crear el registro de pacientes
-        if(this.formData.nombres == null || this.formData.nombres == '') {
-            this.messageService.add({ severity: 'warning', summary: 'El nombre es obligatorio para la creación del paciente' });
+    validarFormulario(): boolean {
+        if (this.formData.nombres == null || this.formData.nombres == '') {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'El nombre es obligatorio para la creación del paciente' });
             return false;
         }
 
-        if(this.formData.apellidos == null || this.formData.apellidos == '') {
-            this.messageService.add({ severity: 'warning', summary: 'El apellido es obligatorio para la creación del paciente' });
+        if (this.formData.apellidos == null || this.formData.apellidos == '') {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'El apellido es obligatorio para la creación del paciente' });
             return false;
         }
 
-        if(this.formData.tipo_documento == null || this.formData.tipo_documento == '') {
-            this.messageService.add({ severity: 'warning', summary: 'El tipo de documento es obligatorio para la creación del paciente' });
+        if (this.formData.tipo_documento == null || this.formData.tipo_documento == '') {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'El tipo de documento es obligatorio para la creación del paciente' });
             return false;
         }
 
-        if(this.formData.numero_documento == null || this.formData.numero_documento == '') {
-            this.messageService.add({ severity: 'warning', summary: 'El número de documento es obligatorio para la creación del paciente' });
+        if (this.formData.numero_documento == null || this.formData.numero_documento == '') {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'El número de documento es obligatorio para la creación del paciente' });
             return false;
         }
 
-        if(this.formData.fecha_nacimiento == null || this.formData.fecha_nacimiento == '') {
-            this.messageService.add({ severity: 'warning', summary: 'La fecha de nacimiento es obligatoria para la creación del paciente' });
+        if (this.formData.fecha_nacimiento == null || this.formData.fecha_nacimiento == '') {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'La fecha de nacimiento es obligatoria para la creación del paciente' });
             return false;
         }
 
-        if(this.formData.telefono_contacto == null || this.formData.telefono_contacto == '') {
-            this.messageService.add({ severity: 'warning', summary: 'La núm. de telefóno es obligatorio para la creación del paciente' });
+        if (this.formData.telefono_contacto == null || this.formData.telefono_contacto == '') {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'El número de teléfono es obligatorio para la creación del paciente' });
             return false;
         }
 
         return true;
     }
 
-    validarBotonGuardar():boolean{
-        console.log(this.formData)
+    validarBotonGuardar(): boolean {
 
-        if(this.formData.tiene_enfermedad_actual == true) {
-            if(!this.formData.enfermedades_actuales || this.formData.enfermedades_actuales.trim() === '') {
+        if (this.formData.tiene_enfermedad_actual == true) {
+            if (!this.formData.enfermedades_actuales || this.formData.enfermedades_actuales.trim() === '') {
                 return true;
             }
         }
 
-        if(this.formData.es_alergico == true) {
-            if(!this.formData.uso_medicamentos || this.formData.uso_medicamentos.trim() === '') {
+        if (this.formData.es_alergico == true) {
+            if (!this.formData.uso_medicamentos || this.formData.uso_medicamentos.trim() === '') {
                 return true;
             }
         }
 
-        if(this.formData.reaccion_vacuna == true) {
-            if(!this.formData.reacciones_previas_vacunas || this.formData.reacciones_previas_vacunas.trim() === '') {
+        if (this.formData.reaccion_vacuna == true) {
+            if (!this.formData.reacciones_previas_vacunas || this.formData.reacciones_previas_vacunas.trim() === '') {
                 return true;
             }
         }
 
-        if(!this.formData.alergias_graves || this.formData.alergias_graves.trim() === '') {
+        if (!this.formData.alergias_graves || this.formData.alergias_graves.trim() === '') {
             return true;
         }
-        
-        if(!this.formData.eps || this.formData.eps.trim() === '') return true;
-        if(!this.formData.tipo_poblacion || this.formData.tipo_poblacion.trim() === '') return true;
-        if(!this.formData.nombre_acompanante || this.formData.nombre_acompanante.trim() === '') return true;
 
-        
+        if (!this.formData.eps || this.formData.eps.trim() === '') return true;
+        if (!this.formData.tipo_poblacion || this.formData.tipo_poblacion.trim() === '') return true;
+        if (!this.formData.nombre_acompanante || this.formData.nombre_acompanante.trim() === '') return true;
+
+
         return false;
     }
 }

@@ -137,18 +137,28 @@
                         </p-floatlabel>
 
                         <!-- Cantidad dosis -->
-                        <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
-                            <input type="number" pInputText id="cantidad_dosis" #cantidad_dosis="ngModel" class="w-100"
-                                [(ngModel)]="formData.cantidad_dosis" [min]="0" max="99" required />
-                            <label for="cantidad_dosis">Cantidad de dosis</label>
-                        </p-floatlabel>
-                        <small class="p-error text-error-small"
-                            *ngIf="cantidad_dosis.invalid && cantidad_dosis.touched">
-                            La cantidad de dosis de la vacuna es requerida o supera el rango permitido (99)
-                        </small>
-
                         <div class="col-12 row">
-                            <!-- Concentración -->
+                            <p-floatlabel variant="on" class="col-lg-6 md:col-12 mt-3">
+                                <input type="number" pInputText id="cantidad_dosis" #cantidad_dosis="ngModel"
+                                    class="w-100" [(ngModel)]="formData.cantidad_dosis" [min]="0" max="99" required />
+                                <label for="cantidad_dosis">Cantidad de dosis</label>
+                            </p-floatlabel>
+
+                            <!-- Checkbox aplica refuerzo -->
+                            <div class="col-lg-6 md:col-12 mt-4">
+                                <p-checkbox [(ngModel)]="formData.aplica_refuerzo" [binary]="true"
+                                    inputId="aplica_refuerzo">
+                                </p-checkbox>
+                                <label for="aplica_refuerzo" class="ms-2">Aplica refuerzo</label>
+                            </div>
+                            <small class="p-error text-error-small"
+                                *ngIf="cantidad_dosis.invalid && cantidad_dosis.touched">
+                                La cantidad de dosis de la vacuna es requerida o supera el rango permitido (99)
+                            </small>
+                        </div>
+
+                        <!-- Concentración -->
+                        <div class="col-12 row">
                             <p-floatlabel variant="on" class="col-lg-6 col-md-6 mt-3">
                                 <input type="number" pInputText id="concentracion" class="w-100" step="0.01"
                                     [(ngModel)]="formData.concentracion" [max]="99" [min]="1" />

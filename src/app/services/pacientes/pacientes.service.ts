@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 import { enviroment } from '../../../enviroments/enviroment';
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class PacientesService {
 
@@ -27,8 +27,27 @@ export class PacientesService {
         const body = { id_usuario: Number(idUser) };
 
         return this.http.post<any>(
-        this.urlApp + this.urlAppAPI + 'getPacientes',
-        body,
+            this.urlApp + this.urlAppAPI + 'getPacientes',
+            body,
+            { headers: headersWS }
+        ).pipe(
+            map(response => response.body as any[])
+        );
+    }
+
+    // ===========================================
+    // GET - obtener todos los pacientes del modulo de vacunacion. se añade la ultima fecha de registro de vac.
+    // ===========================================
+    obtenerPacientesVacunacion(): Observable<any[]> {
+        const token = localStorage.getItem('token');
+        const idUser = localStorage.getItem('idUser');
+
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        const body = { id_usuario: Number(idUser) };
+
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'getPacientesVacunacion',
+            body,
             { headers: headersWS }
         ).pipe(
             map(response => response.body as any[])
@@ -137,9 +156,9 @@ export class PacientesService {
         };
 
         return this.http.post<any>(
-        this.urlApp + this.urlAppAPI + 'actualizarPaciente',
-        body,
-        { headers: headersWS }
+            this.urlApp + this.urlAppAPI + 'actualizarPaciente',
+            body,
+            { headers: headersWS }
         );
     }
 
@@ -153,9 +172,9 @@ export class PacientesService {
         const body = { id_paciente: Number(id_paciente) };
 
         return this.http.post<any>(
-        this.urlApp + this.urlAppAPI + 'eliminarPaciente',
-        body,
-        { headers: headersWS }
+            this.urlApp + this.urlAppAPI + 'eliminarPaciente',
+            body,
+            { headers: headersWS }
         );
     }
 }

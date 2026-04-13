@@ -60,6 +60,7 @@ export class VacunaService {
             id_laboratorio: data.id_laboratorio,
             registro_sanitario: data.registro_sanitario,
             cantidad_dosis: data.cantidad_dosis,
+            aplica_refuerzo: data.aplica_refuerzo,
             estado: 'A',
             id_usuario: idUser,
             id_empresa: idEmpresa
@@ -94,6 +95,7 @@ export class VacunaService {
             id_laboratorio: data.id_laboratorio,
             registro_sanitario: data.registro_sanitario,
             cantidad_dosis: data.cantidad_dosis,
+            aplica_refuerzo: data.aplica_refuerzo,
             estado: data.estado ?? 'A',
             id_usuario: idUser,
             id_empresa: idEmpresa

@@ -110,6 +110,10 @@
   height: 100% !important;
 }
 
+::ng-deep p-checkbox.checkbox-aplica-refuerzo div.p-checkbox.p-component {
+  vertical-align: middle !important;
+}
+
 /* --- RESPONSIVE / MEDIA QUERIES --- */
 @media (max-width: 991.98px) {
   .dashboard {

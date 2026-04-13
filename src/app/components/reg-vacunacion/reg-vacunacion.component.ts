@@ -19,7 +19,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { Tag } from 'primeng/tag';
 import { MultiSelect } from 'primeng/multiselect';
-import { RadioButton } from 'primeng/radiobutton'
+import { RadioButton } from 'primeng/radiobutton';
+import { CheckboxModule } from 'primeng/checkbox';
 
 import { jsPDF } from "jspdf";
 
@@ -52,7 +53,8 @@ import { VacunaService } from '../../services/vacunas/vacuna.service';
         SignatureCanvasComponent,
         Tag,
         MultiSelect,
-        RadioButton
+        RadioButton,
+        CheckboxModule
     ],
     templateUrl: './reg-vacunacion.component.html',
     styleUrl: './reg-vacunacion.component.css',
@@ -87,6 +89,8 @@ export class RegVacunacionComponent implements OnInit {
             nombre_vacuna: string;
             dosis: number;
             cant_dosis_max: number;
+            aplica_refuerzo: boolean;
+            es_refuerzo: boolean;
         }[],
         aplica_acudiente: "N",
         acudiente: "",
@@ -112,8 +116,8 @@ export class RegVacunacionComponent implements OnInit {
 
     // Cargar solo pacientes activos
     cargarPacientes() {
-        this.pacientesService.obtenerPacientes().subscribe(data => {
-            this.pacientes = data.filter(e => e.estado === 'A');
+        this.pacientesService.obtenerPacientesVacunacion().subscribe(data => {
+            this.pacientes = data.filter(e => e.estado == 'A');
         });
     }
 
@@ -130,6 +134,8 @@ export class RegVacunacionComponent implements OnInit {
                 nombre_vacuna: string;
                 dosis: number;
                 cant_dosis_max: number;
+                aplica_refuerzo: boolean;
+                es_refuerzo: boolean;
             }[],
             aplica_acudiente: "N",
             acudiente: "",
@@ -230,7 +236,7 @@ export class RegVacunacionComponent implements OnInit {
 
     botonGuardarHabilitado() {
         if (this.formData.vacunas.length === 0) return false;
-        if (this.formData.vacunas.some(v => v.dosis > v.cant_dosis_max)) return false;
+        if (this.formData.vacunas.some(v => !v.es_refuerzo && v.dosis > v.cant_dosis_max)) return false;
         if (!this.formData.firma) return false;
 
         if (this.formData.aplica_acudiente === "S") {
@@ -275,7 +281,7 @@ export class RegVacunacionComponent implements OnInit {
             estado: "A",
             vacunas_aplicadas: this.formData.vacunas.map(v => ({
                 id_vacuna: v.id_vacuna,
-                dosis_aplicada: v.dosis
+                dosis_aplicada: v.es_refuerzo ? 'refuerzo' : v.dosis
             })),
             firma_usuario_acudiente: this.formData.firma,
             vacunacion_empresa: this.formData.vacunacion_empresa,
@@ -343,20 +349,39 @@ export class RegVacunacionComponent implements OnInit {
                 x => x.id_vacuna === v.id
             );
 
-            // En caso de que la cantidad de dosis parametrizada sea 1,
-            // se asigna 1 como valor por defecto
-            // Y se inactiva el campo de dosis
             return existente ?? {
                 id_vacuna: v.id,
                 nombre_vacuna: v.nombre_vacuna,
                 dosis: v.cantidad_dosis == 1 ? 1 : v.dosis,
-                cant_dosis_max: v.cantidad_dosis
+                cant_dosis_max: v.cantidad_dosis,
+                aplica_refuerzo: v.aplica_refuerzo ?? false,
+                es_refuerzo: false
             };
         });
     }
 
-    obtenerTextoDosis(dosis: number, cant_dosis_max: number): string {
-        switch (dosis) {
+    onRefuerzoChange(vacuna: any) {
+        if (vacuna.es_refuerzo) {
+            vacuna.dosis = 'refuerzo' as any;
+        } else {
+            vacuna.dosis = 1;
+        }
+    }
+
+    private transformarDosis(dosis: any, esRefuerzo: boolean): number | string {
+        if (esRefuerzo && dosis === 'refuerzo') {
+            return 'refuerzo';
+        }
+        return Number(dosis);
+    }
+
+    obtenerTextoDosis(dosis: number | string, cant_dosis_max: number): string {
+        if (dosis === 'refuerzo') {
+            return 'Refuerzo';
+        }
+
+        const dosisNum = Number(dosis);
+        switch (dosisNum) {
             case 1: return cant_dosis_max == 1 ? 'única dosis' : 'primera dosis';
             case 2: return 'segunda dosis';
             case 3: return 'tercera dosis';
