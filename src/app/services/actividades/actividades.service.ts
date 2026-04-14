@@ -51,7 +51,7 @@ export class ActividadesService {
         );
     }
 
-    getActividadesCalendario(fecha_inicio: string, fecha_fin: string): Observable<any> {
+    async getActividadesCalendario(fecha_inicio: string, fecha_fin: string): Promise<Observable<any>> {
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'getActividadesCalendario',
             { fecha_inicio, fecha_fin },

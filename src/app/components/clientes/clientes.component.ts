@@ -66,7 +66,7 @@ export class ClientesComponent implements OnInit {
         private fb: FormBuilder
     ) {
         this.clienteForm = this.fb.group({
-            id: [0],
+            id_cliente: [0],
             nombre_razon_social: ['', [Validators.required, Validators.maxLength(255)]],
             nombre_comercial: ['', [Validators.maxLength(255)]],
             tipo_identificacion: ['', [Validators.required]],
@@ -75,7 +75,7 @@ export class ClientesComponent implements OnInit {
             pais: ['', [Validators.required, Validators.maxLength(100)]],
             ciudad: ['', [Validators.required, Validators.maxLength(100)]],
             direccion: ['', [Validators.required, Validators.maxLength(255)]],
-            correo_electronico: ['', [Validators.email, Validators.maxLength(255)]],
+            correo_electronico: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
             nombre_contacto: ['', [Validators.maxLength(255)]],
             comentarios_observaciones: ['', [Validators.maxLength(1000)]],
             estado: ['A']
@@ -132,7 +132,7 @@ export class ClientesComponent implements OnInit {
         const clienteData = this.clienteForm.value;
 
         if (this.isEdit) {
-            this.clienteService.actualizarCliente(clienteData.id, clienteData).subscribe((res) => {
+            this.clienteService.actualizarCliente(clienteData.id_cliente, clienteData).subscribe((res) => {
                 if (res.state == 'OK') {
                     this.cargarClientes();
                     this.displayDialog = false;

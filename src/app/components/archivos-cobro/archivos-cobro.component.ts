@@ -307,12 +307,12 @@ export class ArchivosCobroComponent implements OnInit {
     private descargarArchivoPorTipo(idArchivo: number, nombre: string, mimeType: string) {
         this.archivosCobroService.descargarArchivo(idArchivo).subscribe({
             next: (blob) => {
-                const url = window.URL.createObjectURL(blob);
+                let data = blob.body;
+                console.log(data)
                 const link = document.createElement('a');
-                link.href = url;
-                link.download = nombre;
+                link.href = `data:${data.mime_type};base64,${data.archivo_base64}`;
+                link.download = data.nombre_original;
                 link.click();
-                window.URL.revokeObjectURL(url);
             },
             error: (err) => {
                 console.error('Error al descargar:', err);

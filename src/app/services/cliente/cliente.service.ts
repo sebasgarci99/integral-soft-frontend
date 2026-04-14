@@ -81,7 +81,7 @@ export class ClienteService {
         let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`)
 
         let body = {
-            id_cliente: data.id,
+            id_cliente: data.id_cliente,
             nombre_razon_social: data.nombre_razon_social,
             nombre_comercial: data.nombre_comercial,
             tipo_identificacion: data.tipo_identificacion,

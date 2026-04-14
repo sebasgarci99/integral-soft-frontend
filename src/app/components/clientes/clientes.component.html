@@ -20,88 +20,81 @@
                 </div>
 
                 <div class="flex justify-content-between mb-2 text-end">
-                    <input 
-                        #gbInput
-                        pInputText 
-                        type="text"
-                        (input)="tablaClientes.filterGlobal(gbInput.value, 'contains')" 
-                        placeholder="Buscar..."
-                    />
+                    <input #gbInput pInputText type="text"
+                        (input)="tablaClientes.filterGlobal(gbInput.value, 'contains')" placeholder="Buscar..." />
                 </div>
 
-                <p-table 
-                    #tablaClientes
-                    [value]="clientes" 
-                    [paginator]="true" 
-                    [rows]="10" 
-                    responsiveLayout="scroll"
-                    [globalFilterFields]="['numero_identificacion', 'nombre_razon_social', 'nombre_comercial', 'telefono', 'correo_electronico', 'estado']"
-                    >
+                <p-table #tablaClientes [value]="clientes" [paginator]="true" [rows]="10" responsiveLayout="scroll"
+                    [globalFilterFields]="['numero_identificacion', 'nombre_razon_social', 'nombre_comercial', 'telefono', 'correo_electronico', 'estado']">
                     <ng-template pTemplate="header">
-                    <tr>
-                        <th>Identificación</th>
-                        <th>Nombre / Razón Social</th>
-                        <th>Nombre Comercial</th>
-                        <th>Teléfono</th>
-                        <th>Correo Electrónico</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
+                        <tr>
+                            <th>Identificación</th>
+                            <th>Nombre / Razón Social</th>
+                            <th>Nombre Comercial</th>
+                            <th>Teléfono</th>
+                            <th>Correo Electrónico</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-row>
-                    <tr>
-                        <td>{{ row.numero_identificacion }}</td>
-                        <td>{{ row.nombre_razon_social }}</td>
-                        <td>{{ row.nombre_comercial }}</td>
-                        <td>{{ row.telefono }}</td>
-                        <td>{{ row.correo_electronico }}</td>
-                        <td>{{ row.estado }}</td>
-                        <td>
-                            <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editarDatosCliente(row)" />
-                            <p-button icon="fa fa-trash" class="p-button-text p-button-sm" (onClick)="borrarCliente(row.id)" />
-                        </td>
-                    </tr>
+                        <tr>
+                            <td>{{ row.numero_identificacion }}</td>
+                            <td>{{ row.nombre_razon_social }}</td>
+                            <td>{{ row.nombre_comercial }}</td>
+                            <td>{{ row.telefono }}</td>
+                            <td>{{ row.correo_electronico }}</td>
+                            <td>{{ row.estado }}</td>
+                            <td>
+                                <p-button icon="fa fa-pencil" class="p-button-text p-button-sm"
+                                    (onClick)="editarDatosCliente(row)" />
+                                <p-button icon="fa fa-trash" class="p-button-text p-button-sm"
+                                    (onClick)="borrarCliente(row.id)" />
+                            </td>
+                        </tr>
                     </ng-template>
                 </p-table>
 
-                <p-dialog 
-                    header="{{ isEdit ? 'Editar' : 'Adicionar' }} Cliente" 
-                    [(visible)]="displayDialog" 
-                    *ngIf="displayDialog"
-                    [modal]="true" 
-                    [style]="{ width: '47rem' }" 
-                    [draggable]="false"
-                    appendTo="body"
-                    >
+                <p-dialog header="{{ isEdit ? 'Editar' : 'Adicionar' }} Cliente" [(visible)]="displayDialog"
+                    *ngIf="displayDialog" [modal]="true" [style]="{ width: '47rem' }" [draggable]="false"
+                    appendTo="body">
                     <form [formGroup]="clienteForm">
                         <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
                             <div class="col-12 d-md-flex d-sm-grid">
                                 <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
-                                    <input pInputText formControlName="nombre_razon_social" id="nombre_razon_social" class="w-100" />
+                                    <input pInputText formControlName="nombre_razon_social" id="nombre_razon_social"
+                                        class="w-100" />
                                     <label>Nombre / Razón Social *</label>
-                                    <small class="p-error text-error-small" *ngIf="clienteForm.controls['nombre_razon_social'].touched && clienteForm.controls['nombre_razon_social'].errors?.['required']">
+                                    <small class="p-error text-error-small"
+                                        *ngIf="clienteForm.controls['nombre_razon_social'].touched && clienteForm.controls['nombre_razon_social'].errors?.['required']">
                                         El nombre o razón social es requerido
                                     </small>
                                 </p-floatlabel>
                                 <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
-                                    <input pInputText formControlName="nombre_comercial" id="nombre_comercial" class="w-100" />
+                                    <input pInputText formControlName="nombre_comercial" id="nombre_comercial"
+                                        class="w-100" />
                                     <label>Nombre Comercial</label>
                                 </p-floatlabel>
                             </div>
 
                             <div class="col-12 d-md-flex d-sm-grid">
                                 <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
-                                    <p-dropdown [options]="tiposIdentificacion" formControlName="tipo_identificacion" class="w-100" inputId="tipo_identificacion" [ngClass]="{ 'p-inputwrapper-filled': clienteForm.controls['tipo_identificacion'].value }">
+                                    <p-dropdown [options]="tiposIdentificacion" formControlName="tipo_identificacion"
+                                        class="w-100" inputId="tipo_identificacion"
+                                        [ngClass]="{ 'p-inputwrapper-filled': clienteForm.controls['tipo_identificacion'].value }">
                                     </p-dropdown>
                                     <label for="tipo_identificacion">Tipo Identificación *</label>
-                                    <small class="p-error text-error-small" *ngIf="clienteForm.controls['tipo_identificacion'].touched && clienteForm.controls['tipo_identificacion'].errors?.['required']">
+                                    <small class="p-error text-error-small"
+                                        *ngIf="clienteForm.controls['tipo_identificacion'].touched && clienteForm.controls['tipo_identificacion'].errors?.['required']">
                                         El tipo de identificación es requerido
                                     </small>
                                 </p-floatlabel>
                                 <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
-                                    <input pInputText formControlName="numero_identificacion" class="w-100" maxlength="50" [disabled]="isEdit ? true : false" />
+                                    <input pInputText formControlName="numero_identificacion" class="w-100"
+                                        maxlength="50" [disabled]="isEdit ? true : false" />
                                     <label>Número Identificación *</label>
-                                    <small class="p-error text-error-small" *ngIf="clienteForm.controls['numero_identificacion'].touched && clienteForm.controls['numero_identificacion'].errors?.['required']">
+                                    <small class="p-error text-error-small"
+                                        *ngIf="clienteForm.controls['numero_identificacion'].touched && clienteForm.controls['numero_identificacion'].errors?.['required']">
                                         El número de identificación es requerido
                                     </small>
                                 </p-floatlabel>
@@ -111,14 +104,16 @@
                                 <p-floatlabel variant="on" class="col-md-6 col-sm-12 mt-3 me-2">
                                     <input pInputText formControlName="pais" class="w-100" />
                                     <label>País *</label>
-                                    <small class="p-error text-error-small" *ngIf="clienteForm.controls['pais'].touched && clienteForm.controls['pais'].errors?.['required']">
+                                    <small class="p-error text-error-small"
+                                        *ngIf="clienteForm.controls['pais'].touched && clienteForm.controls['pais'].errors?.['required']">
                                         El país es requerido
                                     </small>
                                 </p-floatlabel>
                                 <p-floatlabel variant="on" class="col-md-6 col-sm-12 mt-3">
                                     <input pInputText formControlName="ciudad" class="w-100" />
                                     <label>Ciudad *</label>
-                                    <small class="p-error text-error-small" *ngIf="clienteForm.controls['ciudad'].touched && clienteForm.controls['ciudad'].errors?.['required']">
+                                    <small class="p-error text-error-small"
+                                        *ngIf="clienteForm.controls['ciudad'].touched && clienteForm.controls['ciudad'].errors?.['required']">
                                         La ciudad es requerida
                                     </small>
                                 </p-floatlabel>
@@ -127,7 +122,8 @@
                             <p-floatlabel variant="on" class="col-12 mt-3">
                                 <input pInputText formControlName="direccion" class="w-100" />
                                 <label>Dirección de residencia *</label>
-                                <small class="p-error text-error-small" *ngIf="clienteForm.controls['direccion'].touched && clienteForm.controls['direccion'].errors?.['required']">
+                                <small class="p-error text-error-small"
+                                    *ngIf="clienteForm.controls['direccion'].touched && clienteForm.controls['direccion'].errors?.['required']">
                                     La dirección es requerida
                                 </small>
                             </p-floatlabel>
@@ -139,8 +135,9 @@
                                 </p-floatlabel>
                                 <p-floatlabel variant="on" class="col-md-6 col-sm-12 mt-3">
                                     <input pInputText type="email" formControlName="correo_electronico" class="w-100" />
-                                    <label>Correo electrónico</label>
-                                    <small class="p-error text-error-small" *ngIf="clienteForm.controls['correo_electronico'].touched && clienteForm.controls['correo_electronico'].errors?.['email']">
+                                    <label>Correo electrónico*</label>
+                                    <small class="p-error text-error-small"
+                                        *ngIf="clienteForm.controls['correo_electronico'].touched && clienteForm.controls['correo_electronico'].errors?.['required']">
                                         El correo electrónico no es válido
                                     </small>
                                 </p-floatlabel>
@@ -152,7 +149,8 @@
                             </p-floatlabel>
 
                             <p-floatlabel variant="on" class="col-12 mt-3">
-                                <textarea pInputTextarea formControlName="comentarios_observaciones" rows="3" class="w-100"></textarea>
+                                <textarea pInputTextarea formControlName="comentarios_observaciones" rows="3"
+                                    class="w-100"></textarea>
                                 <label>Comentarios / Observaciones</label>
                             </p-floatlabel>
                         </div>
@@ -160,15 +158,10 @@
 
                     <ng-template pTemplate="footer">
                         <div class="flex justify-content-end gap-2">
-                            <p-button label="Cancelar" class="m-2" icon="fa fa-times" severity="secondary" (onClick)="displayDialog = false" />
-                            <p-button 
-                                label="Guardar" 
-                                class="m-2" 
-                                icon="fa fa-check" 
-                                severity="info"
-                                [disabled]="clienteForm.invalid" 
-                                (onClick)="crearActualizarCliente()" 
-                            />
+                            <p-button label="Cancelar" class="m-2" icon="fa fa-times" severity="secondary"
+                                (onClick)="displayDialog = false" />
+                            <p-button label="Guardar" class="m-2" icon="fa fa-check" severity="info"
+                                [disabled]="clienteForm.invalid" (onClick)="crearActualizarCliente()" />
                         </div>
                     </ng-template>
                 </p-dialog>

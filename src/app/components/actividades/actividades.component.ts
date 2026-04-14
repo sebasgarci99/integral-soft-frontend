@@ -157,7 +157,7 @@ export class ActividadesComponent implements OnInit {
         setInterval(() => {
             this.horaActual = new Date();
         }, 60000);
-        
+
         this.cargarActividades();
         this.cargarTiposActividad();
         this.cargarUsuarios();
@@ -246,7 +246,7 @@ export class ActividadesComponent implements OnInit {
 
     getInstanciasPorFecha(fecha: Date): ActividadInstancia[] {
         const fechaStr = this.formatearFecha(fecha);
-        return this.instancias.filter(inst => inst.fecha === fechaStr);
+        return this.instancias.filter(inst => this.formatearFecha(inst.fecha) === fechaStr);
     }
 
     getNombreMesActual(): string {
@@ -283,7 +283,7 @@ export class ActividadesComponent implements OnInit {
     cargarActividades(): void {
         this.actividadesService.getActividades().subscribe({
             next: (data) => {
-                if (data.state === 'OK') {
+                if (data.state == 'OK') {
                     this.actividades = data.body || [];
                 }
             },
@@ -324,16 +324,16 @@ export class ActividadesComponent implements OnInit {
         });
     }
 
-    actualizarCalendario(): void {
+    async actualizarCalendario(): Promise<void> {
         const fechaInicio = new Date(this.fechaMes.getFullYear(), this.fechaMes.getMonth(), 1);
         const fechaFin = new Date(this.fechaMes.getFullYear(), this.fechaMes.getMonth() + 1, 0);
 
-        this.actividadesService.getActividadesCalendario(
+        await (await this.actividadesService.getActividadesCalendario(
             this.formatearFecha(fechaInicio),
             this.formatearFecha(fechaFin)
-        ).subscribe({
+        )).subscribe({
             next: (data) => {
-                if (data.state === 'OK') {
+                if (data.state == 'OK') {
                     this.instancias = data.body || [];
                     this.generarCalendario();
                 }
@@ -349,19 +349,20 @@ export class ActividadesComponent implements OnInit {
         this.mostrarDetalleDia(date);
     }
 
-    mostrarDetalleDia(fecha: Date): void {
+    async mostrarDetalleDia(fecha: Date): Promise<void> {
         const fechaStr = this.formatearFecha(fecha);
         const inicioMes = new Date(fecha.getFullYear(), fecha.getMonth(), 1);
         const finMes = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0);
 
-        this.actividadesService.getActividadesCalendario(
+        (await this.actividadesService.getActividadesCalendario(
             this.formatearFecha(inicioMes),
             this.formatearFecha(finMes)
-        ).subscribe({
+        )).subscribe({
             next: (data) => {
-                if (data.state === 'OK') {
+                if (data.state == 'OK') {
+                    console.log(this.instancias);
                     this.instancias = (data.body || []).filter((inst: ActividadInstancia) =>
-                        inst.fecha === fechaStr
+                        this.formatearFecha(inst.fecha) == fechaStr
                     );
                     if (this.instancias.length > 0) {
                         // Iniciamos el detalle de cumplimientos vacio por defecto
@@ -378,7 +379,7 @@ export class ActividadesComponent implements OnInit {
 
     getInstanciasDelDia(fecha: Date): ActividadInstancia[] {
         const fechaStr = this.formatearFecha(fecha);
-        return this.instancias.filter(inst => inst.fecha === fechaStr);
+        return this.instancias.filter(inst => this.formatearFecha(inst.fecha) == fechaStr);
     }
 
     getBadgeSeverity(estado: string): string {

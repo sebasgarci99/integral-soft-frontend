@@ -31,7 +31,7 @@ export interface CuentasCobroResponse {
 }
 
 export interface Cliente {
-    id: number;
+    id_cliente: number;
     nombre_razon_social: string;
     nombre_comercial?: string;
     tipo_identificacion?: string;

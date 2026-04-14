@@ -82,13 +82,12 @@ export class ArchivosCobroService {
         );
     }
 
-    descargarArchivo(idArchivo: number): Observable<Blob> {
+    descargarArchivo(idArchivo: number): Observable<any> {
         return this.http.post(
             this.urlApp + this.urlAppAPI + 'descargarArchivo',
             { id_archivo: idArchivo },
             {
-                headers: this.getHeaders(),
-                responseType: 'blob'
+                headers: this.getHeaders()
             }
         );
     }
