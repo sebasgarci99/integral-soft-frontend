@@ -2,8 +2,7 @@ export interface Actividad {
     id_actividad?: number;
     titulo: string;
     descripcion?: string;
-    id_tipo_actividad?: number;
-    nombre_tipo?: string;
+    tiposActividad?: TipoActividad[];
     fecha_inicio: string;
     fecha_fin?: string | null;
     tipo_periodicidad: string;
@@ -57,6 +56,7 @@ export interface EvidenciaItem {
     tipo: string;
     url: string;
     descripcion?: string;
+    base64?: string;
 }
 
 export interface TipoActividad {

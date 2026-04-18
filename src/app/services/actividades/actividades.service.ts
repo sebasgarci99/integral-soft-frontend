@@ -75,10 +75,18 @@ export class ActividadesService {
         );
     }
 
-    finalizarActividad(id_instancia: number, observaciones?: string, evidencia?: any[]): Observable<any> {
+    finalizarActividad(id_instancia: number, observaciones?: string, evidencia?: any[], tipos_realizados?: number[]): Observable<any> {
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'finalizarActividad',
-            { id_instancia, observaciones, evidencia },
+            { id_instancia, observaciones, evidencia, tipos_realizados },
+            { headers: this.getHeaders() }
+        );
+    }
+
+    cambiarFechaInstancia(id_instancia: number, nueva_fecha: string, nueva_hora?: string): Observable<any> {
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'cambiarFechaInstancia',
+            { id_instancia, nueva_fecha, nueva_hora },
             { headers: this.getHeaders() }
         );
     }

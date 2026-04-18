@@ -52,7 +52,8 @@ export class CuentasCobroService {
             dia_del_mes: data.dia_del_mes,
             hora_ejecucion: data.hora_ejecucion,
             id_usuario: idUser,
-            id_empresa: idEmpresa
+            id_empresa: idEmpresa,
+            aplica_archivos_adjuntos: data.aplica_archivos_adjuntos
         };
 
         return this.http.post<any>(

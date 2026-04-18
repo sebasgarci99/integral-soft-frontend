@@ -76,6 +76,8 @@ export class ActividadesComponent implements OnInit {
 
     rolUsuario: number = 0;
     horaActual: Date = new Date();
+    horaDefault: Date = new Date();
+    horaDefaultEditing: Date = new Date();
 
     fechaSeleccionada: Date = new Date();
     fechaMes: Date = new Date();
@@ -84,6 +86,7 @@ export class ActividadesComponent implements OnInit {
     displayDetalleDialog: boolean = false;
     displayIniciarDialog: boolean = false;
     displayFinalizarDialog: boolean = false;
+    displayCambiarFechaDialog: boolean = false;
 
     currentStep = 0;
     steps = [
@@ -94,12 +97,13 @@ export class ActividadesComponent implements OnInit {
     activeItem = this.steps[0];
 
     instanciaSeleccionada: ActividadInstancia | null = null;
+    instanciaDetalleSeleccionada: ActividadInstancia | null = null;
     actividadEdicion: Actividad | null = null;
 
     formData: any = {
         titulo: '',
         descripcion: '',
-        id_tipo_actividad: null,
+        tipos_actividad: [],
         fecha_inicio: new Date(),
         fecha_fin: null,
         tipo_periodicidad: 'diaria',
@@ -117,7 +121,13 @@ export class ActividadesComponent implements OnInit {
 
     formFinalizar: any = {
         observaciones: '',
-        evidencia: []
+        evidencia: [],
+        tipos_realizados: []
+    };
+
+    formCambiarFecha: any = {
+        nueva_fecha: null,
+        nueva_hora: null
     };
 
     evidenciaFiles: any[] = [];
@@ -246,7 +256,8 @@ export class ActividadesComponent implements OnInit {
 
     getInstanciasPorFecha(fecha: Date): ActividadInstancia[] {
         const fechaStr = this.formatearFecha(fecha);
-        return this.instancias.filter(inst => this.formatearFecha(inst.fecha) === fechaStr);
+        let data = this.instancias.filter(inst => inst.fecha == fechaStr);
+        return data;
     }
 
     getNombreMesActual(): string {
@@ -360,13 +371,13 @@ export class ActividadesComponent implements OnInit {
         )).subscribe({
             next: (data) => {
                 if (data.state == 'OK') {
-                    console.log(this.instancias);
-                    this.instancias = (data.body || []).filter((inst: ActividadInstancia) =>
-                        this.formatearFecha(inst.fecha) == fechaStr
+                    let data2 = (data.body || []).filter((inst: ActividadInstancia) =>
+                        inst.fecha == fechaStr
                     );
+                    this.instancias = data2;
                     if (this.instancias.length > 0) {
-                        // Iniciamos el detalle de cumplimientos vacio por defecto
                         this.cumplimientos = [];
+                        this.instanciaDetalleSeleccionada = null;
                         this.displayDetalleDialog = true;
                     }
                 }
@@ -379,7 +390,7 @@ export class ActividadesComponent implements OnInit {
 
     getInstanciasDelDia(fecha: Date): ActividadInstancia[] {
         const fechaStr = this.formatearFecha(fecha);
-        return this.instancias.filter(inst => this.formatearFecha(inst.fecha) == fechaStr);
+        return this.instancias.filter(inst => inst.fecha == fechaStr);
     }
 
     getBadgeSeverity(estado: string): string {
@@ -407,26 +418,49 @@ export class ActividadesComponent implements OnInit {
         this.actividadEdicion = actividad || null;
 
         if (actividad) {
+            const actividadAny = actividad as any;
+            const tiposData = actividadAny.tiposActividad || actividadAny.tipos_actividad || [];
+
+            const tiposSeleccionados: number[] = [];
+            if (Array.isArray(tiposData)) {
+                for (const t of tiposData) {
+                    if (typeof t === 'object') {
+                        const id = t.id_tipo || t.id || null;
+                        if (id !== null) tiposSeleccionados.push(id);
+                    } else if (typeof t === 'number') {
+                        tiposSeleccionados.push(t);
+                    }
+                }
+            }
+
             this.formData = {
                 id_actividad: actividad.id_actividad,
                 titulo: actividad.titulo,
                 descripcion: actividad.descripcion || '',
-                id_tipo_actividad: actividad.id_tipo_actividad,
+                tipos_actividad: tiposSeleccionados,
                 fecha_inicio: new Date(actividad.fecha_inicio),
                 fecha_fin: actividad.fecha_fin ? new Date(actividad.fecha_fin) : null,
                 tipo_periodicidad: actividad.tipo_periodicidad || 'diaria',
                 dias_semana: actividad.dias_semana ? actividad.dias_semana.split(',') : [],
                 cada_n_dias: actividad.cada_n_dias,
                 intervalo_semanas: actividad.intervalo_semanas || 1,
-                hora_default: actividad.hora_default || '09:00',
+                hora_default: '09:00',
                 duracion_minutos: actividad.duracion_minutos || 60,
-                invitados: actividad.invitados?.map(inv => inv.id_usuario) || []
+                invitados: actividad.invitados?.map((inv: any) => inv.id_usuario || inv.id) || []
             };
+            if (actividad.hora_default) {
+                const [h, m] = actividad.hora_default.split(':').map(Number);
+                this.horaDefaultEditing = new Date();
+                this.horaDefaultEditing.setHours(h, m, 0, 0);
+            } else {
+                this.horaDefaultEditing = new Date();
+                this.horaDefaultEditing.setHours(9, 0, 0, 0);
+            }
         } else {
             this.formData = {
                 titulo: '',
                 descripcion: '',
-                id_tipo_actividad: null,
+                tipos_actividad: [],
                 fecha_inicio: new Date(),
                 fecha_fin: null,
                 tipo_periodicidad: 'diaria',
@@ -437,6 +471,8 @@ export class ActividadesComponent implements OnInit {
                 duracion_minutos: 60,
                 invitados: []
             };
+            this.horaDefaultEditing = new Date();
+            this.horaDefaultEditing.setHours(9, 0, 0, 0);
         }
 
         this.displayDialog = true;
@@ -448,9 +484,19 @@ export class ActividadesComponent implements OnInit {
     }
 
     abrirDetalleInstancia(instancia: ActividadInstancia): void {
+        this.instanciaDetalleSeleccionada = null;
         this.instanciaSeleccionada = instancia;
         this.cargarCumplimientos(instancia.id_actividad);
         this.displayDetalleDialog = true;
+    }
+
+    seleccionarInstancia(instancia: ActividadInstancia): void {
+        console.log(instancia)
+        this.instanciaDetalleSeleccionada = instancia;
+    }
+
+    volverALista(): void {
+        this.instanciaDetalleSeleccionada = null;
     }
 
     cargarCumplimientos(idInstancia: number): void {
@@ -494,7 +540,7 @@ export class ActividadesComponent implements OnInit {
 
     abrirFinalizarDialog(instancia: ActividadInstancia): void {
         this.instanciaSeleccionada = instancia;
-        this.formFinalizar = { observaciones: '', evidencia: [] };
+        this.formFinalizar = { observaciones: '', evidencia: [], tipos_realizados: [] };
         this.evidenciaFiles = [];
         this.displayFinalizarDialog = true;
     }
@@ -502,6 +548,7 @@ export class ActividadesComponent implements OnInit {
     cerrarDetalleDialogo(): void {
         this.displayDetalleDialog = false;
         this.instanciaSeleccionada = null;
+        this.instanciaDetalleSeleccionada = null;
     }
 
     iniciarActividad(): void {
@@ -530,10 +577,17 @@ export class ActividadesComponent implements OnInit {
     finalizarActividad(): void {
         if (!this.instanciaSeleccionada) return;
 
+        if ((!this.formFinalizar.tipos_realizados || this.formFinalizar.tipos_realizados.length === 0)
+            && (!this.formFinalizar.observaciones || this.formFinalizar.observaciones.trim() === '')) {
+            this.messageService.add({ severity: 'warn', summary: 'Advertencia', detail: 'Debe marcar al menos un tipo de actividad realizado o ingresar observaciones.' });
+            return;
+        }
+
         this.actividadesService.finalizarActividad(
             this.instanciaSeleccionada.id_instancia,
             this.formFinalizar.observaciones,
-            this.formFinalizar.evidencia
+            this.formFinalizar.evidencia,
+            this.formFinalizar.tipos_realizados
         ).subscribe({
             next: (res) => {
                 if (res.state === 'OK') {
@@ -551,8 +605,58 @@ export class ActividadesComponent implements OnInit {
         });
     }
 
-    getHoraDefault(): string {
-        const hora = this.formData.hora_default;
+    abrirCambiarFechaDialog(instancia: ActividadInstancia): void {
+        this.instanciaSeleccionada = instancia;
+        this.formCambiarFecha = {
+            nueva_fecha: new Date(instancia.fecha),
+            nueva_hora: instancia.hora_inicio
+        };
+        this.displayCambiarFechaDialog = true;
+    }
+
+    cerrarCambiarFechaDialog(): void {
+        this.displayCambiarFechaDialog = false;
+    }
+
+    cambiarFechaInstancia(): void {
+        if (!this.instanciaSeleccionada || !this.formCambiarFecha.nueva_fecha) return;
+
+        const fechaStr = this.formatearFecha(this.formCambiarFecha.nueva_fecha);
+
+        this.actividadesService.cambiarFechaInstancia(
+            this.instanciaSeleccionada.id_instancia,
+            fechaStr,
+            this.getHoraFecha(this.formCambiarFecha.nueva_hora)
+        ).subscribe({
+            next: (res) => {
+                if (res.state === 'OK') {
+                    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Fecha de instancia actualizada correctamente.' });
+                    this.cerrarCambiarFechaDialog();
+                    this.displayDetalleDialog = false;
+                    this.actualizarCalendario();
+                } else {
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: res.body });
+                }
+            },
+            error: (err) => {
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cambiar la fecha.' });
+            }
+        });
+    }
+
+    getHoraDefault(): Date {
+        if (this.actividadEdicion) {
+            return this.horaDefaultEditing;
+        }
+        return this.horaDefault;
+    }
+
+    formatHoraFromDate(date: Date): string {
+        return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+    }
+
+    getHoraFecha(fecha: any): string {
+        const hora = fecha;
         if (!hora) return '09:00';
 
         if (hora instanceof Date) {
@@ -572,14 +676,14 @@ export class ActividadesComponent implements OnInit {
         const dataToSend: any = {
             titulo: this.formData.titulo,
             descripcion: this.formData.descripcion,
-            id_tipo_actividad: this.formData.id_tipo_actividad,
+            tipos_actividad: this.formData.tipos_actividad,
             fecha_inicio: this.obtenerFechaHoraActualFormatoIso(this.formData.fecha_inicio),
             fecha_fin: this.formData.fecha_fin ? this.obtenerFechaHoraActualFormatoIso(this.formData.fecha_fin) : null,
             tipo_periodicidad: this.formData.tipo_periodicidad,
             dias_semana: this.formData.dias_semana.join(','),
             cada_n_dias: this.formData.cada_n_dias,
             intervalo_semanas: this.formData.intervalo_semanas,
-            hora_default: this.getHoraDefault(),
+            hora_default: this.formatHoraFromDate(this.getHoraDefault()),
             duracion_minutos: this.formData.duracion_minutos,
             invitados: this.formData.invitados
         };
