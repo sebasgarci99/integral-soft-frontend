@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormsModule } from '@angular/forms';
 import { SidebarComponent } from "../sidebar/sidebar.component";
+import { RouterModule } from '@angular/router';
 
 import { CuentasCobroService } from '../../services/cuentas-cobro/cuentas-cobro.service';
 import { ClienteService } from '../../services/cliente/cliente.service';
-import { CuentaCobro, Cliente } from '../../interfaces/cuenta-cobro';
+import { CuentaCobro, Cliente, LogTarea } from '../../interfaces/cuenta-cobro';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
@@ -47,7 +49,9 @@ import { Checkbox } from 'primeng/checkbox';
         InputTextarea,
         RadioButtonModule,
         TabMenuModule,
-        Checkbox
+        Checkbox,
+        TooltipModule,
+        RouterModule
     ],
     templateUrl: './cuentas-cobro.component.html',
     styleUrl: './cuentas-cobro.component.css',
@@ -57,6 +61,9 @@ export class CuentasCobroComponent implements OnInit {
     cuentasCobro: CuentaCobro[] = [];
     clientes: Cliente[] = [];
     displayDialog: boolean = false;
+    displayLogDialog: boolean = false;
+    logTareas: LogTarea[] = [];
+    selectedCuentaPeriodicidad: any = null;
 
     formData: any = {
         fecha_emision: new Date(),
@@ -355,5 +362,49 @@ export class CuentasCobroComponent implements OnInit {
         if (this.formData.dia_del_mes > 31) {
             this.formData.dia_del_mes = 31;
         }
+    }
+
+    verLogTareas(row: CuentaCobro) {
+        if (!row?.id_cuenta_cobro) return;
+
+        this.selectedCuentaPeriodicidad = row.info_periodicidad;
+        
+        this.cuentasCobroService.obtenerLogTareas(row.id_cuenta_cobro).subscribe({
+            next: (data) => {
+                this.logTareas = data;
+                this.displayLogDialog = true;
+            },
+            error: (err) => {
+                console.error('Error al obtener log de tareas:', err);
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo obtener el log de envíos.' });
+            }
+        });
+    }
+
+    formatearFechaAMPM(fecha: string): string {
+        if (!fecha) return '';
+        const date = new Date(fecha);
+        return date.toLocaleString('es-CO', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+    }
+
+    getPeriodicidadTexto(periodicidad: any): string {
+        if (!periodicidad) return 'Sin periodicidad';
+        
+        let texto = '';
+        switch (periodicidad.periodicidad) {
+            case 'diaria': texto = 'Diaria'; break;
+            case 'semanal': texto = 'Semanal'; break;
+            case 'quincenal': texto = 'Quincenal'; break;
+            case 'mensual': texto = `Mensual (día ${periodicidad.dia_del_mes})`; break;
+            default: texto = 'Personalizada';
+        }
+        return texto;
     }
 }

@@ -415,6 +415,7 @@ export class ActividadesComponent implements OnInit {
 
     abrirFormulario(actividad?: Actividad): void {
         this.currentStep = 0;
+        this.activeItem = this.steps[0];
         this.actividadEdicion = actividad || null;
 
         if (actividad) {

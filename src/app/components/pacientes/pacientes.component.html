@@ -56,7 +56,7 @@
 
                 <!-- Diálogo -->
                 <p-dialog header="{{ isEdit ? 'Editar Paciente' : 'Registrar Paciente' }}" [(visible)]="displayDialog"
-                    [modal]="true" [style]="{ width: '47rem', 'max-height': '80vh', height: '80%' }"
+                    [modal]="true" [style]="{ width: '47rem', 'max-height': '85vh', height: '82%' }"
                     [contentStyle]="{ 'overflow-y': 'auto' }" [draggable]="false">
                     <!-- <p-steps [model]="steps" [activeIndex]="current" styleClass="mb-4"></p-steps> -->
                     <p-tabMenu [model]="steps" [(activeItem)]="activeItem" styleClass="mb-4"></p-tabMenu>
@@ -118,7 +118,7 @@
                                     <p-floatlabel variant="on" class="col-md-6 col-sm-12 mt-3 ms-2">
                                         <p-calendar id="fecha_nacimiento" [(ngModel)]="formData.fecha_nacimiento"
                                             dateFormat="yy-mm-dd" [locale]="local_espaniol" showIcon="true"
-                                            class="w-100 ms-2" showIcon="true" required #fecha_nacimiento="ngModel">
+                                            class="w-100 ms-2" required #fecha_nacimiento="ngModel" appendTo="body">
                                         </p-calendar>
                                         <label>Fecha de nacimiento</label>
                                     </p-floatlabel>

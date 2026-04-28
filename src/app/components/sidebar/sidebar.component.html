@@ -14,16 +14,18 @@
             </a>
         </div>
         <hr />
-        <ul class="nav flex-column mb-auto px-3">
-            <ng-container *ngFor="let item of datosUsuario.modulos">
-                <li class="nav-item">
-                    <a class="nav-link text-dark" [routerLink]="item.ruta" routerLinkActive="active"
-                        [routerLinkActiveOptions]="{ exact: true }">
-                        <i [class]="item.icono"></i> {{ item.modulo }}
-                    </a>
-                </li>
-            </ng-container>
-        </ul>
+        <div class="sidebar-nav-scroll">
+            <ul class="nav flex-column mb-auto px-3">
+                <ng-container *ngFor="let item of datosUsuario.modulos">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" [routerLink]="item.ruta" routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }">
+                            <i [class]="item.icono"></i> {{ item.modulo }}
+                        </a>
+                    </li>
+                </ng-container>
+            </ul>
+        </div>
         <!-- <ul class="nav flex-column mb-auto px-3">
             <li class="nav-item">
                 <a class="nav-link text-dark" routerLink="/consultorios" routerLinkActive="active">

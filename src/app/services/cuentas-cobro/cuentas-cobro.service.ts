@@ -92,4 +92,24 @@ export class CuentasCobroService {
     generarPdf(id: number): void {
         return;
     }
+
+    obtenerLogTareas(idCuentaCobro: number): Observable<any> {
+        const token = localStorage.getItem('token');
+        const idUser = localStorage.getItem('idUser');
+        const idEmpresa = localStorage.getItem('idEmpresa');
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'getLogTareasCuentaCobro',
+            { id_cuenta_cobro: idCuentaCobro, id_usuario: idUser, id_empresa: idEmpresa },
+            { headers: headersWS }
+        ).pipe(
+            map(response => {
+                if (response && response.body) {
+                    return Array.isArray(response.body) ? response.body : [response.body];
+                }
+                return [];
+            })
+        );
+    }
 }

@@ -43,11 +43,16 @@
 
 #dropdownUser1 {
     display: inline-block;
-    max-width: 180px;       /* ajusta según el ancho que quieras */
-    white-space: nowrap;    /* no hacer saltos de línea */
-    overflow: hidden;       /* oculta lo que sobra */
-    text-overflow: ellipsis; /* agrega los ... */
-    vertical-align: middle; /* alinea bien con la imagen */
+    max-width: 180px;
+    /* ajusta según el ancho que quieras */
+    white-space: nowrap;
+    /* no hacer saltos de línea */
+    overflow: hidden;
+    /* oculta lo que sobra */
+    text-overflow: ellipsis;
+    /* agrega los ... */
+    vertical-align: middle;
+    /* alinea bien con la imagen */
 }
 
 /* Sidebar base */
@@ -64,6 +69,7 @@
     background-color: #f8f9fa;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
 }
 
 .sidebar .nav-link.active {
@@ -71,6 +77,36 @@
     font-weight: bold;
     border-left: 4px solid #00a7ed;
     /* o cualquier otro estilo que desees */
+}
+
+/* Contenedor con scroll para los módulos */
+.sidebar-nav-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #adb5bd #f8f9fa;
+    scroll-behavior: smooth;
+}
+
+/* Scrollbar webkit (Chrome, Edge, Safari) */
+.sidebar-nav-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-nav-scroll::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.sidebar-nav-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #adb5bd, #6c757d);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-nav-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #6c757d, #495057);
 }
 
 /* Sidebar en móviles: superpuesto */

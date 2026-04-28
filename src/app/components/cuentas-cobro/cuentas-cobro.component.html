@@ -49,8 +49,12 @@
                             <td>
                                 <p-button icon="fa fa-file-pdf" class="p-button-text p-button-sm" pTooltip="Generar PDF"
                                     (onClick)="generarPdf(row.id_cuenta_cobro)" />
+                                <p-button icon="fa fa-envelope" class="p-button-text p-button-sm"
+                                    pTooltip="Ver log de correos" severity="info" (onClick)="verLogTareas(row)">
+                                </p-button>
                                 <p-button icon="fa fa-trash" class="p-button-text p-button-sm p-button-danger"
-                                    pTooltip="Inactivar" (onClick)="inactivarCuentaCobro(row.id_cuenta_cobro)" />
+                                    pTooltip="Inactivar" severity="help"
+                                    (onClick)="inactivarCuentaCobro(row.id_cuenta_cobro)" />
                             </td>
                         </tr>
                     </ng-template>
@@ -166,6 +170,69 @@
                             </p-button>
                         </div>
                     </ng-template>
+                </p-dialog>
+
+                <p-dialog header="Log de Envíos de Correo" [(visible)]="displayLogDialog" [modal]="true"
+                    [style]="{'width': '70rem'}" [draggable]="false" [contentStyle]="{'overflow-y': 'auto'}">
+
+                    <!-- Información de periodicidad -->
+                    <div *ngIf="selectedCuentaPeriodicidad" class="info-periodicidad">
+                        <h4 class="m-0 mb-2">Configuración de Periodicidad</h4>
+                        <div><strong>Tipo:</strong> {{ getPeriodicidadTexto(selectedCuentaPeriodicidad) }}</div>
+                        <div *ngIf="selectedCuentaPeriodicidad.hora_ejecucion != null" class="mt-1">
+                            <strong>Hora de ejecución:</strong> {{ selectedCuentaPeriodicidad.hora_ejecucion }}:00 Hrs
+                        </div>
+                        <div *ngIf="selectedCuentaPeriodicidad.activo === true" class="mt-1">
+                            <span class="badge bg-success">Activa</span>
+                        </div>
+                        <div *ngIf="selectedCuentaPeriodicidad.activo === false" class="mt-1">
+                            <span class="badge bg-secondary">Inactiva</span>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de logs -->
+                    <p-table [value]="logTareas" [paginator]="true" [rows]="5" *ngIf="logTareas.length > 0">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>Fecha y Hora</th>
+                                <th>Estado</th>
+                                <th>Email</th>
+                                <th>Cuenta Generada</th>
+                                <th>Cliente</th>
+                                <th>Error</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-log>
+                            <tr>
+                                <td>{{ formatearFechaAMPM(log.fecha_ejecucion) }}</td>
+                                <td>
+                                    <span [class]="'badge bg-' + (log.estado === 'EXITOSA' ? 'success' : 'danger')">
+                                        {{ log.estado }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span [class]="'badge bg-' + (log.email_enviado ? 'success' : 'warning')">
+                                        {{ log.email_enviado ? 'Enviado' : 'No enviado' }}
+                                    </span>
+                                </td>
+                                <td>#{{ log.id_cuenta_cobro_generada }}</td>
+                                <td>{{ log.nombre_cliente }}</td>
+                                <td>
+                                    <span *ngIf="log.mensaje_error" class="text-danger cursor-pointer"
+                                        pTooltip="{{ log.mensaje_error }}" tooltipPosition="top">
+                                        Ver error
+                                    </span>
+                                    <span *ngIf="!log.mensaje_error" class="badge bg-success">Ninguno</span>
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+
+                    <!-- Mensaje cuando no hay registros -->
+                    <div *ngIf="logTareas.length === 0" class="text-center p-5">
+                        <i class="pi pi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                        <p class="mt-3 text-600">No hay registros de envío de correos para esta cuenta.</p>
+                    </div>
                 </p-dialog>
             </div>
         </div>

@@ -47,3 +47,12 @@ export interface Cliente {
     id_usuario?: number;
     id_empresa?: number;
 }
+
+export interface LogTarea {
+    fecha_ejecucion: string;
+    estado: 'EXITOSA' | 'FALLIDA';
+    email_enviado: boolean;
+    mensaje_error: string | null;
+    id_cuenta_cobro_generada: number;
+    nombre_cliente: string;
+}
