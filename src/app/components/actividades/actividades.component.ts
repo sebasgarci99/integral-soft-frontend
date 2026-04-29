@@ -76,7 +76,7 @@ export class ActividadesComponent implements OnInit {
 
     rolUsuario: number = 0;
     horaActual: Date = new Date();
-    horaDefault: Date = new Date();
+    horaDefault: Date = (() => { const d = new Date(); d.setHours(9, 0, 0, 0); return d; })();
     horaDefaultEditing: Date = new Date();
 
     fechaSeleccionada: Date = new Date();
@@ -445,7 +445,7 @@ export class ActividadesComponent implements OnInit {
                 dias_semana: actividad.dias_semana ? actividad.dias_semana.split(',') : [],
                 cada_n_dias: actividad.cada_n_dias,
                 intervalo_semanas: actividad.intervalo_semanas || 1,
-                hora_default: '09:00',
+                hora_default: this.formatHoraFromDate(this.getHoraDefault()),
                 duracion_minutos: actividad.duracion_minutos || 60,
                 invitados: actividad.invitados?.map((inv: any) => inv.id_usuario || inv.id) || []
             };
@@ -646,7 +646,7 @@ export class ActividadesComponent implements OnInit {
     }
 
     getHoraDefault(): Date {
-        if (this.actividadEdicion) {
+        if (this.horaDefaultEditing) {
             return this.horaDefaultEditing;
         }
         return this.horaDefault;
