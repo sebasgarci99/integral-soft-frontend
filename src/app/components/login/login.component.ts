@@ -18,7 +18,6 @@ export class LoginComponent implements OnInit {
     formLogin: FormGroup;
     showPassword: boolean = false;
     recordar: boolean = false;
-    isLoading: boolean = false;
 
     constructor(
         private form: FormBuilder,
@@ -65,8 +64,6 @@ export class LoginComponent implements OnInit {
             return;
         }
 
-        this.isLoading = true;
-
         this.loginService.login(this.formLogin.value).subscribe({
             next: (data) => {
                 localStorage.setItem('token', data.token);
@@ -92,7 +89,6 @@ export class LoginComponent implements OnInit {
                 );
             },
             complete: () => {
-                this.isLoading = false;
                 this.formLogin.reset();
             }
         });

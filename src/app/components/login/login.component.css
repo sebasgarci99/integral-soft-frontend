@@ -184,19 +184,14 @@
     transition: all 0.2s ease;
 }
 
-.btn-login:hover:not(:disabled) {
+.btn-login:hover {
     background: #0069a8;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 126, 200, 0.3);
 }
 
-.btn-login:active:not(:disabled) {
+.btn-login:active {
     transform: translateY(0);
-}
-
-.btn-login:disabled {
-    background: #90b0d0;
-    cursor: not-allowed;
 }
 
 @media (max-width: 480px) {

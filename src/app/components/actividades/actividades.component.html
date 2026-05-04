@@ -15,7 +15,7 @@
                     <h3 class="mb-1"><i class="fa fa-calendar-plus-o me-2"></i>Programador de Actividades</h3>
                     <!-- <p class="text-muted mb-0 small">Administra y programa tus actividades recurrentes</p> -->
                 </div>
-                <p-button *ngIf="esAdmin" label="Nueva Actividad" icon="fa fa-plus" severity="info"
+                <p-button *ngIf="esAdmin || esUsuarioInvitado" label="Nueva Actividad" icon="fa fa-plus" severity="info"
                     (onClick)="abrirFormulario()" />
             </div>
         </div>
@@ -111,13 +111,20 @@
                                             {{ formatearHora(inst.hora_inicio) }} - {{ formatearHora(inst.hora_fin) }}
                                         </div>
                                     </div>
-                                    <div class="text-end">
-                                        <span *ngIf="esHoy(fechaSeleccionada)"
-                                            [class]="getEstadoActividad(inst).class + ' badge-sm d-block mb-1'">
-                                            {{ getEstadoActividad(inst).label }}
-                                        </span>
-                                        <span [class]="getBadgeClass(inst.estado) + ' badge-sm'">{{ inst.estado
-                                            }}</span>
+                                    <div class="text-end d-flex align-items-start gap-2">
+                                        <div class="flex-column">
+                                            <span *ngIf="esHoy(fechaSeleccionada)"
+                                                [class]="getEstadoActividad(inst).class + ' badge-sm d-block mb-1'">
+                                                {{ getEstadoActividad(inst).label }}
+                                            </span>
+                                            <span [class]="getBadgeClass(inst.estado) + ' badge-sm'">{{ inst.estado
+                                                }}</span>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary p-1 ms-1"
+                                            (click)="$event.stopPropagation(); abrirFormulario(inst.actividad)"
+                                            title="Editar actividad" *ngIf="esAdmin || esUsuarioInvitado">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -172,7 +179,8 @@
                                 <p-button icon="fa fa-edit" class="p-button-text p-button-sm" pTooltip="Editar"
                                     (onClick)="abrirFormulario(row)" />
                                 <p-button icon="fa fa-trash" class="p-button-text p-button-sm p-button-danger"
-                                    pTooltip="Eliminar" (onClick)="eliminarActividad(row.id_actividad)" />
+                                    pTooltip="Eliminar" severity="danger"
+                                    (onClick)="eliminarActividad(row.id_actividad)" />
                             </td>
                         </tr>
                     </ng-template>
@@ -192,7 +200,7 @@
 
 
 <p-dialog header="{{ actividadEdicion ? 'Editar Actividad' : 'Nueva Actividad' }}" [(visible)]="displayDialog"
-    [modal]="true" [style]="{ width: '50rem' }" [draggable]="false" appendTo="body">
+    [modal]="true" [style]="{ width: '40rem', height: '45rem' }" [draggable]="false" appendTo="body">
     <ng-container [ngSwitch]="currentStep">
         <ng-container *ngSwitchCase="0">
             <div class="form-section">
@@ -205,6 +213,13 @@
                     <label class="form-label">Descripción</label>
                     <textarea pInputTextarea [(ngModel)]="formData.descripcion" rows="3"
                         placeholder="Descripción de la actividad..." class="form-control"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tipos de Actividad</label>
+                    <p-multiSelect [options]="tiposActividad" optionLabel="nombre" optionValue="id_tipo"
+                        [(ngModel)]="formData.tipos_actividad" [showHeader]="true" [style]="{'width': '100%'}"
+                        placeholder="Seleccione tipos de actividad...">
+                    </p-multiSelect>
                 </div>
                 <div class="row">
                     <div class="col-lg-6 col-md-12 mb-3">
@@ -219,13 +234,6 @@
                             [style]="{'width': '100%'}">
                         </p-calendar>
                     </div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Tipos de Actividad</label>
-                    <p-multiSelect [options]="tiposActividad" optionLabel="nombre" optionValue="id_tipo"
-                        [(ngModel)]="formData.tipos_actividad" [showHeader]="true" [style]="{'width': '100%'}"
-                        placeholder="Seleccione tipos de actividad...">
-                    </p-multiSelect>
                 </div>
             </div>
         </ng-container>

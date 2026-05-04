@@ -179,6 +179,10 @@ export class ActividadesComponent implements OnInit {
         return this.rolUsuario === 1;
     }
 
+    get esUsuarioInvitado(): boolean {
+        return this.rolUsuario === 2;
+    }
+
     getHoraActual(): string {
         return this.horaActual.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
     }
