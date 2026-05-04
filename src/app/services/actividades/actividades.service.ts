@@ -91,10 +91,16 @@ export class ActividadesService {
         );
     }
 
-    getCumplimiento(id_actividad?: number, fecha_inicio?: string, fecha_fin?: string): Observable<any> {
+    getCumplimiento(id_actividad?: number, fecha_inicio?: string, fecha_fin?: string, id_instancia?: number): Observable<any> {
+        const body: any = {};
+        if (id_actividad) body.id_actividad = id_actividad;
+        if (fecha_inicio) body.fecha_inicio = fecha_inicio;
+        if (fecha_fin) body.fecha_fin = fecha_fin;
+        if (id_instancia) body.id_instancia = id_instancia;
+
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'getCumplimiento',
-            { id_actividad, fecha_inicio, fecha_fin },
+            body,
             { headers: this.getHeaders() }
         );
     }

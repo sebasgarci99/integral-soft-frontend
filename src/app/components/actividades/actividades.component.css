@@ -479,6 +479,16 @@
     border-radius: 0.5rem;
 }
 
+.tipos-list {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 10px;
+}
+
+.tipo-item {
+    padding: 4px 0;
+}
+
 .alert-warning {
     background-color: #fff3cd;
     border: 1px solid #ffecb5;

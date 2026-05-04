@@ -189,7 +189,7 @@ export class ActividadesComponent implements OnInit {
 
     getEstadoActividad(instancia: ActividadInstancia): { label: string; class: string } {
         if (!this.esHoy(new Date(instancia.fecha))) {
-            return { label: 'Pasada', class: 'badge bg-secondary' };
+            return { label: 'Ejecutada', class: 'badge bg-secondary' };
         }
 
         const ahora = this.horaActual;
@@ -292,10 +292,23 @@ export class ActividadesComponent implements OnInit {
     }
 
     cargarActividades(): void {
-        this.actividadesService.getActividades().subscribe({
+        // Rol 2 (invitado): usar getActividadesxUsuario
+        // Otros roles: usar getActividades (comportamiento actual)
+        const servicio$ = this.rolUsuario === 2
+            ? this.actividadesService.getActividadesxUsuario()
+            : this.actividadesService.getActividades();
+
+        servicio$.subscribe({
             next: (data) => {
                 if (data.state == 'OK') {
-                    this.actividades = data.body || [];
+                    if (this.rolUsuario === 2) {
+                        // getActividadesxUsuario devuelve ActividadInvitado[] con .actividad dentro
+                        this.actividades = (data.body || [])
+                            .map((inv: any) => inv.actividad)
+                            .filter((act: any) => act !== null);
+                    } else {
+                        this.actividades = data.body || [];
+                    }
                 }
             },
             error: (err) => {
@@ -439,8 +452,8 @@ export class ActividadesComponent implements OnInit {
                 titulo: actividad.titulo,
                 descripcion: actividad.descripcion || '',
                 tipos_actividad: tiposSeleccionados,
-                fecha_inicio: new Date(actividad.fecha_inicio),
-                fecha_fin: actividad.fecha_fin ? new Date(actividad.fecha_fin) : null,
+                fecha_inicio: this.parseLocalDate(actividad.fecha_inicio),
+                fecha_fin: actividad.fecha_fin ? this.parseLocalDate(actividad.fecha_fin) : null,
                 tipo_periodicidad: actividad.tipo_periodicidad || 'diaria',
                 dias_semana: actividad.dias_semana ? actividad.dias_semana.split(',') : [],
                 cada_n_dias: actividad.cada_n_dias,
@@ -487,7 +500,7 @@ export class ActividadesComponent implements OnInit {
     abrirDetalleInstancia(instancia: ActividadInstancia): void {
         this.instanciaDetalleSeleccionada = null;
         this.instanciaSeleccionada = instancia;
-        this.cargarCumplimientos(instancia.id_actividad);
+        this.cargarCumplimientos(instancia.id_instancia);
         this.displayDetalleDialog = true;
     }
 
@@ -501,10 +514,14 @@ export class ActividadesComponent implements OnInit {
     }
 
     cargarCumplimientos(idInstancia: number): void {
-        this.actividadesService.getCumplimiento(idInstancia, this.instanciaSeleccionada?.fecha, this.instanciaSeleccionada?.fecha).subscribe({
+        this.actividadesService.getCumplimiento(undefined, undefined, undefined, idInstancia).subscribe({
             next: (data) => {
                 if (data.state === 'OK') {
                     this.cumplimientos = data.body || [];
+                    console.log('Cumplimientos cargados:', this.cumplimientos);
+                    const fin = this.getCumplimientoFin();
+                    console.log('Registro Fin:', fin);
+                    console.log('Evidencia:', fin?.evidencia);
                 }
             },
             error: (err) => {
@@ -518,7 +535,9 @@ export class ActividadesComponent implements OnInit {
     }
 
     getCumplimientoFin(): RegistroCumplimiento | undefined {
-        return this.cumplimientos.find(c => c.tipo_registro === 'fin');
+        const fin = this.cumplimientos.find(c => c.tipo_registro === 'fin');
+        console.log('Registro Fin:', fin);
+        return fin;
     }
 
     formatearFechaHora(fechaHora: string | Date): string {
@@ -799,6 +818,26 @@ export class ActividadesComponent implements OnInit {
         return date;
     }
 
+    // Función para parsear fechas sin desfase por zona horaria
+    parseLocalDate(dateStr: string): Date {
+        if (!dateStr) return new Date();
+        if (/^\d{4}-\d{2}-\d{2}T/.test(dateStr)) {
+            const [datePart, timePart] = dateStr.split('T');
+            const [year, month, day] = datePart.split('-').map(Number);
+            const date = new Date(year, month - 1, day);
+            if (timePart) {
+                const [h, m, s] = timePart.split(':').map(Number);
+                date.setHours(h || 0, m || 0, s || 0, 0);
+            }
+            return date;
+        }
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+        return new Date(dateStr);
+    }
+
     formatearFecha(date: Date | string): string {
         if (!date) return '';
         const d = date instanceof Date ? date : new Date(date);
@@ -873,5 +912,55 @@ export class ActividadesComponent implements OnInit {
     getUsuarioNombre(idUsuario: number): string {
         const usuario = this.usuariosEmpresa.find(u => u.id === idUsuario);
         return usuario ? `${usuario.nombre || ''} ${usuario.apellido || ''} (@${usuario.usuario})` : `Usuario #${idUsuario}`;
+    }
+
+    getTiposRealizados(): number[] {
+        const fin = this.getCumplimientoFin();
+        if (!fin?.evidencia) {
+            console.log('No hay evidencia en el registro de fin');
+            return [];
+        }
+        
+        console.log('Evidencia raw:', fin.evidencia);
+        
+        // Handle double-encoded JSON (string inside string)
+        let evidenciaData: any = fin.evidencia;
+        
+        // Parse if string (might be double-encoded)
+        const parseIfString = (data: any): any => {
+            if (typeof data === 'string') {
+                try { 
+                    return parseIfString(JSON.parse(data)); 
+                } catch { 
+                    return data; 
+                }
+            }
+            return data;
+        };
+        
+        evidenciaData = parseIfString(evidenciaData);
+        
+        // Ensure it's an array
+        let evidenciaArray: any[] = [];
+        if (Array.isArray(evidenciaData)) {
+            evidenciaArray = evidenciaData;
+        } else if (typeof evidenciaData === 'object' && evidenciaData !== null) {
+            evidenciaArray = [evidenciaData];
+        }
+        
+        for (const ev of evidenciaArray) {
+            if (ev?.tipos_realizados && Array.isArray(ev.tipos_realizados)) {
+                console.log('Tipos realizados encontrados:', ev.tipos_realizados);
+                return ev.tipos_realizados;
+            }
+        }
+        
+        console.log('No se encontraron tipos_realizados en:', evidenciaArray);
+        return [];
+    }
+
+    getTipoNombre(tipoId: number): string {
+        const tipos = this.instanciaDetalleSeleccionada?.actividad?.tiposActividad || [];
+        return tipos.find((t: any) => t.id_tipo === tipoId)?.nombre || `Tipo #${tipoId}`;
     }
 }

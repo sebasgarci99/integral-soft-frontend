@@ -190,51 +190,42 @@
     </div>
 </div>
 
-<p-dialog [header]="actividadEdicion ? 'Editar Actividad' : 'Nueva Actividad'" [(visible)]="displayDialog"
-    [modal]="true" [style]="{ width: '55rem', height: '90%' }"
-    [contentStyle]="{ 'max-height': '75vh', 'overflow-y': 'visible' }" [draggable]="false" appendTo="body">
-    <p-tabMenu [model]="steps" [(activeItem)]="activeItem" [styleClass]="'mb-4'"></p-tabMenu>
 
+<p-dialog header="{{ actividadEdicion ? 'Editar Actividad' : 'Nueva Actividad' }}" [(visible)]="displayDialog"
+    [modal]="true" [style]="{ width: '50rem' }" [draggable]="false" appendTo="body">
     <ng-container [ngSwitch]="currentStep">
         <ng-container *ngSwitchCase="0">
             <div class="form-section">
-                <div class="mb-1">
-                    <label class="form-label">Título de la Actividad *</label>
-                    <input pInputText [(ngModel)]="formData.titulo" class="form-control"
-                        placeholder="Ej: Reunión semanal de seguimiento" />
+                <div class="mb-3">
+                    <label class="form-label">Título de la Actividad</label>
+                    <input pInputText [(ngModel)]="formData.titulo" placeholder="Ingrese el título"
+                        class="form-control" />
                 </div>
-
                 <div class="mb-3">
                     <label class="form-label">Descripción</label>
-                    <textarea pInputTextarea rows="2" [(ngModel)]="formData.descripcion" class="form-control"
-                        placeholder="Describe los detalles de la actividad..."></textarea>
+                    <textarea pInputTextarea [(ngModel)]="formData.descripcion" rows="3"
+                        placeholder="Descripción de la actividad..." class="form-control"></textarea>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Objetivos o tipos de actividad a realizar</label>
-                    <p-multiSelect [options]="tiposActividad" optionLabel="nombre" optionValue="id_tipo"
-                        [(ngModel)]="formData.tipos_actividad" [style]="{'width': '100%'}"
-                        placeholder="Seleccione uno o más tipos" [showHeader]="true">
-                    </p-multiSelect>
-                    <small class="text-muted d-block mt-1">
-                        <i class="fa fa-info-circle me-1"></i>
-                        Seleccione los tipos de actividad que aplican para esta actividad.
-                    </small>
-                </div>
-
-                <div class="row d-flex">
-                    <div class="col-md-12 col-lg-6">
-                        <label class="form-label">Fecha de Inicio *</label>
+                <div class="row">
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <label class="form-label">Fecha Inicio</label>
                         <p-calendar [(ngModel)]="formData.fecha_inicio" [showIcon]="true" dateFormat="yy-mm-dd"
                             [style]="{'width': '100%'}">
                         </p-calendar>
                     </div>
-                    <div class="col-md-12 col-lg-6">
+                    <div class="col-lg-6 col-md-12 mb-3">
                         <label class="form-label">Fecha Fin (opcional)</label>
                         <p-calendar [(ngModel)]="formData.fecha_fin" [showIcon]="true" dateFormat="yy-mm-dd"
                             [style]="{'width': '100%'}">
                         </p-calendar>
                     </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tipos de Actividad</label>
+                    <p-multiSelect [options]="tiposActividad" optionLabel="nombre" optionValue="id_tipo"
+                        [(ngModel)]="formData.tipos_actividad" [showHeader]="true" [style]="{'width': '100%'}"
+                        placeholder="Seleccione tipos de actividad...">
+                    </p-multiSelect>
                 </div>
             </div>
         </ng-container>
@@ -420,13 +411,14 @@
                 <div *ngIf="instanciaDetalleSeleccionada.actividad && (instanciaDetalleSeleccionada.actividad.tiposActividad?.length ?? 0) > 0"
                     class="mb-3">
                     <label class="text-muted small mb-2">
-                        <i class="fa fa-tasks me-1"></i>Tipos de Actividad:
+                        <i class="fa fa-tasks me-1"></i>Tipos de Actividad u Objetivos:
                     </label>
-                    <div class="d-flex flex-wrap gap-2">
-                        <span *ngFor="let tipo of instanciaDetalleSeleccionada.actividad?.tiposActividad"
-                            class="badge bg-info">
-                            {{ tipo.nombre }}
-                        </span>
+                    <div class="tipos-list">
+                        <div *ngFor="let tipo of instanciaDetalleSeleccionada.actividad?.tiposActividad"
+                            class="tipo-item d-flex align-items-center mb-1">
+                            <i class="fa fa-check-circle text-success me-2"></i>
+                            <span>{{ tipo.nombre }}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -444,8 +436,9 @@
                 </div>
 
                 <!-- Sección de Cumplimientos -->
-                <div class="cumplimientos-section mt-3" *ngIf="cumplimientos.length > 0">
-                    <h6 class="border-bottom pb-2 mb-3">
+                <div class="cumplimientos-section mt-4 p-3 border rounded bg-white shadow-sm"
+                    *ngIf="cumplimientos.length > 0">
+                    <h6 class="border-bottom pb-2 mb-3 text-primary">
                         <i class="fa fa-check-square-o me-2"></i>Registro de Cumplimiento
                     </h6>
 
@@ -473,7 +466,7 @@
                     </div>
 
                     <!-- Registro de Fin -->
-                    <div class="cumplimiento-item p-3 bg-light rounded" *ngIf="getCumplimientoFin() as fin">
+                    <div class="cumplimiento-item mb-3 p-3 bg-light rounded" *ngIf="getCumplimientoFin() as fin">
                         <div class="d-flex align-items-center mb-2">
                             <span class="badge bg-success me-2">FINALIZACIÓN</span>
                             <small class="text-muted">
@@ -490,6 +483,19 @@
                                 <span class="badge bg-info" style="cursor: pointer" (click)="descargarEvidencia(ev)">
                                     <i class="fa fa-file me-1"></i>{{ ev.url }}
                                 </span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Actividades Ejecutadas -->
+                    <div *ngIf="getTiposRealizados().length > 0" class="mb-3 p-3 bg-light rounded border-3">
+                        <label class="text-muted small mb-1">
+                            <i class="fa fa-check-circle me-1 text-success"></i>Actividades Ejecutadas:
+                        </label>
+                        <div class="tipos-list">
+                            <div *ngFor="let tipoId of getTiposRealizados()"
+                                class="tipo-item d-flex align-items-center mb-1">
+                                <i class="fa fa-check text-success me-2"></i>
+                                <span>{{ getTipoNombre(tipoId) }}</span>
                             </div>
                         </div>
                     </div>

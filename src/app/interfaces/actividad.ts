@@ -57,6 +57,7 @@ export interface EvidenciaItem {
     url: string;
     descripcion?: string;
     base64?: string;
+    tipos_realizados?: number[];
 }
 
 export interface TipoActividad {
