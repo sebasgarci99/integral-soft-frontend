@@ -1,81 +1,101 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoginService } from '../../services/login/login.service';
 
-import Swal from 'sweetalert2'
+import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
-  selector: 'app-login',
-  imports: [ReactiveFormsModule, CommonModule],
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+    selector: 'app-login',
+    imports: [ReactiveFormsModule, CommonModule, FormsModule],
+    templateUrl: './login.component.html',
+    styleUrl: './login.component.css'
 })
-export class LoginComponent implements OnInit{
+export class LoginComponent implements OnInit {
 
-	emailForm: string = '';
-  	passwordForm: string = '';
+    formLogin: FormGroup;
+    showPassword: boolean = false;
+    recordar: boolean = false;
+    isLoading: boolean = false;
 
-	// Instanciamos la variable que construye el formulario
-	formLogin: FormGroup;
+    constructor(
+        private form: FormBuilder,
+        private router: Router,
+        private loginService: LoginService
+    ) {
+        this.formLogin = this.form.group({
+            username: [
+                null,
+                [
+                    Validators.required,
+                    Validators.pattern(/^[a-zA-Z0-9._@+-]+$/)
+                ]
+            ],
+            password: [
+                null,
+                [
+                    Validators.required,
+                    Validators.pattern(/^[a-zA-Z0-9._@+-]+$/)
+                ]
+            ]
+        });
+    }
 
-	constructor(
-		public form: FormBuilder,
-		public router: Router,
-		private loginService: LoginService
-	) { 
-		this.formLogin = this.form.group({
-			username: [
-				null,
-				[
-					Validators.required,
-					Validators.pattern(/^[a-zA-Z0-9._@+-]+$/) // Solo letras, números y guiones bajos
-				]
-			],
-			password: [
-				null,
-				[
-					Validators.required,
-					Validators.pattern(/^[a-zA-Z0-9._@+-]+$/) // Letras, números y algunos símbolos seguros
-				]
-			]
-		})
-	}
+    ngOnInit(): void {
+        const rememberedUser = localStorage.getItem('rememberedUser');
+        const rememberedPass = localStorage.getItem('rememberedPass');
+        if (rememberedUser && rememberedPass) {
+            this.formLogin.patchValue({
+                username: rememberedUser,
+                password: rememberedPass
+            });
+            this.recordar = true;
+        }
+    }
 
-	ngOnInit(): void {
-	}
+    togglePassword(): void {
+        this.showPassword = !this.showPassword;
+    }
 
-	async iniciarSesion() {
-		if (this.formLogin.invalid) {
-			this.formLogin.markAllAsTouched();
-			return;
-		}
+    iniciarSesion(): void {
+        if (this.formLogin.invalid) {
+            this.formLogin.markAllAsTouched();
+            return;
+        }
 
-		// Aquí es donde manejarás la lógica de autenticación
-		// console.log('Intento de login con:', this.formLogin.value);
-		this.loginService.login(this.formLogin.value).subscribe({
-			next: (data) => {
-				localStorage.setItem('token', data.token);
-				localStorage.setItem('idUser', data.idUser);
-				localStorage.setItem('idEmpresa', data.idEmpresa);
-				localStorage.setItem('idRol', data.rol);
-				this.router.navigate(['/home']);
-			},
-			error: (error: HttpErrorResponse) => {				
-				console.log(error);
-				Swal.fire(
-					'Información',
-					error.error.msg,
-					"warning"
-				);
-			},
-			complete: () => {
-				console.log("Login completo");
-				this.formLogin.reset();
-			}
-		});
-	}
+        this.isLoading = true;
+
+        this.loginService.login(this.formLogin.value).subscribe({
+            next: (data) => {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('idUser', data.idUser);
+                localStorage.setItem('idEmpresa', data.idEmpresa);
+                localStorage.setItem('idRol', data.rol);
+
+                if (this.recordar) {
+                    localStorage.setItem('rememberedUser', this.formLogin.get('username')?.value);
+                    localStorage.setItem('rememberedPass', this.formLogin.get('password')?.value);
+                } else {
+                    localStorage.removeItem('rememberedUser');
+                    localStorage.removeItem('rememberedPass');
+                }
+
+                this.router.navigate(['/home']);
+            },
+            error: (error: HttpErrorResponse) => {
+                Swal.fire(
+                    'Información',
+                    error.error.msg,
+                    'warning'
+                );
+            },
+            complete: () => {
+                this.isLoading = false;
+                this.formLogin.reset();
+            }
+        });
+    }
 
 }
