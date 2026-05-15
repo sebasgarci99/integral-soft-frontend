@@ -510,7 +510,9 @@
                 </div>
 
                 <div class="d-flex gap-2 justify-content-end border-top pt-3 mt-3">
-                    <p-button *ngIf="esAdmin" label="Cambiar Fecha" icon="fa fa-calendar" severity="info"
+                    <p-button *ngIf="esAdmin || esUsuarioInvitado"
+                        [disabled]="instanciaDetalleSeleccionada.estado !== 'completada' ? false : true"
+                        label="Cambiar Fecha" icon="fa fa-calendar" severity="info"
                         (onClick)="abrirCambiarFechaDialog(instanciaDetalleSeleccionada)" />
                     <p-button *ngIf="esHoy(fechaSeleccionada) && instanciaDetalleSeleccionada.estado === 'programada'"
                         label="Iniciar Actividad" icon="fa fa-play" severity="success"
@@ -638,7 +640,8 @@
             </div>
             <hr class="my-2">
             <div class="small mb-0">
-                Fecha actual: <i class="fa fa-calendar me-1"></i>{{ formatearFechaVisual(instanciaSeleccionada.fecha) }}
+                Fecha actual: <i class="fa fa-calendar me-1"></i> {{ formatearFechaVisual(instanciaSeleccionada.fecha)
+                }}
                 |
                 <i class="fa fa-clock-o ms-2 me-1"></i>{{ formatearHora(instanciaSeleccionada.hora_inicio) }} - {{
                 formatearHora(instanciaSeleccionada.hora_fin) }}
@@ -654,7 +657,7 @@
 
         <div class="mb-3">
             <label class="form-label">Nueva Hora</label>
-            <p-calendar [(ngModel)]="formCambiarFecha.nueva_hora" [timeOnly]="true" [showIcon]="true"
+            <p-calendar [(ngModel)]="horaDefaultEditing" [timeOnly]="true" [showIcon]="true"
                 [style]="{'width': '100%'}">
             </p-calendar>
             <small class="text-muted d-block mt-1">

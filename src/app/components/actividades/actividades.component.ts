@@ -509,7 +509,6 @@ export class ActividadesComponent implements OnInit {
     }
 
     seleccionarInstancia(instancia: ActividadInstancia): void {
-        console.log(instancia)
         this.instanciaDetalleSeleccionada = instancia;
     }
 
@@ -540,7 +539,6 @@ export class ActividadesComponent implements OnInit {
 
     getCumplimientoFin(): RegistroCumplimiento | undefined {
         const fin = this.cumplimientos.find(c => c.tipo_registro === 'fin');
-        console.log('Registro Fin:', fin);
         return fin;
     }
 
@@ -632,7 +630,7 @@ export class ActividadesComponent implements OnInit {
     abrirCambiarFechaDialog(instancia: ActividadInstancia): void {
         this.instanciaSeleccionada = instancia;
         this.formCambiarFecha = {
-            nueva_fecha: new Date(instancia.fecha),
+            nueva_fecha: new Date(this.parseLocalDate(instancia.fecha)),
             nueva_hora: instancia.hora_inicio
         };
         this.displayCambiarFechaDialog = true;
@@ -853,7 +851,7 @@ export class ActividadesComponent implements OnInit {
 
     formatearFechaVisual(fecha: string): string {
         if (!fecha) return '';
-        const date = new Date(fecha);
+        const date = new Date(this.parseLocalDate(fecha));
         return date.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
     }
 
@@ -924,26 +922,24 @@ export class ActividadesComponent implements OnInit {
             console.log('No hay evidencia en el registro de fin');
             return [];
         }
-        
-        console.log('Evidencia raw:', fin.evidencia);
-        
+
         // Handle double-encoded JSON (string inside string)
         let evidenciaData: any = fin.evidencia;
-        
+
         // Parse if string (might be double-encoded)
         const parseIfString = (data: any): any => {
             if (typeof data === 'string') {
-                try { 
-                    return parseIfString(JSON.parse(data)); 
-                } catch { 
-                    return data; 
+                try {
+                    return parseIfString(JSON.parse(data));
+                } catch {
+                    return data;
                 }
             }
             return data;
         };
-        
+
         evidenciaData = parseIfString(evidenciaData);
-        
+
         // Ensure it's an array
         let evidenciaArray: any[] = [];
         if (Array.isArray(evidenciaData)) {
@@ -951,14 +947,14 @@ export class ActividadesComponent implements OnInit {
         } else if (typeof evidenciaData === 'object' && evidenciaData !== null) {
             evidenciaArray = [evidenciaData];
         }
-        
+
         for (const ev of evidenciaArray) {
             if (ev?.tipos_realizados && Array.isArray(ev.tipos_realizados)) {
                 console.log('Tipos realizados encontrados:', ev.tipos_realizados);
                 return ev.tipos_realizados;
             }
         }
-        
+
         console.log('No se encontraron tipos_realizados en:', evidenciaArray);
         return [];
     }
