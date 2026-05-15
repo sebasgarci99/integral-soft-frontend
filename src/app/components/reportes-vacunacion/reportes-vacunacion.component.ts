@@ -285,7 +285,9 @@ export class ReportesVacunacionComponent {
                         Fecha: v.fechaVacuna,
                         Lote: v.lote,
                         Dosis: v.dosis,
-                        Edad: v.edad
+                        Edad: v.edad,
+                        'Empresa/Entidad': v.empresa_entidad,
+                        'Orden/Remisión': v.orden_remision
                     });
                 });
 
@@ -321,7 +323,9 @@ export class ReportesVacunacionComponent {
                         vacuna: v.vacuna,
                         lote: v.lote,
                         dosis: v.dosis,
-                        edad: v.edad
+                        edad: v.edad,
+                        empresa_entidad: v.empresa_entidad,
+                        orden_remision: v.orden_remision
                     });
                 });
             });
@@ -354,7 +358,9 @@ export class ReportesVacunacionComponent {
                 Vacuna: r.vacuna,
                 Lote: r.lote,
                 Dosis: r.dosis,
-                Edad: r.edad
+                Edad: r.edad,
+                'Empresa/Entidad': r.empresa_entidad,
+                'Orden/Remisión': r.orden_remision
             });
 
             ultimaFecha = r.fecha;
@@ -399,13 +405,15 @@ export class ReportesVacunacionComponent {
 
                 autoTable(doc, {
                     startY: startY + 5,
-                    head: [['Vacuna', 'Fecha', 'Lote', 'Dosis', 'Edad']],
+                    head: [['Vacuna', 'Fecha', 'Lote', 'Dosis', 'Edad', 'Empresa/Entidad', 'Orden/Remisión']],
                     body: p.vacunas.map(v => [
                         v.vacuna,
                         v.fechaVacuna.toISOString().substring(0, 10),
                         v.lote,
                         v.dosis,
-                        v.edad
+                        v.edad,
+                        v.empresa_entidad || '',
+                        v.orden_remision || ''
                     ]),
                     styles: { fontSize: 9 },
                     headStyles: { fillColor: [41, 128, 185] }
