@@ -61,9 +61,14 @@ export class CuentasCobroComponent implements OnInit {
     cuentasCobro: CuentaCobro[] = [];
     clientes: Cliente[] = [];
     displayDialog: boolean = false;
+    displayEditDialog: boolean = false;
     displayLogDialog: boolean = false;
     logTareas: LogTarea[] = [];
     selectedCuentaPeriodicidad: any = null;
+    editFormData: any = {};
+    isAccountBase: boolean = false;
+    editCurrent: number = 0;
+    editActiveItem: any = null;
 
     formData: any = {
         fecha_emision: new Date(),
@@ -362,6 +367,144 @@ export class CuentasCobroComponent implements OnInit {
         if (this.formData.dia_del_mes > 31) {
             this.formData.dia_del_mes = 31;
         }
+    }
+
+    nextEdit() {
+        if (this.editCurrent < this.steps.length - 1) {
+            this.editCurrent++;
+            this.editActiveItem = this.steps[this.editCurrent];
+        }
+    }
+
+    prevEdit() {
+        if (this.editCurrent > 0) {
+            this.editCurrent--;
+            this.editActiveItem = this.steps[this.editCurrent];
+        }
+    }
+
+    fixDiaMesEdit() {
+        if (this.editFormData.dia_del_mes == null) return;
+        if (this.editFormData.dia_del_mes < 1) this.editFormData.dia_del_mes = 1;
+        if (this.editFormData.dia_del_mes > 31) this.editFormData.dia_del_mes = 31;
+    }
+
+    abrirEdicion(row: CuentaCobro) {
+        const horaEjecucion = new Date();
+        horaEjecucion.setHours(row.info_periodicidad?.hora_ejecucion || 8, 0, 0, 0);
+
+        this.editFormData = {
+            id_cuenta_cobro: row.id_cuenta_cobro,
+            id_cliente: row.id_cliente,
+            nombre_cliente: row.nombre_cliente,
+            descripcion_servicio: row.descripcion_servicio,
+            valor_cobrar: row.valor_cobrar,
+            fecha_emision: row.fecha_emision ? new Date(row.fecha_emision) : new Date(),
+            periodicidad: row.info_periodicidad?.periodicidad || 'mensual',
+            dia_del_mes: row.info_periodicidad?.dia_del_mes || 1,
+            hora_ejecucion: horaEjecucion,
+            aplica_archivos_adjuntos: row.info_periodicidad?.aplica_archivos_adjuntos || 'N'
+        };
+        this.isAccountBase = !!row.info_periodicidad;
+        this.editCurrent = 0;
+        this.editActiveItem = this.steps[0];
+        this.displayEditDialog = true;
+    }
+
+    guardarEdicion() {
+        if (!this.editFormData.descripcion_servicio || this.editFormData.descripcion_servicio.trim() === '') {
+            this.messageService.add({ severity: 'warn', summary: 'Advertencia', detail: 'La descripción del servicio es requerida.' });
+            return;
+        }
+        if (!this.editFormData.valor_cobrar || this.editFormData.valor_cobrar <= 0) {
+            this.messageService.add({ severity: 'warn', summary: 'Advertencia', detail: 'El valor a cobrar debe ser mayor a 0.' });
+            return;
+        }
+
+        const dataToSend = {
+            id_cuenta_cobro: this.editFormData.id_cuenta_cobro,
+            descripcion_servicio: this.editFormData.descripcion_servicio,
+            valor_cobrar: this.editFormData.valor_cobrar,
+            fecha_emision: this.formatearFechaEnvio(this.editFormData.fecha_emision)
+        };
+
+        this.cuentasCobroService.actualizarCuentaCobro(dataToSend).subscribe({
+            next: (res) => {
+                if (res.state === 'OK') {
+                    if (this.isAccountBase) {
+                        const configData = {
+                            id_cuenta_cobro: this.editFormData.id_cuenta_cobro,
+                            periodicidad: this.editFormData.periodicidad,
+                            dia_del_mes: this.editFormData.dia_del_mes,
+                            hora_ejecucion: this.editFormData.hora_ejecucion ? this.editFormData.hora_ejecucion.getHours() : 8,
+                            aplica_archivos_adjuntos: this.editFormData.aplica_archivos_adjuntos
+                        };
+
+                        this.cuentasCobroService.actualizarConfigPeriodicidad(configData).subscribe({
+                            next: (resConfig) => {
+                                if (resConfig.state === 'OK') {
+                                    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cuenta de cobro y periodicidad actualizadas correctamente.' });
+                                } else {
+                                    this.messageService.add({ severity: 'warn', summary: 'Advertencia', detail: 'Cuenta actualizada, pero hubo un problema con la periodicidad: ' + (resConfig.msg || '') });
+                                }
+                                this.displayEditDialog = false;
+                                this.cargarCuentasCobro();
+                            },
+                            error: (err) => {
+                                console.error('Error al actualizar periodicidad:', err);
+                                this.messageService.add({ severity: 'warn', summary: 'Advertencia', detail: 'Cuenta actualizada, pero no se pudo actualizar la periodicidad.' });
+                                this.displayEditDialog = false;
+                                this.cargarCuentasCobro();
+                            }
+                        });
+                    } else {
+                        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cuenta de cobro actualizada correctamente.' });
+                        this.displayEditDialog = false;
+                        this.cargarCuentasCobro();
+                    }
+                } else {
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: res.msg || 'Ocurrió un problema al actualizar.' });
+                }
+            },
+            error: (err) => {
+                console.error('Error al actualizar cuenta de cobro:', err);
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo actualizar la cuenta de cobro.' });
+            }
+        });
+    }
+
+    confirmarReenvio(row: CuentaCobro) {
+        const aplicaAdjuntos = row.aplica_archivos_adjuntos === 'S';
+        const mensajeAdjuntos = aplicaAdjuntos
+            ? ' y sus archivos adjuntos'
+            : '';
+
+        this.confirmService.confirm({
+            icon: 'fa fa-paper-plane',
+            header: 'Reenviar cuenta de cobro',
+            message: `¿Está seguro de reenviar esta cuenta de cobro${mensajeAdjuntos} al cliente: <strong>${row.nombre_cliente}</strong>, y al correo electrónico registrado: <strong>${row.correo_cliente || 'No registrado'}</strong>?`,
+            acceptLabel: 'Sí, Reenviar',
+            rejectLabel: 'No',
+            accept: () => {
+                this.cuentasCobroService.reenviarCuentaCobro(row.id_cuenta_cobro!).subscribe({
+                    next: (res) => {
+                        if (res.state === 'OK') {
+                            this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cuenta de cobro reenviada exitosamente.' });
+                        } else {
+                            this.messageService.add({ severity: 'error', summary: 'Error', detail: res.msg || 'No se pudo reenviar la cuenta de cobro.' });
+                        }
+                    },
+                    error: (err) => {
+                        console.error('Error al reenviar cuenta de cobro:', err);
+                        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo reenviar la cuenta de cobro.' });
+                    }
+                });
+            }
+        });
+    }
+
+    cerrarEditDialog() {
+        this.displayEditDialog = false;
     }
 
     verLogTareas(row: CuentaCobro) {

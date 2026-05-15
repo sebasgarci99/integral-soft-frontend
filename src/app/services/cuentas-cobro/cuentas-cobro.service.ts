@@ -93,6 +93,65 @@ export class CuentasCobroService {
         return;
     }
 
+    actualizarCuentaCobro(data: any): Observable<any> {
+        const token = localStorage.getItem('token');
+        const idUser = localStorage.getItem('idUser');
+        const idEmpresa = localStorage.getItem('idEmpresa');
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+
+        const body = {
+            id_cuenta_cobro: data.id_cuenta_cobro,
+            descripcion_servicio: data.descripcion_servicio,
+            valor_cobrar: data.valor_cobrar,
+            fecha_emision: data.fecha_emision,
+            id_usuario: idUser,
+            id_empresa: idEmpresa
+        };
+
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'actualizarCuentaDeCobro',
+            body,
+            { headers: headersWS }
+        );
+    }
+
+    reenviarCuentaCobro(idCuentaCobro: number): Observable<any> {
+        const token = localStorage.getItem('token');
+        const idUser = localStorage.getItem('idUser');
+        const idEmpresa = localStorage.getItem('idEmpresa');
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'reenviarCuentaDeCobro',
+            { id_cuenta_cobro: idCuentaCobro, id_usuario: idUser, id_empresa: idEmpresa },
+            { headers: headersWS }
+        );
+    }
+
+    actualizarConfigPeriodicidad(data: any): Observable<any> {
+        const token = localStorage.getItem('token');
+        const idUser = localStorage.getItem('idUser');
+        const idEmpresa = localStorage.getItem('idEmpresa');
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+
+        const body = {
+            id_cuenta_cobro: data.id_cuenta_cobro,
+            periodicidad: data.periodicidad,
+            dia_del_mes: data.dia_del_mes,
+            hora_ejecucion: data.hora_ejecucion,
+            aplica_archivos_adjuntos: data.aplica_archivos_adjuntos,
+            activo: true,
+            id_usuario: idUser,
+            id_empresa: idEmpresa
+        };
+
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'actualizarConfigPeriodicidad',
+            body,
+            { headers: headersWS }
+        );
+    }
+
     obtenerLogTareas(idCuentaCobro: number): Observable<any> {
         const token = localStorage.getItem('token');
         const idUser = localStorage.getItem('idUser');

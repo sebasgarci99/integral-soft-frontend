@@ -25,6 +25,7 @@
                     [globalFilterFields]="['nombre_cliente', 'descripcion_servicio', 'valor_cobrar', 'fecha_emision']">
                     <ng-template pTemplate="header">
                         <tr>
+                            <th style="width: 50px;"></th>
                             <th>Cliente</th>
                             <th>Descripción del Servicio</th>
                             <th>Valor a Cobrar</th>
@@ -36,6 +37,14 @@
                     </ng-template>
                     <ng-template pTemplate="body" let-row>
                         <tr>
+                            <td class="text-center">
+                                <i *ngIf="row.info_periodicidad" class="fa-solid fa-calendar-check text-info"
+                                    pTooltip="Cuenta programada (base)" tooltipPosition="top">
+                                </i>
+                                <i *ngIf="row.es_editable && !row.info_periodicidad" class="fa-solid fa-file-invoice-dollar text-secondary"
+                                    pTooltip="Generada automáticamente" tooltipPosition="top">
+                                </i>
+                            </td>
                             <td>{{ row.nombre_cliente }}</td>
                             <td>{{ row.descripcion_servicio }}</td>
                             <td>{{ formatearValor(row.valor_cobrar) }}</td>
@@ -49,6 +58,12 @@
                             <td>
                                 <p-button icon="fa fa-file-pdf" class="p-button-text p-button-sm" pTooltip="Generar PDF"
                                     (onClick)="generarPdf(row.id_cuenta_cobro)" />
+                                <p-button *ngIf="row.es_editable" icon="fa fa-pencil" class="p-button-text p-button-sm"
+                                    pTooltip="Editar" severity="warn" (onClick)="abrirEdicion(row)">
+                                </p-button>
+                                <p-button icon="fa fa-paper-plane" class="p-button-text p-button-sm"
+                                    pTooltip="Reenviar por correo" severity="info" (onClick)="confirmarReenvio(row)">
+                                </p-button>
                                 <p-button icon="fa fa-envelope" class="p-button-text p-button-sm"
                                     pTooltip="Ver log de correos" severity="info" (onClick)="verLogTareas(row)">
                                 </p-button>
@@ -60,7 +75,7 @@
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                         <tr>
-                            <td colspan="7" class="text-center">No se encontraron cuentas de cobro.</td>
+                            <td colspan="8" class="text-center">No se encontraron cuentas de cobro.</td>
                         </tr>
                     </ng-template>
                 </p-table>
@@ -172,6 +187,129 @@
                     </ng-template>
                 </p-dialog>
 
+                <p-dialog header="Editar Cuenta de Cobro" [(visible)]="displayEditDialog" [modal]="true"
+                    [style]="{ width: '47rem', 'max-height': '80vh', height: isAccountBase ? '80%' : 'auto' }"
+                    [contentStyle]="{ 'overflow-y': 'auto' }" [draggable]="false" appendTo="body">
+
+                    <ng-container *ngIf="isAccountBase; else editSimple">
+                        <p-tabMenu [model]="steps" [(activeItem)]="editActiveItem" styleClass="mb-4"></p-tabMenu>
+                        <ng-container [ngSwitch]="editCurrent">
+                            <ng-container *ngSwitchCase="0">
+                                <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
+                                    <div class="col-12 d-flex">
+                                        <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                            <p-calendar [(ngModel)]="editFormData.fecha_emision" [showTime]="true"
+                                                hourFormat="24" dateFormat="yy-mm-dd" inputId="edit_fecha_emision"
+                                                appendTo="body" class="w-100" required>
+                                            </p-calendar>
+                                            <label>Fecha de Emisión *</label>
+                                        </p-floatlabel>
+                                        <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                            <input pInputText [value]="editFormData.nombre_cliente" class="w-100" disabled />
+                                            <label>Cliente</label>
+                                        </p-floatlabel>
+                                    </div>
+                                    <p-floatlabel variant="on" class="col-12 mt-3">
+                                        <textarea pInputTextarea rows="3" [(ngModel)]="editFormData.descripcion_servicio"
+                                            name="edit_descripcion_servicio" class="w-100" required>
+                                        </textarea>
+                                        <label>Descripción del Servicio *</label>
+                                    </p-floatlabel>
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                        <p-inputnumber [(ngModel)]="editFormData.valor_cobrar" name="edit_valor_cobrar"
+                                            mode="currency" currency="COP" locale="es-CO" class="w-100" required>
+                                        </p-inputnumber>
+                                        <label>Valor a Cobrar *</label>
+                                    </p-floatlabel>
+                                </div>
+                            </ng-container>
+                            <ng-container *ngSwitchCase="1">
+                                <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
+                                    <div class="grid">
+                                        <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-2">
+                                            <p-dropdown [options]="opcionesPeriodicidad"
+                                                [(ngModel)]="editFormData.periodicidad" name="edit_periodicidad" class="w-100"
+                                                [ngClass]="{ 'p-inputwrapper-filled': editFormData.periodicidad }">
+                                            </p-dropdown>
+                                            <label>Periodicidad</label>
+                                        </p-floatlabel>
+                                        <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-2">
+                                            <p-inputnumber [(ngModel)]="editFormData.dia_del_mes" name="edit_dia_del_mes"
+                                                [min]="1" [max]="31" [showButtons]="true" [useGrouping]="false"
+                                                (onBlur)="fixDiaMesEdit()" class="w-100">
+                                            </p-inputnumber>
+                                            <label>Día del Mes</label>
+                                        </p-floatlabel>
+                                        <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3">
+                                            <p-calendar [(ngModel)]="editFormData.hora_ejecucion" name="edit_hora_ejecucion"
+                                                [timeOnly]="true" hourFormat="24" [showSeconds]="false" [stepMinute]="60">
+                                            </p-calendar>
+                                            <label>Hora de Ejecución</label>
+                                        </p-floatlabel>
+                                    </div>
+                                    <div class="col-12 mt-4">
+                                        <p-floatlabel variant="on">
+                                            <p-dropdown [options]="opcionesSiNo"
+                                                [(ngModel)]="editFormData.aplica_archivos_adjuntos"
+                                                name="edit_aplica_archivos_adjuntos" class="w-100"
+                                                [ngClass]="{ 'p-inputwrapper-filled': editFormData.aplica_archivos_adjuntos }">
+                                            </p-dropdown>
+                                            <label>Aplica Archivos Adjuntos</label>
+                                        </p-floatlabel>
+                                    </div>
+                                </div>
+                            </ng-container>
+                        </ng-container>
+                    </ng-container>
+
+                    <ng-template #editSimple>
+                        <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
+                            <div class="col-12 d-flex">
+                                <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                    <p-calendar [(ngModel)]="editFormData.fecha_emision" [showTime]="true"
+                                        hourFormat="24" dateFormat="yy-mm-dd" inputId="edit_fecha_emision_simple"
+                                        appendTo="body" class="w-100" required>
+                                    </p-calendar>
+                                    <label>Fecha de Emisión *</label>
+                                </p-floatlabel>
+                                <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                    <input pInputText [value]="editFormData.nombre_cliente" class="w-100" disabled />
+                                    <label>Cliente</label>
+                                </p-floatlabel>
+                            </div>
+                            <p-floatlabel variant="on" class="col-12 mt-3">
+                                <textarea pInputTextarea rows="3" [(ngModel)]="editFormData.descripcion_servicio"
+                                    name="edit_descripcion_servicio_simple" class="w-100" required>
+                                </textarea>
+                                <label>Descripción del Servicio *</label>
+                            </p-floatlabel>
+                            <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                <p-inputnumber [(ngModel)]="editFormData.valor_cobrar" name="edit_valor_cobrar_simple"
+                                    mode="currency" currency="COP" locale="es-CO" class="w-100" required>
+                                </p-inputnumber>
+                                <label>Valor a Cobrar *</label>
+                            </p-floatlabel>
+                        </div>
+                    </ng-template>
+
+                    <ng-template pTemplate="footer">
+                        <div class="flex justify-content-center gap-2">
+                            <p-button label="Cancelar" icon="fa fa-times" severity="secondary"
+                                (onClick)="cerrarEditDialog()" class="m-2">
+                            </p-button>
+                            <p-button *ngIf="isAccountBase && editCurrent>0" label="Anterior" icon="fa fa-arrow-left"
+                                severity="secondary" (onClick)="prevEdit()" class="m-2">
+                            </p-button>
+                            <p-button *ngIf="isAccountBase && editCurrent<steps.length-1" label="Siguiente"
+                                icon="fa fa-arrow-right" severity="info" (onClick)="nextEdit()" class="m-2">
+                            </p-button>
+                            <p-button *ngIf="!isAccountBase || editCurrent===steps.length-1" label="Guardar Cambios"
+                                icon="fa fa-check" severity="info" (onClick)="guardarEdicion()" class="m-2">
+                            </p-button>
+                        </div>
+                    </ng-template>
+                </p-dialog>
+
                 <p-dialog header="Log de Envíos de Correo" [(visible)]="displayLogDialog" [modal]="true"
                     [style]="{'width': '70rem'}" [draggable]="false" [contentStyle]="{'overflow-y': 'auto'}">
 
@@ -206,8 +344,8 @@
                             <tr>
                                 <td>{{ formatearFechaAMPM(log.fecha_ejecucion) }}</td>
                                 <td>
-                                    <span [class]="'badge bg-' + (log.estado === 'EXITOSA' ? 'success' : 'danger')">
-                                        {{ log.estado }}
+                                    <span [class]="'badge bg-' + (log.estado === 'EXITOSA' ? 'success' : log.estado === 'REENVIO' ? 'info' : 'danger')">
+                                        {{ log.estado === 'REENVIO' ? 'REENVÍO' : log.estado }}
                                     </span>
                                 </td>
                                 <td>

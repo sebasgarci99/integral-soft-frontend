@@ -7,12 +7,14 @@ export interface Periodicidad {
     hora_ejecucion: number;
     ultima_ejecucion: string | null;
     activo: boolean;
+    aplica_archivos_adjuntos?: string;
 }
 
 export interface CuentaCobro {
     id_cuenta_cobro?: number;
     id_cliente: number;
     nombre_cliente?: string;
+    correo_cliente?: string;
     descripcion_servicio: string;
     valor_cobrar: number;
     fecha_emision: string;
@@ -22,6 +24,8 @@ export interface CuentaCobro {
     dia_del_mes?: number;
     hora_ejecucion?: number;
     info_periodicidad?: Periodicidad;
+    es_editable?: boolean;
+    aplica_archivos_adjuntos?: string;
 }
 
 export interface CuentasCobroResponse {
@@ -50,7 +54,7 @@ export interface Cliente {
 
 export interface LogTarea {
     fecha_ejecucion: string;
-    estado: 'EXITOSA' | 'FALLIDA';
+    estado: 'EXITOSA' | 'FALLIDA' | 'REENVIO';
     email_enviado: boolean;
     mensaje_error: string | null;
     id_cuenta_cobro_generada: number;
