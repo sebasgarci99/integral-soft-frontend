@@ -772,6 +772,31 @@ export class ActividadesComponent implements OnInit {
         });
     }
 
+    eliminarInstancia(inst: ActividadInstancia): void {
+        this.confirmService.confirm({
+            icon: 'fa fa-exclamation-triangle',
+            header: 'Eliminar instancia',
+            message: `¿Estás seguro de eliminar la instancia del ${this.formatearFechaVisual(inst.fecha)}?`,
+            acceptLabel: 'Sí',
+            rejectLabel: 'No',
+            accept: () => {
+                this.actividadesService.eliminarInstanciaActividad(inst.id_instancia).subscribe({
+                    next: (res) => {
+                        if (res.state === 'OK') {
+                            this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Instancia eliminada.' });
+                            this.actualizarCalendario();
+                        } else {
+                            this.messageService.add({ severity: 'error', summary: 'Error', detail: res.body });
+                        }
+                    },
+                    error: (err) => {
+                        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo eliminar la instancia.' });
+                    }
+                });
+            }
+        });
+    }
+
     validarFormulario(): boolean {
         if (!this.formData.titulo || this.formData.titulo.trim() === '') {
             this.messageService.add({ severity: 'warn', summary: 'Advertencia', detail: 'El título es requerido.' });

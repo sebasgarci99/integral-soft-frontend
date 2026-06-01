@@ -51,6 +51,14 @@ export class ActividadesService {
         );
     }
 
+    eliminarInstanciaActividad(id_instancia: number): Observable<any> {
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'eliminarInstanciaActividad',
+            { id_instancia },
+            { headers: this.getHeaders() }
+        );
+    }
+
     async getActividadesCalendario(fecha_inicio: string, fecha_fin: string): Promise<Observable<any>> {
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'getActividadesCalendario',

@@ -125,6 +125,11 @@
                                             title="Editar actividad" *ngIf="esAdmin || esUsuarioInvitado">
                                             <i class="fa fa-edit"></i>
                                         </button>
+                                        <button class="btn btn-sm btn-outline-danger p-1 ms-1"
+                                            (click)="$event.stopPropagation(); eliminarInstancia(inst)"
+                                            title="Eliminar instancia" *ngIf="esAdmin || esUsuarioInvitado">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
