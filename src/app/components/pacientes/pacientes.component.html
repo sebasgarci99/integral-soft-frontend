@@ -32,6 +32,7 @@
                             <th>Sexo</th>
                             <th>Teléfono</th>
                             <th>EPS</th>
+                            <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
                     </ng-template>
@@ -44,11 +45,12 @@
                             <td>{{ paciente.sexo }}</td>
                             <td>{{ paciente.telefono_contacto }}</td>
                             <td>{{ paciente.t_datos_admin_paciente?.eps }}</td>
+                            <td>{{ paciente.estado }}</td>
                             <td>
                                 <p-button icon="fa fa-pencil" class="p-button-text p-button-sm"
                                     (onClick)="abrirFormulario(paciente)"></p-button>
                                 <p-button icon="fa fa-trash" class="p-button-text p-button-sm"
-                                    (onClick)="borrarPaciente(paciente.id_paciente)"></p-button>
+                                    (onClick)="borrarPaciente(paciente.id_paciente)" *ngIf="paciente.estado == 'A'"></p-button>
                             </td>
                         </tr>
                     </ng-template>
@@ -142,6 +144,18 @@
                                     <input pInputText [(ngModel)]="formData.correo_electronico" class="w-100" />
                                     <label>Correo electrónico</label>
                                 </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-lg-3 col-sm-12 mt-3 select_tipoDocumento" *ngIf="isEdit">
+                                    <p-dropdown [options]="[
+                                        { label: 'Activo', value: 'A' },
+                                        { label: 'Inactivo', value: 'I' } 
+                                    ]" [(ngModel)]="formData.estado" #estado="ngModel"
+                                    [ngClass]="{
+                                        'p-inputwrapper-filled': formData.estado
+                                    }" class="w-100"></p-dropdown>
+                                    <label>Estado</label>
+                                </p-floatlabel>
+                                
                             </div>
                         </ng-container>
 

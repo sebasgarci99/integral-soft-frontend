@@ -131,6 +131,7 @@ export class PacientesService {
             municipio_residencia: data.municipio_residencia,
             telefono_contacto: data.telefono_contacto,
             correo_electronico: data.correo_electronico,
+            estado: data.estado,
 
             // 2️⃣ Antecedentes médicos
             enfermedades_actuales: data.enfermedades_actuales,

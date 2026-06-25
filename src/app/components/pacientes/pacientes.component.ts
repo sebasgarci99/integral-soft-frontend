@@ -104,7 +104,8 @@ export class PacientesComponent {
     // Función que carga los pacientes exclusivamente activos
     cargarPacientes() {
         this.pacientesService.obtenerPacientes().subscribe((data) => {
-            this.pacientes = data.filter(e => e.estado == 'A');
+            // this.pacientes = data.filter(e => e.estado == 'A');
+            this.pacientes = data;
         });
     }
 
