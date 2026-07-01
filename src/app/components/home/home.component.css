@@ -24,3 +24,49 @@ html, body {
         overflow: auto;
     }
 }
+
+p-chart {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-sizing: border-box;
+}
+
+p-chart > div,
+p-chart canvas {
+    max-width: 100%;
+}
+
+.dashboard > .card {
+    border: none;
+    box-shadow: none;
+}
+
+.dashboard .row {
+    margin-top: 28px;
+}
+
+.dashboard .row > [class*='col-'] {
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard .row > [class*='col-'] > div {
+    flex: 1;
+    min-height: 0;
+}
+
+@media (max-width: 767.98px) {
+    .dashboard .row > [class*='col-'] {
+        margin-bottom: 16px;
+    }
+
+    p-chart {
+        padding: 12px;
+    }
+}

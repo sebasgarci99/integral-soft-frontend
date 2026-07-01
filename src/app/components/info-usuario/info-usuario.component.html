@@ -1,0 +1,163 @@
+<div class="d-lg-none d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
+    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
+        aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-list"></i>
+    </button>
+</div>
+
+<div class="d-flex">
+    <app-sidebar></app-sidebar>
+
+    <div class="flex-grow-1 p-2 p-md-4 dashboard">
+        <div class="card mt-2">
+            <div class="card-body">
+                <h3 class="text-center mb-4">Información del usuario</h3>
+
+                <p-tabView [scrollable]="true">
+                    <p-tabPanel header="Información básica">
+                        <div class="row">
+                            <div class="col-12 col-md-4 text-center mb-3">
+                                <div class="foto-perfil-container mb-2">
+                                    <img [src]="fotoPreview || 'assets/default-avatar.png'" alt="Foto perfil" class="foto-perfil" />
+                                </div>
+                                <label class="btn btn-outline-primary btn-sm">
+                                    Cambiar foto
+                                    <input type="file" accept="image/*" (change)="onFotoSelected($event)" style="display:none" />
+                                </label>
+                            </div>
+
+                            <div class="col-12 col-md-8">
+                                <div class="row mb-3">
+                                    <div class="col-12 col-md-6 mb-2">
+                                        <label>Usuario</label>
+                                        <input pInputText class="w-100" [ngModel]="datosUsuario.usuario" disabled />
+                                    </div>
+                                    <div class="col-12 col-md-6 mb-2">
+                                        <label>Rol</label>
+                                        <input pInputText class="w-100" [ngModel]="datosUsuario.id_rol == 1 ? 'Administrador' : 'Usuario'" disabled />
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-12 col-md-6 mb-2">
+                                        <label>Nombres</label>
+                                        <input pInputText class="w-100" [(ngModel)]="datosUsuario.nombre" placeholder="Nombres" />
+                                    </div>
+                                    <div class="col-12 col-md-6 mb-2">
+                                        <label>Apellidos</label>
+                                        <input pInputText class="w-100" [(ngModel)]="datosUsuario.apellido" placeholder="Apellidos" />
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-12 col-md-6 mb-2">
+                                        <label>Empresa</label>
+                                        <input pInputText class="w-100" [ngModel]="empresa.empresa" disabled />
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-12 mb-2">
+                                        <label>Firma digital</label>
+                                        <div class="firma-upload-container text-center">
+                                            <label class="firma-clickable">
+                                                <ng-container *ngIf="firmaPreview; else sinFirma">
+                                                    <img [src]="firmaPreview" alt="Firma digital" class="firma-preview" />
+                                                    <div class="mt-2">
+                                                        <span class="firma-badge">Firma cargada</span>
+                                                    </div>
+                                                    <small class="text-muted d-block mt-1">Haz clic para cambiar</small>
+                                                </ng-container>
+                                                <ng-template #sinFirma>
+                                                    <div class="firma-placeholder">
+                                                        <i class="fa fa-pen" style="font-size: 2rem; color: #adb5bd;"></i>
+                                                        <p class="text-muted mb-0 mt-1" style="font-size: 0.85rem;">Haz clic para cargar firma</p>
+                                                    </div>
+                                                </ng-template>
+                                                <input type="file" accept="image/*" (change)="onFirmaSelected($event)" style="display:none" />
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-end">
+                                    <button pButton type="button" label="Guardar cambios" icon="fa fa-save" (click)="guardarInfoBasica()"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </p-tabPanel>
+
+                    <p-tabPanel header="Información adicional">
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6 mb-2">
+                                <label>Nombre completo</label>
+                                <input pInputText class="w-100" [(ngModel)]="infoAdicional.nombre_completo" placeholder="Nombre completo" />
+                            </div>
+                            <div class="col-12 col-md-6 mb-2">
+                                <label>Número de documento</label>
+                                <input pInputText class="w-100" [(ngModel)]="infoAdicional.numero_documento" placeholder="Número de documento" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6 mb-2">
+                                <label>Banco</label>
+                                <input pInputText class="w-100" [(ngModel)]="infoAdicional.banco" placeholder="Banco" />
+                            </div>
+                            <div class="col-12 col-md-3 mb-2">
+                                <label>Tipo de cuenta</label>
+                                <input pInputText class="w-100" [(ngModel)]="infoAdicional.tipo_cuenta" placeholder="Ej: Ahorros, Corriente" />
+                            </div>
+                            <div class="col-12 col-md-3 mb-2">
+                                <label>Número de cuenta</label>
+                                <input pInputText class="w-100" [(ngModel)]="infoAdicional.numero_cuenta" placeholder="Número de cuenta" />
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button pButton type="button" label="Guardar cambios" icon="fa fa-save" (click)="guardarInfoAdicional()"></button>
+                        </div>
+                    </p-tabPanel>
+
+                    <p-tabPanel header="Configuración de correo">
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6 mb-2">
+                                <label>Correo electrónico</label>
+                                <input pInputText class="w-100" [(ngModel)]="configCorreo.correo_electronico" placeholder="correo@ejemplo.com" />
+                            </div>
+                            <div class="col-12 col-md-6 mb-2">
+                                <label>Contraseña</label>
+                                <input pInputText class="w-100" [(ngModel)]="configCorreo.password" placeholder="Contraseña" type="password" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-4 mb-2">
+                                <label>Servicio</label>
+                                <p-dropdown [options]="servicioOptions" [(ngModel)]="configCorreo.servicio" placeholder="Seleccione" class="w-100"></p-dropdown>
+                            </div>
+                            <div class="col-12 col-md-4 mb-2">
+                                <label>Host</label>
+                                <input pInputText class="w-100" [(ngModel)]="configCorreo.host" placeholder="smtp.ejemplo.com" />
+                            </div>
+                            <div class="col-12 col-md-4 mb-2">
+                                <label>Puerto</label>
+                                <input pInputText class="w-100" [(ngModel)]="configCorreo.puerto" placeholder="587" />
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button pButton type="button" label="Guardar cambios" icon="fa fa-save" (click)="guardarConfigCorreo()"></button>
+                        </div>
+                    </p-tabPanel>
+                </p-tabView>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" *ngIf="loader">
+    <p-progressSpinner></p-progressSpinner>
+</div>
+
+<p-toast></p-toast>

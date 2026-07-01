@@ -94,7 +94,7 @@
     </div>
 </div>
 
-<p-dialog header="Historial de env\u00edos de reportes" [(visible)]="showLogsDialog" [modal]="true" [style]="{width: '90vw', maxWidth: '1200px'}" [draggable]="false" [resizable]="false">
+<p-dialog header="Historial de envíos de reportes" [(visible)]="showLogsDialog" [modal]="true" [style]="{width: '90vw', maxWidth: '1200px'}" [draggable]="false" [resizable]="false">
     <p-table [value]="logs" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 20, 50]" [size]="'small'" [responsiveLayout]="'scroll'" [scrollable]="true">
         <ng-template pTemplate="header">
             <tr>
@@ -131,7 +131,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="9" style="text-align: center;">No hay env\u00edos registrados</td>
+                <td colspan="9" style="text-align: center;">No hay envíos registrados</td>
             </tr>
         </ng-template>
     </p-table>

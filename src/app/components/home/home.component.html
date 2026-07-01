@@ -16,9 +16,13 @@
         <div class="card mt-1">
             <div *ngIf="datosUsuario.idRol == '1'" class="card-body">
 
+                <div class="flex justify-content-between mb-1">
+                    <h2 class="text-center">Panel de control</h2> 
+                </div>
+
                 <div *ngFor="let fila of getGraficasEnFilas()" class="row mb-4">
 
-                    <div *ngFor="let grafica of fila" [ngClass]="fila.length === 1 ? 'col-12' : 'col-12 col-md-6'">
+                    <div *ngFor="let grafica of fila" [ngClass]="fila.length === 1 ? 'col-12' : 'col-12 col-md-6'" class="mt-3">
                         <h5 class="text-center mb-2">
                             {{ grafica.tituloGrafica }}
                         </h5>
