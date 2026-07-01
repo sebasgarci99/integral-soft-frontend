@@ -65,8 +65,8 @@
                 </p-table>
 
                 <!-- DIALOG REGISTRO DE VACUNACIÓN -->
-                <p-dialog header="Registro de vacunación al paciente" [(visible)]="dialogCrearVacuna" [modal]="true"
-                    [style]="{ width: '50vw' }" appendTo="body" (onHide)="resetFormularioVacunacion()">
+                <p-dialog [header]="modoEdicion ? 'Editar registro de vacunación' : 'Registro de vacunación al paciente'" [(visible)]="dialogCrearVacuna" [modal]="true"
+                    [style]="{ width: '50vw', height: '90vh' }" appendTo="body" (onHide)="resetFormularioVacunacion()">
 
                     <div class="p-fluid formgrid grid text-center">
                         <div class="col-12 d-md-flex d-sm-grid">
@@ -238,6 +238,7 @@
                         <hr>
 
                         <!-- FIRMA -->
+                        <ng-container *ngIf="!modoEdicion">
                         <div class="col-12 mt-4 text-center">
                             <h6 class="block mb-2 font-medium text-gray-500">Firma del responsable</h6>
                             <p-floatlabel variant="on" class="col-12 md:col-6">
@@ -263,6 +264,7 @@
                                 </div>
                             </p-floatlabel>
                         </div>
+                        </ng-container>
 
                     </div>
 
@@ -275,43 +277,52 @@
 
                 <!-- DIALOG HISTORICO VACUNAS -->
                 <p-dialog header="Histórico de Vacunas del paciente" [(visible)]="dialogVacunas" [modal]="true"
-                    [style]="{ width: '80vw' }" appendTo="body">
-                    <!-- BUSCADOR -->
-                    <div class="flex justify-content-end mb-2 text-end">
-                        <input #gbInputVacunas pInputText type="text"
-                            (input)="tablaHistoricoVacunas.filterGlobal(gbInputVacunas.value, 'contains')"
-                            placeholder="Buscar vacuna..." />
-                    </div>
-                    <p-table #tablaHistoricoVacunas [value]="historicoVacunas" responsiveLayout="scroll"
-                        [paginator]="true" [rows]="10" [globalFilterFields]="['nombre_vacuna','fecha']">
-                        <ng-template pTemplate="header">
-                            <tr>
-                                <th>Reg. de vacunación</th>
-                                <th>Vacuna aplicada</th>
-                                <th>Nombre comercial</th>
-                                <th>Fecha y hora</th>
-                                <th>Dosis parametrizada</th>
-                                <th>Dosis aplicada</th>
-                                <th>Lote o reg. sanitario</th>
-                                <th>Empresa/Entidad</th>
-                                <th>Orden</th>
-                            </tr>
-                        </ng-template>
+                    [style]="{ width: '80vw' }" appendTo="body" [draggable]="false">
 
-                        <ng-template pTemplate="body" let-v>
-                            <tr>
-                                <td>{{ v.id_vacunacion }}</td>
-                                <td>{{ v.nombre_vacuna }}</td>
-                                <td>{{ v.presentacion_comercial }}</td>
-                                <td>{{ v.fecha_registro }}</td>
-                                <td>{{ v.cantidad_dosis }}</td>
-                                <td>{{ obtenerTextoDosis(v.dosis_aplicada, v.cantidad_dosis) }}</td>
-                                <td>{{ v.registro_sanitario_vacuna }}</td>
-                                <td>{{ v.empresa_entidad }}</td>
-                                <td>{{ v.orden_remision }}</td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
+                    <p-accordion [multiple]="true" [activeIndex]="historicoActiveIndex">
+
+                        <p-accordionTab *ngFor="let grupo of historicoGrupos">
+                            <ng-template pTemplate="header">
+                                <div style="display: grid; grid-template-columns: 1fr auto; align-items: center; width: 100%; gap: 0.5rem;">
+                                    <span>Reg. #{{ grupo.id_vacunacion }} — {{ grupo.fecha_registro }}</span>
+                                    <p-button icon="fa fa-pen" label="Editar" class="p-button-sm"
+                                        (click)="editarRegistro(grupo); $event.stopPropagation()">
+                                    </p-button>
+                                </div>
+                            </ng-template>
+
+                            <div class="mb-1 ms-3 text-sm text-gray-600">
+                                <span *ngIf="grupo.empresa_entidad"><b>Empresa/Entidad:</b> {{ grupo.empresa_entidad }}</span>
+                                <span *ngIf="grupo.orden_remision" class="ms-3"><b>Orden:</b> {{ grupo.orden_remision }}</span>
+                                <span *ngIf="grupo.acudiente" class="ms-3"><b>Acudiente:</b> {{ grupo.acudiente }}</span>
+                                <span *ngIf="grupo.acudiente" class="ms-3"><b>Doc. acudiente:</b> {{ grupo.num_documento_acudiente }}</span>
+                                <hr>
+                            </div>
+
+                            <p-table [value]="grupo.vacunas" responsiveLayout="scroll">
+                                <ng-template pTemplate="header">
+                                    <tr>
+                                        <th>Vacuna aplicada</th>
+                                        <th>Nombre comercial</th>
+                                        <th>Dosis parametrizada</th>
+                                        <th>Dosis aplicada</th>
+                                        <th>Lote o reg. sanitario</th>
+                                    </tr>
+                                </ng-template>
+
+                                <ng-template pTemplate="body" let-v>
+                                    <tr>
+                                        <td>{{ v.nombre_vacuna }}</td>
+                                        <td>{{ v.presentacion_comercial }}</td>
+                                        <td>{{ v.cantidad_dosis }}</td>
+                                        <td>{{ obtenerTextoDosis(v.dosis_aplicada, v.cantidad_dosis) }}</td>
+                                        <td>{{ v.registro_sanitario_vacuna }}</td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </p-accordionTab>
+
+                    </p-accordion>
                 </p-dialog>
 
                 <!-- DIALOG HISTORICO CONSENTIMIENTOS -->

@@ -21,6 +21,7 @@ import { Tag } from 'primeng/tag';
 import { MultiSelect } from 'primeng/multiselect';
 import { RadioButton } from 'primeng/radiobutton';
 import { CheckboxModule } from 'primeng/checkbox';
+import { AccordionModule } from 'primeng/accordion';
 
 import { jsPDF } from "jspdf";
 
@@ -54,7 +55,8 @@ import { VacunaService } from '../../services/vacunas/vacuna.service';
         Tag,
         MultiSelect,
         RadioButton,
-        CheckboxModule
+        CheckboxModule,
+        AccordionModule
     ],
     templateUrl: './reg-vacunacion.component.html',
     styleUrl: './reg-vacunacion.component.css',
@@ -66,6 +68,11 @@ export class RegVacunacionComponent implements OnInit {
     @ViewChild('firmaPadFull') firmaPadFull!: SignatureCanvasComponent;
 
     fullscreen = false;
+
+    historicoGrupos: any[] = [];
+    historicoActiveIndex: number[] = [];
+    modoEdicion: boolean = false;
+    idVacunacionEditando: number | null = null;
 
     pacientes: any[] = [];
     historicoVacunas: any[] = [];
@@ -122,6 +129,8 @@ export class RegVacunacionComponent implements OnInit {
     }
 
     crearRegistroVacunacion(paciente: any) {
+        this.modoEdicion = false;
+        this.idVacunacionEditando = null;
         this.selectedPaciente = paciente;
         this.dialogCrearVacuna = true;
         this.formSubmitted = false;
@@ -162,8 +171,11 @@ export class RegVacunacionComponent implements OnInit {
     }
 
     abrirHistoricoVacunas(paciente: any) {
+        this.selectedPaciente = paciente;
         this.regVacunacionService.obtenerVacunasPaciente(paciente.id_paciente).subscribe(data => {
             this.historicoVacunas = data;
+            this.historicoGrupos = this.agruparPorVacunacion(data);
+            this.historicoActiveIndex = this.historicoGrupos.map((_, i) => i);
             this.dialogVacunas = true;
         });
     }
@@ -173,6 +185,85 @@ export class RegVacunacionComponent implements OnInit {
             this.historicoConsentimientos = data;
             this.dialogConsentimientos = true;
         });
+    }
+
+    private agruparPorVacunacion(data: any[]): any[] {
+        const grupos = new Map<number, any>();
+        for (const item of data) {
+            if (!grupos.has(item.id_vacunacion)) {
+                grupos.set(item.id_vacunacion, {
+                    id_vacunacion: item.id_vacunacion,
+                    fecha_registro: item.fecha_registro,
+                    empresa_entidad: item.empresa_entidad,
+                    orden_remision: item.orden_remision,
+                    vacunacion_empresa: item.vacunacion_empresa,
+                    aplica_acudiente: item.aplica_acudiente,
+                    acudiente: item.acudiente,
+                    num_documento_acudiente: item.num_documento_acudiente,
+                    vacunas: []
+                });
+            }
+            grupos.get(item.id_vacunacion).vacunas.push(item);
+        }
+        return Array.from(grupos.values()).sort((a, b) => b.id_vacunacion - a.id_vacunacion);
+    }
+
+    editarRegistro(grupo: any) {
+        this.modoEdicion = true;
+        this.idVacunacionEditando = grupo.id_vacunacion;
+
+        this.formData.fecha_registro = this.parseFechaHistorico(grupo.fecha_registro);
+        this.formData.aplica_acudiente = grupo.aplica_acudiente === true || grupo.aplica_acudiente === 'S' ? 'S' : 'N';
+        this.formData.acudiente = grupo.acudiente || '';
+        this.formData.num_doc_acudiente = grupo.num_documento_acudiente || '';
+        this.formData.vacunacion_empresa = grupo.vacunacion_empresa === true || grupo.vacunacion_empresa === 'S' ? 'S' : 'N';
+        this.formData.empresa_entidad = grupo.empresa_entidad || '';
+        this.formData.orden_remision = grupo.orden_remision || '';
+        this.formData.firma = null;
+        this.formSubmitted = false;
+        this.firmaOK = false;
+
+        this.vacunaService.obtenerVacunas().subscribe(data => {
+            this.listaVacunas = data.filter(e => e.estado == 'A');
+
+            this.vacunasSeleccionadas = grupo.vacunas.map((v: any) =>
+                this.listaVacunas.find((lv: any) => lv.id === v.id_vacuna)
+            ).filter(Boolean);
+
+            this.formData.vacunas = grupo.vacunas.map((v: any) => {
+                const esRefuerzo = v.dosis_aplicada === 'refuerzo';
+                return {
+                    id_vacuna: v.id_vacuna,
+                    nombre_vacuna: v.nombre_vacuna,
+                    dosis: esRefuerzo ? 'refuerzo' : Number(v.dosis_aplicada),
+                    cant_dosis_max: v.cantidad_dosis,
+                    aplica_refuerzo: false,
+                    es_refuerzo: esRefuerzo
+                } as any;
+            });
+        });
+
+        this.dialogCrearVacuna = true;
+
+        setTimeout(() => {
+            this.firmaPad.reinitPad();
+            this.firmaPadFull.refresh();
+        }, 100);
+    }
+
+    private parseFechaHistorico(fechaStr: string): Date {
+        if (!fechaStr) return new Date();
+        const partes = fechaStr.split(' ');
+        const fechaPartes = partes[0].split('/');
+        const horaPartes = (partes[1] || '00:00:00').split(':');
+        return new Date(
+            Number(fechaPartes[2]),
+            Number(fechaPartes[1]) - 1,
+            Number(fechaPartes[0]),
+            Number(horaPartes[0]),
+            Number(horaPartes[1]),
+            Number(horaPartes[2] || 0)
+        );
     }
 
     async generarPDF(htmlString: any) {
@@ -237,7 +328,7 @@ export class RegVacunacionComponent implements OnInit {
     botonGuardarHabilitado() {
         if (this.formData.vacunas.length === 0) return false;
         if (this.formData.vacunas.some(v => !v.es_refuerzo && v.dosis > v.cant_dosis_max)) return false;
-        if (!this.formData.firma) return false;
+        if (!this.modoEdicion && !this.formData.firma) return false;
 
         if (this.formData.aplica_acudiente === "S") {
             if (!this.formData.acudiente || !this.formData.num_doc_acudiente)
@@ -262,8 +353,10 @@ export class RegVacunacionComponent implements OnInit {
             .join(', ');
 
         this.confirmService.confirm({
-            message: `¿Confirmas que deseas registrar las vacunas: <b>${vacunasNombres}</b>?`,
-            header: "Confirmar registro",
+            message: this.modoEdicion
+                ? `¿Confirmas que deseas actualizar el registro con las vacunas: <b>${vacunasNombres}</b>?`
+                : `¿Confirmas que deseas registrar las vacunas: <b>${vacunasNombres}</b>?`,
+            header: this.modoEdicion ? "Confirmar actualización" : "Confirmar registro",
             icon: "fa fa-check",
             acceptLabel: 'Sí',
             rejectLabel: 'No',
@@ -272,7 +365,7 @@ export class RegVacunacionComponent implements OnInit {
     }
 
     async guardarRegistro() {
-        const payload = {
+        const payload: Record<string, unknown> = {
             id_paciente: this.selectedPaciente.id_paciente,
             fecha_registro: this.obtenerFechaHoraActualFormatoIso(this.formData.fecha_registro),
             aplica_acudiente: this.formData.aplica_acudiente === "S",
@@ -283,22 +376,36 @@ export class RegVacunacionComponent implements OnInit {
                 id_vacuna: v.id_vacuna,
                 dosis_aplicada: v.es_refuerzo ? 'refuerzo' : v.dosis
             })),
-            firma_usuario_acudiente: this.formData.firma,
             vacunacion_empresa: this.formData.vacunacion_empresa,
             empresa_entidad: this.formData.vacunacion_empresa === "S" ? this.formData.empresa_entidad : null,
             orden_remision: this.formData.vacunacion_empresa === "S" ? this.formData.orden_remision : null
         };
 
+        if (this.modoEdicion) {
+            payload['id_vacunacion'] = this.idVacunacionEditando;
+        } else {
+            payload['firma_usuario_acudiente'] = this.formData.firma;
+        }
+
         this.regVacunacionService.crearActualizarRegVacunacion(payload).subscribe({
             next: async (e) => {
                 this.messageService.add({ severity: "success", summary: "OK", detail: "Registro de vacunación guardado correctamente" });
-                await this.generarPDF(e)
+                if(!this.modoEdicion) {
+                    await this.generarPDF(e)
+                } else {
+
+                }
                 this.dialogCrearVacuna = false;
+                this.dialogConsentimientos = false;
+                this.dialogVacunas = false;
+
+                await this.cargarPacientes();
+
             },
             error: (e) => {
                 console.log(e);
                 this.messageService.add({ severity: "error", summary: "Error", detail: "Error al guardar" });
-            }
+            } 
         });
     }
 
@@ -397,6 +504,8 @@ export class RegVacunacionComponent implements OnInit {
     }
 
     resetFormularioVacunacion() {
+        this.modoEdicion = false;
+        this.idVacunacionEditando = null;
         this.formSubmitted = false;
         this.firmaOK = false;
 
