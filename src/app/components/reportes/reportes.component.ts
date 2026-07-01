@@ -22,6 +22,7 @@ import { CalendarModule } from 'primeng/calendar';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TagModule } from 'primeng/tag';
 
 
 import * as XLSX from 'xlsx';
@@ -46,7 +47,9 @@ import * as XLSX from 'xlsx';
         CalendarModule,
         IconFieldModule,
         InputIconModule,
-        ProgressSpinnerModule
+        InputIconModule,
+        ProgressSpinnerModule,
+        TagModule
     ],
     templateUrl: './reportes.component.html',
     styleUrl: './reportes.component.css',
@@ -75,6 +78,19 @@ export class ReportesComponent {
     ];
 
     globalFilterValue: string = '';
+
+    showLogsDialog: boolean = false;
+    logs: any[] = [];
+    logColumns: any[] = [
+        { field: 'fecha_envio', header: 'Fecha env\u00edo' },
+        { field: 'usuario_nombre', header: 'Usuario' },
+        { field: 'fecha_inicio', header: 'Fecha inicio' },
+        { field: 'fecha_fin', header: 'Fecha fin' },
+        { field: 'tipo_reporte', header: 'Tipo' },
+        { field: 'cantidad_consultorios', header: 'Consultorios' },
+        { field: 'es_envio_completo', header: 'Completo' },
+        { field: 'estado', header: 'Estado' },
+    ];
 
     constructor(
         private reportesService : ReportesService,
@@ -162,29 +178,40 @@ export class ReportesComponent {
     async enviarReporteConsultorios() {
         this.confirmService.confirm({
             header: 'Enviar reporte por correo electrónico',
-            icon: 'fa fa-exclamation-triangle', // <- Ícono de advertencia
+            icon: 'fa fa-exclamation-triangle',
             message: '¿Estás seguro de enviar el reporte generado a los correos electrónicos de los consultorios? Recuerda que se enviarán a todos los consultorios que hayas generado en el reporte.',
             acceptLabel: 'Sí',
             rejectLabel: 'No',
             accept: () => {
-                this.loader = true; // mostrar spinner
+                this.loader = true;
 
                 this.reportesService.enviarReporteCorreosConsultorios(
                     this.fechaInicio, this.fechaFin, this.consultorio, this.tipoReporte
                 ).subscribe({
                     next: (res) => {
-                        if(res.state === 'OK') {
+                        if (res.state === 'OK') {
+                            let detalle = '';
+                            if (res.body) {
+                                detalle = `Enviado a ${res.body.enviados} de ${res.body.total_consultorios} consultorios.`;
+                            }
                             this.messageService.add({
                                 severity: 'success',
-                                summary: 'Reporte enviado correctamente por correo electrónico.',
-                                detail: 'Por favor espere a que el proceso se ejecute por completo...',
+                                summary: 'Reporte enviado correctamente',
+                                detail: detalle || 'Por favor espere a que el proceso se ejecute por completo...',
                                 life: 6000
+                            });
+                        } else if (res.body?.enviados !== undefined) {
+                            this.messageService.add({
+                                severity: 'warn',
+                                summary: 'Envío parcial',
+                                detail: `Enviados: ${res.body.enviados}, Fallidos: ${res.body.fallidos} de ${res.body.total_consultorios} consultorios.`,
+                                life: 8000
                             });
                         } else {
                             this.messageService.add({
                                 severity: 'error',
-                                summary: 'Se ha encontrado una novedad en el envio: ',
-                                detail: res.body,
+                                summary: 'Error en el envío',
+                                detail: typeof res.body === 'string' ? res.body : 'Revise el log para más detalles.',
                                 life: 5000
                             });
                         }
@@ -199,10 +226,52 @@ export class ReportesComponent {
                         });
                     },
                     complete: () => {
-                        this.loader = false; // ocultar spinner
+                        this.loader = false;
                     }
                 });
             }
+        });
+    }
+
+    abrirHistorialEnvios() {
+        this.loader = true;
+        this.showLogsDialog = true;
+        this.reportesService.obtenerLogsReportes().subscribe({
+            next: (data) => {
+                this.logs = data;
+            },
+            error: () => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'No se pudo cargar el historial de envíos.',
+                    life: 5000
+                });
+            },
+            complete: () => {
+                this.loader = false;
+            }
+        });
+    }
+
+    getSeverityLog(estado: string): 'success' | 'warn' | 'danger' | 'info' {
+        switch (estado) {
+            case 'EXITOSA': return 'success';
+            case 'PARCIAL': return 'warn';
+            case 'FALLIDA': return 'danger';
+            default: return 'info';
+        }
+    }
+
+    formatoFechaLog(fecha: string): string {
+        if (!fecha) return '';
+        const d = new Date(fecha);
+        return d.toLocaleDateString('es-CO', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     }
 

@@ -19,12 +19,12 @@
                         <div class="row mb-2">
                             <div id="calendar-container" class="col-12 col-md-3 mb-2 d-grid">
                                 <label for="fechaInicio">Fecha inicio</label>
-                                <p-calendar [(ngModel)]="fechaInicio" dateFormat="yy-mm-dd" inputId="fechaInicio" showIcon appendTo="'calendar-container" class="d-grid calendarios" />
+                                <p-calendar [(ngModel)]="fechaInicio" dateFormat="yy-mm-dd" inputId="fechaInicio" showIcon appendTo="body" class="d-grid" />
                             </div> 
 
                             <div class="col-12 col-md-3 mb-2 d-grid">
                                 <label for="fechaFin">Fecha fin</label>
-                                <p-calendar [(ngModel)]="fechaFin" dateFormat="yy-mm-dd" inputId="fechaFin" showIcon appendTo="body" class="d-grid calendarios" />
+                                <p-calendar [(ngModel)]="fechaFin" dateFormat="yy-mm-dd" inputId="fechaFin" showIcon appendTo="body" class="d-grid" />
                             </div>
 
                             <div class="col-12 col-md-3 mb-2 d-grid">
@@ -52,6 +52,7 @@
                             <button pButton type="button" label="Generar reporte" icon="fa fa-search" class="m-2" (click)="generarReporte()"></button>
                             <button pButton type="button" label="Descargar Excel" icon="fa fa-file-excel" class="p-button-success m-2" (click)="descargarExcel()" [disabled]="!datos.length"></button>
                             <button *ngIf="idRol == 1" pButton type="button" label="Enviar por correo electrónico" icon="fa fa-envelope-open-text" class="p-button-info m-2" (click)="enviarReporteConsultorios()" [disabled]="!datos.length"></button>
+                            <button *ngIf="idRol == 1" pButton type="button" label="Historial de envíos" icon="fa fa-history" class="p-button-help m-2" (click)="abrirHistorialEnvios()" [disabled]="!datos.length"></button>
                         </div>
 
                         <hr>
@@ -92,6 +93,49 @@
         </div>
     </div>
 </div>
+
+<p-dialog header="Historial de env\u00edos de reportes" [(visible)]="showLogsDialog" [modal]="true" [style]="{width: '90vw', maxWidth: '1200px'}" [draggable]="false" [resizable]="false">
+    <p-table [value]="logs" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 20, 50]" [size]="'small'" [responsiveLayout]="'scroll'" [scrollable]="true">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Fecha envío</th>
+                <th>Usuario</th>
+                <th>Fecha inicio</th>
+                <th>Fecha fin</th>
+                <th>Tipo</th>
+                <th># Consultorios</th>
+                <th>Todos (*)</th>
+                <th>Estado</th>
+                <th>Detalle</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+            <tr>
+                <td>{{ formatoFechaLog(row.fecha_envio) }}</td>
+                <td>{{ row.usuario_nombre }} {{ row.usuario_apellido }}</td>
+                <td>{{ row.fecha_inicio }}</td>
+                <td>{{ row.fecha_fin }}</td>
+                <td>{{ row.tipo_reporte }}</td>
+                <td>{{ row.cantidad_consultorios }}</td>
+                <td>
+                    <p-tag [value]="row.es_envio_completo ? 'Sí' : 'No'" [severity]="row.es_envio_completo ? 'info' : 'warn'"></p-tag>
+                </td>
+                <td>
+                    <p-tag [value]="row.estado" [severity]="getSeverityLog(row.estado)"></p-tag>
+                </td>
+                <td>
+                    <span *ngIf="row.consultorio_codigo">Consultorio: {{ row.consultorio_codigo }}<br></span>
+                    <span *ngIf="row.mensaje_error" style="color: #dc3545; font-size: 12px;">{{ row.mensaje_error }}</span>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="9" style="text-align: center;">No hay env\u00edos registrados</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</p-dialog>
 
 <div class="overlay" *ngIf="loader">
     <p-progressSpinner></p-progressSpinner>

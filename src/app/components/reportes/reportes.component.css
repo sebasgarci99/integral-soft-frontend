@@ -3,10 +3,6 @@
     overflow: auto;
 }
 
-.calendarios {
-    z-index: 1000 !important;
-}
-
 .overlay {
     position: fixed;
     top: 0;

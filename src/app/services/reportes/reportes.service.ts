@@ -170,6 +170,22 @@ export class ReportesService {
     }
 
     /* ─────────────────────────────────────────────
+        LISTAR (GET) ─ obtenerLogsReportes
+    ───────────────────────────────────────────── */
+    obtenerLogsReportes(): Observable<any[]> {
+        const token = localStorage.getItem('token');
+        const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
+
+        return this.http.post<any>(
+            `${this.urlApp}${this.urlAppAPI_enviarMail}getLogsReportes`,
+            {},
+            { headers }
+        ).pipe(
+            map(resp => resp.body || [])
+        );
+    }
+
+    /* ─────────────────────────────────────────────
         LISTAR (GET) ─ getReporteGraficaxUsuario
     ───────────────────────────────────────────── */
     obtenerReportesxUsuario(): Observable<GraficaUsuario[]> {
