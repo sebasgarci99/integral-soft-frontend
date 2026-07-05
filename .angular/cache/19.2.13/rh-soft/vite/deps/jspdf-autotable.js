@@ -1,4 +1,4 @@
-import "./chunk-TXDUYLVM.js";
+import "./chunk-S35DAJRX.js";
 
 // node_modules/jspdf-autotable/dist/jspdf.plugin.autotable.mjs
 function autoTableText(text, x, y, styles, doc) {

@@ -19,6 +19,7 @@ import { CuentasCobroComponent } from './components/cuentas-cobro/cuentas-cobro.
 import { ActividadesComponent } from './components/actividades/actividades.component';
 import { ArchivosCobroComponent } from './components/archivos-cobro/archivos-cobro.component';
 import { InfoUsuarioComponent } from './components/info-usuario/info-usuario.component';
+import { GestionPacientesComponent } from './components/gestion-pacientes/gestion-pacientes.component';
 
 export const routes: Routes = [
     {
@@ -104,6 +105,11 @@ export const routes: Routes = [
     },
     {
         path: 'info-usuario', component: InfoUsuarioComponent, canActivate: [
+            authGuard
+        ]
+    },
+    {
+        path: 'gestion_pacientes', component: GestionPacientesComponent, canActivate: [
             authGuard
         ]
     }

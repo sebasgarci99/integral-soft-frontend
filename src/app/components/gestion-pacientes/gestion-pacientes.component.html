@@ -1,0 +1,448 @@
+<!-- gestion-pacientes.component.html -->
+<div class="d-lg-none d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
+    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
+        aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-list"></i>
+    </button>
+</div>
+<div class="d-flex">
+    <app-sidebar></app-sidebar>
+
+    <div class="flex-grow-1 p-4 dashboard">
+        <div class="card mt-2">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h3 class="mb-0">Gestión de Pacientes</h3>
+                    </div>
+                    <p-button label="Nuevo Paciente" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()"></p-button>
+                </div>
+
+                <div class="flex justify-content-between mb-2 text-end">
+                    <input #gbInput pInputText type="text"
+                        (input)="tablaPacientes.filterGlobal(gbInput.value, 'contains')" placeholder="Buscar..." />
+                </div>
+
+                <p-table #tablaPacientes [value]="pacientes" [paginator]="true" [rows]="10" responsiveLayout="scroll"
+                    [globalFilterFields]="['nombres', 'apellidos', 'numero_documento', 'correo_electronico']">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Paciente</th>
+                            <th>Documento</th>
+                            <th>Correo</th>
+                            <th>Fecha Cita</th>
+                            <th>Estado Cita</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-row>
+                        <tr>
+                            <td>{{ row.nombres }} {{ row.apellidos }}</td>
+                            <td>{{ row.tipo_documento }} {{ row.numero_documento }}</td>
+                            <td>{{ row.correo_electronico }}</td>
+                            <td>{{ row.fecha_cita ? (row.fecha_cita | date:'dd/MM/yyyy HH:mm') : 'Sin cita' }}</td>
+                            <td>
+                                <p-tag *ngIf="row.estado_cita" [severity]="getBadgeSeverity(row.estado_cita)" [value]="row.estado_cita"></p-tag>
+                                <span *ngIf="!row.estado_cita">-</span>
+                            </td>
+                            <td>
+                                <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="abrirFormulario(row)"></p-button>
+                                <p-button icon="fa fa-clock-rotate-left" class="p-button-text p-button-sm" severity="info" (onClick)="abrirHistorico(row)"></p-button>
+                                <p-button icon="fa fa-trash" class="p-button-text p-button-sm" (onClick)="inactivar(row)" *ngIf="row.estado !== 'I'"></p-button>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+
+                <!-- DIALOG CREAR/EDITAR PACIENTE -->
+                <p-dialog header="{{ isEdit ? 'Editar Paciente' : 'Nuevo Paciente' }}" [(visible)]="displayDialog"
+                    [modal]="true" [style]="{ width: '55rem', 'max-height': '90vh' }"
+                    [contentStyle]="{ 'overflow-y': 'auto' }" [draggable]="false">
+
+                    <p-tabMenu [model]="tabs" [(activeItem)]="activeItem" styleClass="mb-4"></p-tabMenu>
+
+                    <ng-container [ngSwitch]="currentTab">
+                        <!-- TAB 1: DATOS BÁSICOS -->
+                        <ng-container *ngSwitchCase="0">
+                            <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
+                                <div class="col-12 d-md-flex d-sm-grid">
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                        <input pInputText [(ngModel)]="formData.nombres" class="w-100" maxlength="70" />
+                                        <label>Nombres *</label>
+                                    </p-floatlabel>
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                        <input pInputText [(ngModel)]="formData.apellidos" class="w-100" maxlength="80" />
+                                        <label>Apellidos *</label>
+                                    </p-floatlabel>
+                                </div>
+
+                                <div class="col-12 d-md-flex d-sm-grid">
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                        <p-dropdown [options]="tiposDocumento" [(ngModel)]="formData.tipo_documento" appendTo="body" class="w-100"
+                                            [ngClass]="{ 'p-inputwrapper-filled': formData.tipo_documento }"></p-dropdown>
+                                        <label>Tipo Documento *</label>
+                                    </p-floatlabel>
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                        <input pInputText [(ngModel)]="formData.numero_documento" class="w-100" maxlength="12" />
+                                        <label>Número de documento *</label>
+                                    </p-floatlabel>
+                                </div>
+
+                                <div class="col-12 d-md-flex d-sm-grid">
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                        <p-calendar id="fecha_nacimiento" [(ngModel)]="formData.fecha_nacimiento" dateFormat="yy-mm-dd"
+                                            [locale]="local_espaniol" showIcon="true" appendTo="body" class="w-100"></p-calendar>
+                                        <label>Fecha de nacimiento *</label>
+                                    </p-floatlabel>
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                        <p-dropdown [options]="opcionesSexo" [(ngModel)]="formData.sexo" appendTo="body" class="w-100"
+                                            [ngClass]="{ 'p-inputwrapper-filled': formData.sexo }"></p-dropdown>
+                                        <label>Sexo</label>
+                                    </p-floatlabel>
+                                </div>
+
+                                <div class="col-12 d-md-flex d-sm-grid">
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                        <input pInputText [(ngModel)]="formData.telefono_contacto" class="w-100" />
+                                        <label>Teléfono *</label>
+                                    </p-floatlabel>
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                        <input pInputText [(ngModel)]="formData.correo_electronico" class="w-100" />
+                                        <label>Correo electrónico *</label>
+                                    </p-floatlabel>
+                                </div>
+
+                                <div class="col-12 d-md-flex d-sm-grid">
+                                    <p-floatlabel variant="on" class="col-lg-12 col-md-12 mt-3">
+                                        <input pInputText [(ngModel)]="formData.direccion_residencia" class="w-100" />
+                                        <label>Dirección de residencia</label>
+                                    </p-floatlabel>
+                                </div>
+
+                                <div class="col-12 d-md-flex d-sm-grid">
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                        <input pInputText [(ngModel)]="formData.eps" class="w-100" />
+                                        <label>EPS</label>
+                                    </p-floatlabel>
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                        <input pInputText [(ngModel)]="formData.tipo_poblacion" class="w-100" />
+                                        <label>Tipo de población</label>
+                                    </p-floatlabel>
+                                </div>
+
+                                <div class="col-12 d-md-flex d-sm-grid">
+                                    <p-floatlabel variant="on" class="col-lg-12 col-md-12 mt-3">
+                                        <input pInputText [(ngModel)]="formData.nombre_acompanante" class="w-100" />
+                                        <label>Acompañante</label>
+                                    </p-floatlabel>
+                                </div>
+
+                                <div class="col-12 d-md-flex d-sm-grid" *ngIf="isEdit">
+                                    <p-floatlabel variant="on" class="col-lg-3 col-sm-12 mt-3">
+                                        <p-dropdown [options]="[{ label: 'Activo', value: 'A' }, { label: 'Inactivo', value: 'I' }]"
+                                            [(ngModel)]="formData.estado" appendTo="body" class="w-100"
+                                            [ngClass]="{ 'p-inputwrapper-filled': formData.estado }"></p-dropdown>
+                                        <label>Estado</label>
+                                    </p-floatlabel>
+                                </div>
+                            </div>
+                        </ng-container>
+
+                        <!-- TAB 2: CITA -->
+                        <ng-container *ngSwitchCase="1">
+                            <div class="p-fluid grid p-formgrid" style="padding: 0 0.75rem;">
+                                <div class="col-12 d-md-flex d-sm-grid">
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                        <p-calendar id="fecha_cita" [(ngModel)]="formData.fecha_cita" dateFormat="yy-mm-dd"
+                                            [locale]="local_espaniol" showIcon="true" [showTime]="true" hourFormat="24" appendTo="body" class="w-100"
+                                            (onSelect)="citaModificada = true"></p-calendar>
+                                        <label>Fecha y hora de cita</label>
+                                    </p-floatlabel>
+                                    <div class="col-lg-6 col-md-12 mt-3 text-end" *ngIf="isEdit && formData.id_cita">
+                                        <p-button label="Enviar borrador de consentimiento" icon="fa fa-envelope" severity="help"
+                                            (onClick)="abrirBorradorDesdeFormulario()"></p-button>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-3 text-muted" *ngIf="isEdit">
+                                    <small>
+                                        <strong>Nota:</strong> Si modifica la fecha de cita, se reagendará la cita activa.
+                                        Si el paciente no tiene cita activa, se creará una nueva.
+                                    </small>
+                                </div>
+                            </div>
+                        </ng-container>
+
+                        <!-- TAB 3: ANTECEDENTES MÉDICOS -->
+                        <ng-container *ngSwitchCase="2">
+                            <div class="p-fluid grid p-formgrid" style="padding: 0 0.75rem;">
+                                <div class="d-flex align-items-center mb-2">
+                                    <label class="col-8">¿Padece alguna enfermedad actualmente?</label>
+                                    <div class="col-4 field-radiobutton justify-content-end">
+                                        <p-radioButton name="tiene_enfermedad_actual" [value]="true" [(ngModel)]="formData.tiene_enfermedad_actual"></p-radioButton>
+                                        <label class="me-2">Sí</label>
+                                        <p-radioButton name="tiene_enfermedad_actual" [value]="false" [(ngModel)]="formData.tiene_enfermedad_actual"></p-radioButton>
+                                        <label>No</label>
+                                    </div>
+                                </div>
+                                <p-floatlabel variant="on" class="col-12 mt-2" *ngIf="formData.tiene_enfermedad_actual === true">
+                                    <textarea pInputTextarea [(ngModel)]="formData.enfermedades_actuales" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
+                                    <label>Enfermedades actuales</label>
+                                </p-floatlabel>
+
+                                <hr>
+
+                                <div class="d-flex align-items-center mb-2">
+                                    <label class="col-8">¿Es alérgico a algún medicamento, alimento o vacuna?</label>
+                                    <div class="col-4 field-radiobutton justify-content-end">
+                                        <p-radioButton name="es_alergico" [value]="true" [(ngModel)]="formData.es_alergico"></p-radioButton>
+                                        <label class="me-2">Sí</label>
+                                        <p-radioButton name="es_alergico" [value]="false" [(ngModel)]="formData.es_alergico"></p-radioButton>
+                                        <label>No</label>
+                                    </div>
+                                </div>
+                                <p-floatlabel variant="on" class="col-12 mt-2" *ngIf="formData.es_alergico === true">
+                                    <textarea pInputTextarea [(ngModel)]="formData.uso_medicamentos" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
+                                    <label>Uso de medicamentos / alergias</label>
+                                </p-floatlabel>
+
+                                <hr>
+
+                                <div class="d-flex align-items-center mb-2">
+                                    <label class="col-8">¿Tiene fiebre actualmente?</label>
+                                    <div class="col-4 field-radiobutton justify-content-end">
+                                        <p-radioButton name="tiene_fiebre_actual" [value]="true" [(ngModel)]="formData.tiene_fiebre_actual"></p-radioButton>
+                                        <label class="me-2">Sí</label>
+                                        <p-radioButton name="tiene_fiebre_actual" [value]="false" [(ngModel)]="formData.tiene_fiebre_actual"></p-radioButton>
+                                        <label>No</label>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div class="d-flex align-items-center mb-2">
+                                    <label class="col-8">¿Ha tenido convulsiones o trastorno neurológico?</label>
+                                    <div class="col-4 field-radiobutton justify-content-end">
+                                        <p-radioButton name="padece_convulsiones" [value]="true" [(ngModel)]="formData.padece_convulsiones"></p-radioButton>
+                                        <label class="me-2">Sí</label>
+                                        <p-radioButton name="padece_convulsiones" [value]="false" [(ngModel)]="formData.padece_convulsiones"></p-radioButton>
+                                        <label>No</label>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div class="d-flex align-items-center mb-2">
+                                    <label class="col-8">¿Ha presentado reacción grave tras una vacuna?</label>
+                                    <div class="col-4 field-radiobutton justify-content-end">
+                                        <p-radioButton name="reaccion_vacuna" [value]="true" [(ngModel)]="formData.reaccion_vacuna"></p-radioButton>
+                                        <label class="me-2">Sí</label>
+                                        <p-radioButton name="reaccion_vacuna" [value]="false" [(ngModel)]="formData.reaccion_vacuna"></p-radioButton>
+                                        <label>No</label>
+                                    </div>
+                                </div>
+                                <p-floatlabel variant="on" class="col-12 mt-2" *ngIf="formData.reaccion_vacuna === true">
+                                    <textarea pInputTextarea [(ngModel)]="formData.reacciones_previas_vacunas" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
+                                    <label>Reacciones previas a vacunas</label>
+                                </p-floatlabel>
+
+                                <hr>
+
+                                <div class="d-flex align-items-center mb-2">
+                                    <label class="col-8">¿Le han suministrado alguna vacuna en las últimas 4 semanas?</label>
+                                    <div class="col-4 field-radiobutton justify-content-end">
+                                        <p-radioButton name="tenido_vacuna_ultsemanas" [value]="true" [(ngModel)]="formData.tenido_vacuna_ultsemanas"></p-radioButton>
+                                        <label class="me-2">Sí</label>
+                                        <p-radioButton name="tenido_vacuna_ultsemanas" [value]="false" [(ngModel)]="formData.tenido_vacuna_ultsemanas"></p-radioButton>
+                                        <label>No</label>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <p-floatlabel variant="on" class="col-12 mt-2">
+                                    <textarea pInputTextarea [(ngModel)]="formData.alergias_graves" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
+                                    <label>Alergias graves</label>
+                                </p-floatlabel>
+
+                                <div class="col-12 d-flex mt-3">
+                                    <p-floatlabel variant="on" class="col-6 me-2">
+                                        <p-dropdown [options]="opcionesSiNo" [(ngModel)]="formData.esta_embarazada" appendTo="body" class="w-100"
+                                            [ngClass]="{ 'p-inputwrapper-filled': formData.esta_embarazada !== undefined && formData.esta_embarazada !== null }"></p-dropdown>
+                                        <label>¿Está embarazada?</label>
+                                    </p-floatlabel>
+                                    <p-floatlabel variant="on" class="col-6">
+                                        <p-dropdown [options]="opcionesSiNo" [(ngModel)]="formData.esta_lactando" appendTo="body" class="w-100"
+                                            [ngClass]="{ 'p-inputwrapper-filled': formData.esta_lactando !== undefined && formData.esta_lactando !== null }"></p-dropdown>
+                                        <label>¿Está lactando?</label>
+                                    </p-floatlabel>
+                                </div>
+
+                                <div class="col-12 mt-4 text-end" *ngIf="isEdit && formData.id_cita">
+                                    <p-button label="Generar consentimiento informado" icon="fa fa-file-signature" severity="success"
+                                        (onClick)="abrirConsentimientoDesdeFormulario()"></p-button>
+                                </div>
+                            </div>
+                        </ng-container>
+
+                        <!-- TAB 4: HISTÓRICO -->
+                        <ng-container *ngSwitchCase="3">
+                            <div style="padding: 0 0.75rem;">
+                                <p-table [value]="historico" responsiveLayout="scroll" [paginator]="true" [rows]="10">
+                                    <ng-template pTemplate="header">
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Tipo</th>
+                                            <th>Descripción</th>
+                                            <th>Usuario</th>
+                                            <th>Resultado</th>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="body" let-h>
+                                        <tr>
+                                            <td>{{ h.createdAt }}</td>
+                                            <td>{{ h.tipo_novedad }}</td>
+                                            <td>{{ h.descripcion }}</td>
+                                            <td>{{ h.nombres_usuario || '' }}</td>
+                                            <td>
+                                                <p-tag *ngIf="h.tipo_novedad === 'ENVIO_BORRADOR' || h.tipo_novedad === 'ENVIO_CONSENTIMIENTO'"
+                                                    [severity]="h.descripcion?.includes('EXITOSA') ? 'success' : 'danger'"
+                                                    [value]="h.descripcion?.includes('EXITOSA') ? 'Enviado' : 'Fallido'">
+                                                </p-tag>
+                                            </td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </div>
+                        </ng-container>
+                    </ng-container>
+
+                    <ng-template pTemplate="footer">
+                        <div class="flex justify-content-center text-center gap-2 mt-3">
+                            <p-button label="Cancelar" icon="fa fa-times" severity="secondary" (onClick)="cerrar()"></p-button>
+                            <p-button label="Guardar" icon="fa fa-check" (onClick)="guardar()"></p-button>
+                        </div>
+                    </ng-template>
+                </p-dialog>
+
+                <!-- DIALOG ENVIAR BORRADOR -->
+                <p-dialog header="Enviar borrador de consentimiento" [(visible)]="dialogBorrador" [modal]="true"
+                    [style]="{ width: '30rem' }" [draggable]="false">
+                    <div class="p-fluid grid p-formgrid">
+                        <div class="col-12 mt-3">
+                            <label for="tipoConsentimientoBorrador" style="display:block; margin-bottom:0.5rem; font-weight:600;">Tipo de consentimiento</label>
+                            <p-dropdown id="tipoConsentimientoBorrador" [options]="tiposConsentimiento" optionLabel="label" [(ngModel)]="tipoConsentimientoSeleccionado"
+                                placeholder="Seleccione tipo" appendTo="body" class="w-100"></p-dropdown>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <label for="correoBorrador" style="display:block; margin-bottom:0.5rem; font-weight:600;">Correo destino</label>
+                            <input id="correoBorrador" pInputText [(ngModel)]="correoBorrador" class="w-100" />
+                        </div>
+                    </div>
+                    <ng-template pTemplate="footer">
+                        <p-button label="Cancelar" icon="fa fa-times" severity="secondary" (onClick)="dialogBorrador = false"></p-button>
+                        <p-button label="Enviar" icon="fa fa-envelope" severity="info" (onClick)="enviarBorrador()"></p-button>
+                    </ng-template>
+                </p-dialog>
+
+                <!-- DIALOG TIPO CONSENTIMIENTO -->
+                <p-dialog header="Generar consentimiento informado" [(visible)]="dialogTipoConsentimiento" [modal]="true"
+                    [style]="{ width: '30rem' }" [draggable]="false">
+                    <div class="p-fluid grid p-formgrid">
+                        <div class="col-12 mt-3">
+                            <label for="tipoConsentimientoOficial" style="display:block; margin-bottom:0.5rem; font-weight:600;">Tipo de consentimiento</label>
+                            <p-dropdown id="tipoConsentimientoOficial" [options]="tiposConsentimiento" optionLabel="label" [(ngModel)]="tipoConsentimientoSeleccionado"
+                                placeholder="Seleccione tipo" appendTo="body" class="w-100"></p-dropdown>
+                        </div>
+                        <div class="col-12 mt-3 d-flex align-items-center gap-2">
+                            <p-checkbox [(ngModel)]="aplicaAcudiente" binary="true" inputId="aplicaAcudiente"></p-checkbox>
+                            <label for="aplicaAcudiente">Aplica acudiente</label>
+                        </div>
+                        <p-floatlabel variant="on" class="col-12 mt-3" *ngIf="aplicaAcudiente">
+                            <input pInputText [(ngModel)]="acudiente" class="w-100" maxlength="100" />
+                            <label>Nombre acudiente</label>
+                        </p-floatlabel>
+                        <p-floatlabel variant="on" class="col-12 mt-3" *ngIf="aplicaAcudiente">
+                            <input pInputText [(ngModel)]="numDocAcudiente" class="w-100" maxlength="20" />
+                            <label>N° documento acudiente</label>
+                        </p-floatlabel>
+                    </div>
+                    <ng-template pTemplate="footer">
+                        <p-button label="Cancelar" icon="fa fa-times" severity="secondary" (onClick)="dialogTipoConsentimiento = false"></p-button>
+                        <p-button label="Continuar" icon="fa fa-arrow-right" severity="info" (onClick)="confirmarTipoConsentimiento()"></p-button>
+                    </ng-template>
+                </p-dialog>
+
+                <!-- DIALOG FIRMA -->
+                <p-dialog header="Firma del paciente" [(visible)]="dialogFirma" [modal]="true"
+                    [style]="{ width: '40rem', height: 'auto' }" [draggable]="false">
+                    <div class="p-fluid grid p-formgrid text-center">
+                        <div class="col-12 mt-3">
+                            <div class="signature-pad-container">
+                                <canvas #firmaPad></canvas>
+                            </div>
+                            <p-tag severity="success" *ngIf="firmaOK" value="Firma registrada correctamente."></p-tag>
+                            <div class="mt-2 flex gap-2 justify-content-center">
+                                <p-button label="Maximizar" severity="danger" icon="fa fa-expand" (onClick)="openFullscreen()"></p-button>
+                                <p-button label="Limpiar firma" icon="fa fa-trash" (onClick)="limpiarFirma()"></p-button>
+                                <p-button label="Guardar firma" icon="fa fa-check" (onClick)="guardarFirma()"></p-button>
+                            </div>
+                        </div>
+                    </div>
+                    <ng-template pTemplate="footer">
+                        <p-button label="Cancelar" icon="fa fa-times" severity="secondary" (onClick)="dialogFirma = false"></p-button>
+                        <p-button label="Generar consentimiento" icon="fa fa-save" (onClick)="generarConsentimiento()"></p-button>
+                    </ng-template>
+                </p-dialog>
+
+                <!-- DIALOG HISTORICO -->
+                <p-dialog header="Histórico de consentimientos" [(visible)]="dialogHistorico" [modal]="true"
+                    [style]="{ width: '70vw' }" [draggable]="false">
+                    <p-accordion [multiple]="true">
+                        <p-accordionTab header="Consentimientos generados">
+                            <p-table [value]="consentimientos" responsiveLayout="scroll" [paginator]="true" [rows]="10">
+                                <ng-template pTemplate="header">
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Fecha</th>
+                                        <th>Paciente</th>
+                                        <th>Reenviar</th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-c>
+                                    <tr>
+                                        <td>{{ c.tipo_consentimiento }}</td>
+                                        <td>{{ c.fecha_registro | date:'dd/MM/yyyy HH:mm' }}</td>
+                                        <td>{{ c.nombre_paciente }}</td>
+                                        <td>
+                                            <p-button icon="fa fa-envelope" class="p-button-text p-button-sm" (onClick)="reenviarConsentimiento(c)"></p-button>
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </p-accordionTab>
+                    </p-accordion>
+                </p-dialog>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="fullscreen-overlay" *ngIf="fullscreen">
+    <div class="fullscreen-card">
+        <div class="fullscreen-header">
+            <p-button label="Cerrar" severity="danger" (onClick)="closeFullscreen()"></p-button>
+            <div class="flex gap-2">
+                <p-button label="Limpiar firma" icon="fa fa-trash" (onClick)="limpiarFirmaFull()" severity="secondary"></p-button>
+                <p-button label="Guardar firma" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
+            </div>
+        </div>
+        <div class="signature-wrapper">
+            <canvas #firmaPadFull></canvas>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
