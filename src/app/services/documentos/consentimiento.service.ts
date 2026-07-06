@@ -34,4 +34,18 @@ export class ConsentimientoService {
                 map((response: { body: any[]; }) => response.body as any[])
             );
     }
+
+    obtenerHtmlConsentimiento(id_vacunacion: number): Observable<string> {
+        let token = localStorage.getItem('token');
+        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        let body = { id_vacunacion };
+
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'getHtmlConsentimiento',
+            body,
+            { headers: headersWS }
+        ).pipe(
+            map((response: { body: { html: string } }) => response.body.html)
+        );
+    }
 }

@@ -22,7 +22,9 @@ import { MultiSelect } from 'primeng/multiselect';
 import { RadioButton } from 'primeng/radiobutton';
 import { CheckboxModule } from 'primeng/checkbox';
 import { AccordionModule } from 'primeng/accordion';
+import { ProgressSpinner } from 'primeng/progressspinner';
 
+import { of } from 'rxjs';
 import { jsPDF } from "jspdf";
 
 import { ConfirmationService, MenuItem, MessageService, SelectItem } from 'primeng/api';
@@ -56,7 +58,8 @@ import { VacunaService } from '../../services/vacunas/vacuna.service';
         MultiSelect,
         RadioButton,
         CheckboxModule,
-        AccordionModule
+        AccordionModule,
+        ProgressSpinner
     ],
     templateUrl: './reg-vacunacion.component.html',
     styleUrl: './reg-vacunacion.component.css',
@@ -80,6 +83,7 @@ export class RegVacunacionComponent implements OnInit {
 
     dialogVacunas: boolean = false;
     dialogConsentimientos: boolean = false;
+    loader: boolean = false;
 
     dialogCrearVacuna: boolean = false;
     selectedPaciente: any = null;
@@ -266,41 +270,43 @@ export class RegVacunacionComponent implements OnInit {
         );
     }
 
-    async generarPDF(htmlString: any) {
-        // Crear instancia con tamaño carta o A4
-        const doc = new jsPDF({
-            unit: 'pt',      // puntos (1/72 de pulgada)
-            format: 'letter', // o 'a4'
-        });
+    generarPDF(consent: any) {
+        const html$ = consent.f_procesar_datos_consentimiento
+            ? of(consent.f_procesar_datos_consentimiento)
+            : this.consentimientoService.obtenerHtmlConsentimiento(consent.id_vacunacion);
 
-        // Creamos un contenedor temporal para renderizar el HTML
-        const div = document.createElement('div');
-        div.innerHTML = htmlString.f_procesar_datos_consentimiento;
-        div.style.width = "600px"; // controla el ancho del PDF
-        document.body.appendChild(div); // (necesario para permitir html2canvas)
+        this.loader = true;
+        html$.subscribe({
+            next: (html: string) => {
+                const doc = new jsPDF({
+                    unit: 'pt',
+                    format: 'letter',
+                });
 
-        const margins = {
-            top: 35,
-            bottom: 35,
-            left: 35,
-            right: 35,
-        };
+                const div = document.createElement('div');
+                div.innerHTML = html;
+                div.style.width = "600px";
+                document.body.appendChild(div);
 
-        await doc.html(
-            div,
-            {
-                x: margins.left,
-                y: margins.top,
-                html2canvas: {
-                    scale: 0.9, // evita que el contenido se desborde
-                },
-                autoPaging: 'text', // fuerza saltos de página automáticos
-                callback: (doc) => {
-                    doc.save(`ConsentimientoInformado_${htmlString.id_consentimiento}.pdf`);
-                    document.body.removeChild(div); //  limpiar
-                }
+                const margins = { top: 35, bottom: 35, left: 35, right: 35 };
+
+                doc.html(div, {
+                    x: margins.left,
+                    y: margins.top,
+                    html2canvas: { scale: 0.9 },
+                    autoPaging: 'text',
+                    callback: (doc) => {
+                        doc.save(`ConsentimientoInformado_${consent.id_consentimiento}.pdf`);
+                        document.body.removeChild(div);
+                        this.loader = false;
+                    }
+                });
+            },
+            error: () => {
+                this.messageService.add({ severity: "error", summary: "Error", detail: "Error al generar el PDF" });
+                this.loader = false;
             }
-        );
+        });
     }
 
     // Guarda solo la firma en base64
@@ -364,7 +370,7 @@ export class RegVacunacionComponent implements OnInit {
         });
     }
 
-    async guardarRegistro() {
+    guardarRegistro() {
         const payload: Record<string, unknown> = {
             id_paciente: this.selectedPaciente.id_paciente,
             fecha_registro: this.obtenerFechaHoraActualFormatoIso(this.formData.fecha_registro),
@@ -387,25 +393,24 @@ export class RegVacunacionComponent implements OnInit {
             payload['firma_usuario_acudiente'] = this.formData.firma;
         }
 
+        this.loader = true;
         this.regVacunacionService.crearActualizarRegVacunacion(payload).subscribe({
-            next: async (e) => {
+            next: (e) => {
                 this.messageService.add({ severity: "success", summary: "OK", detail: "Registro de vacunación guardado correctamente" });
                 if(!this.modoEdicion) {
-                    await this.generarPDF(e)
-                } else {
-
+                    this.generarPDF(e)
                 }
                 this.dialogCrearVacuna = false;
                 this.dialogConsentimientos = false;
                 this.dialogVacunas = false;
-
-                await this.cargarPacientes();
-
+                this.loader = false;
+                this.cargarPacientes();
             },
             error: (e) => {
                 console.log(e);
                 this.messageService.add({ severity: "error", summary: "Error", detail: "Error al guardar" });
-            } 
+                this.loader = false;
+            }
         });
     }
 
