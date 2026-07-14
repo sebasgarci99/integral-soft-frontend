@@ -51,4 +51,17 @@ export class RegVacunacionService {
         );
     }
 
+    inactivarRegVacunacion(id_vacunacion: number): Observable<any> {
+        let token = localStorage.getItem('token');
+        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'inactivarRegVacunacion',
+            { id_vacunacion },
+            { headers: headersWS }
+        ).pipe(
+            map((response: any) => response.body)
+        );
+    }
+
 }

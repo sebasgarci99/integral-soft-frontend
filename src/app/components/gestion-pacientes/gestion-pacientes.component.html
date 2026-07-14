@@ -91,48 +91,56 @@
 
                                 <div class="col-12 d-md-flex d-sm-grid">
                                     <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
-                                        <p-calendar id="fecha_nacimiento" [(ngModel)]="formData.fecha_nacimiento" dateFormat="yy-mm-dd"
-                                            [locale]="local_espaniol" showIcon="true" appendTo="body" class="w-100"></p-calendar>
-                                        <label>Fecha de nacimiento *</label>
+                                        <input pInputText [(ngModel)]="formData.ciudad_expedicion_documento" class="w-100" />
+                                        <label>Ciudad de expedición del documento</label>
                                     </p-floatlabel>
                                     <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                        <p-calendar id="fecha_nacimiento" [(ngModel)]="formData.fecha_nacimiento" dateFormat="yy-mm-dd"
+                                            [locale]="local_espaniol" showIcon="true" class="w-100"></p-calendar>
+                                        <label>Fecha de nacimiento *</label>
+                                    </p-floatlabel>
+                                </div>
+
+                                <div class="col-12 d-md-flex d-sm-grid">
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
                                         <p-dropdown [options]="opcionesSexo" [(ngModel)]="formData.sexo" appendTo="body" class="w-100"
                                             [ngClass]="{ 'p-inputwrapper-filled': formData.sexo }"></p-dropdown>
                                         <label>Sexo</label>
                                     </p-floatlabel>
-                                </div>
-
-                                <div class="col-12 d-md-flex d-sm-grid">
-                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
                                         <input pInputText [(ngModel)]="formData.telefono_contacto" class="w-100" />
                                         <label>Teléfono *</label>
                                     </p-floatlabel>
-                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
-                                        <input pInputText [(ngModel)]="formData.correo_electronico" class="w-100" />
-                                        <label>Correo electrónico *</label>
-                                    </p-floatlabel>
                                 </div>
 
                                 <div class="col-12 d-md-flex d-sm-grid">
-                                    <p-floatlabel variant="on" class="col-lg-12 col-md-12 mt-3">
-                                        <input pInputText [(ngModel)]="formData.direccion_residencia" class="w-100" />
-                                        <label>Dirección de residencia</label>
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                        <input pInputText [(ngModel)]="formData.correo_electronico" class="w-100" />
+                                        <label>Correo electrónico *</label>
+                                    </p-floatlabel>
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                        <input pInputText [(ngModel)]="formData.municipio_residencia" class="w-100" />
+                                        <label>Municipio de residencia</label>
                                     </p-floatlabel>
                                 </div>
 
                                 <div class="col-12 d-md-flex d-sm-grid">
                                     <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
-                                        <input pInputText [(ngModel)]="formData.eps" class="w-100" />
-                                        <label>EPS</label>
+                                        <input pInputText [(ngModel)]="formData.direccion_residencia" class="w-100" />
+                                        <label>Dirección de residencia</label>
                                     </p-floatlabel>
                                     <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
-                                        <input pInputText [(ngModel)]="formData.tipo_poblacion" class="w-100" />
-                                        <label>Tipo de población</label>
+                                        <input pInputText [(ngModel)]="formData.eps" class="w-100" />
+                                        <label>EPS</label>
                                     </p-floatlabel>
                                 </div>
 
                                 <div class="col-12 d-md-flex d-sm-grid">
-                                    <p-floatlabel variant="on" class="col-lg-12 col-md-12 mt-3">
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                        <input pInputText [(ngModel)]="formData.tipo_poblacion" class="w-100" />
+                                        <label>Tipo de población</label>
+                                    </p-floatlabel>
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
                                         <input pInputText [(ngModel)]="formData.nombre_acompanante" class="w-100" />
                                         <label>Acompañante</label>
                                     </p-floatlabel>
@@ -153,13 +161,13 @@
                         <ng-container *ngSwitchCase="1">
                             <div class="p-fluid grid p-formgrid" style="padding: 0 0.75rem;">
                                 <div class="col-12 d-md-flex d-sm-grid">
-                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                    <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-1">
                                         <p-calendar id="fecha_cita" [(ngModel)]="formData.fecha_cita" dateFormat="yy-mm-dd"
                                             [locale]="local_espaniol" showIcon="true" [showTime]="true" hourFormat="24" appendTo="body" class="w-100"
                                             (onSelect)="citaModificada = true"></p-calendar>
                                         <label>Fecha y hora de cita</label>
                                     </p-floatlabel>
-                                    <div class="col-lg-6 col-md-12 mt-3 text-end" *ngIf="isEdit && formData.id_cita">
+                                    <div class="col-lg-6 col-md-12 mt-3" *ngIf="isEdit && formData.id_cita">
                                         <p-button label="Enviar borrador de consentimiento" icon="fa fa-envelope" severity="help"
                                             (onClick)="abrirBorradorDesdeFormulario()"></p-button>
                                     </div>
@@ -173,115 +181,186 @@
                             </div>
                         </ng-container>
 
-                        <!-- TAB 3: ANTECEDENTES MÉDICOS -->
+                        <!-- TAB 3: CONSENTIMIENTOS -->
                         <ng-container *ngSwitchCase="2">
                             <div class="p-fluid grid p-formgrid" style="padding: 0 0.75rem;">
-                                <div class="d-flex align-items-center mb-2">
-                                    <label class="col-8">¿Padece alguna enfermedad actualmente?</label>
-                                    <div class="col-4 field-radiobutton justify-content-end">
-                                        <p-radioButton name="tiene_enfermedad_actual" [value]="true" [(ngModel)]="formData.tiene_enfermedad_actual"></p-radioButton>
-                                        <label class="me-2">Sí</label>
-                                        <p-radioButton name="tiene_enfermedad_actual" [value]="false" [(ngModel)]="formData.tiene_enfermedad_actual"></p-radioButton>
-                                        <label>No</label>
-                                    </div>
-                                </div>
-                                <p-floatlabel variant="on" class="col-12 mt-2" *ngIf="formData.tiene_enfermedad_actual === true">
-                                    <textarea pInputTextarea [(ngModel)]="formData.enfermedades_actuales" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
-                                    <label>Enfermedades actuales</label>
-                                </p-floatlabel>
 
-                                <hr>
-
-                                <div class="d-flex align-items-center mb-2">
-                                    <label class="col-8">¿Es alérgico a algún medicamento, alimento o vacuna?</label>
-                                    <div class="col-4 field-radiobutton justify-content-end">
-                                        <p-radioButton name="es_alergico" [value]="true" [(ngModel)]="formData.es_alergico"></p-radioButton>
-                                        <label class="me-2">Sí</label>
-                                        <p-radioButton name="es_alergico" [value]="false" [(ngModel)]="formData.es_alergico"></p-radioButton>
-                                        <label>No</label>
-                                    </div>
-                                </div>
-                                <p-floatlabel variant="on" class="col-12 mt-2" *ngIf="formData.es_alergico === true">
-                                    <textarea pInputTextarea [(ngModel)]="formData.uso_medicamentos" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
-                                    <label>Uso de medicamentos / alergias</label>
-                                </p-floatlabel>
-
-                                <hr>
-
-                                <div class="d-flex align-items-center mb-2">
-                                    <label class="col-8">¿Tiene fiebre actualmente?</label>
-                                    <div class="col-4 field-radiobutton justify-content-end">
-                                        <p-radioButton name="tiene_fiebre_actual" [value]="true" [(ngModel)]="formData.tiene_fiebre_actual"></p-radioButton>
-                                        <label class="me-2">Sí</label>
-                                        <p-radioButton name="tiene_fiebre_actual" [value]="false" [(ngModel)]="formData.tiene_fiebre_actual"></p-radioButton>
-                                        <label>No</label>
-                                    </div>
+                                <!-- Selector de tipo de consentimiento -->
+                                <div class="col-12 mt-2">
+                                    <label for="tipoConsentimientoTab" style="display:block; margin-bottom:0.5rem; font-weight:600;">Tipo de consentimiento</label>
+                                    <p-dropdown id="tipoConsentimientoTab" [options]="tiposConsentimiento" optionLabel="label"
+                                        [(ngModel)]="tipoConsentimientoInfoSeleccionado" placeholder="Seleccione tipo de consentimiento..."
+                                        (onChange)="tipoConsentimientoCambio()" appendTo="body" class="w-100"></p-dropdown>
                                 </div>
 
-                                <hr>
+                                <hr *ngIf="tipoConsentimientoInfoSeleccionado">
 
-                                <div class="d-flex align-items-center mb-2">
-                                    <label class="col-8">¿Ha tenido convulsiones o trastorno neurológico?</label>
-                                    <div class="col-4 field-radiobutton justify-content-end">
-                                        <p-radioButton name="padece_convulsiones" [value]="true" [(ngModel)]="formData.padece_convulsiones"></p-radioButton>
-                                        <label class="me-2">Sí</label>
-                                        <p-radioButton name="padece_convulsiones" [value]="false" [(ngModel)]="formData.padece_convulsiones"></p-radioButton>
-                                        <label>No</label>
+                                <!-- SECCIÓN: CONSENTIMIENTO INFORMADO -->
+                                <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado'">
+                                    <div class="col-12 mt-3">
+                                        <h5 class="mb-3">Datos del consentimiento informado quirúrgico</h5>
+
+                                        <div class="d-flex align-items-center mb-3">
+                                            <p-checkbox [(ngModel)]="aplicaAcudienteInfo" binary="true" inputId="aplicaAcudienteInfo"></p-checkbox>
+                                            <label for="aplicaAcudienteInfo" class="ms-2">¿Aplica acudiente?</label>
+                                        </div>
+
+                                        <ng-container *ngIf="aplicaAcudienteInfo">
+                                            <div class="col-12 d-md-flex d-sm-grid">
+                                                <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                                    <input pInputText [(ngModel)]="nombreAcudienteInfo" class="w-100" maxlength="200" />
+                                                    <label>Nombre del acudiente *</label>
+                                                </p-floatlabel>
+                                                <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
+                                                    <p-dropdown [options]="tiposDocumento" [(ngModel)]="tipoDocAcudienteInfo" appendTo="body" class="w-100"></p-dropdown>
+                                                    <label>Tipo documento *</label>
+                                                </p-floatlabel>
+                                                <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3">
+                                                    <input pInputText [(ngModel)]="numDocAcudienteInfo" class="w-100" maxlength="20" />
+                                                    <label>N° documento *</label>
+                                                </p-floatlabel>
+                                            </div>
+                                            <div class="col-12 d-md-flex d-sm-grid">
+                                                <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                                    <input pInputText [(ngModel)]="ciudadDocAcudienteInfo" class="w-100" maxlength="100" />
+                                                    <label>Ciudad del documento</label>
+                                                </p-floatlabel>
+                                                <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                                    <input pInputText [(ngModel)]="relacionAcudienteInfo" class="w-100" maxlength="100" />
+                                                    <label>Relación con el paciente *</label>
+                                                </p-floatlabel>
+                                            </div>
+                                        </ng-container>
+
+                                        <div class="col-12 mt-3">
+                                            <p-floatlabel variant="on" class="w-100">
+                                                <textarea pInputTextarea [(ngModel)]="procedimientoRealizarInfo" class="w-100 p-inputtext" rows="4" maxlength="2000"></textarea>
+                                                <label>Procedimiento a realizar *</label>
+                                            </p-floatlabel>
+                                        </div>
+
+                                        <div class="col-12 mt-4 d-flex gap-2 justify-content-end">
+                                            <p-button *ngIf="!firmaConsentimientoOK" label="Generar consentimiento informado" icon="fa fa-file-signature" severity="success"
+                                                (onClick)="abrirFirmaConsentimiento()"></p-button>
+                                            <p-button *ngIf="firmaConsentimientoOK" label="Firma registrada" icon="fa fa-check" severity="success" disabled="true"></p-button>
+                                            <p-button *ngIf="firmaConsentimientoOK" label="Limpiar firma" icon="fa fa-trash" severity="secondary"
+                                                (onClick)="limpiarFirmaConsentimiento()"></p-button>
+                                            <p-button *ngIf="firmaConsentimientoOK" label="Aceptar y generar documento" icon="fa fa-save" severity="info"
+                                                (onClick)="generarConsentimientoInformado()" [loading]="cargandoDocumento"></p-button>
+                                        </div>
                                     </div>
-                                </div>
+                                </ng-container>
 
-                                <hr>
-
-                                <div class="d-flex align-items-center mb-2">
-                                    <label class="col-8">¿Ha presentado reacción grave tras una vacuna?</label>
-                                    <div class="col-4 field-radiobutton justify-content-end">
-                                        <p-radioButton name="reaccion_vacuna" [value]="true" [(ngModel)]="formData.reaccion_vacuna"></p-radioButton>
-                                        <label class="me-2">Sí</label>
-                                        <p-radioButton name="reaccion_vacuna" [value]="false" [(ngModel)]="formData.reaccion_vacuna"></p-radioButton>
-                                        <label>No</label>
+                                <!-- SECCIÓN: TIPO B y TIPO C (riesgos de vacunación) -->
+                                <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'tipo_b' || tipoConsentimientoInfoSeleccionado?.key === 'tipo_c'">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <label class="col-8">¿Padece alguna enfermedad actualmente?</label>
+                                        <div class="col-4 field-radiobutton justify-content-end">
+                                            <p-radioButton name="tiene_enfermedad_actual" [value]="true" [(ngModel)]="formData.tiene_enfermedad_actual"></p-radioButton>
+                                            <label class="me-2">Sí</label>
+                                            <p-radioButton name="tiene_enfermedad_actual" [value]="false" [(ngModel)]="formData.tiene_enfermedad_actual"></p-radioButton>
+                                            <label>No</label>
+                                        </div>
                                     </div>
-                                </div>
-                                <p-floatlabel variant="on" class="col-12 mt-2" *ngIf="formData.reaccion_vacuna === true">
-                                    <textarea pInputTextarea [(ngModel)]="formData.reacciones_previas_vacunas" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
-                                    <label>Reacciones previas a vacunas</label>
-                                </p-floatlabel>
-
-                                <hr>
-
-                                <div class="d-flex align-items-center mb-2">
-                                    <label class="col-8">¿Le han suministrado alguna vacuna en las últimas 4 semanas?</label>
-                                    <div class="col-4 field-radiobutton justify-content-end">
-                                        <p-radioButton name="tenido_vacuna_ultsemanas" [value]="true" [(ngModel)]="formData.tenido_vacuna_ultsemanas"></p-radioButton>
-                                        <label class="me-2">Sí</label>
-                                        <p-radioButton name="tenido_vacuna_ultsemanas" [value]="false" [(ngModel)]="formData.tenido_vacuna_ultsemanas"></p-radioButton>
-                                        <label>No</label>
-                                    </div>
-                                </div>
-
-                                <hr>
-
-                                <p-floatlabel variant="on" class="col-12 mt-2">
-                                    <textarea pInputTextarea [(ngModel)]="formData.alergias_graves" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
-                                    <label>Alergias graves</label>
-                                </p-floatlabel>
-
-                                <div class="col-12 d-flex mt-3">
-                                    <p-floatlabel variant="on" class="col-6 me-2">
-                                        <p-dropdown [options]="opcionesSiNo" [(ngModel)]="formData.esta_embarazada" appendTo="body" class="w-100"
-                                            [ngClass]="{ 'p-inputwrapper-filled': formData.esta_embarazada !== undefined && formData.esta_embarazada !== null }"></p-dropdown>
-                                        <label>¿Está embarazada?</label>
+                                    <p-floatlabel variant="on" class="col-12 mt-2" *ngIf="formData.tiene_enfermedad_actual === true">
+                                        <textarea pInputTextarea [(ngModel)]="formData.enfermedades_actuales" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
+                                        <label>Enfermedades actuales</label>
                                     </p-floatlabel>
-                                    <p-floatlabel variant="on" class="col-6">
-                                        <p-dropdown [options]="opcionesSiNo" [(ngModel)]="formData.esta_lactando" appendTo="body" class="w-100"
-                                            [ngClass]="{ 'p-inputwrapper-filled': formData.esta_lactando !== undefined && formData.esta_lactando !== null }"></p-dropdown>
-                                        <label>¿Está lactando?</label>
-                                    </p-floatlabel>
-                                </div>
 
-                                <div class="col-12 mt-4 text-end" *ngIf="isEdit && formData.id_cita">
-                                    <p-button label="Generar consentimiento informado" icon="fa fa-file-signature" severity="success"
-                                        (onClick)="abrirConsentimientoDesdeFormulario()"></p-button>
-                                </div>
+                                    <hr>
+
+                                    <div class="d-flex align-items-center mb-2">
+                                        <label class="col-8">¿Es alérgico a algún medicamento, alimento o vacuna?</label>
+                                        <div class="col-4 field-radiobutton justify-content-end">
+                                            <p-radioButton name="es_alergico" [value]="true" [(ngModel)]="formData.es_alergico"></p-radioButton>
+                                            <label class="me-2">Sí</label>
+                                            <p-radioButton name="es_alergico" [value]="false" [(ngModel)]="formData.es_alergico"></p-radioButton>
+                                            <label>No</label>
+                                        </div>
+                                    </div>
+                                    <p-floatlabel variant="on" class="col-12 mt-2" *ngIf="formData.es_alergico === true">
+                                        <textarea pInputTextarea [(ngModel)]="formData.uso_medicamentos" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
+                                        <label>Uso de medicamentos / alergias</label>
+                                    </p-floatlabel>
+
+                                    <hr>
+
+                                    <div class="d-flex align-items-center mb-2">
+                                        <label class="col-8">¿Tiene fiebre actualmente?</label>
+                                        <div class="col-4 field-radiobutton justify-content-end">
+                                            <p-radioButton name="tiene_fiebre_actual" [value]="true" [(ngModel)]="formData.tiene_fiebre_actual"></p-radioButton>
+                                            <label class="me-2">Sí</label>
+                                            <p-radioButton name="tiene_fiebre_actual" [value]="false" [(ngModel)]="formData.tiene_fiebre_actual"></p-radioButton>
+                                            <label>No</label>
+                                        </div>
+                                    </div>
+
+                                    <hr>
+
+                                    <div class="d-flex align-items-center mb-2">
+                                        <label class="col-8">¿Ha tenido convulsiones o trastorno neurológico?</label>
+                                        <div class="col-4 field-radiobutton justify-content-end">
+                                            <p-radioButton name="padece_convulsiones" [value]="true" [(ngModel)]="formData.padece_convulsiones"></p-radioButton>
+                                            <label class="me-2">Sí</label>
+                                            <p-radioButton name="padece_convulsiones" [value]="false" [(ngModel)]="formData.padece_convulsiones"></p-radioButton>
+                                            <label>No</label>
+                                        </div>
+                                    </div>
+
+                                    <hr>
+
+                                    <div class="d-flex align-items-center mb-2">
+                                        <label class="col-8">¿Ha presentado reacción grave tras una vacuna?</label>
+                                        <div class="col-4 field-radiobutton justify-content-end">
+                                            <p-radioButton name="reaccion_vacuna" [value]="true" [(ngModel)]="formData.reaccion_vacuna"></p-radioButton>
+                                            <label class="me-2">Sí</label>
+                                            <p-radioButton name="reaccion_vacuna" [value]="false" [(ngModel)]="formData.reaccion_vacuna"></p-radioButton>
+                                            <label>No</label>
+                                        </div>
+                                    </div>
+                                    <p-floatlabel variant="on" class="col-12 mt-2" *ngIf="formData.reaccion_vacuna === true">
+                                        <textarea pInputTextarea [(ngModel)]="formData.reacciones_previas_vacunas" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
+                                        <label>Reacciones previas a vacunas</label>
+                                    </p-floatlabel>
+
+                                    <hr>
+
+                                    <div class="d-flex align-items-center mb-2">
+                                        <label class="col-8">¿Le han suministrado alguna vacuna en las últimas 4 semanas?</label>
+                                        <div class="col-4 field-radiobutton justify-content-end">
+                                            <p-radioButton name="tenido_vacuna_ultsemanas" [value]="true" [(ngModel)]="formData.tenido_vacuna_ultsemanas"></p-radioButton>
+                                            <label class="me-2">Sí</label>
+                                            <p-radioButton name="tenido_vacuna_ultsemanas" [value]="false" [(ngModel)]="formData.tenido_vacuna_ultsemanas"></p-radioButton>
+                                            <label>No</label>
+                                        </div>
+                                    </div>
+
+                                    <hr>
+
+                                    <p-floatlabel variant="on" class="col-12 mt-2">
+                                        <textarea pInputTextarea [(ngModel)]="formData.alergias_graves" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
+                                        <label>Alergias graves</label>
+                                    </p-floatlabel>
+
+                                    <div class="col-12 d-flex mt-3">
+                                        <p-floatlabel variant="on" class="col-6 me-2">
+                                            <p-dropdown [options]="opcionesSiNo" [(ngModel)]="formData.esta_embarazada" appendTo="body" class="w-100"
+                                                [ngClass]="{ 'p-inputwrapper-filled': formData.esta_embarazada !== undefined && formData.esta_embarazada !== null }"></p-dropdown>
+                                            <label>¿Está embarazada?</label>
+                                        </p-floatlabel>
+                                        <p-floatlabel variant="on" class="col-6">
+                                            <p-dropdown [options]="opcionesSiNo" [(ngModel)]="formData.esta_lactando" appendTo="body" class="w-100"
+                                                [ngClass]="{ 'p-inputwrapper-filled': formData.esta_lactando !== undefined && formData.esta_lactando !== null }"></p-dropdown>
+                                            <label>¿Está lactando?</label>
+                                        </p-floatlabel>
+                                    </div>
+
+                                    <div class="col-12 mt-4 text-end" *ngIf="isEdit && formData.id_cita">
+                                        <p-button label="Generar consentimiento informado" icon="fa fa-file-signature" severity="success"
+                                            (onClick)="abrirConsentimientoDesdeFormulario()"></p-button>
+                                    </div>
+                                </ng-container>
+
                             </div>
                         </ng-container>
 
@@ -341,7 +420,7 @@
                     </div>
                     <ng-template pTemplate="footer">
                         <p-button label="Cancelar" icon="fa fa-times" severity="secondary" (onClick)="dialogBorrador = false"></p-button>
-                        <p-button label="Enviar" icon="fa fa-envelope" severity="info" (onClick)="enviarBorrador()"></p-button>
+                        <p-button label="Enviar" icon="fa fa-envelope" severity="info" (onClick)="enviarBorrador()" [loading]="cargandoBorrador"></p-button>
                     </ng-template>
                 </p-dialog>
 
@@ -398,30 +477,31 @@
                 <!-- DIALOG HISTORICO -->
                 <p-dialog header="Histórico de consentimientos" [(visible)]="dialogHistorico" [modal]="true"
                     [style]="{ width: '70vw' }" [draggable]="false">
-                    <p-accordion [multiple]="true">
-                        <p-accordionTab header="Consentimientos generados">
-                            <p-table [value]="consentimientos" responsiveLayout="scroll" [paginator]="true" [rows]="10">
-                                <ng-template pTemplate="header">
-                                    <tr>
-                                        <th>Tipo</th>
-                                        <th>Fecha</th>
-                                        <th>Paciente</th>
-                                        <th>Reenviar</th>
-                                    </tr>
-                                </ng-template>
-                                <ng-template pTemplate="body" let-c>
-                                    <tr>
-                                        <td>{{ c.tipo_consentimiento }}</td>
-                                        <td>{{ c.fecha_registro | date:'dd/MM/yyyy HH:mm' }}</td>
-                                        <td>{{ c.nombre_paciente }}</td>
-                                        <td>
-                                            <p-button icon="fa fa-envelope" class="p-button-text p-button-sm" (onClick)="reenviarConsentimiento(c)"></p-button>
-                                        </td>
-                                    </tr>
-                                </ng-template>
-                            </p-table>
-                        </p-accordionTab>
-                    </p-accordion>
+                    <p-table [value]="consentimientos" responsiveLayout="scroll" [paginator]="true" [rows]="10">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Fecha</th>
+                                <th>Paciente</th>
+                                <th>Descargar</th>
+                                <th>Reenviar</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-c>
+                            <tr>
+                                <td>{{ c.tipo_consentimiento }}</td>
+                                <td>{{ c.fecha_registro | date:'dd/MM/yyyy HH:mm' }}</td>
+                                <td>{{ c.nombre_paciente }}</td>
+                                <td>
+                                    <p-button icon="fa fa-download" class="p-button-text p-button-sm" severity="success"
+                                        (onClick)="descargarConsentimientoPdf(c)"></p-button>
+                                </td>
+                                <td>
+                                    <p-button icon="fa fa-envelope" class="p-button-text p-button-sm" (onClick)="reenviarConsentimiento(c)"></p-button>
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
                 </p-dialog>
 
             </div>

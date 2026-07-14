@@ -8,6 +8,7 @@ export interface GestionPaciente {
     sexo?: string;
     direccion_residencia?: string;
     municipio_residencia?: string;
+    ciudad_expedicion_documento?: string;
     telefono_contacto?: string;
     correo_electronico?: string;
     estado?: string;
@@ -60,15 +61,21 @@ export interface GestionPacienteConsentimiento {
     id_cita?: number;
     tipo_consentimiento?: string;
     nombre_paciente?: string;
-    num_documento_paciente?: number;
+    num_documento_paciente?: string;
     nombre_acudiente?: string;
-    num_documento_acudiente?: number;
+    num_documento_acudiente?: string;
     aplica_acudiente?: boolean;
     fecha_registro?: string;
     logo_empresa?: string;
     id_empresa?: number;
     id_usuario?: number;
     vacunas_aplicadas?: string;
+    tipo_documento_acudiente?: string;
+    ciudad_documento_acudiente?: string;
+    tipo_documento_paciente?: string;
+    procedimiento_realizar?: string;
+    relacion_acudiente?: string;
+    ciudad?: string;
 }
 
 export interface GestionPacienteResponse {

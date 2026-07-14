@@ -124,4 +124,13 @@ export class GestionPacientesService {
             { headers: this.getAuthHeaders() }
         );
     }
+
+    descargarConsentimientoById(id_consentimiento: number): Observable<GestionPacienteResponse> {
+        const body = { ...this.getBaseBody(), id_consentimiento };
+        return this.http.post<GestionPacienteResponse>(
+            this.urlApp + this.urlAppAPI + 'descargarConsentimientoById',
+            body,
+            { headers: this.getAuthHeaders() }
+        );
+    }
 }

@@ -332,7 +332,7 @@ export class RegVacunacionComponent implements OnInit {
     }
 
     botonGuardarHabilitado() {
-        if (this.formData.vacunas.length === 0) return false;
+        if (this.formData.vacunas.length === 0 && !this.modoEdicion) return false;
         if (this.formData.vacunas.some(v => !v.es_refuerzo && v.dosis > v.cant_dosis_max)) return false;
         if (!this.modoEdicion && !this.formData.firma) return false;
 
@@ -354,6 +354,18 @@ export class RegVacunacionComponent implements OnInit {
 
         if (!this.botonGuardarHabilitado()) return;
 
+        if (this.modoEdicion && this.formData.vacunas.length === 0) {
+            this.confirmService.confirm({
+                message: '¿Está seguro de eliminar todas las vacunas aplicadas? Esto inactivará el registro de vacunación y el consentimiento informado generado.',
+                header: 'Confirmar eliminación',
+                icon: 'fa fa-exclamation-triangle',
+                acceptLabel: 'Sí',
+                rejectLabel: 'No',
+                accept: () => this.inactivarRegistro()
+            });
+            return;
+        }
+
         const vacunasNombres = this.formData.vacunas
             .map(v => `${v.nombre_vacuna} - ${this.obtenerTextoDosis(v.dosis, v.cant_dosis_max)}`)
             .join(', ');
@@ -367,6 +379,24 @@ export class RegVacunacionComponent implements OnInit {
             acceptLabel: 'Sí',
             rejectLabel: 'No',
             accept: () => this.guardarRegistro()
+        });
+    }
+
+    private inactivarRegistro() {
+        this.loader = true;
+        this.regVacunacionService.inactivarRegVacunacion(this.idVacunacionEditando!).subscribe({
+            next: () => {
+                this.messageService.add({ severity: 'success', summary: 'OK', detail: 'Registro de vacunación inactivado correctamente' });
+                this.dialogCrearVacuna = false;
+                this.dialogConsentimientos = false;
+                this.dialogVacunas = false;
+                this.loader = false;
+                this.cargarPacientes();
+            },
+            error: () => {
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al inactivar el registro' });
+                this.loader = false;
+            }
         });
     }
 

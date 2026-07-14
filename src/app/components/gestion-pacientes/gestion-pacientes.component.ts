@@ -2,7 +2,6 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import SignaturePad from 'signature_pad';
-import html2pdf from 'html2pdf.js';
 
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { GestionPacientesService } from '../../services/gestion-pacientes/gestion-pacientes.service';
@@ -83,7 +82,7 @@ export class GestionPacientesComponent implements OnInit {
     tabs: MenuItem[] = [
         { label: 'Datos básicos', icon: 'fa-solid fa-id-card', command: () => this.currentTab = 0 },
         { label: 'Cita', icon: 'fa-solid fa-calendar-check', command: () => this.currentTab = 1 },
-        { label: 'Antecedentes médicos', icon: 'fa-solid fa-book-medical', command: () => this.currentTab = 2 },
+        { label: 'Consentimientos', icon: 'fa-solid fa-file-signature', command: () => this.currentTab = 2 },
         { label: 'Histórico', icon: 'fa-solid fa-clock-rotate-left', command: () => this.currentTab = 3 }
     ];
     currentTab = 0;
@@ -95,6 +94,20 @@ export class GestionPacientesComponent implements OnInit {
     numDocAcudiente = '';
     correoBorrador = '';
     pacienteActivo: GestionPaciente | null = null;
+
+    // Propiedades para CONSENTIMIENTO INFORMADO (Tab Consentimientos)
+    tipoConsentimientoInfoSeleccionado: any = null;
+    aplicaAcudienteInfo = false;
+    nombreAcudienteInfo = '';
+    tipoDocAcudienteInfo = '';
+    numDocAcudienteInfo = '';
+    ciudadDocAcudienteInfo = '';
+    relacionAcudienteInfo = '';
+    procedimientoRealizarInfo = '';
+    firmaConsentimientoOK = false;
+    firmaConsentimientoDataURL = '';
+    cargandoBorrador = false;
+    cargandoDocumento = false;
 
     tiposDocumento = [
         { label: 'C.C.', value: 'CC' },
@@ -192,6 +205,18 @@ export class GestionPacientesComponent implements OnInit {
         this.formData = {};
         this.currentTab = 0;
         this.activeItem = this.tabs[0];
+        this.tipoConsentimientoInfoSeleccionado = null;
+        this.aplicaAcudienteInfo = false;
+        this.nombreAcudienteInfo = '';
+        this.tipoDocAcudienteInfo = '';
+        this.numDocAcudienteInfo = '';
+        this.ciudadDocAcudienteInfo = '';
+        this.relacionAcudienteInfo = '';
+        this.procedimientoRealizarInfo = '';
+        this.firmaConsentimientoOK = false;
+        this.firmaConsentimientoDataURL = '';
+        this.cargandoBorrador = false;
+        this.cargandoDocumento = false;
     }
 
     guardar(): void {
@@ -232,7 +257,12 @@ export class GestionPacientesComponent implements OnInit {
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Sí',
-            cancelButtonText: 'No'
+            cancelButtonText: 'No',
+            buttonsStyling: false,
+            customClass: {
+                confirmButton: 'swal2-confirm',
+                cancelButton: 'swal2-cancel'
+            }
         }).then((result) => {
             if (result.isConfirmed) {
                 this.gestionPacientesService.inactivarPaciente(item.id_paciente).subscribe({
@@ -323,22 +353,27 @@ export class GestionPacientesComponent implements OnInit {
             this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Seleccione tipo de consentimiento y asegúrese de tener cita activa.' });
             return;
         }
+        this.cargandoBorrador = true;
         this.gestionPacientesService.enviarBorrador(
             paciente.id_paciente,
             paciente.id_cita,
             this.tipoConsentimientoSeleccionado.key,
             this.correoBorrador
         ).subscribe({
-                next: (res) => {
-                    if (res.state === 'OK') {
-                        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Borrador enviado correctamente.' });
-                        this.dialogBorrador = false;
-                        this.displayDialog = false;
-                    } else {
+            next: (res) => {
+                this.cargandoBorrador = false;
+                if (res.state === 'OK') {
+                    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Borrador enviado correctamente.' });
+                    this.dialogBorrador = false;
+                    this.displayDialog = false;
+                } else {
                     this.messageService.add({ severity: 'error', summary: 'Error', detail: String(res.msg || 'Error al enviar borrador') });
                 }
             },
-            error: () => { this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al enviar borrador.' }); }
+            error: () => {
+                this.cargandoBorrador = false;
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al enviar borrador.' });
+            }
         });
     }
 
@@ -411,11 +446,19 @@ export class GestionPacientesComponent implements OnInit {
 
     guardarFirmaFull(): void {
         if (this.firmaPadFull && !this.firmaPadFull.isEmpty()) {
-            this.formData.firma_responsable = this.firmaPadFull.toDataURL('image/png');
-            this.firmaPad?.fromDataURL(this.formData.firma_responsable);
-            this.firmaOK = true;
-            this.fullscreen = false;
-            this.dialogFirma = true;
+            const dataURL = this.firmaPadFull.toDataURL('image/png');
+            // Detectar si estamos en flujo consentimiento informado (nuevo) o tradicional
+            if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado') {
+                this.firmaConsentimientoDataURL = dataURL;
+                this.firmaConsentimientoOK = true;
+                this.fullscreen = false;
+            } else {
+                this.formData.firma_responsable = dataURL;
+                this.firmaPad?.fromDataURL(dataURL);
+                this.firmaOK = true;
+                this.fullscreen = false;
+                this.dialogFirma = true;
+            }
         }
     }
 
@@ -426,7 +469,12 @@ export class GestionPacientesComponent implements OnInit {
 
     limpiarFirmaFull(): void {
         this.firmaPadFull?.clear();
-        this.firmaOK = false;
+        if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado') {
+            this.firmaConsentimientoOK = false;
+            this.firmaConsentimientoDataURL = '';
+        } else {
+            this.firmaOK = false;
+        }
     }
 
     openFullscreen(): void {
@@ -460,13 +508,13 @@ export class GestionPacientesComponent implements OnInit {
             datos,
             this.formData.firma_responsable
         ).subscribe({
-            next: (res) => {
+            next: (res: any) => {
                 if (res.state === 'OK') {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Consentimiento generado. Descargando PDF...' });
                     this.dialogFirma = false;
                     this.formData.firma_responsable = undefined;
                     this.firmaOK = false;
-                    this.descargarPdf(res.body.html, `Consentimiento_${paciente.numero_documento}_${new Date().toISOString().split('T')[0]}.pdf`);
+                    this.descargarPdfDesdeBase64(res.body.pdf_base64, `Consentimiento_${paciente.numero_documento}_${new Date().toISOString().split('T')[0]}.pdf`);
                     this.cargarPacientes();
                 } else {
                     this.messageService.add({ severity: 'error', summary: 'Error', detail: String(res.msg || 'Error al generar consentimiento') });
@@ -476,28 +524,115 @@ export class GestionPacientesComponent implements OnInit {
         });
     }
 
-    descargarPdf(html: string, nombreArchivo: string): void {
-        const container = document.createElement('div');
-        container.innerHTML = html;
-        container.style.position = 'fixed';
-        container.style.left = '-9999px';
-        container.style.top = '0';
-        container.style.width = '210mm';
-        document.body.appendChild(container);
+    // ========== MÉTODOS NUEVOS PARA CONSENTIMIENTO INFORMADO (Tab Consentimientos) ==========
 
-        const opt = {
-            margin: 10,
-            filename: nombreArchivo,
-            image: { type: 'jpeg' as const, quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+    tipoConsentimientoCambio(): void {
+        this.aplicaAcudienteInfo = false;
+        this.nombreAcudienteInfo = '';
+        this.tipoDocAcudienteInfo = '';
+        this.numDocAcudienteInfo = '';
+        this.ciudadDocAcudienteInfo = '';
+        this.relacionAcudienteInfo = '';
+        this.procedimientoRealizarInfo = '';
+        this.firmaConsentimientoOK = false;
+        this.firmaConsentimientoDataURL = '';
+    }
+
+    abrirFirmaConsentimiento(): void {
+        if (!this.pacienteActivo || !this.formData.id_cita) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'No hay una cita activa para generar consentimiento.' });
+            return;
+        }
+        if (this.aplicaAcudienteInfo && (!this.nombreAcudienteInfo || !this.tipoDocAcudienteInfo || !this.numDocAcudienteInfo || !this.relacionAcudienteInfo)) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Complete todos los datos del acudiente.' });
+            return;
+        }
+        if (!this.procedimientoRealizarInfo) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Describa el procedimiento a realizar.' });
+            return;
+        }
+        this.fullscreen = true;
+        this.firmaConsentimientoOK = false;
+        this.firmaConsentimientoDataURL = '';
+        setTimeout(() => this.initSignaturePad(), 100);
+    }
+
+    guardarFirmaConsentimiento(): void {
+        if (this.firmaPadFull && !this.firmaPadFull.isEmpty()) {
+            this.firmaConsentimientoDataURL = this.firmaPadFull.toDataURL('image/png');
+            this.firmaConsentimientoOK = true;
+            this.fullscreen = false;
+        } else {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Debe dibujar la firma antes de guardar.' });
+        }
+    }
+
+    limpiarFirmaConsentimiento(): void {
+        this.firmaPadFull?.clear();
+        this.firmaConsentimientoOK = false;
+        this.firmaConsentimientoDataURL = '';
+    }
+
+    generarConsentimientoInformado(): void {
+        if (!this.firmaConsentimientoOK || !this.firmaConsentimientoDataURL) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Debe registrar y guardar la firma.' });
+            return;
+        }
+        const paciente = this.pacienteActivo || (this.isEdit ? this.formData : null);
+        if (!paciente || !paciente.id_cita) return;
+
+        const datos = {
+            aplica_acudiente: this.aplicaAcudienteInfo,
+            nombre_acudiente: this.aplicaAcudienteInfo ? this.nombreAcudienteInfo : null,
+            tipo_documento_acudiente: this.aplicaAcudienteInfo ? this.tipoDocAcudienteInfo : null,
+            num_documento_acudiente: this.aplicaAcudienteInfo ? this.numDocAcudienteInfo : null,
+            ciudad_documento_acudiente: this.aplicaAcudienteInfo ? this.ciudadDocAcudienteInfo : null,
+            relacion_acudiente: this.aplicaAcudienteInfo ? this.relacionAcudienteInfo : null,
+            procedimiento_realizar: this.procedimientoRealizarInfo
         };
 
-        html2pdf().set(opt).from(container).save().then(() => {
-            document.body.removeChild(container);
-        }).catch(() => {
-            document.body.removeChild(container);
+        this.cargandoDocumento = true;
+        this.gestionPacientesService.generarConsentimiento(
+            paciente.id_paciente,
+            paciente.id_cita,
+            'consentimiento_informado',
+            datos,
+            this.firmaConsentimientoDataURL
+        ).subscribe({
+            next: (res: any) => {
+                this.cargandoDocumento = false;
+                if (res.state === 'OK') {
+                    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Consentimiento informado generado. Descargando PDF...' });
+                    this.firmaConsentimientoOK = false;
+                    this.firmaConsentimientoDataURL = '';
+                    this.descargarPdfDesdeBase64(res.body.pdf_base64, `Consentimiento_Informado_${paciente.numero_documento}_${new Date().toISOString().split('T')[0]}.pdf`);
+                    this.cargarPacientes();
+                } else {
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: String(res.msg || 'Error al generar consentimiento') });
+                }
+            },
+            error: () => {
+                this.cargandoDocumento = false;
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al generar consentimiento informado.' });
+            }
         });
+    }
+
+    descargarPdfDesdeBase64(pdfBase64: string, nombreArchivo: string): void {
+        const binaryStr = atob(pdfBase64);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nombreArchivo;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 
     abrirHistorico(item: GestionPaciente): void {
@@ -525,11 +660,18 @@ export class GestionPacientesComponent implements OnInit {
             inputValue: this.pacienteActivo?.correo_electronico || '',
             showCancelButton: true,
             confirmButtonText: 'Enviar',
-            cancelButtonText: 'Cancelar'
+            cancelButtonText: 'Cancelar',
+            buttonsStyling: false,
+            customClass: {
+                confirmButton: 'swal2-confirm',
+                cancelButton: 'swal2-cancel'
+            }
         }).then((result) => {
             if (result.isConfirmed && result.value && c.id_consentimiento) {
+                Swal.fire({ title: 'Enviando...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
                 this.gestionPacientesService.reenviarConsentimiento(c.id_consentimiento, result.value).subscribe({
                     next: (res) => {
+                        Swal.close();
                         if (res.state === 'OK') {
                             this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Consentimiento reenviado.' });
                             this.dialogHistorico = false;
@@ -537,8 +679,30 @@ export class GestionPacientesComponent implements OnInit {
                             this.messageService.add({ severity: 'error', summary: 'Error', detail: String(res.msg || 'Error al reenviar') });
                         }
                     },
-                    error: () => { this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al reenviar consentimiento.' }); }
+                    error: () => {
+                        Swal.close();
+                        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al reenviar consentimiento.' });
+                    }
                 });
+            }
+        });
+    }
+
+    descargarConsentimientoPdf(c: GestionPacienteConsentimiento): void {
+        if (!c.id_consentimiento) return;
+        Swal.fire({ title: 'Generando PDF...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        this.gestionPacientesService.descargarConsentimientoById(c.id_consentimiento).subscribe({
+            next: (res: any) => {
+                Swal.close();
+                if (res.state === 'OK') {
+                    this.descargarPdfDesdeBase64(res.body.pdf_base64, res.body.nombre_archivo || `consentimiento_${c.id_consentimiento}.pdf`);
+                } else {
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: String(res.msg || 'Error al descargar') });
+                }
+            },
+            error: () => {
+                Swal.close();
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al descargar PDF.' });
             }
         });
     }
