@@ -1,8 +1,3 @@
-.dashboard {
-    margin-left: 240px;
-    overflow: auto;
-}
-
 .overlay {
     position: fixed;
     top: 0;
@@ -72,8 +67,4 @@
     object-fit: cover;
 }
 
-@media (max-width: 991.98px) {
-    .dashboard {
-        margin-left: 0px;
-    }
-}
+

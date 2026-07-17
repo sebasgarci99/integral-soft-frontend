@@ -1,6 +1,4 @@
 import { Component } from '@angular/core';
-import { SidebarComponent } from "../sidebar/sidebar.component";
-
 import { OnInit } from '@angular/core';
 import { VacunaService } from '../../services/vacunas/vacuna.service';
 import { Vacunas } from '../../interfaces/vacunas';
@@ -28,7 +26,6 @@ import { CalendarModule } from 'primeng/calendar';
 @Component({
     selector: 'app-consultorios',
     imports: [
-        SidebarComponent,
         CommonModule,
         FormsModule,
         HttpClientModule,

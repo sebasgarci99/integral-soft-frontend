@@ -1,5 +1,4 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { SidebarComponent } from "../sidebar/sidebar.component";
 import { LoginService } from '../../services/login/login.service';
 import { ReportesService } from '../../services/reportes/reportes.service';
 
@@ -12,7 +11,7 @@ import { GraficaUsuario } from '../../interfaces/GraficaUsuario';
 
 @Component({
     selector: 'app-home',
-    imports: [SidebarComponent, CommonModule, UIChart],
+    imports: [CommonModule, UIChart],
     templateUrl: './home.component.html',
     styleUrl: './home.component.css'
 })

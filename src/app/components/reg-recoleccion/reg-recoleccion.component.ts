@@ -2,8 +2,6 @@ import { Component  } from '@angular/core';
 import { OnInit } from '@angular/core';
 import { ViewChild } from '@angular/core';
 
-import { SidebarComponent } from "../sidebar/sidebar.component";
-
 import { RecoleccionService } from '../../services/recoleccion/recoleccion.service';
 import { ConsultorioService } from '../../services/consultorio/consultorio.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -44,7 +42,6 @@ import { SignatureCanvasComponent } from '../../utils/signature-canvas.component
     imports: [
         CommonModule,
         FormsModule,
-        SidebarComponent,
         /* PrimeNG */
         TableModule,
         DialogModule,

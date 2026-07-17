@@ -122,17 +122,7 @@ fieldset:first-of-type {
   overflow: visible !important;
 }
 
-.dashboard {
-    margin-left: 240px;
-    overflow: auto;
-}
-
-/* Sidebar en móviles: superpuesto */
 @media (max-width: 991.98px) {
-    .dashboard {
-        margin-left: 0px;
-        overflow: auto;
-    }
 
     #dialog_registro {
       width: 25rem;

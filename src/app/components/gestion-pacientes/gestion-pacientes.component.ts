@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import SignaturePad from 'signature_pad';
 
-import { SidebarComponent } from '../sidebar/sidebar.component';
 import { GestionPacientesService } from '../../services/gestion-pacientes/gestion-pacientes.service';
 import { GestionPaciente, GestionPacienteConsentimiento, GestionPacienteHistorico } from '../../interfaces/gestion-pacientes';
+import { ProcedimientoRiesgo } from '../../interfaces/gestion-pacientes';
 
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
@@ -24,13 +24,13 @@ import { CalendarModule } from 'primeng/calendar';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 import { AccordionModule } from 'primeng/accordion';
-import Swal from 'sweetalert2';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { MultiSelectModule } from 'primeng/multiselect';
 
 @Component({
     selector: 'app-gestion-pacientes',
     standalone: true,
     imports: [
-        SidebarComponent,
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
@@ -49,7 +49,9 @@ import Swal from 'sweetalert2';
         CalendarModule,
         CheckboxModule,
         TagModule,
-        AccordionModule
+        AccordionModule,
+        ProgressSpinnerModule,
+        MultiSelectModule
     ],
     templateUrl: './gestion-pacientes.component.html',
     styleUrl: './gestion-pacientes.component.css',
@@ -108,6 +110,16 @@ export class GestionPacientesComponent implements OnInit {
     firmaConsentimientoDataURL = '';
     cargandoBorrador = false;
     cargandoDocumento = false;
+    cargandoReenvio = false;
+    cargandoPdf = false;
+    displayCorreoReenvio = false;
+    correoReenvio = '';
+    consentimientoReenvio: GestionPacienteConsentimiento | null = null;
+
+    procedimientosDisponibles: ProcedimientoRiesgo[] = [];
+    procedimientosSeleccionados: any[] = [];
+    riesgosInfo = '';
+    lugarProcedimientoInfo = '';
 
     tiposDocumento = [
         { label: 'C.C.', value: 'CC' },
@@ -213,6 +225,9 @@ export class GestionPacientesComponent implements OnInit {
         this.ciudadDocAcudienteInfo = '';
         this.relacionAcudienteInfo = '';
         this.procedimientoRealizarInfo = '';
+        this.procedimientosSeleccionados = [];
+        this.riesgosInfo = '';
+        this.lugarProcedimientoInfo = '';
         this.firmaConsentimientoOK = false;
         this.firmaConsentimientoDataURL = '';
         this.cargandoBorrador = false;
@@ -251,20 +266,13 @@ export class GestionPacientesComponent implements OnInit {
     }
 
     inactivar(item: GestionPaciente): void {
-        Swal.fire({
-            title: '¿Inactivar?',
-            text: '¿Está seguro de inactivar este paciente?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sí',
-            cancelButtonText: 'No',
-            buttonsStyling: false,
-            customClass: {
-                confirmButton: 'swal2-confirm',
-                cancelButton: 'swal2-cancel'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
+        this.confirmService.confirm({
+            icon: 'fa fa-exclamation-triangle',
+            header: 'Inactivar paciente',
+            message: `¿Está seguro de inactivar al paciente <strong>${item.nombres} ${item.apellidos}</strong>?`,
+            acceptLabel: 'Sí, Inactivar',
+            rejectLabel: 'No',
+            accept: () => {
                 this.gestionPacientesService.inactivarPaciente(item.id_paciente).subscribe({
                     next: (res) => {
                         if (res.state === 'OK') {
@@ -534,8 +542,29 @@ export class GestionPacientesComponent implements OnInit {
         this.ciudadDocAcudienteInfo = '';
         this.relacionAcudienteInfo = '';
         this.procedimientoRealizarInfo = '';
+        this.procedimientosSeleccionados = [];
+        this.riesgosInfo = '';
+        this.lugarProcedimientoInfo = '';
         this.firmaConsentimientoOK = false;
         this.firmaConsentimientoDataURL = '';
+        if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado') {
+            this.gestionPacientesService.obtenerProcedimientosRiesgos().subscribe({
+                next: (data) => { this.procedimientosDisponibles = data; },
+                error: () => { this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar procedimientos.' }); }
+            });
+        }
+    }
+
+    onProcedimientosChange(): void {
+        if (this.procedimientosSeleccionados && this.procedimientosSeleccionados.length > 0) {
+            const riesgos = this.procedimientosSeleccionados
+                .map((p: any) => p.riesgos)
+                .filter((r: string) => r && r.trim() !== '')
+                .join(', ');
+            this.riesgosInfo = riesgos;
+        } else {
+            this.riesgosInfo = '';
+        }
     }
 
     abrirFirmaConsentimiento(): void {
@@ -547,10 +576,11 @@ export class GestionPacientesComponent implements OnInit {
             this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Complete todos los datos del acudiente.' });
             return;
         }
-        if (!this.procedimientoRealizarInfo) {
-            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Describa el procedimiento a realizar.' });
+        if (!this.procedimientosSeleccionados || this.procedimientosSeleccionados.length === 0) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Seleccione al menos un procedimiento a realizar.' });
             return;
         }
+        this.procedimientoRealizarInfo = this.procedimientosSeleccionados.map((p: any) => p.procedimiento).join(', ');
         this.fullscreen = true;
         this.firmaConsentimientoOK = false;
         this.firmaConsentimientoDataURL = '';
@@ -588,7 +618,9 @@ export class GestionPacientesComponent implements OnInit {
             num_documento_acudiente: this.aplicaAcudienteInfo ? this.numDocAcudienteInfo : null,
             ciudad_documento_acudiente: this.aplicaAcudienteInfo ? this.ciudadDocAcudienteInfo : null,
             relacion_acudiente: this.aplicaAcudienteInfo ? this.relacionAcudienteInfo : null,
-            procedimiento_realizar: this.procedimientoRealizarInfo
+            procedimiento_realizar: this.procedimientoRealizarInfo,
+            riesgos: this.riesgosInfo || null,
+            lugar_procedimiento: this.lugarProcedimientoInfo || null
         };
 
         this.cargandoDocumento = true;
@@ -653,34 +685,36 @@ export class GestionPacientesComponent implements OnInit {
     }
 
     reenviarConsentimiento(c: GestionPacienteConsentimiento): void {
-        Swal.fire({
-            title: 'Reenviar consentimiento',
-            input: 'email',
-            inputLabel: 'Correo electrónico',
-            inputValue: this.pacienteActivo?.correo_electronico || '',
-            showCancelButton: true,
-            confirmButtonText: 'Enviar',
-            cancelButtonText: 'Cancelar',
-            buttonsStyling: false,
-            customClass: {
-                confirmButton: 'swal2-confirm',
-                cancelButton: 'swal2-cancel'
-            }
-        }).then((result) => {
-            if (result.isConfirmed && result.value && c.id_consentimiento) {
-                Swal.fire({ title: 'Enviando...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-                this.gestionPacientesService.reenviarConsentimiento(c.id_consentimiento, result.value).subscribe({
+        this.consentimientoReenvio = c;
+        this.correoReenvio = this.pacienteActivo?.correo_electronico || '';
+        this.displayCorreoReenvio = true;
+    }
+
+    confirmarReenvio(): void {
+        this.displayCorreoReenvio = false;
+        this.confirmService.confirm({
+            icon: 'fa fa-paper-plane',
+            header: 'Reenviar consentimiento',
+            message: `¿Está seguro de reenviar el consentimiento de <strong>${this.consentimientoReenvio?.nombre_paciente}</strong> al correo: <strong>${this.correoReenvio}</strong>?`,
+            acceptLabel: 'Sí, Reenviar',
+            rejectLabel: 'No',
+            accept: () => {
+                this.cargandoReenvio = true;
+                this.gestionPacientesService.reenviarConsentimiento(
+                    this.consentimientoReenvio!.id_consentimiento!,
+                    this.correoReenvio
+                ).subscribe({
                     next: (res) => {
-                        Swal.close();
+                        this.cargandoReenvio = false;
                         if (res.state === 'OK') {
-                            this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Consentimiento reenviado.' });
+                            this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Consentimiento reenviado exitosamente.' });
                             this.dialogHistorico = false;
                         } else {
-                            this.messageService.add({ severity: 'error', summary: 'Error', detail: String(res.msg || 'Error al reenviar') });
+                            this.messageService.add({ severity: 'error', summary: 'Error', detail: res.msg || 'No se pudo reenviar el consentimiento.' });
                         }
                     },
                     error: () => {
-                        Swal.close();
+                        this.cargandoReenvio = false;
                         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al reenviar consentimiento.' });
                     }
                 });
@@ -690,10 +724,10 @@ export class GestionPacientesComponent implements OnInit {
 
     descargarConsentimientoPdf(c: GestionPacienteConsentimiento): void {
         if (!c.id_consentimiento) return;
-        Swal.fire({ title: 'Generando PDF...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        this.cargandoPdf = true;
         this.gestionPacientesService.descargarConsentimientoById(c.id_consentimiento).subscribe({
             next: (res: any) => {
-                Swal.close();
+                this.cargandoPdf = false;
                 if (res.state === 'OK') {
                     this.descargarPdfDesdeBase64(res.body.pdf_base64, res.body.nombre_archivo || `consentimiento_${c.id_consentimiento}.pdf`);
                 } else {
@@ -701,7 +735,7 @@ export class GestionPacientesComponent implements OnInit {
                 }
             },
             error: () => {
-                Swal.close();
+                this.cargandoPdf = false;
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al descargar PDF.' });
             }
         });

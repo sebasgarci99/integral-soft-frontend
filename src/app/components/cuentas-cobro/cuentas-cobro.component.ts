@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormsModule } from '@angular/forms';
-import { SidebarComponent } from "../sidebar/sidebar.component";
 import { RouterModule } from '@angular/router';
 
 import { CuentasCobroService } from '../../services/cuentas-cobro/cuentas-cobro.service';
@@ -31,7 +30,6 @@ import { Checkbox } from 'primeng/checkbox';
     selector: 'app-cuentas-cobro',
     standalone: true,
     imports: [
-        SidebarComponent,
         CommonModule,
         FormsModule,
         HttpClientModule,

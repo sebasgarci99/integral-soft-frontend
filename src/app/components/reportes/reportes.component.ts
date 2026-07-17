@@ -1,6 +1,4 @@
 import { Component } from '@angular/core';
-import { SidebarComponent } from "../sidebar/sidebar.component";
-
 import { OnInit } from '@angular/core';
 import { ConfirmationService, MessageService, SelectItem } from 'primeng/api';
 import { ReportesService } from '../../services/reportes/reportes.service';
@@ -30,7 +28,6 @@ import * as XLSX from 'xlsx';
 @Component({
     selector: 'app-reportes',
     imports: [
-        SidebarComponent,
         CommonModule,
         FormsModule,
         HttpClientModule,

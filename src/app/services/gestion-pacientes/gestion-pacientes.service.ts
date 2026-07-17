@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { enviroment } from '../../../enviroments/enviroment';
 import { GestionPaciente, GestionPacienteResponse } from '../../interfaces/gestion-pacientes';
+import { ProcedimientoRiesgo } from '../../interfaces/gestion-pacientes';
 
 @Injectable({
     providedIn: 'root'
@@ -131,6 +132,16 @@ export class GestionPacientesService {
             this.urlApp + this.urlAppAPI + 'descargarConsentimientoById',
             body,
             { headers: this.getAuthHeaders() }
+        );
+    }
+
+    obtenerProcedimientosRiesgos(): Observable<ProcedimientoRiesgo[]> {
+        return this.http.post<GestionPacienteResponse>(
+            this.urlApp + this.urlAppAPI + 'getProcedimientosRiesgos',
+            this.getBaseBody(),
+            { headers: this.getAuthHeaders() }
+        ).pipe(
+            map(response => (response.body as ProcedimientoRiesgo[]) || [])
         );
     }
 }

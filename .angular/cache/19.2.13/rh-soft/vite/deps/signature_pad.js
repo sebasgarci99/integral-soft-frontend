@@ -1,4 +1,4 @@
-import "./chunk-S35DAJRX.js";
+import "./chunk-TXDUYLVM.js";
 
 // node_modules/signature_pad/dist/signature_pad.js
 var Point = class {

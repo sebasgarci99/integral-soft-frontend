@@ -1,6 +1,4 @@
-<!-- sidebar.component.html -->
 <nav id="sidebarMenu" class="sidebar bg-light collapse d-lg-block">
-    <!-- Agrega justo dentro del <nav> o al inicio de <div class="position-sticky"> -->
     <div class="d-lg-none d-flex justify-content-end px-3">
         <button class="btn my-1" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
             <i class="fa fa-times"></i>
@@ -16,7 +14,8 @@
         <hr />
         <div class="sidebar-nav-scroll">
             <ul class="nav flex-column mb-auto px-3">
-                <ng-container *ngFor="let item of datosUsuario.modulos">
+                <!-- Módulos directos (sin grupo) -->
+                <ng-container *ngFor="let item of modulosDirectos">
                     <li class="nav-item">
                         <a class="nav-link text-dark" [routerLink]="item.ruta" routerLinkActive="active"
                             [routerLinkActiveOptions]="{ exact: true }">
@@ -24,39 +23,43 @@
                         </a>
                     </li>
                 </ng-container>
+
+                <!-- Grupos colapsables -->
+                <ng-container *ngFor="let grupo of modulosAgrupados">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark d-flex justify-content-between align-items-center sidebar-grupo-toggle"
+                           [class.sidebar-grupo-active]="isGrupoActivo(grupo)"
+                           data-bs-toggle="collapse" [attr.data-bs-target]="'#' + getGrupoId(grupo.modulo)"
+                           role="button" aria-expanded="false">
+                            <span><i [class]="grupo.icono"></i> {{ grupo.modulo }}</span>
+                            <i class="fa fa-chevron-down sidebar-chevron"></i>
+                        </a>
+                        <div class="collapse" [class.show]="isGrupoAbierto(grupo)" [id]="getGrupoId(grupo.modulo)">
+                            <ul class="nav flex-column ms-3">
+                                <li *ngFor="let hijo of grupo.hijos" class="nav-item">
+                                    <a class="nav-link text-dark py-1 sidebar-hijo-link"
+                                       *ngIf="hijo.ruta"
+                                       [routerLink]="hijo.ruta" routerLinkActive="active"
+                                       [routerLinkActiveOptions]="{ exact: true }">
+                                        <i [class]="hijo.icono"></i> {{ hijo.modulo }}
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ng-container>
             </ul>
         </div>
-        <!-- <ul class="nav flex-column mb-auto px-3">
-            <li class="nav-item">
-                <a class="nav-link text-dark" routerLink="/consultorios" routerLinkActive="active">
-                    <i class="fa fa-house-medical"></i> Consultorios
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-dark" routerLink="/reportes" routerLinkActive="active">
-                    <i class="fa fa-file-invoice"></i> Reportes
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-dark" routerLink="/reg_recoleccion" routerLinkActive="active">
-                    <i class="fa-solid fa-weight-scale"></i> Registros de peso
-                </a>
-            </li>
-        </ul> -->
         <hr />
         <div class="dropdown px-3 pb-3">
             <a class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle" id="dropdownUser1"
                 data-bs-toggle="dropdown" aria-expanded="false">
-                <!-- <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2" /> -->
                 <img [src]="logo" alt="" width="32" height="32" class="rounded-circle me-2" />
-                <strong>{{ datosUsuario.nombre_completo }}</strong>
+                <strong>{{ nombreCompleto }}</strong>
             </a>
             <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
-                <!-- <li><a class="dropdown-item" href="#">Perfil</a></li> -->
-                <li><a class="dropdown-item" *ngIf="datosUsuario.id_rol == '1'" routerLink="/info-usuario">Ajustes</a></li>
-                <li>
-                    <hr class="dropdown-divider" />
-                </li>
+                <li><a class="dropdown-item" *ngIf="idRol == '1'" routerLink="/info-usuario">Ajustes</a></li>
+                <li><hr class="dropdown-divider" /></li>
                 <li><a class="dropdown-item" (click)="cerrarSesion()">Salir</a></li>
             </ul>
         </div>

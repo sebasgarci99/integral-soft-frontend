@@ -11,7 +11,6 @@ import { TabViewModule } from 'primeng/tabview';
 import { InputMaskModule } from 'primeng/inputmask';
 import { PasswordModule } from 'primeng/password';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { SidebarComponent } from '../sidebar/sidebar.component';
 import { InfoUsuarioService } from '../../services/info-usuario/info-usuario.service';
 
 @Component({
@@ -27,8 +26,7 @@ import { InfoUsuarioService } from '../../services/info-usuario/info-usuario.ser
         TabViewModule,
         InputMaskModule,
         PasswordModule,
-        ProgressSpinnerModule,
-        SidebarComponent
+        ProgressSpinnerModule
     ],
     templateUrl: './info-usuario.component.html',
     styleUrl: './info-usuario.component.css',

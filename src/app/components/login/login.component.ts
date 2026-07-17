@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoginService } from '../../services/login/login.service';
+import { MenuService } from '../../services/menu/menu.service';
 
 import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
@@ -22,7 +23,8 @@ export class LoginComponent implements OnInit {
     constructor(
         private form: FormBuilder,
         private router: Router,
-        private loginService: LoginService
+        private loginService: LoginService,
+        private menuService: MenuService
     ) {
         this.formLogin = this.form.group({
             username: [
@@ -79,6 +81,7 @@ export class LoginComponent implements OnInit {
                     localStorage.removeItem('rememberedPass');
                 }
 
+                this.menuService.cargarModulos();
                 this.router.navigate(['/home']);
             },
             error: (error: HttpErrorResponse) => {

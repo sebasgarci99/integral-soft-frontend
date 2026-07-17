@@ -74,6 +74,8 @@ export interface GestionPacienteConsentimiento {
     ciudad_documento_acudiente?: string;
     tipo_documento_paciente?: string;
     procedimiento_realizar?: string;
+    riesgos?: string;
+    lugar_procedimiento?: string;
     relacion_acudiente?: string;
     ciudad?: string;
 }
@@ -89,4 +91,10 @@ export interface TipoConsentimientoOption {
     label: string;
     borrador: string;
     oficial: string;
+}
+
+export interface ProcedimientoRiesgo {
+    id: number;
+    procedimiento: string;
+    riesgos: string;
 }

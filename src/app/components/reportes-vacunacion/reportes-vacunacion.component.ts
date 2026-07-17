@@ -4,7 +4,6 @@ import { VacunacionAnioGrupo, VacunaGrupo, VacunacionDetalle } from '../../inter
 
 import { ReportesService } from '../../services/reportes/reportes.service';
 
-import { SidebarComponent } from "../sidebar/sidebar.component";
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -38,7 +37,6 @@ import { ConnectedOverlayScrollHandler } from 'primeng/dom';
     imports: [
         CommonModule,
         FormsModule,
-        SidebarComponent,
         /* PrimeNG */
         TableModule,
         DialogModule,

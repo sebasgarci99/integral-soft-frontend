@@ -1,74 +1,94 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
-import { LoginService } from '../../services/login/login.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router, NavigationEnd, RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { MenuService } from '../../services/menu/menu.service';
+import { ModuloPadre, Modulo } from '../../interfaces/modulo';
 import Swal from 'sweetalert2';
 
 @Component({
-  selector: 'app-sidebar',
-  imports: [
-	RouterModule,
-	CommonModule 
-  ],
-  templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.css'
+    selector: 'app-sidebar',
+    standalone: true,
+    imports: [RouterModule, CommonModule],
+    templateUrl: './sidebar.component.html',
+    styleUrl: './sidebar.component.css'
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
 
-	logo: string | null | undefined;
-	datosUsuario:any = {};
+    logo: string | null | undefined;
+    nombreCompleto: string = '';
+    idRol: string = '';
+    modulosAgrupados: ModuloPadre[] = [];
+    modulosDirectos: Modulo[] = [];
+    currentRoute: string = '';
 
-	constructor(
-		private router: Router,
-		private LoginService : LoginService
-	) {
-		// Inicializamos en vacio
-		this.datosUsuario = {
-			nombre_completo : ''
-		}
-	}
+    private subs: Subscription[] = [];
 
-	async ngOnInit() {
-		// Cargamos la data
-		await this.cargarInfoUsuario();
-	}
+    constructor(
+        private router: Router,
+        private menuService: MenuService
+    ) {}
 
-    cerrarSesion() {
-		localStorage.removeItem('token');
-		localStorage.removeItem('idUser');
-		localStorage.removeItem('idEmpresa');
-		localStorage.removeItem('idRol');
-		this.router.navigate(['/login'])
-	}
+    ngOnInit(): void {
+        this.currentRoute = this.router.url;
 
-	async cargarInfoUsuario() {
-		try {
-            await this.LoginService.obtenerInformacionUsuario().subscribe((data) => {
-                this.datosUsuario = data[0];
+        this.subs.push(
+            this.router.events.pipe(
+                filter(event => event instanceof NavigationEnd)
+            ).subscribe((event: any) => {
+                this.currentRoute = event.urlAfterRedirects || event.url;
+            }),
+            this.menuService.getModulosAgrupados().subscribe(grupos => {
+                this.modulosAgrupados = grupos;
+            }),
+            this.menuService.getModulosDirectos().subscribe(directos => {
+                this.modulosDirectos = directos;
+            }),
+            this.menuService.datosUsuario$.subscribe(data => {
+                if (!data || !data.nombre_completo) return;
+                this.nombreCompleto = data.nombre_completo;
+                this.idRol = data.id_rol;
 
-				// Si se modifico algun item, se procederá nuevamente a ajustarlo con el del token
-				this.datosUsuario.id_usuario != localStorage.getItem('idUser') ? localStorage.setItem('idUser', this.datosUsuario.id_usuario) : null;
-				this.datosUsuario.id_rol != localStorage.getItem('idRol') ? localStorage.setItem('idRol', this.datosUsuario.id_rol) : null;
-				this.datosUsuario.id_empresa != localStorage.getItem('idEmpresa') ? localStorage.setItem('idEmpresa', this.datosUsuario.id_empresa) : null;
-				
-				!this.datosUsuario.modulos.some((e:any)=> e.modulo === "Registros de peso") != true ? localStorage.setItem('moduloRegPeso', 'S') : null;
+                if (data.id_usuario != localStorage.getItem('idUser')) {
+                    localStorage.setItem('idUser', data.id_usuario);
+                }
+                if (data.id_rol != localStorage.getItem('idRol')) {
+                    localStorage.setItem('idRol', data.id_rol);
+                }
+                if (data.id_empresa != localStorage.getItem('idEmpresa')) {
+                    localStorage.setItem('idEmpresa', data.id_empresa);
+                }
 
-				// Cargamos el logo despues de 0.2 segundos ya que es un blob
-				setTimeout(() => {
-                    this.logo = 'data:image/png;base64,' + this.datosUsuario.blob_foto_perfil;
+                setTimeout(() => {
+                    this.logo = 'data:image/png;base64,' + data.blob_foto_perfil;
                 }, 200);
-				
-            });		
-        } catch(e) {
-			Swal.fire({
-				icon: 'error',
-				title: 'Token de sesión modificado',
-				text: 'El token de sesión ha sido modificado o invalidado, se cerrará la sesión.',
-				confirmButtonText: 'OK'
-			}).then(() => {
-				this.cerrarSesion();
-			});
-            
-        }
-	}
+            })
+        );
+    }
+
+    ngOnDestroy(): void {
+        this.subs.forEach(s => s.unsubscribe());
+    }
+
+    cerrarSesion(): void {
+        localStorage.removeItem('token');
+        localStorage.removeItem('idUser');
+        localStorage.removeItem('idEmpresa');
+        localStorage.removeItem('idRol');
+        this.menuService.limpiar();
+        this.router.navigate(['/login']);
+    }
+
+    isGrupoActivo(grupo: ModuloPadre): boolean {
+        return grupo.hijos.some(h => h.ruta && this.currentRoute.startsWith(h.ruta));
+    }
+
+    isGrupoAbierto(grupo: ModuloPadre): boolean {
+        return this.isGrupoActivo(grupo);
+    }
+
+    getGrupoId(nombre: string): string {
+        return 'grupo-' + nombre.replace(/\s+/g, '-');
+    }
 }

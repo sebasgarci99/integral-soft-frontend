@@ -1,16 +1,4 @@
-<!-- home.component.html -->
-<div class="d-lg-none d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
-    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
-        aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-        <i class="fa fa-list"></i>
-    </button>
-</div>
 
-<div class="d-flex">
-    <!-- Sidebar para todos los tamaños -->
-    <app-sidebar></app-sidebar>
-
-    <div class="flex-grow-1 p-4 dashboard">
         <div class="card mt-2">
             <div class="card-body" style="min-height: 30rem;">
                 <div class="flex justify-content-between mb-3">
@@ -91,8 +79,6 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
 <p-dialog header="Historial de envíos de reportes" [(visible)]="showLogsDialog" [modal]="true" [style]="{width: '90vw', maxWidth: '1200px'}" [draggable]="false" [resizable]="false">
     <p-table [value]="logs" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 20, 50]" [size]="'small'" [responsiveLayout]="'scroll'" [scrollable]="true">

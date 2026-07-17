@@ -1,0 +1,11 @@
+.dashboard {
+    margin-left: 240px;
+    padding: 1rem;
+    overflow: auto;
+}
+
+@media (max-width: 991.98px) {
+    .dashboard {
+        margin-left: 0;
+    }
+}

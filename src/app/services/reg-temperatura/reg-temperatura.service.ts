@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { enviroment } from '../../../enviroments/enviroment';
+import { Sede } from '../../interfaces/sede';
+import { Area } from '../../interfaces/area';
 
 @Injectable({
     providedIn: 'root'
@@ -13,42 +15,78 @@ export class RegistroTemperaturaService {
 
     constructor(private http: HttpClient) {
         this.urlApp = enviroment.endpoint;
-        this.urlAppAPI = 'api/reg_temperatura/'
+        this.urlAppAPI = 'api/reg_temperatura/';
+    }
+
+    private getHeaders(): HttpHeaders {
+        const token = localStorage.getItem('token');
+        return new HttpHeaders().set('authorization', `Bearer ${token}`);
+    }
+
+    private getBodyBase(): Record<string, unknown> {
+        return {
+            id_usuario: Number(localStorage.getItem('idUser')),
+            id_empresa: Number(localStorage.getItem('idEmpresa'))
+        };
+    }
+
+    // ==============================
+    // Sedes
+    // ==============================
+    obtenerSedes(): Observable<Sede[]> {
+        return this.http.post<any>(
+            this.urlApp + 'api/sede/getSedesByEmpresa',
+            {},
+            { headers: this.getHeaders() }
+        ).pipe(map(r => r.body as Sede[]));
+    }
+
+    // ==============================
+    // Áreas
+    // ==============================
+    obtenerAreas(id_sede: number): Observable<Area[]> {
+        return this.http.post<any>(
+            this.urlApp + 'api/area/getAreasBySede',
+            { id_sede },
+            { headers: this.getHeaders() }
+        ).pipe(map(r => r.body as Area[]));
     }
 
     // ==============================
     // GET - listar registros
     // ==============================
-    obtenerRegistros(): Observable<any[]> {
-        let token = localStorage.getItem('token');
-        let idUser = localStorage.getItem('idUser');
-
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
-        let body = {};
+    obtenerRegistros(id_sede?: number): Observable<any[]> {
+        const body: Record<string, unknown> = {};
+        if (id_sede) {
+            body['id_sede'] = id_sede;
+        }
 
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'getRegistrosTemperatura',
             body,
-            { headers: headersWS }
-        ).pipe(
-            map(response => response.body as any[])
-        );
+            { headers: this.getHeaders() }
+        ).pipe(map(response => response.body as any[]));
     }
 
     // ==============================
     // POST - crear registro
     // ==============================
     crearRegistro(data: any): Observable<any> {
-        let token = localStorage.getItem('token');
-        let idUser = localStorage.getItem('idUser');
-
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
-        let body = { id_usuario: Number(idUser), ...data };
-
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'crearRegistroTemperatura',
-            body,
-            { headers: headersWS }
+            data,
+            { headers: this.getHeaders() }
+        );
+    }
+
+    // ==============================
+    // POST - editar registro
+    // ==============================
+    editarRegistro(data: any): Observable<any> {
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'editarRegistroTemperatura',
+            data,
+            { headers: this.getHeaders() }
         );
     }
 
@@ -56,16 +94,10 @@ export class RegistroTemperaturaService {
     // DELETE - eliminar registro
     // ==============================
     eliminarRegistro(id_registro: number): Observable<any> {
-        let token = localStorage.getItem('token');
-        let idUser = localStorage.getItem('idUser');
-
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
-        let body = { id_usuario: Number(idUser), id_registro };
-
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'eliminarRegistroTemperatura',
-            body,
-            { headers: headersWS }
+            { id_registro },
+            { headers: this.getHeaders() }
         );
     }
 }

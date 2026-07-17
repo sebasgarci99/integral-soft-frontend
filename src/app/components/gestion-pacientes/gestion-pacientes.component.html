@@ -1,14 +1,4 @@
-<!-- gestion-pacientes.component.html -->
-<div class="d-lg-none d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
-    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
-        aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-        <i class="fa fa-list"></i>
-    </button>
-</div>
-<div class="d-flex">
-    <app-sidebar></app-sidebar>
 
-    <div class="flex-grow-1 p-4 dashboard">
         <div class="card mt-2">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -198,7 +188,7 @@
                                 <!-- SECCIÓN: CONSENTIMIENTO INFORMADO -->
                                 <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado'">
                                     <div class="col-12 mt-3">
-                                        <h5 class="mb-3">Datos del consentimiento informado quirúrgico</h5>
+                                        <h5 class="mb-3">Datos del consentimiento informado</h5>
 
                                         <div class="d-flex align-items-center mb-3">
                                             <p-checkbox [(ngModel)]="aplicaAcudienteInfo" binary="true" inputId="aplicaAcudienteInfo"></p-checkbox>
@@ -212,8 +202,16 @@
                                                     <label>Nombre del acudiente *</label>
                                                 </p-floatlabel>
                                                 <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
-                                                    <p-dropdown [options]="tiposDocumento" [(ngModel)]="tipoDocAcudienteInfo" appendTo="body" class="w-100"></p-dropdown>
-                                                    <label>Tipo documento *</label>
+                                                    <p-dropdown id="tipoDocAcudienteInfo" 
+                                                        name="tipoDocAcudienteInfo" 
+                                                        inputId="tipoDocAcudienteInfo" 
+                                                        #tipoDocAcudienteInfo="ngModel" 
+                                                        [options]="tiposDocumento" 
+                                                        [(ngModel)]="tipoDocAcudienteInfo" 
+                                                        appendTo="body" 
+                                                        class="w-100"
+                                                        placeholder="Tipo de documento"></p-dropdown>
+                                                    <!-- <label for="tipoDocumentoAcu">Tipo documento *</label> -->
                                                 </p-floatlabel>
                                                 <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3">
                                                     <input pInputText [(ngModel)]="numDocAcudienteInfo" class="w-100" maxlength="20" />
@@ -233,9 +231,24 @@
                                         </ng-container>
 
                                         <div class="col-12 mt-3">
+                                            <label for="procedimientosMulti" style="display:block; margin-bottom:0.5rem; font-weight:600;">Procedimiento a realizar *</label>
+                                            <p-multiSelect id="procedimientosMulti" [options]="procedimientosDisponibles" [(ngModel)]="procedimientosSeleccionados"
+                                                (onChange)="onProcedimientosChange()"
+                                                optionLabel="procedimiento" defaultLabel="Seleccione procedimientos..."
+                                                [showClear]="true" appendTo="body" class="w-100"></p-multiSelect>
+                                        </div>
+
+                                        <div class="col-12 mt-3">
                                             <p-floatlabel variant="on" class="w-100">
-                                                <textarea pInputTextarea [(ngModel)]="procedimientoRealizarInfo" class="w-100 p-inputtext" rows="4" maxlength="2000"></textarea>
-                                                <label>Procedimiento a realizar *</label>
+                                                <input pInputText [(ngModel)]="lugarProcedimientoInfo" class="w-100" maxlength="200" />
+                                                <label>Lugar donde se realiza el procedimiento</label>
+                                            </p-floatlabel>
+                                        </div>
+
+                                        <div class="col-12 mt-3">
+                                            <p-floatlabel variant="on" class="w-100">
+                                                <textarea pInputTextarea [(ngModel)]="riesgosInfo" class="w-100 p-inputtext" rows="3" maxlength="2000"></textarea>
+                                                <label>Riesgos</label>
                                             </p-floatlabel>
                                         </div>
 
@@ -477,38 +490,58 @@
                 <!-- DIALOG HISTORICO -->
                 <p-dialog header="Histórico de consentimientos" [(visible)]="dialogHistorico" [modal]="true"
                     [style]="{ width: '70vw' }" [draggable]="false">
-                    <p-table [value]="consentimientos" responsiveLayout="scroll" [paginator]="true" [rows]="10">
-                        <ng-template pTemplate="header">
-                            <tr>
-                                <th>Tipo</th>
-                                <th>Fecha</th>
-                                <th>Paciente</th>
-                                <th>Descargar</th>
-                                <th>Reenviar</th>
-                            </tr>
-                        </ng-template>
-                        <ng-template pTemplate="body" let-c>
-                            <tr>
-                                <td>{{ c.tipo_consentimiento }}</td>
-                                <td>{{ c.fecha_registro | date:'dd/MM/yyyy HH:mm' }}</td>
-                                <td>{{ c.nombre_paciente }}</td>
-                                <td>
-                                    <p-button icon="fa fa-download" class="p-button-text p-button-sm" severity="success"
-                                        (onClick)="descargarConsentimientoPdf(c)"></p-button>
-                                </td>
-                                <td>
-                                    <p-button icon="fa fa-envelope" class="p-button-text p-button-sm" (onClick)="reenviarConsentimiento(c)"></p-button>
-                                </td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
+                    <div class="position-relative">
+                        <div class="loading-overlay" *ngIf="cargandoReenvio || cargandoPdf">
+                            <p-progressSpinner strokeWidth="4" fill="transparent"></p-progressSpinner>
+                            <span class="mt-2 fw-bold">{{ cargandoPdf ? 'Generando PDF...' : 'Enviando correo, por favor espere...' }}</span>
+                        </div>
+                        <p-table [value]="consentimientos" responsiveLayout="scroll" [paginator]="true" [rows]="10">
+                            <ng-template pTemplate="header">
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Fecha</th>
+                                    <th>Paciente</th>
+                                    <th>Descargar</th>
+                                    <th>Reenviar</th>
+                                </tr>
+                            </ng-template>
+                            <ng-template pTemplate="body" let-c>
+                                <tr>
+                                    <td>{{ c.tipo_consentimiento }}</td>
+                                    <td>{{ c.fecha_registro }}</td>
+                                    <td>{{ c.nombre_paciente }}</td>
+                                    <td>
+                                        <p-button icon="fa fa-download" class="p-button-text p-button-sm" severity="success"
+                                            (onClick)="descargarConsentimientoPdf(c)" [loading]="cargandoPdf" [disabled]="cargandoReenvio"></p-button>
+                                    </td>
+                                    <td>
+                                        <p-button icon="fa fa-envelope" class="p-button-text p-button-sm" (onClick)="reenviarConsentimiento(c)"></p-button>
+                                    </td>
+                                </tr>
+                            </ng-template>
+                        </p-table>
+                    </div>
+                </p-dialog>
+
+                <!-- DIALOG CORREO REENVIO -->
+                <p-dialog header="Reenviar consentimiento" [(visible)]="displayCorreoReenvio" [modal]="true"
+                    [style]="{ width: '28rem' }" [draggable]="false" appendTo="body">
+                    <div class="p-fluid" style="padding: 0.5rem 0;">
+                        <p-floatlabel variant="on">
+                            <input id="correoReenvio" pInputText [(ngModel)]="correoReenvio" class="w-100" type="email" />
+                            <label for="correoReenvio">Correo electrónico</label>
+                        </p-floatlabel>
+                    </div>
+                    <ng-template pTemplate="footer">
+                        <p-button label="Cancelar" severity="secondary" icon="fa fa-times"
+                            (onClick)="displayCorreoReenvio = false" />
+                        <p-button label="Enviar" severity="info" icon="fa fa-paper-plane"
+                            [loading]="cargandoReenvio" (onClick)="confirmarReenvio()" />
+                    </ng-template>
                 </p-dialog>
 
             </div>
         </div>
-    </div>
-</div>
-
 <div class="fullscreen-overlay" *ngIf="fullscreen">
     <div class="fullscreen-card">
         <div class="fullscreen-header">
@@ -525,4 +558,4 @@
 </div>
 
 <p-toast></p-toast>
-<p-confirmDialog></p-confirmDialog>
+<p-confirmDialog appendTo="body"></p-confirmDialog>

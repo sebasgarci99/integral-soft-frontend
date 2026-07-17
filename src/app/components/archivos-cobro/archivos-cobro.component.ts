@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { SidebarComponent } from '../sidebar/sidebar.component';
 
 import { ArchivosCobroService } from '../../services/archivos-cobro/archivos-cobro.service';
 import { TipoArchivoAdjunto, ArchivoAdjunto } from '../../interfaces/archivo-adjunto';
@@ -22,7 +21,6 @@ import { InputTextarea } from 'primeng/inputtextarea';
     selector: 'app-archivos-cobro',
     standalone: true,
     imports: [
-        SidebarComponent,
         CommonModule,
         FormsModule,
         HttpClientModule,

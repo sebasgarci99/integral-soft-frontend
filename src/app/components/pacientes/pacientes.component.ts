@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { SidebarComponent } from "../sidebar/sidebar.component";
 
 import { OnInit } from '@angular/core';
 import { PacientesService } from '../../services/pacientes/pacientes.service';
@@ -29,7 +28,6 @@ import { StepsModule } from "primeng/steps";
 @Component({
     selector: 'app-consultorios',
     imports: [
-        SidebarComponent,
         CommonModule,
         FormsModule,
         HttpClientModule,

@@ -1,9 +1,3 @@
-/* --- ESTILOS GENERALES Y DASHBOARD --- */
-.dashboard {
-  margin-left: 240px;
-  overflow: auto;
-}
-
 .card {
   border: none;
   border-radius: 15px;
@@ -142,12 +136,6 @@
 }
 
 /* --- RESPONSIVE / MEDIA QUERIES --- */
-@media (max-width: 991.98px) {
-  .dashboard {
-    margin-left: 0;
-  }
-}
-
 @media (max-width: 568px) {
   ::ng-deep .p-dialog {
     width: 95vw !important;

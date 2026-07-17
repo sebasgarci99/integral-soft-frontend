@@ -1,6 +1,4 @@
 import { Component } from '@angular/core';
-import { SidebarComponent } from "../sidebar/sidebar.component";
-
 import { OnInit } from '@angular/core';
 import { ConsultorioService } from '../../services/consultorio/consultorio.service';
 import { Consultorio } from '../../interfaces/consultorio';
@@ -22,7 +20,6 @@ import Swal from 'sweetalert2';
 @Component({
     selector: 'app-consultorios',
     imports: [
-        SidebarComponent,
         CommonModule,
         FormsModule,
         HttpClientModule,

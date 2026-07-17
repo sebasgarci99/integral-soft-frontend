@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { SidebarComponent } from '../sidebar/sidebar.component';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,16 +12,18 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { CalendarModule } from 'primeng/calendar';
 import { DropdownModule } from 'primeng/dropdown';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { ChartModule } from 'primeng/chart';
 
 import { RegistroTemperaturaService } from '../../services/reg-temperatura/reg-temperatura.service';
+import { Sede } from '../../interfaces/sede';
+import { Area } from '../../interfaces/area';
 
 @Component({
     selector: 'app-reg-temperatura',
     standalone: true,
     imports: [
-        SidebarComponent,
         CommonModule,
         FormsModule,
         TableModule,
@@ -34,6 +35,7 @@ import { RegistroTemperaturaService } from '../../services/reg-temperatura/reg-t
         FloatLabelModule,
         CalendarModule,
         DropdownModule,
+        TooltipModule,
         ChartModule
     ],
     templateUrl: './reg-temperatura.component.html',
@@ -54,23 +56,61 @@ export class RegTemperaturaComponent implements OnInit {
 
     registrosMesActual: any[] = [];
 
+    sedes: Sede[] = [];
+    areas: Area[] = [];
+    sedeSeleccionada: Sede | null = null;
+
+    modoEdicion: boolean = false;
+    registroEditando: any = null;
+
+    dialogHeader: string = 'Nuevo registro de temperatura';
+
     constructor(
         private registroService: RegistroTemperaturaService,
         private messageService: MessageService,
         private confirmService: ConfirmationService
     ) { }
 
-    async ngOnInit() {
-        await this.cargarRegistros();
+    ngOnInit() {
         this.cargarHorarios();
+        this.cargarSedes();
     }
 
-    async cargarRegistrosMesActualGrafica() {
+    cargarSedes() {
+        this.registroService.obtenerSedes().subscribe({
+            next: (sedes) => {
+                this.sedes = sedes;
+                if (sedes.length > 0) {
+                    this.sedeSeleccionada = sedes[0];
+                    this.cargarAreasPorSede();
+                    this.cargarRegistros();
+                }
+            }
+        });
+    }
+
+    onChangeSede(sede: Sede) {
+        this.sedeSeleccionada = sede;
+        this.formData.id_area = null;
+        this.cargarAreasPorSede();
+        this.cargarRegistros();
+    }
+
+    cargarAreasPorSede() {
+        if (!this.sedeSeleccionada) return;
+
+        this.registroService.obtenerAreas(this.sedeSeleccionada.id_sede).subscribe({
+            next: (areas) => {
+                this.areas = areas;
+            }
+        });
+    }
+
+    cargarRegistrosMesActualGrafica() {
         const hoy = new Date();
         const mesActual = hoy.getMonth();
         const anioActual = hoy.getFullYear();
 
-        // 1️⃣ Filtrar mes actual
         this.registrosMesActual = this.registros
             .filter(r => {
                 const fecha = new Date(r.fecha_registro);
@@ -79,12 +119,10 @@ export class RegTemperaturaComponent implements OnInit {
                     fecha.getFullYear() === anioActual
                 );
             })
-            // 2️⃣ Ordenar por fecha ascendente
             .sort((a, b) =>
                 new Date(a.fecha_registro).getTime() - new Date(b.fecha_registro).getTime()
             );
 
-        // 3️⃣ Construir gráfica
         this.construirGrafica();
     }
 
@@ -103,9 +141,6 @@ export class RegTemperaturaComponent implements OnInit {
             temperaturas.push(Number(r.temperatura));
         });
 
-        console.log(labels);
-        console.log(temperaturas);
-
         this.chartData = {
             labels,
             datasets: [
@@ -113,7 +148,7 @@ export class RegTemperaturaComponent implements OnInit {
                     label: 'Temperatura (°C)',
                     data: temperaturas,
                     fill: false,
-                    tension: 0 // Sin curvas
+                    tension: 0
                 }
             ]
         };
@@ -152,8 +187,7 @@ export class RegTemperaturaComponent implements OnInit {
 
     resetForm() {
         return {
-            area: '',
-            responsable: '',
+            id_area: null,
             horario: '',
             temperatura: null,
             humedad: null,
@@ -164,64 +198,105 @@ export class RegTemperaturaComponent implements OnInit {
 
     cerrarDialog() {
         this.displayDialog = false;
+        this.modoEdicion = false;
+        this.registroEditando = null;
         this.formData = this.resetForm();
     }
 
-    async cargarRegistros() {
-        await this.registroService.obtenerRegistros().subscribe((res) => {
-            this.registros = res;
+    cargarRegistros() {
+        const idSede = this.sedeSeleccionada?.id_sede;
 
-            // Cargamos los registros del mes actual para la gráfica
+        this.registroService.obtenerRegistros(idSede).subscribe((res) => {
+            this.registros = res;
             this.cargarRegistrosMesActualGrafica();
         });
     }
 
     abrirFormulario() {
+        this.modoEdicion = false;
+        this.registroEditando = null;
+        this.formData = this.resetForm();
+
         let ahora = new Date();
+        this.formData.fecha = ahora;
+        this.definirHorarioPorHora(ahora);
+
+        this.dialogHeader = `Nuevo registro de temperatura - ${this.sedeSeleccionada?.nombre || ''}`;
+        this.displayDialog = true;
+    }
+
+    editarRegistro(registro: any) {
+        this.modoEdicion = true;
+        this.registroEditando = registro;
 
         this.formData = {
-            ...this.formData,
-            fecha: ahora,
-            horario: ''
+            id_area: registro.id_area,
+            horario: registro.horario,
+            temperatura: registro.temperatura,
+            humedad: registro.humedad,
+            tipo_medida: registro.tipo_medida,
+            fecha: new Date(registro.fecha_registro)
         };
 
-        this.definirHorarioPorHora(ahora);
+        this.dialogHeader = `Editar registro de temperatura - ${this.sedeSeleccionada?.nombre || ''}`;
         this.displayDialog = true;
     }
 
     definirHorarioPorHora(fecha: Date) {
-        let horaActual = Number(this.obtenerFechaHoraActualFormatoIso(fecha).toString().split('T')[1].split(':')[0]);
+        let hora = Number(this.obtenerFechaHoraActualFormatoIso(fecha).toString().split('T')[1].split(':')[0]);
+        this.formData.horario = (hora >= 12) ? 'Tarde' : 'Mañana';
+    }
 
-        if (horaActual > 12 && horaActual < 23) {
-            this.formData.horario = 'Tarde';
-        } else {
-            this.formData.horario = 'Mañana';
-        }
+    getNombreArea(idArea: number): string {
+        const area = this.areas.find(a => a.id_area === idArea);
+        return area ? area.nombre : '';
     }
 
     guardarRegistro() {
-
         let dataFormulario = {
             ...this.formData,
+            id_sede: this.sedeSeleccionada?.id_sede,
             fecha: this.obtenerFechaHoraActualFormatoIso(this.formData.fecha)
         };
 
-        this.registroService.crearRegistro(dataFormulario).subscribe((res) => {
-            if (res.state === 'OK') {
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Registro creado correctamente'
-                });
-                this.displayDialog = false;
-                this.formData = this.resetForm();
-                this.cargarRegistros();
-            } else {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error al guardar'
-                });
-            }
-        });
+        if (this.modoEdicion && this.registroEditando) {
+            const dataEdicion: Record<string, unknown> = {
+                ...dataFormulario,
+                id_registro: this.registroEditando.id_registro
+            };
+
+            this.registroService.editarRegistro(dataEdicion).subscribe((res) => {
+                if (res.state === 'OK') {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Registro actualizado correctamente'
+                    });
+                    this.cerrarDialog();
+                    this.cargarRegistros();
+                } else {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error al actualizar'
+                    });
+                }
+            });
+        } else {
+            this.registroService.crearRegistro(dataFormulario).subscribe((res) => {
+                if (res.state === 'OK') {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Registro creado correctamente'
+                    });
+                    this.cerrarDialog();
+                    this.cargarRegistros();
+                } else {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error al guardar'
+                    });
+                }
+            });
+        }
     }
 
     eliminarRegistro(id: number) {
@@ -243,14 +318,10 @@ export class RegTemperaturaComponent implements OnInit {
 
     public obtenerFechaHoraActualFormatoIso(
         fecha: Date,
-        hora?: Date // Opcional
+        hora?: Date
     ): string {
-        // Si el parametro de hora no se envia
-        // tomamos el valor de la fecha
         hora = hora ?? fecha;
 
-        // Construimos a pedal la fecha en formato ISO String
-        // Ya que la función nativa nos cambia el UTC a 0
         let fechaActualConvertida: string =
             fecha.getFullYear()
             + '-' + String(fecha.getMonth() + 1).padStart(2, '0')

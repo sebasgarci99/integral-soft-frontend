@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { SidebarComponent } from "../sidebar/sidebar.component";
 
 import { ClienteService } from '../../services/cliente/cliente.service';
 import { Cliente } from '../../interfaces/cliente';
@@ -24,7 +23,6 @@ import { DropdownModule } from 'primeng/dropdown';
     selector: 'app-clientes',
     standalone: true,
     imports: [
-        SidebarComponent,
         CommonModule,
         ReactiveFormsModule,
         HttpClientModule,

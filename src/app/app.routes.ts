@@ -1,11 +1,8 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './components/login/login.component';
-import { NavbarComponent } from './components/navbar/navbar.component';
-import { HomeComponent } from './components/home/home.component';
-import { SidebarComponent } from './components/sidebar/sidebar.component';
-
-// Guards
+import { LayoutComponent } from './components/layout/layout.component';
 import { authGuard } from './utils/auth.guard';
+import { HomeComponent } from './components/home/home.component';
 import { ConsultoriosComponent } from './components/consultorios/consultorios.component';
 import { RegRecoleccionComponent } from './components/reg-recoleccion/reg-recoleccion.component';
 import { ReportesComponent } from './components/reportes/reportes.component';
@@ -22,96 +19,28 @@ import { InfoUsuarioComponent } from './components/info-usuario/info-usuario.com
 import { GestionPacientesComponent } from './components/gestion-pacientes/gestion-pacientes.component';
 
 export const routes: Routes = [
+    { path: 'login', component: LoginComponent },
     {
-        path: '', redirectTo: '/login', pathMatch: 'full'
-    },
-    {
-        path: 'login', component: LoginComponent
-    },
-    {
-        path: 'navbar', component: NavbarComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'home', component: HomeComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'menu', component: SidebarComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'consultorios', component: ConsultoriosComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'reg_recoleccion', component: RegRecoleccionComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'reportes', component: ReportesComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'vacunas', component: VacunasComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'pacientes', component: PacientesComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'reg_vacunacion', component: RegVacunacionComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'reportes_vacunacion', component: ReportesVacunacionComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'reg_temperatura', component: RegTemperaturaComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'clientes', component: ClientesComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'cuentas_cobro', component: CuentasCobroComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'actividades', component: ActividadesComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'archivos_cobro', component: ArchivosCobroComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'info-usuario', component: InfoUsuarioComponent, canActivate: [
-            authGuard
-        ]
-    },
-    {
-        path: 'gestion_pacientes', component: GestionPacientesComponent, canActivate: [
-            authGuard
+        path: '',
+        component: LayoutComponent,
+        canActivate: [authGuard],
+        children: [
+            { path: '', redirectTo: 'home', pathMatch: 'full' },
+            { path: 'home', component: HomeComponent },
+            { path: 'consultorios', component: ConsultoriosComponent },
+            { path: 'reg_recoleccion', component: RegRecoleccionComponent },
+            { path: 'reportes', component: ReportesComponent },
+            { path: 'vacunas', component: VacunasComponent },
+            { path: 'pacientes', component: PacientesComponent },
+            { path: 'reg_vacunacion', component: RegVacunacionComponent },
+            { path: 'reportes_vacunacion', component: ReportesVacunacionComponent },
+            { path: 'reg_temperatura', component: RegTemperaturaComponent },
+            { path: 'clientes', component: ClientesComponent },
+            { path: 'cuentas_cobro', component: CuentasCobroComponent },
+            { path: 'actividades', component: ActividadesComponent },
+            { path: 'archivos_cobro', component: ArchivosCobroComponent },
+            { path: 'info-usuario', component: InfoUsuarioComponent },
+            { path: 'gestion_pacientes', component: GestionPacientesComponent },
         ]
     }
 ];
-

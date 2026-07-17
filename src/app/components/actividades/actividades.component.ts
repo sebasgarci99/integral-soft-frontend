@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SidebarComponent } from '../sidebar/sidebar.component';
 import { ActividadesService } from '../../services/actividades/actividades.service';
 import {
     Actividad,
@@ -38,7 +37,6 @@ import { TooltipModule } from 'primeng/tooltip';
     selector: 'app-actividades',
     standalone: true,
     imports: [
-        SidebarComponent,
         CommonModule,
         FormsModule,
         HttpClientModule,

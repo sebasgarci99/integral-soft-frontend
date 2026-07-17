@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { OnInit } from '@angular/core';
 import { ViewChild } from '@angular/core';
 
-import { SidebarComponent } from "../sidebar/sidebar.component";
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -40,7 +39,6 @@ import { VacunaService } from '../../services/vacunas/vacuna.service';
     imports: [
         CommonModule,
         FormsModule,
-        SidebarComponent,
         /* PrimeNG */
         TableModule,
         DialogModule,
