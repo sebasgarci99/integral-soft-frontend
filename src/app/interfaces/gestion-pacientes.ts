@@ -78,6 +78,26 @@ export interface GestionPacienteConsentimiento {
     lugar_procedimiento?: string;
     relacion_acudiente?: string;
     ciudad?: string;
+    edad_paciente?: string;
+    autoriza_hc_correo?: string;
+    autoriza_hc?: string;
+    autoriza_expedir_hc?: string;
+    persona1_nombre?: string;
+    persona1_tipo_documento?: string;
+    persona1_num_documento?: string;
+    persona1_parentesco?: string;
+    persona2_nombre?: string;
+    persona2_tipo_documento?: string;
+    persona2_num_documento?: string;
+    persona2_parentesco?: string;
+    tiene_consentimiento_diferido?: boolean;
+    consentimiento_diferido_detalle?: string;
+    correo_paciente?: string;
+    acompanante_nombre?: string;
+    acompanante_tipo_documento?: string;
+    acompanante_num_documento?: string;
+    acompanante_parentesco?: string;
+    firma_acompanante?: string;
 }
 
 export interface GestionPacienteResponse {
@@ -89,8 +109,7 @@ export interface GestionPacienteResponse {
 export interface TipoConsentimientoOption {
     key: string;
     label: string;
-    borrador: string;
-    oficial: string;
+    funcion: string;
 }
 
 export interface ProcedimientoRiesgo {

@@ -88,8 +88,8 @@ export class GestionPacientesService {
         );
     }
 
-    enviarBorrador(id_paciente: number, id_cita: number, tipo_consentimiento: string, correo_destino: string): Observable<GestionPacienteResponse> {
-        const body = { ...this.getBaseBody(), id_paciente, id_cita, tipo_consentimiento, correo_destino };
+    enviarBorrador(id_paciente: number, id_cita: number, tipo_consentimiento: string, correo_destino: string, funcion_borrador: string): Observable<GestionPacienteResponse> {
+        const body = { ...this.getBaseBody(), id_paciente, id_cita, tipo_consentimiento, correo_destino, funcion_borrador };
         return this.http.post<GestionPacienteResponse>(
             this.urlApp + this.urlAppAPI + 'enviarBorrador',
             body,
@@ -97,8 +97,8 @@ export class GestionPacientesService {
         );
     }
 
-    generarConsentimiento(id_paciente: number, id_cita: number, tipo_consentimiento: string, datos: any, firma_digital_paciente: string): Observable<GestionPacienteResponse> {
-        const body = { ...this.getBaseBody(), id_paciente, id_cita, tipo_consentimiento, datos, firma_digital_paciente };
+    generarConsentimiento(id_paciente: number, id_cita: number, tipo_consentimiento: string, datos: any, firma_digital_paciente: string, funcion_pdf: string): Observable<GestionPacienteResponse> {
+        const body = { ...this.getBaseBody(), id_paciente, id_cita, tipo_consentimiento, datos, firma_digital_paciente, funcion_pdf };
         return this.http.post<GestionPacienteResponse>(
             this.urlApp + this.urlAppAPI + 'generarConsentimiento',
             body,

@@ -4,8 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import SignaturePad from 'signature_pad';
 
 import { GestionPacientesService } from '../../services/gestion-pacientes/gestion-pacientes.service';
-import { GestionPaciente, GestionPacienteConsentimiento, GestionPacienteHistorico } from '../../interfaces/gestion-pacientes';
-import { ProcedimientoRiesgo } from '../../interfaces/gestion-pacientes';
+import { GestionPaciente, GestionPacienteConsentimiento, GestionPacienteHistorico, TipoConsentimientoOption, ProcedimientoRiesgo } from '../../interfaces/gestion-pacientes';
 
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
@@ -65,7 +64,9 @@ export class GestionPacientesComponent implements OnInit {
     private firmaPadFull: SignaturePad | null = null;
 
     pacientes: GestionPaciente[] = [];
-    tiposConsentimiento: { key: string; label: string; borrador: string; oficial: string }[] = [];
+    tiposConsentimiento: TipoConsentimientoOption[] = [];
+    tiposConsentimientoBorrador: TipoConsentimientoOption[] = [];
+    tiposConsentimientoOficial: TipoConsentimientoOption[] = [];
     consentimientos: GestionPacienteConsentimiento[] = [];
     historico: GestionPacienteHistorico[] = [];
 
@@ -121,6 +122,32 @@ export class GestionPacientesComponent implements OnInit {
     riesgosInfo = '';
     lugarProcedimientoInfo = '';
 
+    // Propiedades para CONSENTIMIENTO INFORMADO GENERAL
+    edadPacienteGeneral = '';
+    autorizaHcCorreo = 'N';
+    autorizaHc = 'N';
+    autorizaExpedirHc = 'N';
+    procedimientoGeneral = '';
+    persona1Nombre = '';
+    persona1TipoDoc = '';
+    persona1NumDoc = '';
+    persona1Parentesco = '';
+    persona2Habilitada = false;
+    persona2Nombre = '';
+    persona2TipoDoc = '';
+    persona2NumDoc = '';
+    persona2Parentesco = '';
+    tieneConsentimientoDiferido = false;
+    consentimientoDiferidoDetalle = '';
+    acompananteNombre = '';
+    acompananteTipoDoc = '';
+    acompananteNumDoc = '';
+    acompananteParentesco = '';
+    firmaAcompananteDataURL = '';
+    firmaGeneralOK = false;
+    firmaGeneralDataURL = '';
+    firmaAcompananteOK = false;
+
     tiposDocumento = [
         { label: 'C.C.', value: 'CC' },
         { label: 'T.I.', value: 'TI' },
@@ -146,6 +173,11 @@ export class GestionPacientesComponent implements OnInit {
     opcionesSiNo = [
         { label: 'Sí', value: true },
         { label: 'No', value: false }
+    ];
+
+    opcionesSN = [
+        { label: 'Sí', value: 'S' },
+        { label: 'No', value: 'N' }
     ];
 
     local_espaniol = {
@@ -175,9 +207,65 @@ export class GestionPacientesComponent implements OnInit {
 
     cargarTiposConsentimiento(): void {
         this.gestionPacientesService.obtenerTiposConsentimiento().subscribe({
-            next: (data) => { this.tiposConsentimiento = data; },
+            next: (data) => {
+                this.tiposConsentimiento = data;
+                this.tiposConsentimientoBorrador = data.filter(t => t.key.includes('_borrador'));
+                this.tiposConsentimientoOficial = data.filter(t => !t.key.includes('_borrador'));
+            },
             error: () => { this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los tipos de consentimiento.' }); }
         });
+    }
+
+    private limpiarEstadoConsentimientos(): void {
+        this.tipoConsentimientoInfoSeleccionado = null;
+        this.aplicaAcudienteInfo = false;
+        this.nombreAcudienteInfo = '';
+        this.tipoDocAcudienteInfo = '';
+        this.numDocAcudienteInfo = '';
+        this.ciudadDocAcudienteInfo = '';
+        this.relacionAcudienteInfo = '';
+        this.procedimientoRealizarInfo = '';
+        this.procedimientosSeleccionados = [];
+        this.riesgosInfo = '';
+        this.lugarProcedimientoInfo = '';
+        this.firmaConsentimientoOK = false;
+        this.firmaConsentimientoDataURL = '';
+        this.firmaGeneralOK = false;
+        this.firmaGeneralDataURL = '';
+        this.firmaAcompananteOK = false;
+        this.firmaAcompananteDataURL = '';
+        this.tieneConsentimientoDiferido = false;
+        this.consentimientoDiferidoDetalle = '';
+        this.acompananteNombre = '';
+        this.acompananteTipoDoc = '';
+        this.acompananteNumDoc = '';
+        this.acompananteParentesco = '';
+        this.edadPacienteGeneral = '';
+        this.autorizaHcCorreo = 'N';
+        this.autorizaHc = 'N';
+        this.autorizaExpedirHc = 'N';
+        this.procedimientoGeneral = '';
+        this.persona1Nombre = '';
+        this.persona1TipoDoc = '';
+        this.persona1NumDoc = '';
+        this.persona1Parentesco = '';
+        this.persona2Habilitada = false;
+        this.persona2Nombre = '';
+        this.persona2TipoDoc = '';
+        this.persona2NumDoc = '';
+        this.persona2Parentesco = '';
+        this.acudiente = '';
+        this.numDocAcudiente = '';
+        this.correoBorrador = '';
+        this.tipoConsentimientoSeleccionado = null;
+        this.cargandoBorrador = false;
+        this.cargandoDocumento = false;
+        this.cargandoReenvio = false;
+        this.cargandoPdf = false;
+        this.displayCorreoReenvio = false;
+        this.correoReenvio = '';
+        this.consentimientoReenvio = null;
+        this.fullscreen = false;
     }
 
     abrirFormulario(item?: GestionPaciente): void {
@@ -187,6 +275,7 @@ export class GestionPacientesComponent implements OnInit {
         this.displayDialog = true;
         this.firmaOK = false;
         this.historico = [];
+        this.limpiarEstadoConsentimientos();
 
         if (item) {
             this.formData = { ...item };
@@ -217,21 +306,45 @@ export class GestionPacientesComponent implements OnInit {
         this.formData = {};
         this.currentTab = 0;
         this.activeItem = this.tabs[0];
-        this.tipoConsentimientoInfoSeleccionado = null;
-        this.aplicaAcudienteInfo = false;
-        this.nombreAcudienteInfo = '';
-        this.tipoDocAcudienteInfo = '';
-        this.numDocAcudienteInfo = '';
-        this.ciudadDocAcudienteInfo = '';
-        this.relacionAcudienteInfo = '';
-        this.procedimientoRealizarInfo = '';
-        this.procedimientosSeleccionados = [];
-        this.riesgosInfo = '';
-        this.lugarProcedimientoInfo = '';
-        this.firmaConsentimientoOK = false;
-        this.firmaConsentimientoDataURL = '';
-        this.cargandoBorrador = false;
-        this.cargandoDocumento = false;
+        this.firmaOK = false;
+        this.limpiarEstadoConsentimientos();
+    }
+
+    private cerrarTodosLosDialogos(): void {
+        this.displayDialog = false;
+        this.dialogTipoConsentimiento = false;
+        this.dialogFirma = false;
+        this.dialogHistorico = false;
+        this.dialogBorrador = false;
+        this.fullscreen = false;
+        this.displayCorreoReenvio = false;
+    }
+
+    limpiarFormularioGeneral(): void {
+        this.edadPacienteGeneral = '';
+        this.autorizaHcCorreo = 'N';
+        this.autorizaHc = 'N';
+        this.autorizaExpedirHc = 'N';
+        this.procedimientoGeneral = '';
+        this.persona1Nombre = '';
+        this.persona1TipoDoc = '';
+        this.persona1NumDoc = '';
+        this.persona1Parentesco = '';
+        this.persona2Habilitada = false;
+        this.persona2Nombre = '';
+        this.persona2TipoDoc = '';
+        this.persona2NumDoc = '';
+        this.persona2Parentesco = '';
+        this.tieneConsentimientoDiferido = false;
+        this.consentimientoDiferidoDetalle = '';
+        this.acompananteNombre = '';
+        this.acompananteTipoDoc = '';
+        this.acompananteNumDoc = '';
+        this.acompananteParentesco = '';
+        this.firmaAcompananteDataURL = '';
+        this.firmaGeneralOK = false;
+        this.firmaGeneralDataURL = '';
+        this.firmaAcompananteOK = false;
     }
 
     guardar(): void {
@@ -366,14 +479,14 @@ export class GestionPacientesComponent implements OnInit {
             paciente.id_paciente,
             paciente.id_cita,
             this.tipoConsentimientoSeleccionado.key,
-            this.correoBorrador
+            this.correoBorrador,
+            this.tipoConsentimientoSeleccionado.funcion
         ).subscribe({
             next: (res) => {
                 this.cargandoBorrador = false;
                 if (res.state === 'OK') {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Borrador enviado correctamente.' });
-                    this.dialogBorrador = false;
-                    this.displayDialog = false;
+                    this.cerrarTodosLosDialogos();
                 } else {
                     this.messageService.add({ severity: 'error', summary: 'Error', detail: String(res.msg || 'Error al enviar borrador') });
                 }
@@ -452,37 +565,9 @@ export class GestionPacientesComponent implements OnInit {
         }
     }
 
-    guardarFirmaFull(): void {
-        if (this.firmaPadFull && !this.firmaPadFull.isEmpty()) {
-            const dataURL = this.firmaPadFull.toDataURL('image/png');
-            // Detectar si estamos en flujo consentimiento informado (nuevo) o tradicional
-            if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado') {
-                this.firmaConsentimientoDataURL = dataURL;
-                this.firmaConsentimientoOK = true;
-                this.fullscreen = false;
-            } else {
-                this.formData.firma_responsable = dataURL;
-                this.firmaPad?.fromDataURL(dataURL);
-                this.firmaOK = true;
-                this.fullscreen = false;
-                this.dialogFirma = true;
-            }
-        }
-    }
-
     limpiarFirma(): void {
         this.firmaPad?.clear();
         this.firmaOK = false;
-    }
-
-    limpiarFirmaFull(): void {
-        this.firmaPadFull?.clear();
-        if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado') {
-            this.firmaConsentimientoOK = false;
-            this.firmaConsentimientoDataURL = '';
-        } else {
-            this.firmaOK = false;
-        }
     }
 
     openFullscreen(): void {
@@ -514,12 +599,13 @@ export class GestionPacientesComponent implements OnInit {
             paciente.id_cita,
             this.tipoConsentimientoSeleccionado.key,
             datos,
-            this.formData.firma_responsable
+            this.formData.firma_responsable,
+            this.tipoConsentimientoSeleccionado.funcion
         ).subscribe({
             next: (res: any) => {
                 if (res.state === 'OK') {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Consentimiento generado. Descargando PDF...' });
-                    this.dialogFirma = false;
+                    this.cerrarTodosLosDialogos();
                     this.formData.firma_responsable = undefined;
                     this.firmaOK = false;
                     this.descargarPdfDesdeBase64(res.body.pdf_base64, `Consentimiento_${paciente.numero_documento}_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -547,12 +633,44 @@ export class GestionPacientesComponent implements OnInit {
         this.lugarProcedimientoInfo = '';
         this.firmaConsentimientoOK = false;
         this.firmaConsentimientoDataURL = '';
-        if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado') {
+        this.firmaGeneralOK = false;
+        this.firmaGeneralDataURL = '';
+        this.firmaAcompananteOK = false;
+        this.firmaAcompananteDataURL = '';
+        if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_doc') {
             this.gestionPacientesService.obtenerProcedimientosRiesgos().subscribe({
                 next: (data) => { this.procedimientosDisponibles = data; },
                 error: () => { this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar procedimientos.' }); }
             });
         }
+        if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_general') {
+            this.edadPacienteGeneral = this.calcularEdad(this.formData.fecha_nacimiento);
+        }
+    }
+
+    calcularEdad(fechaNacimiento: any): string {
+        if (!fechaNacimiento) return '';
+        const nac = fechaNacimiento instanceof Date ? fechaNacimiento : new Date(fechaNacimiento);
+        const hoy = new Date();
+        let anios = hoy.getFullYear() - nac.getFullYear();
+        let meses = hoy.getMonth() - nac.getMonth();
+        let dias = hoy.getDate() - nac.getDate();
+        if (dias < 0) {
+            meses--;
+            const mesAnterior = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+            dias += mesAnterior.getDate();
+        }
+        if (meses < 0) {
+            anios--;
+            meses += 12;
+        }
+        if (anios > 0) {
+            return `${anios} año${anios !== 1 ? 's' : ''}${meses > 0 ? ` ${meses} mes${meses !== 1 ? 'es' : ''}` : ''}`;
+        }
+        if (meses > 0) {
+            return `${meses} mes${meses !== 1 ? 'es' : ''}${dias > 0 ? ` ${dias} día${dias !== 1 ? 's' : ''}` : ''}`;
+        }
+        return `${dias} día${dias !== 1 ? 's' : ''}`;
     }
 
     onProcedimientosChange(): void {
@@ -623,18 +741,22 @@ export class GestionPacientesComponent implements OnInit {
             lugar_procedimiento: this.lugarProcedimientoInfo || null
         };
 
+        let consentimiento_informado = this.tipoConsentimientoInfoSeleccionado.key;
+
         this.cargandoDocumento = true;
         this.gestionPacientesService.generarConsentimiento(
             paciente.id_paciente,
             paciente.id_cita,
-            'consentimiento_informado',
+            consentimiento_informado,
             datos,
-            this.firmaConsentimientoDataURL
+            this.firmaConsentimientoDataURL,
+            this.tipoConsentimientoInfoSeleccionado.funcion
         ).subscribe({
             next: (res: any) => {
                 this.cargandoDocumento = false;
                 if (res.state === 'OK') {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Consentimiento informado generado. Descargando PDF...' });
+                    this.cerrarTodosLosDialogos();
                     this.firmaConsentimientoOK = false;
                     this.firmaConsentimientoDataURL = '';
                     this.descargarPdfDesdeBase64(res.body.pdf_base64, `Consentimiento_Informado_${paciente.numero_documento}_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -646,6 +768,142 @@ export class GestionPacientesComponent implements OnInit {
             error: () => {
                 this.cargandoDocumento = false;
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al generar consentimiento informado.' });
+            }
+        });
+    }
+
+abrirFirmaConsentimientoGeneral(): void {
+        if (!this.pacienteActivo || !this.formData.id_cita) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'No hay una cita activa para generar consentimiento.' });
+            return;
+        }
+        if (!this.procedimientoGeneral || this.procedimientoGeneral.trim() === '') {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'El procedimiento es obligatorio.' });
+            return;
+        }
+        if (this.persona1Nombre && (!this.persona1TipoDoc || !this.persona1NumDoc || !this.persona1Parentesco)) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Complete todos los datos de la Persona 1.' });
+            return;
+        }
+        if (this.persona2Habilitada && this.persona2Nombre && (!this.persona2TipoDoc || !this.persona2NumDoc || !this.persona2Parentesco)) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Complete todos los datos de la Persona 2 o deshabilítela.' });
+            return;
+        }
+        // Validar datos del acompañante si es consentimiento diferido
+        if (this.tieneConsentimientoDiferido) {
+            if (!this.acompananteNombre || !this.acompananteNumDoc || !this.acompananteParentesco) {
+                this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Complete todos los datos del representante legal (nombre, documento y parentesco).' });
+                return;
+            }
+        }
+        this.fullscreen = true;
+        this.firmaGeneralOK = false;
+        this.firmaGeneralDataURL = '';
+        this.firmaAcompananteOK = false;
+        this.firmaAcompananteDataURL = '';
+        setTimeout(() => this.initSignaturePad(), 100);
+    }
+
+    guardarFirmaFull(): void {
+        if (this.firmaPadFull && !this.firmaPadFull.isEmpty()) {
+            const dataURL = this.firmaPadFull.toDataURL('image/png');
+
+            if (this.tieneConsentimientoDiferido) {
+                if (!this.firmaGeneralOK) {
+                    this.firmaGeneralDataURL = dataURL;
+                    this.firmaGeneralOK = true;
+                    this.firmaPadFull?.clear();
+                    this.messageService.add({ severity: 'success', summary: 'Firma guardada', detail: 'Firma del paciente registrada. Ahora firme el representante legal.' });
+                } else if (!this.firmaAcompananteOK) {
+                    this.firmaAcompananteDataURL = dataURL;
+                    this.firmaAcompananteOK = true;
+                    this.fullscreen = false;
+                    this.messageService.add({ severity: 'success', summary: 'Firmas completas', detail: 'Ambas firmas registradas correctamente.' });
+                }
+            } else if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_doc') {
+                this.firmaConsentimientoDataURL = dataURL;
+                this.firmaConsentimientoOK = true;
+                this.fullscreen = false;
+            } else {
+                this.firmaGeneralDataURL = dataURL;
+                this.firmaGeneralOK = true;
+                this.fullscreen = false;
+            }
+        } else {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Debe dibujar la firma antes de guardar.' });
+        }
+    }
+
+    limpiarFirmaFull(): void {
+        this.firmaPadFull?.clear();
+        this.firmaConsentimientoOK = false;
+        this.firmaConsentimientoDataURL = '';
+        this.firmaGeneralOK = false;
+        this.firmaGeneralDataURL = '';
+        this.firmaAcompananteOK = false;
+        this.firmaAcompananteDataURL = '';
+    }
+
+    generarConsentimientoGeneral(): void {
+        if (!this.firmaGeneralOK || !this.firmaGeneralDataURL) {
+            this.messageService.add({ severity: 'warn', summary: 'Firma requerida', detail: 'Debe registrar la firma del paciente antes de generar el consentimiento informado general.' });
+            return;
+        }
+        if (this.tieneConsentimientoDiferido && (!this.firmaAcompananteOK || !this.firmaAcompananteDataURL)) {
+            this.messageService.add({ severity: 'warn', summary: 'Firma del representante requerida', detail: 'El consentimiento informado diferido requiere obligatoriamente la firma del representante legal, familiar o allegado. Por favor complete ambas firmas.' });
+            return;
+        }
+        const paciente = this.pacienteActivo || (this.isEdit ? this.formData : null);
+        if (!paciente || !paciente.id_cita) return;
+
+        const datos: any = {
+            edad_paciente: this.edadPacienteGeneral,
+            autoriza_hc_correo: this.autorizaHcCorreo,
+            autoriza_hc: this.autorizaHc,
+            autoriza_expedir_hc: this.autorizaExpedirHc,
+            procedimiento_realizar: this.procedimientoGeneral,
+            persona1_nombre: this.persona1Nombre || null,
+            persona1_tipo_documento: this.persona1TipoDoc || null,
+            persona1_num_documento: this.persona1NumDoc || null,
+            persona1_parentesco: this.persona1Parentesco || null,
+            persona2_nombre: this.persona2Habilitada ? (this.persona2Nombre || null) : null,
+            persona2_tipo_documento: this.persona2Habilitada ? (this.persona2TipoDoc || null) : null,
+            persona2_num_documento: this.persona2Habilitada ? (this.persona2NumDoc || null) : null,
+            persona2_parentesco: this.persona2Habilitada ? (this.persona2Parentesco || null) : null,
+            tiene_consentimiento_diferido: this.tieneConsentimientoDiferido,
+            consentimiento_diferido_detalle: this.tieneConsentimientoDiferido ? this.consentimientoDiferidoDetalle : null,
+            acompanante_nombre: this.acompananteNombre || null,
+            acompanante_tipo_documento: this.acompananteTipoDoc || null,
+            acompanante_num_documento: this.acompananteNumDoc || null,
+            acompanante_parentesco: this.acompananteParentesco || null,
+            firma_acompanante: this.firmaAcompananteDataURL || null
+        };
+
+        this.cargandoDocumento = true;
+        this.gestionPacientesService.generarConsentimiento(
+            paciente.id_paciente,
+            paciente.id_cita,
+            this.tipoConsentimientoInfoSeleccionado?.key,
+            datos,
+            this.firmaGeneralDataURL,
+            this.tipoConsentimientoInfoSeleccionado?.funcion
+        ).subscribe({
+            next: (res: any) => {
+                this.cargandoDocumento = false;
+                if (res.state === 'OK') {
+                    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Consentimiento informado general generado. Descargando PDF...' });
+                    this.cerrarTodosLosDialogos();
+                    this.firmaGeneralOK = false;
+                    this.firmaGeneralDataURL = '';
+                    this.descargarPdfDesdeBase64(res.body.pdf_base64, `Consentimiento_Informado_General_${paciente.numero_documento}_${new Date().toISOString().split('T')[0]}.pdf`);
+                    this.cargarPacientes();
+                } else {
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: String(res.msg || 'Error al generar consentimiento') });
+                }
+            },
+            error: () => {
+                this.cargandoDocumento = false;
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al generar consentimiento informado general.' });
             }
         });
     }
@@ -708,7 +966,7 @@ export class GestionPacientesComponent implements OnInit {
                         this.cargandoReenvio = false;
                         if (res.state === 'OK') {
                             this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Consentimiento reenviado exitosamente.' });
-                            this.dialogHistorico = false;
+                            this.cerrarTodosLosDialogos();
                         } else {
                             this.messageService.add({ severity: 'error', summary: 'Error', detail: res.msg || 'No se pudo reenviar el consentimiento.' });
                         }
@@ -729,6 +987,7 @@ export class GestionPacientesComponent implements OnInit {
             next: (res: any) => {
                 this.cargandoPdf = false;
                 if (res.state === 'OK') {
+                    this.cerrarTodosLosDialogos();
                     this.descargarPdfDesdeBase64(res.body.pdf_base64, res.body.nombre_archivo || `consentimiento_${c.id_consentimiento}.pdf`);
                 } else {
                     this.messageService.add({ severity: 'error', summary: 'Error', detail: String(res.msg || 'Error al descargar') });

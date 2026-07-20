@@ -1,0 +1,106 @@
+<div class="card mt-2">
+    <div class="card-body">
+        <div class="flex justify-content-between mb-3">
+            <h3 class="text-center">Gestión de Equipos</h3>
+            <p-button label="Crear equipo" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" />
+        </div>
+
+        <div class="flex justify-content-between mb-2 text-end">
+            <input #gbInput pInputText type="text" placeholder="Buscar..."
+                (input)="tabla.filterGlobal(gbInput.value, 'contains')" />
+        </div>
+
+        <p-table #tabla [value]="equipos" [paginator]="true" [rows]="10" responsiveLayout="scroll"
+            [globalFilterFields]="['nombre', 'tipo_equipo', 'marca']">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Tipo de equipo</th>
+                    <th>Marca</th>
+                    <th>Sede</th>
+                    <th>Área</th>
+                    <th>Acciones</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-row>
+                <tr>
+                    <td>{{ row.nombre }}</td>
+                    <td>{{ row.tipo_equipo }}</td>
+                    <td>{{ row.marca }}</td>
+                    <td>{{ getNombreSede(row.id_sede) }}</td>
+                    <td>{{ getNombreArea(row.id_area) }}</td>
+                    <td>
+                        <p-button icon="fa fa-pencil" class="p-button-text p-button-sm p-button-info"
+                            (onClick)="editarEquipo(row)" pTooltip="Editar" />
+                        <p-button icon="fa fa-trash" class="p-button-text p-button-sm p-button-danger"
+                            (onClick)="inactivarEquipo(row.id_equipo)" pTooltip="Inactivar" />
+                    </td>
+                </tr>
+            </ng-template>
+
+        </p-table>
+
+        <p-dialog [header]="isEdit ? 'Editar' : 'Crear' + ' Equipo'" [(visible)]="displayDialog"
+            [modal]="true" [style]="{ width: '32rem' }" [draggable]="false" appendTo="body">
+
+            <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
+
+                <!-- Nombre -->
+                <p-floatlabel variant="on" class="col-12 mt-3">
+                    <input pInputText id="nombre" class="w-100" [(ngModel)]="formData.nombre" maxlength="150" />
+                    <label for="nombre">Nombre</label>
+                </p-floatlabel>
+
+                <!-- Tipo de equipo -->
+                <p-floatlabel variant="on" class="col-12 mt-3">
+                    <input pInputText id="tipo_equipo" class="w-100" [(ngModel)]="formData.tipo_equipo" maxlength="150" />
+                    <label for="tipo_equipo">Tipo de equipo</label>
+                </p-floatlabel>
+
+                <!-- Marca -->
+                <p-floatlabel variant="on" class="col-12 mt-3">
+                    <input pInputText id="marca" class="w-100" [(ngModel)]="formData.marca" maxlength="150" />
+                    <label for="marca">Marca</label>
+                </p-floatlabel>
+
+                <!-- Sede -->
+                <p-floatlabel variant="on" class="col-12 mt-3">
+                    <p-dropdown id="id_sede" class="w-100" name="id_sede"
+                        [(ngModel)]="formData.id_sede" [options]="sedes"
+                        optionLabel="nombre" optionValue="id_sede"
+                        placeholder="Seleccionar sede" appendTo="body"
+                        (onChange)="onChangeSedeForm($event.value)" required>
+                    </p-dropdown>
+                    <label for="id_sede">Sede</label>
+                </p-floatlabel>
+
+                <!-- Área -->
+                <p-floatlabel variant="on" class="col-12 mt-3">
+                    <p-dropdown id="id_area" class="w-100" name="id_area"
+                        [(ngModel)]="formData.id_area" [options]="areas"
+                        optionLabel="nombre" optionValue="id_area"
+                        placeholder="Seleccionar área" appendTo="body"
+                        [disabled]="!formData.id_sede" required>
+                    </p-dropdown>
+                    <label for="id_area">Área</label>
+                </p-floatlabel>
+
+            </div>
+
+            <ng-template pTemplate="footer">
+                <div class="flex justify-content-end gap-2">
+                    <p-button label="Cancelar" severity="secondary" icon="fa fa-times"
+                        (onClick)="displayDialog = false" />
+                    <p-button [label]="isEdit ? 'Actualizar' : 'Guardar'" severity="info"
+                        [icon]="isEdit ? 'fa fa-refresh' : 'fa fa-check'"
+                        (onClick)="guardarEquipo()" />
+                </div>
+            </ng-template>
+        </p-dialog>
+    </div>
+</div>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -19,6 +19,10 @@ import { ChartModule } from 'primeng/chart';
 import { RegistroTemperaturaService } from '../../services/reg-temperatura/reg-temperatura.service';
 import { Sede } from '../../interfaces/sede';
 import { Area } from '../../interfaces/area';
+import { Equipo } from '../../interfaces/equipo';
+
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
     selector: 'app-reg-temperatura',
@@ -44,6 +48,8 @@ import { Area } from '../../interfaces/area';
 })
 export class RegTemperaturaComponent implements OnInit {
 
+    @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
+
     registros: any[] = [];
     displayDialog: boolean = false;
 
@@ -58,12 +64,18 @@ export class RegTemperaturaComponent implements OnInit {
 
     sedes: Sede[] = [];
     areas: Area[] = [];
+    equipos: Equipo[] = [];
     sedeSeleccionada: Sede | null = null;
+    equipoSeleccionado: Equipo | null = null;
 
     modoEdicion: boolean = false;
     registroEditando: any = null;
 
     dialogHeader: string = 'Nuevo registro de temperatura';
+
+    displayPdfDialog: boolean = false;
+    fechaInicioPdf: Date | null = null;
+    fechaFinPdf: Date | null = null;
 
     constructor(
         private registroService: RegistroTemperaturaService,
@@ -80,20 +92,42 @@ export class RegTemperaturaComponent implements OnInit {
         this.registroService.obtenerSedes().subscribe({
             next: (sedes) => {
                 this.sedes = sedes;
-                if (sedes.length > 0) {
-                    this.sedeSeleccionada = sedes[0];
-                    this.cargarAreasPorSede();
-                    this.cargarRegistros();
-                }
             }
         });
     }
 
     onChangeSede(sede: Sede) {
         this.sedeSeleccionada = sede;
+        this.equipoSeleccionado = null;
+        this.equipos = [];
+        this.registros = [];
         this.formData.id_area = null;
-        this.cargarAreasPorSede();
-        this.cargarRegistros();
+        this.chartData = { labels: [], datasets: [] };
+
+        this.cargarEquiposPorSede();
+    }
+
+    cargarEquiposPorSede() {
+        if (!this.sedeSeleccionada) return;
+
+        this.registroService.obtenerEquiposBySede(this.sedeSeleccionada.id_sede).subscribe({
+            next: (equipos) => {
+                this.equipos = equipos;
+            }
+        });
+    }
+
+    onChangeEquipo(equipoId: number) {
+        const encontrado = this.equipos.find(e => e.id_equipo === equipoId);
+        this.equipoSeleccionado = encontrado || null;
+
+        if (this.equipoSeleccionado && this.sedeSeleccionada) {
+            this.cargarAreasPorSede();
+            this.cargarRegistros();
+        } else {
+            this.registros = [];
+            this.chartData = { labels: [], datasets: [] };
+        }
     }
 
     cargarAreasPorSede() {
@@ -205,8 +239,11 @@ export class RegTemperaturaComponent implements OnInit {
 
     cargarRegistros() {
         const idSede = this.sedeSeleccionada?.id_sede;
+        const idEquipo = this.equipoSeleccionado?.id_equipo;
 
-        this.registroService.obtenerRegistros(idSede).subscribe((res) => {
+        if (!idSede || !idEquipo) return;
+
+        this.registroService.obtenerRegistros(idSede, idEquipo).subscribe((res) => {
             this.registros = res;
             this.cargarRegistrosMesActualGrafica();
         });
@@ -221,7 +258,7 @@ export class RegTemperaturaComponent implements OnInit {
         this.formData.fecha = ahora;
         this.definirHorarioPorHora(ahora);
 
-        this.dialogHeader = `Nuevo registro de temperatura - ${this.sedeSeleccionada?.nombre || ''}`;
+        this.dialogHeader = `Nuevo registro de temperatura - ${this.sedeSeleccionada?.nombre || ''} / ${this.equipoSeleccionado?.nombre || ''}`;
         this.displayDialog = true;
     }
 
@@ -238,7 +275,7 @@ export class RegTemperaturaComponent implements OnInit {
             fecha: new Date(registro.fecha_registro)
         };
 
-        this.dialogHeader = `Editar registro de temperatura - ${this.sedeSeleccionada?.nombre || ''}`;
+        this.dialogHeader = `Editar registro de temperatura - ${this.sedeSeleccionada?.nombre || ''} / ${this.equipoSeleccionado?.nombre || ''}`;
         this.displayDialog = true;
     }
 
@@ -256,6 +293,7 @@ export class RegTemperaturaComponent implements OnInit {
         let dataFormulario = {
             ...this.formData,
             id_sede: this.sedeSeleccionada?.id_sede,
+            id_equipo: this.equipoSeleccionado?.id_equipo,
             fecha: this.obtenerFechaHoraActualFormatoIso(this.formData.fecha)
         };
 
@@ -314,6 +352,99 @@ export class RegTemperaturaComponent implements OnInit {
                 });
             }
         });
+    }
+
+    // ==============================
+    // PDF
+    // ==============================
+    abrirDialogPdf() {
+        this.fechaInicioPdf = null;
+        this.fechaFinPdf = null;
+        this.displayPdfDialog = true;
+    }
+
+    generarPdf() {
+        if (!this.fechaInicioPdf || !this.fechaFinPdf) return;
+
+        const fechaInicio = new Date(this.fechaInicioPdf);
+        fechaInicio.setHours(0, 0, 0, 0);
+        const fechaFin = new Date(this.fechaFinPdf);
+        fechaFin.setHours(23, 59, 59, 999);
+
+        const registrosFiltrados = this.registros.filter(r => {
+            const fecha = new Date(r.fecha_registro);
+            return fecha >= fechaInicio && fecha <= fechaFin;
+        }).sort((a, b) =>
+            new Date(a.fecha_registro).getTime() - new Date(b.fecha_registro).getTime()
+        );
+
+        if (registrosFiltrados.length === 0) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'No hay registros en el rango de fechas seleccionado'
+            });
+            return;
+        }
+
+        const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Registro de Temperatura', pageWidth / 2, 40, { align: 'center' });
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Sede: ${this.sedeSeleccionada?.nombre || ''}`, 40, 60);
+        doc.text(`Equipo: ${this.equipoSeleccionado?.nombre || ''}`, 40, 75);
+        doc.text(`Rango: ${this.formatearFechaCorta(fechaInicio)} - ${this.formatearFechaCorta(fechaFin)}`, 40, 90);
+
+        let currentY = 105;
+
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+            const imgData = canvas.toDataURL('image/png');
+            const imgWidth = pageWidth - 80;
+            const imgHeight = (canvas.height / canvas.width) * imgWidth;
+
+            doc.addImage(imgData, 'PNG', 40, currentY, imgWidth, Math.min(imgHeight, 200));
+            currentY += Math.min(imgHeight, 200) + 15;
+        }
+
+        autoTable(doc, {
+            startY: currentY,
+            head: [['Sede', 'Área', 'Equipo', 'Fecha', 'Horario', 'Temp. (°C)', 'Humedad (%)', 'Tipo medida', 'Responsable']],
+            body: registrosFiltrados.map(r => [
+                this.sedeSeleccionada?.nombre || '',
+                this.getNombreArea(r.id_area),
+                this.equipoSeleccionado?.nombre || '',
+                this.formatearFechaCorta(new Date(r.fecha_registro)),
+                r.horario || '',
+                String(r.temperatura || ''),
+                String(r.humedad || ''),
+                r.tipo_medida || '',
+                r.responsable || ''
+            ]),
+            styles: { fontSize: 7, cellPadding: 2 },
+            headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+            margin: { left: 40, right: 40 }
+        });
+
+        const nombreArchivo = `registro_temperatura_${this.sedeSeleccionada?.nombre || ''}_${this.equipoSeleccionado?.nombre || ''}_${this.formatearFechaCorta(fechaInicio)}_${this.formatearFechaCorta(fechaFin)}.pdf`;
+        doc.save(nombreArchivo);
+
+        this.displayPdfDialog = false;
+        this.messageService.add({
+            severity: 'success',
+            summary: 'PDF descargado correctamente'
+        });
+    }
+
+    formatearFechaCorta(fecha: Date): string {
+        const dia = fecha.getDate().toString().padStart(2, '0');
+        const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+        const anio = fecha.getFullYear();
+        return `${dia}-${mes}-${anio}`;
     }
 
     public obtenerFechaHoraActualFormatoIso(

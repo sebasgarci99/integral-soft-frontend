@@ -4,6 +4,7 @@ import { map, Observable } from 'rxjs';
 import { enviroment } from '../../../enviroments/enviroment';
 import { Sede } from '../../interfaces/sede';
 import { Area } from '../../interfaces/area';
+import { Equipo } from '../../interfaces/equipo';
 
 @Injectable({
     providedIn: 'root'
@@ -53,12 +54,26 @@ export class RegistroTemperaturaService {
     }
 
     // ==============================
+    // Equipos
+    // ==============================
+    obtenerEquiposBySede(id_sede: number): Observable<Equipo[]> {
+        return this.http.post<any>(
+            this.urlApp + 'api/equipo/getEquiposBySede',
+            { id_sede },
+            { headers: this.getHeaders() }
+        ).pipe(map(r => r.body as Equipo[]));
+    }
+
+    // ==============================
     // GET - listar registros
     // ==============================
-    obtenerRegistros(id_sede?: number): Observable<any[]> {
+    obtenerRegistros(id_sede?: number, id_equipo?: number): Observable<any[]> {
         const body: Record<string, unknown> = {};
         if (id_sede) {
             body['id_sede'] = id_sede;
+        }
+        if (id_equipo) {
+            body['id_equipo'] = id_equipo;
         }
 
         return this.http.post<any>(

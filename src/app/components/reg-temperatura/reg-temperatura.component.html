@@ -6,26 +6,49 @@
                     <h3 class="text-center">Registro de toma de temperatura</h3>
                 </div>
 
-                <!-- Selector de Sede -->
-                <div class="d-flex align-items-center mb-3 sede-selector">
-                    <label class="me-2 fw-bold">Sede:</label>
-                    <p-dropdown [options]="sedes" [(ngModel)]="sedeSeleccionada"
-                        optionLabel="nombre"
-                        placeholder="Seleccionar sede" appendTo="body"
-                        (onChange)="onChangeSede($event.value)"
-                        [style]="{ minWidth: '200px' }">
-                    </p-dropdown>
+                <!-- Selector de Sede y Equipo -->
+                <div class="d-flex align-items-center mb-3 sede-selector gap-3 flex-wrap">
+                    <div class="d-flex align-items-center">
+                        <label class="me-2 fw-bold">Sede:</label>
+                        <p-dropdown [options]="sedes" [(ngModel)]="sedeSeleccionada"
+                            optionLabel="nombre"
+                            placeholder="Seleccionar sede" appendTo="body"
+                            (onChange)="onChangeSede($event.value)"
+                            [style]="{ minWidth: '200px' }">
+                        </p-dropdown>
+                    </div>
+
+                    <div class="d-flex align-items-center">
+                        <label class="me-2 fw-bold">Equipo:</label>
+                        <p-dropdown [options]="equipos"
+                            [ngModel]="equipoSeleccionado?.id_equipo"
+                            optionLabel="nombre" optionValue="id_equipo"
+                            placeholder="Seleccionar equipo" appendTo="body"
+                            (onChange)="onChangeEquipo($event.value)"
+                            [disabled]="!sedeSeleccionada"
+                            [style]="{ minWidth: '200px' }">
+                        </p-dropdown>
+                    </div>
                 </div>
 
                 <!-- GRÁFICA -->
                 <div class="mb-2 col-12 w-75 mx-auto">
-                    <p-chart type="line" [data]="chartData" [options]="chartOptions"></p-chart>
+                    <p-chart *ngIf="chartData && chartData.labels?.length > 0" type="line" [data]="chartData" [options]="chartOptions"></p-chart>
+                    <div *ngIf="!chartData || chartData.labels?.length === 0" class="text-center text-muted py-5">
+                        <i class="fa fa-chart-line fa-3x mb-3 d-block"></i>
+                        <p class="mb-0">Seleccione sede y equipo para ver la gráfica</p>
+                    </div>
                 </div>
                 <hr>
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <!-- Botón izquierda -->
-                    <p-button label="Nuevo registro" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()">
-                    </p-button>
+                    <!-- Botones izquierda -->
+                    <div class="d-flex align-items-center gap-2">
+                        <p-button icon="fa fa-download" severity="success" [outlined]="true"
+                            (onClick)="abrirDialogPdf()" [disabled]="!equipoSeleccionado"
+                            pTooltip="Descargar PDF" />
+                        <p-button label="Nuevo registro" icon="fa fa-plus" severity="info"
+                            (onClick)="abrirFormulario()" [disabled]="!equipoSeleccionado" />
+                    </div>
 
                     <!-- Buscador derecha -->
                     <input #gbInput pInputText type="text" class="ms-auto" placeholder="Buscar..."
@@ -69,6 +92,7 @@
 
                 </p-table>
 
+                <!-- Dialog formulario -->
                 <p-dialog [header]="dialogHeader" [(visible)]="displayDialog" [modal]="true"
                     [style]="{ width: '32rem' }" [draggable]="false" appendTo="body">
 
@@ -77,6 +101,26 @@
 
                         <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
 
+                            <!-- Sede (bloqueada) -->
+                            <p-floatlabel variant="on" class="col-12 mt-3">
+                                <p-dropdown class="w-100"
+                                    [options]="sedes" [ngModel]="sedeSeleccionada?.id_sede"
+                                    optionLabel="nombre" optionValue="id_sede"
+                                    [disabled]="true" appendTo="body">
+                                </p-dropdown>
+                                <label>Sede</label>
+                            </p-floatlabel>
+
+                            <!-- Equipo (bloqueado) -->
+                            <p-floatlabel variant="on" class="col-12 mt-3">
+                                <p-dropdown class="w-100"
+                                    [options]="equipos" [ngModel]="equipoSeleccionado?.id_equipo"
+                                    optionLabel="nombre" optionValue="id_equipo"
+                                    [disabled]="true" appendTo="body">
+                                </p-dropdown>
+                                <label>Equipo</label>
+                            </p-floatlabel>
+
                             <!-- Área -->
                             <p-floatlabel variant="on" class="col-12 mt-3">
                                 <p-dropdown id="id_area" class="w-100" name="id_area"
@@ -84,7 +128,6 @@
                                     [options]="areas" optionLabel="nombre" optionValue="id_area"
                                     placeholder="Seleccionar área" appendTo="body" required>
                                 </p-dropdown>
-                                <!-- <label for="id_area">Área</label> -->
                             </p-floatlabel>
 
                             <!-- Fecha / Horario -->
@@ -97,12 +140,11 @@
                                     <label>Fecha</label>
                                 </p-floatlabel>
 
-                                <p-floatlabel variant="on" class="col-lg-6 md:col-12 mt-3 me-2">                                    
+                                <p-floatlabel variant="on" class="col-lg-6 md:col-12 mt-3 me-2">
                                     <p-dropdown id="id_horario" class="w-100" [options]="horarios"
                                         optionLabel="label" optionValue="value" placeholder="Horarios..."
                                         [(ngModel)]="formData.horario" #id_horario="ngModel" required>
                                     </p-dropdown>
-                                    <!-- <label>Horario</label>  -->
                                 </p-floatlabel>
                             </div>
 
@@ -142,6 +184,37 @@
                         </div>
                     </ng-template>
 
+                </p-dialog>
+
+                <!-- Dialog PDF - Rango de fechas -->
+                <p-dialog header="Descargar Reporte PDF" [(visible)]="displayPdfDialog" [modal]="true"
+                    [style]="{ width: '28rem' }" [draggable]="false" appendTo="body">
+
+                    <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
+                        <p-floatlabel variant="on" class="col-12 mt-3">
+                            <p-calendar name="fechaInicio" [(ngModel)]="fechaInicioPdf"
+                                dateFormat="yy-mm-dd" appendTo="body" required [showIcon]="true">
+                            </p-calendar>
+                            <label>Fecha Inicio</label>
+                        </p-floatlabel>
+
+                        <p-floatlabel variant="on" class="col-12 mt-3">
+                            <p-calendar name="fechaFin" [(ngModel)]="fechaFinPdf"
+                                dateFormat="yy-mm-dd" appendTo="body" required [showIcon]="true">
+                            </p-calendar>
+                            <label>Fecha Fin</label>
+                        </p-floatlabel>
+                    </div>
+
+                    <ng-template pTemplate="footer">
+                        <div class="flex justify-content-end gap-2">
+                            <p-button label="Cancelar" severity="secondary" icon="fa fa-times"
+                                (onClick)="displayPdfDialog = false" />
+                            <p-button label="Aceptar" severity="info" icon="fa fa-check"
+                                [disabled]="!fechaInicioPdf || !fechaFinPdf"
+                                (onClick)="generarPdf()" />
+                        </div>
+                    </ng-template>
                 </p-dialog>
 
             </div>

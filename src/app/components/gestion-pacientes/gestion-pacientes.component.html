@@ -178,7 +178,7 @@
                                 <!-- Selector de tipo de consentimiento -->
                                 <div class="col-12 mt-2">
                                     <label for="tipoConsentimientoTab" style="display:block; margin-bottom:0.5rem; font-weight:600;">Tipo de consentimiento</label>
-                                    <p-dropdown id="tipoConsentimientoTab" [options]="tiposConsentimiento" optionLabel="label"
+                                    <p-dropdown id="tipoConsentimientoTab" [options]="tiposConsentimientoOficial" optionLabel="label"
                                         [(ngModel)]="tipoConsentimientoInfoSeleccionado" placeholder="Seleccione tipo de consentimiento..."
                                         (onChange)="tipoConsentimientoCambio()" appendTo="body" class="w-100"></p-dropdown>
                                 </div>
@@ -186,9 +186,16 @@
                                 <hr *ngIf="tipoConsentimientoInfoSeleccionado">
 
                                 <!-- SECCIÓN: CONSENTIMIENTO INFORMADO -->
-                                <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado'">
+                                <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_doc'">
                                     <div class="col-12 mt-3">
                                         <h5 class="mb-3">Datos del consentimiento informado</h5>
+
+                                        <div class="col-12 mt-3 mb-3">
+                                            <p-floatlabel variant="on" class="w-100">
+                                                <input pInputText [(ngModel)]="lugarProcedimientoInfo" class="w-100" maxlength="200" />
+                                                <label>Lugar donde se realiza el procedimiento</label>
+                                            </p-floatlabel>
+                                        </div>
 
                                         <div class="d-flex align-items-center mb-3">
                                             <p-checkbox [(ngModel)]="aplicaAcudienteInfo" binary="true" inputId="aplicaAcudienteInfo"></p-checkbox>
@@ -205,7 +212,7 @@
                                                     <p-dropdown id="tipoDocAcudienteInfo" 
                                                         name="tipoDocAcudienteInfo" 
                                                         inputId="tipoDocAcudienteInfo" 
-                                                        #tipoDocAcudienteInfo="ngModel" 
+                                                        #tipoDocAcudienteNg="ngModel" 
                                                         [options]="tiposDocumento" 
                                                         [(ngModel)]="tipoDocAcudienteInfo" 
                                                         appendTo="body" 
@@ -240,13 +247,6 @@
 
                                         <div class="col-12 mt-3">
                                             <p-floatlabel variant="on" class="w-100">
-                                                <input pInputText [(ngModel)]="lugarProcedimientoInfo" class="w-100" maxlength="200" />
-                                                <label>Lugar donde se realiza el procedimiento</label>
-                                            </p-floatlabel>
-                                        </div>
-
-                                        <div class="col-12 mt-3">
-                                            <p-floatlabel variant="on" class="w-100">
                                                 <textarea pInputTextarea [(ngModel)]="riesgosInfo" class="w-100 p-inputtext" rows="3" maxlength="2000"></textarea>
                                                 <label>Riesgos</label>
                                             </p-floatlabel>
@@ -264,8 +264,8 @@
                                     </div>
                                 </ng-container>
 
-                                <!-- SECCIÓN: TIPO B y TIPO C (riesgos de vacunación) -->
-                                <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'tipo_b' || tipoConsentimientoInfoSeleccionado?.key === 'tipo_c'">
+                                <!-- SECCIÓN: TIPO C (riesgos de vacunación) -->
+                                <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_oficial_tipo_c'">
                                     <div class="d-flex align-items-center mb-2">
                                         <label class="col-8">¿Padece alguna enfermedad actualmente?</label>
                                         <div class="col-4 field-radiobutton justify-content-end">
@@ -374,6 +374,152 @@
                                     </div>
                                 </ng-container>
 
+                                <!-- SECCIÓN: CONSENTIMIENTO INFORMADO GENERAL -->
+                                <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_general'">
+                                    <div class="col-12 mt-3">
+                                        <h5 class="mb-3">Consentimiento Informado General</h5>
+
+                                        <!-- Edad calculada -->
+                                        <div class="col-12 d-md-flex d-sm-grid">
+                                            <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                                <input pInputText [ngModel]="edadPacienteGeneral" class="w-100" readonly />
+                                                <label>Edad del paciente</label>
+                                            </p-floatlabel>
+                                        </div>
+
+                                        <!-- Autorizaciones SI/NO -->
+                                        <div class="col-12 mt-4">
+                                            <h6 class="mb-2">Autorizaciones</h6>
+                                        </div>
+
+                                        <div class="col-12 d-md-flex d-sm-grid">
+                                            <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-2">
+                                                <p-dropdown [options]="opcionesSN" [(ngModel)]="autorizaHcCorreo" appendTo="body" class="w-100"
+                                                    [ngClass]="{ 'p-inputwrapper-filled': autorizaHcCorreo }"></p-dropdown>
+                                                <label>Autoriza HC por correo</label>
+                                            </p-floatlabel>
+                                            <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-2">
+                                                <p-dropdown [options]="opcionesSN" [(ngModel)]="autorizaHc" appendTo="body" class="w-100"
+                                                    [ngClass]="{ 'p-inputwrapper-filled': autorizaHc }"></p-dropdown>
+                                                <label>Autoriza datos de HC</label>
+                                            </p-floatlabel>
+                                            <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3">
+                                                <p-dropdown [options]="opcionesSN" [(ngModel)]="autorizaExpedirHc" appendTo="body" class="w-100"
+                                                    [ngClass]="{ 'p-inputwrapper-filled': autorizaExpedirHc }"></p-dropdown>
+                                                <label>Autoriza expedir HC</label>
+                                            </p-floatlabel>
+                                        </div>
+
+                                        <!-- Procedimiento -->
+                                        <div class="col-12 mt-3">
+                                            <p-floatlabel variant="on" class="w-100">
+                                                <textarea pInputTextarea [(ngModel)]="procedimientoGeneral" class="w-100 p-inputtext" rows="3" maxlength="2000"></textarea>
+                                                <label>Procedimiento *</label>
+                                            </p-floatlabel>
+                                        </div>
+
+                                        <!-- Persona 1 -->
+                                        <div class="col-12 mt-4">
+                                            <h6 class="mb-2">Persona 1 para copia de la HC</h6>
+                                        </div>
+                                        <div class="col-12 d-md-flex d-sm-grid">
+                                            <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
+                                                <input pInputText [(ngModel)]="persona1Nombre" class="w-100" maxlength="200" />
+                                                <label>Nombre *</label>
+                                            </p-floatlabel>
+                                            <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
+                                                <p-dropdown name="persona1TipoDoc" id="persona1TipoDoc" [options]="tiposDocumento" [(ngModel)]="persona1TipoDoc" appendTo="body" class="w-100"
+                                                    [ngClass]="{ 'p-inputwrapper-filled': persona1TipoDoc }"></p-dropdown>
+                                                <label for="persona1TipoDoc">Tipo documento *</label>
+                                            </p-floatlabel>
+                                            <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
+                                                <input pInputText [(ngModel)]="persona1NumDoc" class="w-100" maxlength="20" />
+                                                <label>N° documento *</label>
+                                            </p-floatlabel>
+                                            <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3">
+                                                <input pInputText [(ngModel)]="persona1Parentesco" class="w-100" maxlength="100" />
+                                                <label>Parentesco *</label>
+                                            </p-floatlabel>
+                                        </div>
+
+                                        <!-- Persona 2 (opcional) -->
+                                        <div class="col-12 mt-3 d-flex align-items-center">
+                                            <p-checkbox [(ngModel)]="persona2Habilitada" binary="true" inputId="persona2Habilitada"></p-checkbox>
+                                            <label for="persona2Habilitada" class="ms-2">Agregar Persona 2 para copia de la HC</label>
+                                        </div>
+                                        <ng-container *ngIf="persona2Habilitada">
+                                            <div class="col-12 d-md-flex d-sm-grid">
+                                                <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
+                                                    <input pInputText [(ngModel)]="persona2Nombre" class="w-100" maxlength="200" />
+                                                    <label>Nombre</label>
+                                                </p-floatlabel>
+                                                <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
+                                                    <p-dropdown name="persona2TipoDoc" id="persona2TipoDoc" [options]="tiposDocumento" [(ngModel)]="persona2TipoDoc" appendTo="body" class="w-100"
+                                                        [ngClass]="{ 'p-inputwrapper-filled': persona2TipoDoc }"></p-dropdown>
+                                                    <label for="persona2TipoDoc">Tipo documento</label>
+                                                </p-floatlabel>
+                                                <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
+                                                    <input pInputText [(ngModel)]="persona2NumDoc" class="w-100" maxlength="20" />
+                                                    <label>N° documento</label>
+                                                </p-floatlabel>
+                                                <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3">
+                                                    <input pInputText [(ngModel)]="persona2Parentesco" class="w-100" maxlength="100" />
+                                                    <label>Parentesco</label>
+                                                </p-floatlabel>
+                                            </div>
+                                        </ng-container>
+
+                                        <!-- Consentimiento diferido -->
+                                        <div class="col-12 mt-4">
+                                            <div class="d-flex align-items-center">
+                                                <p-checkbox [(ngModel)]="tieneConsentimientoDiferido" binary="true" inputId="consentimientoDiferido"></p-checkbox>
+                                                <label for="consentimientoDiferido" class="ms-2">¿Consentimiento informado diferido? (Representante legal, familiar o allegado)</label>
+                                            </div>
+                                            <ng-container *ngIf="tieneConsentimientoDiferido">
+                                                <div class="col-12 d-md-flex d-sm-grid mt-3">
+                                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                                        <input pInputText [(ngModel)]="acompananteNombre" class="w-100" maxlength="200" />
+                                                        <label>Nombre del representante *</label>
+                                                    </p-floatlabel>
+                                                    <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
+                                                        <p-dropdown name="acompananteTipoDoc" id="acompananteTipoDoc" [options]="tiposDocumento" [(ngModel)]="acompananteTipoDoc" appendTo="body" class="w-100"
+                                                            [ngClass]="{ 'p-inputwrapper-filled': acompananteTipoDoc }"></p-dropdown>
+                                                        <label for="acompananteTipoDoc">Tipo documento</label>
+                                                    </p-floatlabel>
+                                                    <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3">
+                                                        <input pInputText [(ngModel)]="acompananteNumDoc" class="w-100" maxlength="20" />
+                                                        <label>N° documento *</label>
+                                                    </p-floatlabel>
+                                                </div>
+                                                <div class="col-12 d-md-flex d-sm-grid">
+                                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                                        <input pInputText [(ngModel)]="acompananteParentesco" class="w-100" maxlength="100" />
+                                                        <label>Parentesco *</label>
+                                                    </p-floatlabel>
+                                                </div>
+                                                <p-floatlabel variant="on" class="w-100 mt-3">
+                                                    <textarea pInputTextarea [(ngModel)]="consentimientoDiferidoDetalle" class="w-100 p-inputtext" rows="3" maxlength="2000"></textarea>
+                                                    <label>Detalle del consentimiento diferido</label>
+                                                </p-floatlabel>
+                                                <div class="mt-2 p-2 bg-light rounded">
+                                                    <small class="text-muted d-block"><i class="fa fa-info-circle me-1"></i>Se requerirán <strong>2 firmas</strong>: 1) Firma del paciente  2) Firma del representante legal</small>
+                                                </div>
+                                            </ng-container>
+                                        </div>
+
+                                        <!-- Botones de firma y generación -->
+                                        <div class="col-12 mt-4 d-flex gap-2 justify-content-end">
+                                            <p-button *ngIf="!firmaGeneralOK" label="Generar consentimiento informado general" icon="fa fa-file-signature" severity="success"
+                                                (onClick)="abrirFirmaConsentimientoGeneral()"></p-button>
+                                            <p-button *ngIf="firmaGeneralOK" label="Firma registrada" icon="fa fa-check" severity="success" disabled="true"></p-button>
+                                            <p-button *ngIf="firmaGeneralOK" label="Limpiar firma" icon="fa fa-trash" severity="secondary"
+                                                (onClick)="limpiarFirmaFull()"></p-button>
+                                            <p-button *ngIf="firmaGeneralOK" label="Aceptar y generar documento" icon="fa fa-save" severity="info"
+                                                (onClick)="generarConsentimientoGeneral()" [loading]="cargandoDocumento"></p-button>
+                                        </div>
+                                    </div>
+                                </ng-container>
+
                             </div>
                         </ng-container>
 
@@ -412,7 +558,7 @@
                     <ng-template pTemplate="footer">
                         <div class="flex justify-content-center text-center gap-2 mt-3">
                             <p-button label="Cancelar" icon="fa fa-times" severity="secondary" (onClick)="cerrar()"></p-button>
-                            <p-button label="Guardar" icon="fa fa-check" (onClick)="guardar()"></p-button>
+                            <p-button label="Guardar" icon="fa fa-check" (onClick)="guardar()" *ngIf="currentTab === 0 || currentTab === 1"></p-button>
                         </div>
                     </ng-template>
                 </p-dialog>
@@ -423,7 +569,7 @@
                     <div class="p-fluid grid p-formgrid">
                         <div class="col-12 mt-3">
                             <label for="tipoConsentimientoBorrador" style="display:block; margin-bottom:0.5rem; font-weight:600;">Tipo de consentimiento</label>
-                            <p-dropdown id="tipoConsentimientoBorrador" [options]="tiposConsentimiento" optionLabel="label" [(ngModel)]="tipoConsentimientoSeleccionado"
+                            <p-dropdown id="tipoConsentimientoBorrador" [options]="tiposConsentimientoBorrador" optionLabel="label" [(ngModel)]="tipoConsentimientoSeleccionado"
                                 placeholder="Seleccione tipo" appendTo="body" class="w-100"></p-dropdown>
                         </div>
                         <div class="col-12 mt-3">
@@ -443,7 +589,7 @@
                     <div class="p-fluid grid p-formgrid">
                         <div class="col-12 mt-3">
                             <label for="tipoConsentimientoOficial" style="display:block; margin-bottom:0.5rem; font-weight:600;">Tipo de consentimiento</label>
-                            <p-dropdown id="tipoConsentimientoOficial" [options]="tiposConsentimiento" optionLabel="label" [(ngModel)]="tipoConsentimientoSeleccionado"
+                            <p-dropdown id="tipoConsentimientoOficial" [options]="tiposConsentimientoOficial" optionLabel="label" [(ngModel)]="tipoConsentimientoSeleccionado"
                                 placeholder="Seleccione tipo" appendTo="body" class="w-100"></p-dropdown>
                         </div>
                         <div class="col-12 mt-3 d-flex align-items-center gap-2">
@@ -548,10 +694,28 @@
             <p-button label="Cerrar" severity="danger" (onClick)="closeFullscreen()"></p-button>
             <div class="flex gap-2">
                 <p-button label="Limpiar firma" icon="fa fa-trash" (onClick)="limpiarFirmaFull()" severity="secondary"></p-button>
-                <p-button label="Guardar firma" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
+                <p-button *ngIf="tieneConsentimientoDiferido && !firmaGeneralOK" label="Guardar firma paciente" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
+                <p-button *ngIf="tieneConsentimientoDiferido && firmaGeneralOK && !firmaAcompananteOK" label="Guardar firma representante" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
+                <p-button *ngIf="!tieneConsentimientoDiferido" label="Guardar firma" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
             </div>
         </div>
         <div class="signature-wrapper">
+            <div class="text-center mb-2" *ngIf="tieneConsentimientoDiferido">
+                <span class="badge bg-secondary me-2" [class.bg-success]="firmaGeneralOK">
+                    <i class="fa fa-user me-1"></i> Paciente: {{ firmaGeneralOK ? 'Firmado' : 'Pendiente' }}
+                </span>
+                <span class="badge bg-secondary" [class.bg-success]="firmaAcompananteOK">
+                    <i class="fa fa-user-tie me-1"></i> Representante: {{ firmaAcompananteOK ? 'Firmado' : 'Pendiente' }}
+                </span>
+            </div>
+            <div class="text-center mb-2" *ngIf="!tieneConsentimientoDiferido">
+                <span class="badge bg-secondary" [class.bg-success]="firmaGeneralOK">
+                    <i class="fa fa-user me-1"></i> Paciente: {{ firmaGeneralOK ? 'Firmado' : 'Pendiente' }}
+                </span>
+            </div>
+            <div class="text-center fw-bold mb-2 text-primary" *ngIf="tieneConsentimientoDiferido">
+                {{ !firmaGeneralOK ? 'Firma del Paciente' : (!firmaAcompananteOK ? 'Firma del Representante Legal' : 'Ambas firmas completadas') }}
+            </div>
             <canvas #firmaPadFull></canvas>
         </div>
     </div>
