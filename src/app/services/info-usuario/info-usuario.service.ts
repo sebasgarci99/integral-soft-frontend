@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
 import { enviroment } from '../../../enviroments/enviroment';
+import { SecureStorageService } from '../secure-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class InfoUsuarioService {
@@ -10,41 +11,46 @@ export class InfoUsuarioService {
     private urlApp = enviroment.endpoint;
     private urlAppAPI = 'api/usuario_info/';
 
-    constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient, private secureStorage: SecureStorageService) {}
 
-    private getAuthHeaders() {
-        return new HttpHeaders().set('authorization', `Bearer ${localStorage.getItem('token')}`);
+    private async getAuthHeaders(): Promise<HttpHeaders> {
+        const token = await this.secureStorage.getItem('token');
+        return new HttpHeaders().set('authorization', `Bearer ${token}`);
     }
 
-    getFullUserInfo(): Observable<any> {
+    async getFullUserInfo(): Promise<Observable<any>> {
+        const headers = await this.getAuthHeaders();
         return this.http.post<any>(
             `${this.urlApp}${this.urlAppAPI}getFullUserInfo`,
             {},
-            { headers: this.getAuthHeaders() }
+            { headers }
         ).pipe(map(resp => resp.body));
     }
 
-    updateUserInfo(data: { nombre?: string; apellido?: string; foto_perfil?: string; firma_digital?: string }): Observable<any> {
+    async updateUserInfo(data: { nombre?: string; apellido?: string; foto_perfil?: string; firma_digital?: string }): Promise<Observable<any>> {
+        const headers = await this.getAuthHeaders();
         return this.http.post<any>(
             `${this.urlApp}${this.urlAppAPI}updateUserInfo`,
             data,
-            { headers: this.getAuthHeaders() }
+            { headers }
         );
     }
 
-    updateInfoAdicional(data: { nombre_completo?: string; numero_documento?: string; banco?: string; tipo_cuenta?: string; numero_cuenta?: string }): Observable<any> {
+    async updateInfoAdicional(data: { nombre_completo?: string; numero_documento?: string; banco?: string; tipo_cuenta?: string; numero_cuenta?: string }): Promise<Observable<any>> {
+        const headers = await this.getAuthHeaders();
         return this.http.post<any>(
             `${this.urlApp}${this.urlAppAPI}updateInfoAdicional`,
             data,
-            { headers: this.getAuthHeaders() }
+            { headers }
         );
     }
 
-    updateCorreoSmtp(data: { correo_electronico?: string; password?: string; host?: string; puerto?: number; servicio?: string }): Observable<any> {
+    async updateCorreoSmtp(data: { correo_electronico?: string; password?: string; host?: string; puerto?: number; servicio?: string }): Promise<Observable<any>> {
+        const headers = await this.getAuthHeaders();
         return this.http.post<any>(
             `${this.urlApp}${this.urlAppAPI}updateCorreoSmtp`,
             data,
-            { headers: this.getAuthHeaders() }
+            { headers }
         );
     }
 }

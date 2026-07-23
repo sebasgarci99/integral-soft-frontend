@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { RegTemperaturaService } from './reg-temperatura.service';
+import { RegistroTemperaturaService } from './reg-temperatura.service';
 
-describe('RegTemperaturaService', () => {
-  let service: RegTemperaturaService;
+describe('RegistroTemperaturaService', () => {
+  let service: RegistroTemperaturaService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(RegTemperaturaService);
+    service = TestBed.inject(RegistroTemperaturaService);
   });
 
   it('should be created', () => {

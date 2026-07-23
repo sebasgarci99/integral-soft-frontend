@@ -124,9 +124,9 @@ export class RegVacunacionComponent implements OnInit {
     }
 
     // Cargar solo pacientes activos
-    cargarPacientes() {
-        this.pacientesService.obtenerPacientesVacunacion().subscribe(data => {
-            this.pacientes = data.filter(e => e.estado == 'A');
+    async cargarPacientes() {
+        (await this.pacientesService.obtenerPacientesVacunacion()).subscribe((data: any) => {
+            this.pacientes = data.filter((e: any) => e.estado == 'A');
         });
     }
 
@@ -166,24 +166,24 @@ export class RegVacunacionComponent implements OnInit {
         this.cargarVacunas();
     }
 
-    cargarVacunas() {
-        this.vacunaService.obtenerVacunas().subscribe((data) => {
-            this.listaVacunas = data.filter(e => e.estado == 'A');
+    async cargarVacunas() {
+        (await this.vacunaService.obtenerVacunas()).subscribe((data: any) => {
+            this.listaVacunas = data.filter((e: any) => e.estado == 'A');
         });
     }
 
-    abrirHistoricoVacunas(paciente: any) {
+    async abrirHistoricoVacunas(paciente: any) {
         this.selectedPaciente = paciente;
-        this.regVacunacionService.obtenerVacunasPaciente(paciente.id_paciente).subscribe(data => {
+        (await this.regVacunacionService.obtenerVacunasPaciente(paciente.id_paciente)).subscribe((data: any) => {
             this.historicoVacunas = data;
             this.historicoGrupos = this.agruparPorVacunacion(data);
-            this.historicoActiveIndex = this.historicoGrupos.map((_, i) => i);
+            this.historicoActiveIndex = this.historicoGrupos.map((_: any, i: number) => i);
             this.dialogVacunas = true;
         });
     }
 
-    abrirHistoricoConsentimientos(paciente: any) {
-        this.consentimientoService.obtenerConsentimientosPaciente(paciente.id_paciente).subscribe(data => {
+    async abrirHistoricoConsentimientos(paciente: any) {
+        (await this.consentimientoService.obtenerConsentimientosPaciente(paciente.id_paciente)).subscribe((data: any) => {
             this.historicoConsentimientos = data;
             this.dialogConsentimientos = true;
         });
@@ -207,10 +207,10 @@ export class RegVacunacionComponent implements OnInit {
             }
             grupos.get(item.id_vacunacion).vacunas.push(item);
         }
-        return Array.from(grupos.values()).sort((a, b) => b.id_vacunacion - a.id_vacunacion);
+        return Array.from(grupos.values()).sort((a: any, b: any) => b.id_vacunacion - a.id_vacunacion);
     }
 
-    editarRegistro(grupo: any) {
+    async editarRegistro(grupo: any) {
         this.modoEdicion = true;
         this.idVacunacionEditando = grupo.id_vacunacion;
 
@@ -225,8 +225,8 @@ export class RegVacunacionComponent implements OnInit {
         this.formSubmitted = false;
         this.firmaOK = false;
 
-        this.vacunaService.obtenerVacunas().subscribe(data => {
-            this.listaVacunas = data.filter(e => e.estado == 'A');
+        (await this.vacunaService.obtenerVacunas()).subscribe((data: any) => {
+            this.listaVacunas = data.filter((e: any) => e.estado == 'A');
 
             this.vacunasSeleccionadas = grupo.vacunas.map((v: any) =>
                 this.listaVacunas.find((lv: any) => lv.id === v.id_vacuna)
@@ -268,12 +268,16 @@ export class RegVacunacionComponent implements OnInit {
         );
     }
 
-    generarPDF(consent: any) {
-        const html$ = consent.f_procesar_datos_consentimiento
-            ? of(consent.f_procesar_datos_consentimiento)
-            : this.consentimientoService.obtenerHtmlConsentimiento(consent.id_vacunacion);
-
+    async generarPDF(consent: any) {
         this.loader = true;
+
+        let html$: any;
+        if (consent.f_procesar_datos_consentimiento) {
+            html$ = of(consent.f_procesar_datos_consentimiento);
+        } else {
+            html$ = await this.consentimientoService.obtenerHtmlConsentimiento(consent.id_vacunacion);
+        }
+
         html$.subscribe({
             next: (html: string) => {
                 const doc = new jsPDF({
@@ -293,7 +297,7 @@ export class RegVacunacionComponent implements OnInit {
                     y: margins.top,
                     html2canvas: { scale: 0.9 },
                     autoPaging: 'text',
-                    callback: (doc) => {
+                    callback: (doc: any) => {
                         doc.save(`ConsentimientoInformado_${consent.id_consentimiento}.pdf`);
                         document.body.removeChild(div);
                         this.loader = false;
@@ -380,9 +384,9 @@ export class RegVacunacionComponent implements OnInit {
         });
     }
 
-    private inactivarRegistro() {
+    private async inactivarRegistro() {
         this.loader = true;
-        this.regVacunacionService.inactivarRegVacunacion(this.idVacunacionEditando!).subscribe({
+        (await this.regVacunacionService.inactivarRegVacunacion(this.idVacunacionEditando!)).subscribe({
             next: () => {
                 this.messageService.add({ severity: 'success', summary: 'OK', detail: 'Registro de vacunación inactivado correctamente' });
                 this.dialogCrearVacuna = false;
@@ -398,7 +402,7 @@ export class RegVacunacionComponent implements OnInit {
         });
     }
 
-    guardarRegistro() {
+    async guardarRegistro() {
         const payload: Record<string, unknown> = {
             id_paciente: this.selectedPaciente.id_paciente,
             fecha_registro: this.obtenerFechaHoraActualFormatoIso(this.formData.fecha_registro),
@@ -422,8 +426,8 @@ export class RegVacunacionComponent implements OnInit {
         }
 
         this.loader = true;
-        this.regVacunacionService.crearActualizarRegVacunacion(payload).subscribe({
-            next: (e) => {
+        (await this.regVacunacionService.crearActualizarRegVacunacion(payload)).subscribe({
+            next: (e: any) => {
                 this.messageService.add({ severity: "success", summary: "OK", detail: "Registro de vacunación guardado correctamente" });
                 if(!this.modoEdicion) {
                     this.generarPDF(e)
@@ -434,7 +438,7 @@ export class RegVacunacionComponent implements OnInit {
                 this.loader = false;
                 this.cargarPacientes();
             },
-            error: (e) => {
+            error: (e: any) => {
                 console.log(e);
                 this.messageService.add({ severity: "error", summary: "Error", detail: "Error al guardar" });
                 this.loader = false;

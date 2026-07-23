@@ -5,6 +5,7 @@ import { map, Observable } from 'rxjs';
 
 import { enviroment } from '../../../enviroments/enviroment';   // ↔ tu misma ruta
 import { Recoleccion } from '../../interfaces/recoleccion';
+import { SecureStorageService } from '../secure-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class RecoleccionService {
@@ -12,7 +13,7 @@ export class RecoleccionService {
     private urlApp: string;
     private urlAppAPI: string;
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private secureStorage: SecureStorageService) {
         this.urlApp     = enviroment.endpoint;              // ej. 'http://localhost:3000/'
         this.urlAppAPI  = 'api/reg_recoleccion/';           // se concatena después
     }
@@ -21,10 +22,10 @@ export class RecoleccionService {
         LISTAR (GET) ─ getRegistrosRecoleccion
         Devuelve todos los registros de recolección del usuario
     ───────────────────────────────────────────── */
-    obtenerRegistrosRecoleccion(): Observable<Recoleccion[]> {
+    async obtenerRegistrosRecoleccion(): Promise<Observable<Recoleccion[]>> {
 
-        const token   = localStorage.getItem('token');
-        const idUser  = localStorage.getItem('idUser');
+        const token   = await this.secureStorage.getItem('token');
+        const idUser  = await this.secureStorage.getItem('idUser');
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body    = { id_usuario: Number(idUser) };
@@ -41,11 +42,11 @@ export class RecoleccionService {
     /* ─────────────────────────────────────────────
         CREAR  ─ crear_actualizar_reg_recoleccion
     ───────────────────────────────────────────── */
-    crearRecoleccion(data: Recoleccion): Observable<Recoleccion> {
+    async crearRecoleccion(data: Recoleccion): Promise<Observable<Recoleccion>> {
 
-        const token   = localStorage.getItem('token');
-        const idUser  = localStorage.getItem('idUser');
-        const idEmpresa  = localStorage.getItem('idEmpresa');
+        const token   = await this.secureStorage.getItem('token');
+        const idUser  = await this.secureStorage.getItem('idUser');
+        const idEmpresa  = await this.secureStorage.getItem('idEmpresa');
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
@@ -57,7 +58,7 @@ export class RecoleccionService {
             /* ───────── claves foráneas ───────── */
             id_consultorio       : (data.consultorio as any) ?? null,
 
-            /* ───────── Paso 1 ────────────────── */
+            /* ───────── Paso 1 ────────────────── */
             aprovechables        : data.aprovechablesBlanco       ?? 0,
             no_aprovechables     : data.noAprovechablesNegra      ?? 0,
             biosanitarios        : data.biosanitariosRoja         ?? 0,
@@ -71,7 +72,7 @@ export class RecoleccionService {
             iluminarias          : data.iluminarias               ?? 0,
             aceites_usados       : data.aceitesUsados             ?? 0,
 
-            /* ───────── Paso 2 ────────────────── */
+            /* ───────── Paso 2 ────────────────── */
             bolsas_g             : data.bolsasGuardianes          ?? 0,
             bolsas_v             : data.bolsasBlanco              ?? 0,
             bolsas_r             : data.bolsasRoja                ?? 0,
@@ -81,7 +82,7 @@ export class RecoleccionService {
             hora_roja            : data.horaRoja != null ? toIsoLocal(data.horaRoja).substring(11, 19) : null,
             hora_negra           : data.horaNegra != null ? toIsoLocal(data.horaNegra).substring(11, 19) : null,
 
-            /* ───────── Paso 3 ────────────────── */
+            /* ───────── Paso 3 ────────────────── */
             dotacion_perso_adecuada      : (data.dotacionGenerador as any)?.value ?? data.dotacionGenerador,
             dotacion_pers_pseg_adecuada  : (data.dotacionPseg      as any)?.value ?? data.dotacionPseg,
             blob_firma                   : data.firma ?? '',
@@ -104,11 +105,11 @@ export class RecoleccionService {
         ACTUALIZAR  ─ crear_actualizar_reg_recoleccion
         Basta con pasar el id y sólo las props a modificar
     ───────────────────────────────────────────── */
-    actualizarRecoleccion(id: number, data: Partial<Recoleccion>): Observable<Recoleccion> {
+    async actualizarRecoleccion(id: number, data: Partial<Recoleccion>): Promise<Observable<Recoleccion>> {
 
-        const token   = localStorage.getItem('token');
-        const idUser  = localStorage.getItem('idUser');
-        const idEmpresa = localStorage.getItem('idEmpresa');
+        const token   = await this.secureStorage.getItem('token');
+        const idUser  = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
@@ -120,7 +121,7 @@ export class RecoleccionService {
             /* ───────── claves foráneas ───────── */
             id_consultorio       : (data.consultorio as any) ?? null,
 
-            /* ───────── Paso 1 ────────────────── */
+            /* ───────── Paso 1 ────────────────── */
             aprovechables        : data.aprovechablesBlanco       ?? 0,
             no_aprovechables     : data.noAprovechablesNegra      ?? 0,
             biosanitarios        : data.biosanitariosRoja         ?? 0,
@@ -134,7 +135,7 @@ export class RecoleccionService {
             iluminarias          : data.iluminarias               ?? 0,
             aceites_usados       : data.aceitesUsados             ?? 0,
 
-            /* ───────── Paso 2 ────────────────── */
+            /* ───────── Paso 2 ────────────────── */
             bolsas_g             : data.bolsasGuardianes          ?? 0,
             bolsas_b             : data.bolsasBlanco              ?? 0,
             bolsas_n             : data.bolsasNegra               ?? 0,
@@ -145,7 +146,7 @@ export class RecoleccionService {
             hora_roja            : data.horaRoja != null ? toIsoLocal(data.horaRoja).substring(11, 19) : null,
             hora_negra           : data.horaNegra != null ? toIsoLocal(data.horaNegra).substring(11, 19) : null,
 
-            /* ───────── Paso 3 ────────────────── */
+            /* ───────── Paso 3 ────────────────── */
             dotacion_perso_adecuada      : (data.dotacionGenerador as any)?.value ?? data.dotacionGenerador,
             dotacion_pers_pseg_adecuada  : (data.dotacionPseg      as any)?.value ?? data.dotacionPseg,
             blob_firma                   : data.firma ?? '',
@@ -167,9 +168,9 @@ export class RecoleccionService {
     /* ─────────────────────────────────────────────
         BORRAR  ─ eliminar_registro_recoleccion
     ───────────────────────────────────────────── */
-    borrarRecoleccion(id: number): Observable<void> {
+    async borrarRecoleccion(id: number): Promise<Observable<void>> {
 
-        const token   = localStorage.getItem('token');
+        const token   = await this.secureStorage.getItem('token');
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body    = { id_registropeso: id };

@@ -92,16 +92,16 @@ export class PacientesComponent {
         private pacientesService: PacientesService
     ) { }
 
-    ngOnInit() {
-        this.cargarPacientes();
+    async ngOnInit() {
+        await this.cargarPacientes();
 
         // Cargamos por defecto en el formulario de registro la opcion 1
         this.activeItem = this.steps[0];
     }
 
     // Función que carga los pacientes exclusivamente activos
-    cargarPacientes() {
-        this.pacientesService.obtenerPacientes().subscribe((data) => {
+    async cargarPacientes() {
+        (await this.pacientesService.obtenerPacientes()).subscribe((data: any) => {
             // this.pacientes = data.filter(e => e.estado == 'A');
             this.pacientes = data;
         });
@@ -125,11 +125,11 @@ export class PacientesComponent {
         this.activeItem = this.steps[0];
     }
 
-    crearActualizarPaciente() {
+    async crearActualizarPaciente() {
         if (!this.validarFormulario()) return;
 
         if (this.isEdit) {
-            this.pacientesService.actualizarPaciente(this.formData).subscribe((res) => {
+            (await this.pacientesService.actualizarPaciente(this.formData)).subscribe((res: any) => {
                 if (res.state === 'OK') {
                     this.cargarPacientes();
                     this.displayDialog = false;
@@ -139,7 +139,7 @@ export class PacientesComponent {
                 }
             });
         } else {
-            this.pacientesService.crearPaciente(this.formData).subscribe((res) => {
+            (await this.pacientesService.crearPaciente(this.formData)).subscribe((res: any) => {
                 if (res.state === 'OK') {
                     this.messageService.add({ severity: 'success', summary: 'Vacuna creada correctamente.' });
                     this.cargarPacientes();
@@ -158,8 +158,8 @@ export class PacientesComponent {
             message: '¿Estás seguro de inactivar este paciente?',
             acceptLabel: 'Sí',
             rejectLabel: 'No',
-            accept: () => {
-                this.pacientesService.borrarPaciente(id).subscribe(() => {
+            accept: async () => {
+                (await this.pacientesService.borrarPaciente(id)).subscribe(() => {
                     this.cargarPacientes();
                     this.messageService.add({ severity: 'success', summary: 'Paciente inactivado correctamente.' });
                 });

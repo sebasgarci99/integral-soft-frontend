@@ -12,7 +12,7 @@
                 </div>
 
                 <p-table #tabla [value]="cuentasCobro" [paginator]="true" [rows]="10" responsiveLayout="scroll"
-                    [globalFilterFields]="['nombre_cliente', 'descripcion_servicio', 'valor_cobrar', 'fecha_emision']">
+                    [globalFilterFields]="['nombre_cliente', 'descripcion_servicio', 'valor_cobrar', 'fecha_emision']" stripedRows>
                     <ng-template pTemplate="header">
                         <tr>
                             <th style="width: 50px;"></th>
@@ -319,7 +319,7 @@
                     </div>
 
                     <!-- Tabla de logs -->
-                    <p-table [value]="logTareas" [paginator]="true" [rows]="5" *ngIf="logTareas.length > 0">
+                    <p-table [value]="logTareas" [paginator]="true" [rows]="5" *ngIf="logTareas.length > 0" stripedRows>
                         <ng-template pTemplate="header">
                             <tr>
                                 <th>Fecha y Hora</th>

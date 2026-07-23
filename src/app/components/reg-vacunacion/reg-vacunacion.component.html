@@ -17,7 +17,7 @@
 
                 <!-- TABLA DE PACIENTES - PRINCIPAL EN LA FORMA -->
                 <p-table #tablaPacientes [value]="pacientes" responsiveLayout="scroll" [paginator]="true" [rows]="8"
-                    [globalFilterFields]="['nombres','apellidos','numero_documento','telefono_contacto']">
+                    [globalFilterFields]="['nombres','apellidos','numero_documento','telefono_contacto']" stripedRows>
 
                     <ng-template pTemplate="header">
                         <tr>
@@ -297,7 +297,7 @@
                                 <hr>
                             </div>
 
-                            <p-table [value]="grupo.vacunas" responsiveLayout="scroll">
+                            <p-table [value]="grupo.vacunas" responsiveLayout="scroll" stripedRows>
                                 <ng-template pTemplate="header">
                                     <tr>
                                         <th>Vacuna aplicada</th>
@@ -334,7 +334,7 @@
                     </ng-container>
                     <ng-template #tablaConsentimientos>
                         <p-table [value]="historicoConsentimientos" responsiveLayout="scroll" [paginator]="true"
-                            [rows]="10">
+                            [rows]="10" stripedRows>
                             <ng-template pTemplate="header">
                                 <tr>
                                     <th>Paciente</th>

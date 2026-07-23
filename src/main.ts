@@ -12,6 +12,13 @@ import 'primeicons/primeicons.css'; // Solo esto
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
+import { definePreset, palette } from '@primeng/themes';
+
+const CustomAura = definePreset(Aura, {
+    semantic: {
+        primary: palette('#007ec8')
+    }
+});
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -20,7 +27,7 @@ bootstrapApplication(AppComponent, {
     provideAnimationsAsync(),
       providePrimeNG({
           theme: {
-              preset: Aura,
+              preset: CustomAura,
               options: {
                     darkModeSelector: false || 'none'
                 }

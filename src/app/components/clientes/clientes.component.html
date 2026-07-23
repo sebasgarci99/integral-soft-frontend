@@ -12,7 +12,7 @@
                 </div>
 
                 <p-table #tablaClientes [value]="clientes" [paginator]="true" [rows]="10" responsiveLayout="scroll"
-                    [globalFilterFields]="['numero_identificacion', 'nombre_razon_social', 'nombre_comercial', 'telefono', 'correo_electronico', 'estado']">
+                    [globalFilterFields]="['numero_identificacion', 'nombre_razon_social', 'nombre_comercial', 'telefono', 'correo_electronico', 'estado']" stripedRows>
                     <ng-template pTemplate="header">
                         <tr>
                             <th>Identificación</th>

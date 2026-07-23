@@ -1,67 +1,87 @@
-<nav id="sidebarMenu" class="sidebar bg-light collapse d-lg-block">
-    <div class="d-lg-none d-flex justify-content-end px-3">
-        <button class="btn my-1" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+<nav id="sidebarMenu" class="sidebar collapse d-lg-block" #sidebarRef>
+
+    <!-- Header con logo -->
+    <div class="sidebar-brand">
+        <a routerLink="/home" routerLinkActive="active">
+            <img src="logo.png" alt="Integral-soft logo" />
+        </a>
+        <button class="sidebar-close-btn d-lg-none" type="button" (click)="cerrarSidebar()">
             <i class="fa fa-times"></i>
         </button>
     </div>
-    <div class="position-sticky">
-        <div class="text-center">
-            <a routerLink="/home" routerLinkActive="active">
-                <img src="logo.png" alt="Login logo" class="img-fluid w-75"
-                    style="transform: scale(1.4); margin-top: 1vh;" />
-            </a>
-        </div>
-        <hr />
-        <div class="sidebar-nav-scroll">
-            <ul class="nav flex-column mb-auto px-3">
-                <!-- Módulos directos (sin grupo) -->
-                <ng-container *ngFor="let item of modulosDirectos">
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" [routerLink]="item.ruta" routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }">
-                            <i [class]="item.icono"></i> {{ item.modulo }}
-                        </a>
-                    </li>
-                </ng-container>
 
-                <!-- Grupos colapsables -->
-                <ng-container *ngFor="let grupo of modulosAgrupados">
-                    <li class="nav-item">
-                        <a class="nav-link text-dark d-flex justify-content-between align-items-center sidebar-grupo-toggle"
-                           [class.sidebar-grupo-active]="isGrupoActivo(grupo)"
-                           data-bs-toggle="collapse" [attr.data-bs-target]="'#' + getGrupoId(grupo.modulo)"
-                           role="button" aria-expanded="false">
-                            <span><i [class]="grupo.icono"></i> {{ grupo.modulo }}</span>
-                            <i class="fa fa-chevron-down sidebar-chevron"></i>
-                        </a>
-                        <div class="collapse" [class.show]="isGrupoAbierto(grupo)" [id]="getGrupoId(grupo.modulo)">
-                            <ul class="nav flex-column ms-3">
-                                <li *ngFor="let hijo of grupo.hijos" class="nav-item">
-                                    <a class="nav-link text-dark py-1 sidebar-hijo-link"
-                                       *ngIf="hijo.ruta"
-                                       [routerLink]="hijo.ruta" routerLinkActive="active"
-                                       [routerLinkActiveOptions]="{ exact: true }">
-                                        <i [class]="hijo.icono"></i> {{ hijo.modulo }}
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                </ng-container>
-            </ul>
-        </div>
-        <hr />
-        <div class="dropdown px-3 pb-3">
-            <a class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle" id="dropdownUser1"
-                data-bs-toggle="dropdown" aria-expanded="false">
-                <img [src]="logo" alt="" width="32" height="32" class="rounded-circle me-2" />
-                <strong>{{ nombreCompleto }}</strong>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
-                <li><a class="dropdown-item" *ngIf="idRol == '1'" routerLink="/info-usuario">Ajustes</a></li>
-                <li><hr class="dropdown-divider" /></li>
-                <li><a class="dropdown-item" (click)="cerrarSesion()">Salir</a></li>
-            </ul>
-        </div>
+    <!-- Menú de navegación -->
+    <div class="sidebar-nav-scroll">
+        <ul class="sidebar-menu">
+
+            <!-- Módulos directos -->
+            <li *ngFor="let item of modulosDirectos">
+                <a class="sidebar-link" [routerLink]="item.ruta" routerLinkActive="active"
+                    [routerLinkActiveOptions]="{ exact: true }" (click)="cerrarSidebarMovil()">
+                    <i [class]="item.icono"></i>
+                    <span>{{ item.modulo }}</span>
+                </a>
+            </li>
+
+            <!-- Grupos colapsables -->
+            <li *ngFor="let grupo of modulosAgrupados"
+                [class.sidebar-group-active]="isGrupoActivo(grupo)">
+                <a class="sidebar-link sidebar-group" data-bs-toggle="collapse"
+                    [attr.data-bs-target]="'#' + getGrupoId(grupo.modulo)" role="button"
+                    [class.sidebar-group-open]="isGrupoAbierto(grupo)"
+                    (click)="toggleGrupo(grupo)">
+                    <span class="sidebar-group-label">
+                        <i [class]="grupo.icono"></i>
+                        <span>{{ grupo.modulo }}</span>
+                    </span>
+                    <i class="fa fa-chevron-down sidebar-chevron"></i>
+                </a>
+
+                <div class="collapse" [class.show]="isGrupoAbierto(grupo)" [id]="getGrupoId(grupo.modulo)">
+                    <ul class="sidebar-submenu">
+                        <li *ngFor="let hijo of grupo.hijos">
+                            <a class="sidebar-link" *ngIf="hijo.ruta" [routerLink]="hijo.ruta"
+                                routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+                                (click)="cerrarSidebarMovil()">
+                                <i [class]="hijo.icono"></i>
+                                <span>{{ hijo.modulo }}</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+        </ul>
     </div>
+
+    <!-- Footer de usuario -->
+    <div class="sidebar-footer">
+        <div class="sidebar-user" (click)="toggleUserMenu()">
+            <img [src]="logo" alt="Usuario" />
+            <div class="sidebar-user-info">
+                <span class="sidebar-user-name">{{ nombreCompleto }}</span>
+                <span class="sidebar-user-role">{{ rolUsuario }}</span>
+            </div>
+            <i class="fa fa-chevron-down sidebar-user-chevron"
+                [class.sidebar-user-chevron-open]="userMenuAbierto"></i>
+        </div>
+
+        <ul class="sidebar-user-menu" *ngIf="userMenuAbierto">
+            <li *ngIf="idRol == '1'">
+                <a routerLink="/info-usuario" (click)="cerrarSidebarMovil()">
+                    <i class="fa fa-cog"></i> Ajustes
+                </a>
+            </li>
+            <li class="sidebar-user-divider" *ngIf="idRol == '1'"></li>
+            <li>
+                <a class="logout" (click)="cerrarSesion()">
+                    <i class="fa fa-sign-out-alt"></i> Cerrar sesión
+                </a>
+            </li>
+        </ul>
+    </div>
+
 </nav>
+
+<!-- Overlay para móvil -->
+<div class="sidebar-overlay" [class.show]="sidebarAbierto" (click)="cerrarSidebar()"></div>

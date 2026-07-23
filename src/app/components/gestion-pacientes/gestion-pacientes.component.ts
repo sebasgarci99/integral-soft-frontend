@@ -210,15 +210,15 @@ export class GestionPacientesComponent implements OnInit {
         this.cargarTiposConsentimiento();
     }
 
-    cargarPacientes(): void {
-        this.gestionPacientesService.obtenerPacientes().subscribe({
+    async cargarPacientes(): Promise<void> {
+        (await this.gestionPacientesService.obtenerPacientes()).subscribe({
             next: (data) => { this.pacientes = data; },
             error: (err) => { this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los pacientes.' }); }
         });
     }
 
-    cargarTiposConsentimiento(): void {
-        this.gestionPacientesService.obtenerTiposConsentimiento().subscribe({
+    async cargarTiposConsentimiento(): Promise<void> {
+        (await this.gestionPacientesService.obtenerTiposConsentimiento()).subscribe({
             next: (data) => {
                 this.tiposConsentimiento = data;
                 this.tiposConsentimientoBorrador = data.filter(t => t.key.includes('_borrador'));
@@ -288,7 +288,7 @@ export class GestionPacientesComponent implements OnInit {
         this.fullscreen = false;
     }
 
-    abrirFormulario(item?: GestionPaciente): void {
+    async abrirFormulario(item?: GestionPaciente): Promise<void> {
         this.activeItem = this.tabs[0];
         this.currentTab = 0;
         this.isEdit = !!item;
@@ -300,7 +300,7 @@ export class GestionPacientesComponent implements OnInit {
         if (item) {
             this.formData = { ...item };
             this.pacienteActivo = item;
-            this.gestionPacientesService.obtenerPaciente(item.id_paciente).subscribe({
+            (await this.gestionPacientesService.obtenerPaciente(item.id_paciente)).subscribe({
                 next: (res) => {
                     this.historico = res.historico || [];
                     const p = res.paciente || {};
@@ -367,7 +367,7 @@ export class GestionPacientesComponent implements OnInit {
         this.firmaAcompananteOK = false;
     }
 
-    guardar(): void {
+    async guardar(): Promise<void> {
         if (!this.validarFormulario()) return;
 
         const payload = { ...this.formData };
@@ -381,8 +381,8 @@ export class GestionPacientesComponent implements OnInit {
         }
 
         const obs = this.isEdit
-            ? this.gestionPacientesService.actualizarPaciente(payload)
-            : this.gestionPacientesService.crearPaciente(payload);
+            ? await this.gestionPacientesService.actualizarPaciente(payload)
+            : await this.gestionPacientesService.crearPaciente(payload);
 
         obs.subscribe({
             next: (res) => {
@@ -405,8 +405,8 @@ export class GestionPacientesComponent implements OnInit {
             message: `¿Está seguro de inactivar al paciente <strong>${item.nombres} ${item.apellidos}</strong>?`,
             acceptLabel: 'Sí, Inactivar',
             rejectLabel: 'No',
-            accept: () => {
-                this.gestionPacientesService.inactivarPaciente(item.id_paciente).subscribe({
+            accept: async () => {
+                (await this.gestionPacientesService.inactivarPaciente(item.id_paciente)).subscribe({
                     next: (res) => {
                         if (res.state === 'OK') {
                             this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Paciente inactivado.' });
@@ -488,20 +488,20 @@ export class GestionPacientesComponent implements OnInit {
         this.tipoConsentimientoSeleccionado = null;
     }
 
-    enviarBorrador(): void {
+    async enviarBorrador(): Promise<void> {
         const paciente = this.pacienteActivo || (this.isEdit ? this.formData : null);
         if (!paciente || !paciente.id_cita || !this.tipoConsentimientoSeleccionado) {
             this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Seleccione tipo de consentimiento y asegúrese de tener cita activa.' });
             return;
         }
         this.cargandoBorrador = true;
-        this.gestionPacientesService.enviarBorrador(
+        (await this.gestionPacientesService.enviarBorrador(
             paciente.id_paciente,
             paciente.id_cita,
             this.tipoConsentimientoSeleccionado.key,
             this.correoBorrador,
             this.tipoConsentimientoSeleccionado.funcion
-        ).subscribe({
+        )).subscribe({
             next: (res) => {
                 this.cargandoBorrador = false;
                 if (res.state === 'OK') {
@@ -600,7 +600,7 @@ export class GestionPacientesComponent implements OnInit {
         setTimeout(() => this.initSignaturePad(), 100);
     }
 
-    generarConsentimiento(): void {
+    async generarConsentimiento(): Promise<void> {
         if (!this.firmaOK || !this.formData.firma_responsable) {
             this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Debe registrar y guardar la firma.' });
             return;
@@ -614,14 +614,14 @@ export class GestionPacientesComponent implements OnInit {
             aplica_acudiente: this.aplicaAcudiente
         };
 
-        this.gestionPacientesService.generarConsentimiento(
+        (await this.gestionPacientesService.generarConsentimiento(
             paciente.id_paciente,
             paciente.id_cita,
             this.tipoConsentimientoSeleccionado.key,
             datos,
             this.formData.firma_responsable,
             this.tipoConsentimientoSeleccionado.funcion
-        ).subscribe({
+        )).subscribe({
             next: (res: any) => {
                 if (res.state === 'OK') {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Consentimiento generado. Descargando PDF...' });
@@ -640,7 +640,7 @@ export class GestionPacientesComponent implements OnInit {
 
     // ========== MÉTODOS NUEVOS PARA CONSENTIMIENTO INFORMADO (Tab Consentimientos) ==========
 
-    tipoConsentimientoCambio(): void {
+    async tipoConsentimientoCambio(): Promise<void> {
         this.aplicaAcudienteInfo = false;
         this.nombreAcudienteInfo = '';
         this.tipoDocAcudienteInfo = '';
@@ -666,7 +666,7 @@ export class GestionPacientesComponent implements OnInit {
         this.firmaCEOK = false;
         this.firmaCEDataURL = '';
         if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_doc') {
-            this.gestionPacientesService.obtenerProcedimientosRiesgos().subscribe({
+            (await this.gestionPacientesService.obtenerProcedimientosRiesgos()).subscribe({
                 next: (data) => { this.procedimientosDisponibles = data; },
                 error: () => { this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar procedimientos.' }); }
             });
@@ -749,7 +749,7 @@ export class GestionPacientesComponent implements OnInit {
         this.firmaConsentimientoDataURL = '';
     }
 
-    generarConsentimientoInformado(): void {
+    async generarConsentimientoInformado(): Promise<void> {
         if (!this.firmaConsentimientoOK || !this.firmaConsentimientoDataURL) {
             this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Debe registrar y guardar la firma.' });
             return;
@@ -772,14 +772,14 @@ export class GestionPacientesComponent implements OnInit {
         let consentimiento_informado = this.tipoConsentimientoInfoSeleccionado.key;
 
         this.cargandoDocumento = true;
-        this.gestionPacientesService.generarConsentimiento(
+        (await this.gestionPacientesService.generarConsentimiento(
             paciente.id_paciente,
             paciente.id_cita,
             consentimiento_informado,
             datos,
             this.firmaConsentimientoDataURL,
             this.tipoConsentimientoInfoSeleccionado.funcion
-        ).subscribe({
+        )).subscribe({
             next: (res: any) => {
                 this.cargandoDocumento = false;
                 if (res.state === 'OK') {
@@ -886,7 +886,7 @@ abrirFirmaConsentimientoGeneral(): void {
         this.firmaAcompananteDataURL = '';
     }
 
-    generarConsentimientoGeneral(): void {
+    async generarConsentimientoGeneral(): Promise<void> {
         if (!this.firmaGeneralOK || !this.firmaGeneralDataURL) {
             this.messageService.add({ severity: 'warn', summary: 'Firma requerida', detail: 'Debe registrar la firma del paciente antes de generar el consentimiento informado general.' });
             return;
@@ -922,14 +922,14 @@ abrirFirmaConsentimientoGeneral(): void {
         };
 
         this.cargandoDocumento = true;
-        this.gestionPacientesService.generarConsentimiento(
+        (await this.gestionPacientesService.generarConsentimiento(
             paciente.id_paciente,
             paciente.id_cita,
             this.tipoConsentimientoInfoSeleccionado?.key,
             datos,
             this.firmaGeneralDataURL,
             this.tipoConsentimientoInfoSeleccionado?.funcion
-        ).subscribe({
+        )).subscribe({
             next: (res: any) => {
                 this.cargandoDocumento = false;
                 if (res.state === 'OK') {
@@ -969,7 +969,7 @@ abrirFirmaConsentimientoGeneral(): void {
         setTimeout(() => this.initSignaturePad(), 100);
     }
 
-    generarConsentimientoCE(): void {
+    async generarConsentimientoCE(): Promise<void> {
         if (!this.firmaCEOK || !this.firmaCEDataURL) {
             this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Debe registrar la firma del paciente.' });
             return;
@@ -990,14 +990,14 @@ abrirFirmaConsentimientoGeneral(): void {
         };
 
         this.cargandoDocumento = true;
-        this.gestionPacientesService.generarConsentimiento(
+        (await this.gestionPacientesService.generarConsentimiento(
             paciente.id_paciente,
             paciente.id_cita,
             this.tipoConsentimientoInfoSeleccionado?.key,
             datos,
             this.firmaCEDataURL,
             this.tipoConsentimientoInfoSeleccionado?.funcion
-        ).subscribe({
+        )).subscribe({
             next: (res: any) => {
                 this.cargandoDocumento = false;
                 if (res.state === 'OK') {
@@ -1039,17 +1039,17 @@ abrirFirmaConsentimientoGeneral(): void {
         URL.revokeObjectURL(url);
     }
 
-    abrirHistorico(item: GestionPaciente): void {
+    async abrirHistorico(item: GestionPaciente): Promise<void> {
         this.pacienteActivo = item;
         this.dialogHistorico = true;
         this.consentimientos = [];
         this.historico = [];
         if (item.id_paciente) {
-            this.gestionPacientesService.obtenerConsentimientos(item.id_paciente).subscribe({
+            (await this.gestionPacientesService.obtenerConsentimientos(item.id_paciente)).subscribe({
                 next: (data) => { this.consentimientos = data; },
                 error: () => { this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar consentimientos.' }); }
             });
-            this.gestionPacientesService.obtenerPaciente(item.id_paciente).subscribe({
+            (await this.gestionPacientesService.obtenerPaciente(item.id_paciente)).subscribe({
                 next: (res) => { this.historico = res.historico || []; },
                 error: () => { this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar histórico.' }); }
             });
@@ -1070,12 +1070,12 @@ abrirFirmaConsentimientoGeneral(): void {
             message: `¿Está seguro de reenviar el consentimiento de <strong>${this.consentimientoReenvio?.nombre_paciente}</strong> al correo: <strong>${this.correoReenvio}</strong>?`,
             acceptLabel: 'Sí, Reenviar',
             rejectLabel: 'No',
-            accept: () => {
+            accept: async () => {
                 this.cargandoReenvio = true;
-                this.gestionPacientesService.reenviarConsentimiento(
+                (await this.gestionPacientesService.reenviarConsentimiento(
                     this.consentimientoReenvio!.id_consentimiento!,
                     this.correoReenvio
-                ).subscribe({
+                )).subscribe({
                     next: (res) => {
                         this.cargandoReenvio = false;
                         if (res.state === 'OK') {
@@ -1094,10 +1094,10 @@ abrirFirmaConsentimientoGeneral(): void {
         });
     }
 
-    descargarConsentimientoPdf(c: GestionPacienteConsentimiento): void {
+    async descargarConsentimientoPdf(c: GestionPacienteConsentimiento): Promise<void> {
         if (!c.id_consentimiento) return;
         this.cargandoPdf = true;
-        this.gestionPacientesService.descargarConsentimientoById(c.id_consentimiento).subscribe({
+        (await this.gestionPacientesService.descargarConsentimientoById(c.id_consentimiento)).subscribe({
             next: (res: any) => {
                 this.cargandoPdf = false;
                 if (res.state === 'OK') {

@@ -12,6 +12,7 @@ import { InputMaskModule } from 'primeng/inputmask';
 import { PasswordModule } from 'primeng/password';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { InfoUsuarioService } from '../../services/info-usuario/info-usuario.service';
+import { SecureStorageService } from '../../services/secure-storage.service';
 
 @Component({
     selector: 'app-info-usuario',
@@ -55,12 +56,13 @@ export class InfoUsuarioComponent implements OnInit {
     constructor(
         private infoUsuarioService: InfoUsuarioService,
         private messageService: MessageService,
-        private router: Router
-    ) {
-        this.idRol = Number(localStorage.getItem('idRol'));
-    }
+        private router: Router,
+        private secureStorage: SecureStorageService
+    ) {}
 
-    ngOnInit(): void {
+    async ngOnInit() {
+        this.idRol = Number(await this.secureStorage.getItem('idRol')) || 0;
+
         if (this.idRol !== 1) {
             this.messageService.add({ severity: 'error', summary: 'Acceso denegado', detail: 'No tienes permisos para acceder a esta secci\u00f3n.' });
             setTimeout(() => this.router.navigate(['/home']), 1500);
@@ -69,9 +71,9 @@ export class InfoUsuarioComponent implements OnInit {
         this.cargarDatos();
     }
 
-    cargarDatos() {
+    async cargarDatos() {
         this.loader = true;
-        this.infoUsuarioService.getFullUserInfo().subscribe({
+        (await this.infoUsuarioService.getFullUserInfo()).subscribe({
             next: (data) => {
                 this.datosUsuario = data.usuario || {};
                 this.empresa = data.empresa || {};
@@ -122,7 +124,7 @@ export class InfoUsuarioComponent implements OnInit {
         reader.readAsDataURL(file);
     }
 
-    guardarInfoBasica() {
+    async guardarInfoBasica() {
         if (this.firmaDigitalBase64) {
             this.firmaPreview = this.firmaDigitalBase64.startsWith('data:')
                 ? this.firmaDigitalBase64
@@ -131,15 +133,15 @@ export class InfoUsuarioComponent implements OnInit {
             this.firmaPreview = null;
         }
         this.loader = true;
-        this.infoUsuarioService.updateUserInfo({
+        (await this.infoUsuarioService.updateUserInfo({
             nombre: this.datosUsuario.nombre,
             apellido: this.datosUsuario.apellido,
             foto_perfil: this.fotoPerfilBase64 || undefined,
             firma_digital: this.firmaDigitalBase64 || undefined
-        }).subscribe({
+        })).subscribe({
             next: (res) => {
                 if (res.state === 'OK') {
-                    this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Informaci\u00f3n b\u00e1sica actualizada correctamente.' });
+                    this.messageService.add({ severity: 'info', summary: 'Guardado', detail: 'Informaci\u00f3n b\u00e1sica actualizada correctamente.' });
                 } else {
                     this.messageService.add({ severity: 'error', summary: 'Error', detail: res.body || 'No se pudo guardar.' });
                 }
@@ -151,18 +153,18 @@ export class InfoUsuarioComponent implements OnInit {
         });
     }
 
-    guardarInfoAdicional() {
+    async guardarInfoAdicional() {
         this.loader = true;
-        this.infoUsuarioService.updateInfoAdicional({
+        (await this.infoUsuarioService.updateInfoAdicional({
             nombre_completo: this.infoAdicional.nombre_completo,
             numero_documento: this.infoAdicional.numero_documento,
             banco: this.infoAdicional.banco,
             tipo_cuenta: this.infoAdicional.tipo_cuenta,
             numero_cuenta: this.infoAdicional.numero_cuenta
-        }).subscribe({
+        })).subscribe({
             next: (res) => {
                 if (res.state === 'OK') {
-                    this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Informaci\u00f3n adicional actualizada correctamente.' });
+                    this.messageService.add({ severity: 'info', summary: 'Guardado', detail: 'Informaci\u00f3n adicional actualizada correctamente.' });
                 } else {
                     this.messageService.add({ severity: 'error', summary: 'Error', detail: res.body || 'No se pudo guardar.' });
                 }
@@ -174,18 +176,18 @@ export class InfoUsuarioComponent implements OnInit {
         });
     }
 
-    guardarConfigCorreo() {
+    async guardarConfigCorreo() {
         this.loader = true;
-        this.infoUsuarioService.updateCorreoSmtp({
+        (await this.infoUsuarioService.updateCorreoSmtp({
             correo_electronico: this.configCorreo.correo_electronico,
             password: this.configCorreo.password,
             host: this.configCorreo.host,
             puerto: this.configCorreo.puerto,
             servicio: this.configCorreo.servicio
-        }).subscribe({
+        })).subscribe({
             next: (res) => {
                 if (res.state === 'OK') {
-                    this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Configuraci\u00f3n de correo actualizada correctamente.' });
+                    this.messageService.add({ severity: 'info', summary: 'Guardado', detail: 'Configuraci\u00f3n de correo actualizada correctamente.' });
                 } else {
                     this.messageService.add({ severity: 'error', summary: 'Error', detail: res.body || 'No se pudo guardar.' });
                 }

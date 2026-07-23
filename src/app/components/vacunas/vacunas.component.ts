@@ -94,14 +94,14 @@ export class VacunasComponent implements OnInit {
         };
     }
 
-    cargarVacunas() {
-        this.vacunaService.obtenerVacunas().subscribe((data) => {
-            this.vacunas = data.filter(e => e.estado == 'A');
+    async cargarVacunas() {
+        (await this.vacunaService.obtenerVacunas()).subscribe((data: any) => {
+            this.vacunas = data.filter((e: any) => e.estado == 'A');
         });
     }
 
-    cargarLaboratorios() {
-        this.vacunaService.obtenerLaboratorios().subscribe((data) => {
+    async cargarLaboratorios() {
+        (await this.vacunaService.obtenerLaboratorios()).subscribe((data: any) => {
             this.laboratorios = data;
         });
     }
@@ -129,8 +129,8 @@ export class VacunasComponent implements OnInit {
             message: '¿Estás seguro de inactivar esta vacuna?',
             acceptLabel: 'Sí',
             rejectLabel: 'No',
-            accept: () => {
-                this.vacunaService.borrarVacuna(id).subscribe(() => {
+            accept: async () => {
+                (await this.vacunaService.borrarVacuna(id)).subscribe(() => {
                     this.cargarVacunas();
                     this.messageService.add({ severity: 'success', summary: 'Vacuna eliminada correctamente.' });
                 });
@@ -138,13 +138,13 @@ export class VacunasComponent implements OnInit {
         });
     }
 
-    crearActualizarVacuna() {
+    async crearActualizarVacuna() {
         if (!this.validarCampos()) {
             return;
         }
 
         if (this.isEdit) {
-            this.vacunaService.actualizarVacuna(this.formData.id, this.formData).subscribe((res) => {
+            (await this.vacunaService.actualizarVacuna(this.formData.id, this.formData)).subscribe((res: any) => {
                 if (res.state === 'OK') {
                     this.cargarVacunas();
                     this.displayDialog = false;
@@ -154,7 +154,7 @@ export class VacunasComponent implements OnInit {
                 }
             });
         } else {
-            this.vacunaService.crearVacuna(this.formData).subscribe((res) => {
+            (await this.vacunaService.crearVacuna(this.formData)).subscribe((res: any) => {
                 if (res.state === 'OK') {
                     this.messageService.add({ severity: 'success', summary: 'Vacuna creada correctamente.' });
                     this.cargarVacunas();

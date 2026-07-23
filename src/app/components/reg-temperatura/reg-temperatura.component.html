@@ -57,7 +57,7 @@
 
                 <!-- Tabla -->
                 <p-table #tabla [value]="registros" [paginator]="true" [rows]="10" responsiveLayout="scroll"
-                    [globalFilterFields]="['responsable','horario','tipo_medida','id_area']">
+                    [globalFilterFields]="['responsable','horario','tipo_medida','id_area']" stripedRows>
 
                     <ng-template pTemplate="header">
                         <tr>

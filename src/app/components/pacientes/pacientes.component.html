@@ -14,7 +14,7 @@
                 </div>
 
                 <p-table #tablaPacientes [value]="pacientes" [paginator]="true" [rows]="10" responsiveLayout="scroll"
-                    [globalFilterFields]="['telefono_contacto', 'numero_documento', 'nombres', 'apellidos']">
+                    [globalFilterFields]="['telefono_contacto', 'numero_documento', 'nombres', 'apellidos']" stripedRows>
                     <ng-template pTemplate="header">
                         <tr>
                             <th>Nombre Completo</th>
@@ -40,7 +40,7 @@
                             <td>
                                 <p-button icon="fa fa-pencil" class="p-button-text p-button-sm"
                                     (onClick)="abrirFormulario(paciente)"></p-button>
-                                <p-button icon="fa fa-trash" class="p-button-text p-button-sm"
+                                <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger"
                                     (onClick)="borrarPaciente(paciente.id_paciente)" *ngIf="paciente.estado == 'A'"></p-button>
                             </td>
                         </tr>

@@ -5,6 +5,7 @@ import { map, Observable } from 'rxjs';
 import { Consultorio, ConsultoriosResponse } from '../../interfaces/consultorio';
 
 import { enviroment } from '../../../enviroments/enviroment';
+import { SecureStorageService } from '../secure-storage.service';
 
 
 @Injectable({ providedIn: 'root' })
@@ -13,17 +14,17 @@ export class ConsultorioService {
     private urlApp : string;
     private urlAppAPI : string;
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private secureStorage: SecureStorageService) {
         this.urlApp = enviroment.endpoint;
         this.urlAppAPI = 'api/consultorio/'
     }
 
-    obtenerDatosConsultorios(): Observable<Consultorio[]> {
-        let token = localStorage.getItem('token');
-        let idUser = localStorage.getItem('idUser');
+    async obtenerDatosConsultorios(): Promise<Observable<Consultorio[]>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
         
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`)
-        let body = {
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        const body = {
             id_usuario : Number(idUser)
         };
 
@@ -38,15 +39,15 @@ export class ConsultorioService {
         ); 
     }
 
-    crearConsultorio(data: Consultorio): Observable<any> {
+    async crearConsultorio(data: Consultorio): Promise<Observable<any>> {
 
-        let token = localStorage.getItem('token');
-        let idUser = localStorage.getItem('idUser');
-        let idEmpresa = localStorage.getItem('idEmpresa');
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
         
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`)
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
-        let body = {
+        const body = {
             id_consultorio: data.id,
             codigo : data.codigo,
             descripcion : data.descripcion,
@@ -70,15 +71,15 @@ export class ConsultorioService {
         );
     }
 
-    actualizarConsultorio(id: number, data: Partial<Consultorio>): Observable<any> {
+    async actualizarConsultorio(id: number, data: Partial<Consultorio>): Promise<Observable<any>> {
         
-        let token = localStorage.getItem('token');
-        let idUser = localStorage.getItem('idUser');
-        let idEmpresa = localStorage.getItem('idEmpresa');
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
         
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`)
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
-        let body = {
+        const body = {
             id_consultorio: data.id,
             codigo : data.codigo,
             descripcion : data.descripcion,
@@ -102,13 +103,13 @@ export class ConsultorioService {
         );
     }
 
-    borrarConsultorio(id: number): Observable<void> {
-        let token = localStorage.getItem('token');
-        let idUser = localStorage.getItem('idUser');
+    async borrarConsultorio(id: number): Promise<Observable<void>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
         
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`)
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
-        let body = {
+        const body = {
             id_consultorio : Number(id)
         };
 

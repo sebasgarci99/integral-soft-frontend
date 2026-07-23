@@ -13,9 +13,9 @@ export class MenuService {
 
     constructor(private loginService: LoginService) {}
 
-    cargarModulos(): void {
+    async cargarModulos(): Promise<void> {
         if (this.cargado) return;
-        this.loginService.obtenerInformacionUsuario().subscribe({
+        (await this.loginService.obtenerInformacionUsuario()).subscribe({
             next: (data: any) => {
                 const userData = data[0];
                 this.modulosSubject.next(userData.modulos || []);

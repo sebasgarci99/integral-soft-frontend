@@ -4,6 +4,7 @@ import { map, Observable } from 'rxjs';
 import { Cliente, ClientesResponse } from '../../interfaces/cliente';
 
 import { enviroment } from '../../../enviroments/enviroment';
+import { SecureStorageService } from '../secure-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class ClienteService {
@@ -11,18 +12,18 @@ export class ClienteService {
     private urlApp: string;
     private urlAppAPI: string;
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private secureStorage: SecureStorageService) {
         this.urlApp = enviroment.endpoint;
         this.urlAppAPI = 'api/clientes/'
     }
 
-    obtenerDatosClientes(): Observable<Cliente[]> {
-        let token = localStorage.getItem('token');
-        let idUser = localStorage.getItem('idUser');
-        let idEmpresa = localStorage.getItem('idEmpresa');
+    async obtenerDatosClientes(): Promise<Observable<Cliente[]>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
 
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`)
-        let body = {
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        const body = {
             id_usuario: Number(idUser),
             id_empresa: Number(idEmpresa)
         };
@@ -38,15 +39,15 @@ export class ClienteService {
         );
     }
 
-    crearCliente(data: Cliente): Observable<any> {
+    async crearCliente(data: Cliente): Promise<Observable<any>> {
 
-        let token = localStorage.getItem('token');
-        let idUser = localStorage.getItem('idUser');
-        let idEmpresa = localStorage.getItem('idEmpresa');
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
 
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`)
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
-        let body = {
+        const body = {
             nombre_razon_social: data.nombre_razon_social,
             nombre_comercial: data.nombre_comercial,
             tipo_identificacion: data.tipo_identificacion,
@@ -72,15 +73,15 @@ export class ClienteService {
         );
     }
 
-    actualizarCliente(id: number, data: Partial<Cliente>): Observable<any> {
+    async actualizarCliente(id: number, data: Partial<Cliente>): Promise<Observable<any>> {
 
-        let token = localStorage.getItem('token');
-        let idUser = localStorage.getItem('idUser');
-        let idEmpresa = localStorage.getItem('idEmpresa');
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
 
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`)
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
-        let body = {
+        const body = {
             id_cliente: data.id_cliente,
             nombre_razon_social: data.nombre_razon_social,
             nombre_comercial: data.nombre_comercial,
@@ -107,12 +108,12 @@ export class ClienteService {
         );
     }
 
-    borrarCliente(id: number): Observable<void> {
-        let token = localStorage.getItem('token');
+    async borrarCliente(id: number): Promise<Observable<void>> {
+        const token = await this.secureStorage.getItem('token');
 
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`)
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
-        let body = {
+        const body = {
             id_cliente: Number(id)
         };
 

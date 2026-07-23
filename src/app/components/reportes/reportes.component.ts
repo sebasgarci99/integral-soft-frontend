@@ -3,6 +3,7 @@ import { OnInit } from '@angular/core';
 import { ConfirmationService, MessageService, SelectItem } from 'primeng/api';
 import { ReportesService } from '../../services/reportes/reportes.service';
 import { ConsultorioService } from '../../services/consultorio/consultorio.service';
+import { SecureStorageService } from '../../services/secure-storage.service';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -93,20 +94,23 @@ export class ReportesComponent {
         private reportesService : ReportesService,
         private consultorioService: ConsultorioService,
         private messageService: MessageService,
-        private confirmService: ConfirmationService
+        private confirmService: ConfirmationService,
+        private secureStorage: SecureStorageService
     ) {
-        this.idRol = Number(localStorage.getItem('idRol'));
+        this.secureStorage.getItem('idRol').then(idRol => {
+            this.idRol = Number(idRol) || 0;
+        });
 
         this.cargarConsultorios();
     }
 
-    generarReporte() {
+    async generarReporte() {
         if(!this.validarParametrosReporte()) {
             return;
         }
 
         if(this.tipoReporte == 'totalizado') {
-            this.reportesService.obtenerReporteTotalizado(this.fechaInicio, this.fechaFin, this.consultorio).subscribe((data) => {
+            (await this.reportesService.obtenerReporteTotalizado(this.fechaInicio, this.fechaFin, this.consultorio)).subscribe((data) => {
                 this.datos = data;
                 if (data.length) {
                     this.columnas = Object.keys(data[0]).map(col => ({ field: col, header: this.formatHeader(col) }));
@@ -116,7 +120,7 @@ export class ReportesComponent {
         }
 
          if(this.tipoReporte == 'detallado') {
-            this.reportesService.obtenerReporteDetallado(this.fechaInicio, this.fechaFin, this.consultorio).subscribe((data) => {
+            (await this.reportesService.obtenerReporteDetallado(this.fechaInicio, this.fechaFin, this.consultorio)).subscribe((data) => {
                 this.datos = data;
                 if (data.length) {
                     this.columnas = Object.keys(data[0]).map(col => ({ field: col, header: this.formatHeader(col) }));
@@ -126,9 +130,9 @@ export class ReportesComponent {
         }
     }
 
-    cargarConsultorios() {
+    async cargarConsultorios() {
         try {
-            this.consultorioService.obtenerDatosConsultorios().subscribe((data) => {
+            (await this.consultorioService.obtenerDatosConsultorios()).subscribe((data) => {
                 this.consultoriosOpts = data.filter(e => e.estado == 'A').map((item: any) => ({
                     label: item.codigo+'-'+item.descripcion,
                     value: item.id
@@ -179,12 +183,12 @@ export class ReportesComponent {
             message: '¿Estás seguro de enviar el reporte generado a los correos electrónicos de los consultorios? Recuerda que se enviarán a todos los consultorios que hayas generado en el reporte.',
             acceptLabel: 'Sí',
             rejectLabel: 'No',
-            accept: () => {
+            accept: async () => {
                 this.loader = true;
 
-                this.reportesService.enviarReporteCorreosConsultorios(
+                (await this.reportesService.enviarReporteCorreosConsultorios(
                     this.fechaInicio, this.fechaFin, this.consultorio, this.tipoReporte
-                ).subscribe({
+                )).subscribe({
                     next: (res) => {
                         if (res.state === 'OK') {
                             let detalle = '';
@@ -230,10 +234,10 @@ export class ReportesComponent {
         });
     }
 
-    abrirHistorialEnvios() {
+    async abrirHistorialEnvios() {
         this.loader = true;
         this.showLogsDialog = true;
-        this.reportesService.obtenerLogsReportes().subscribe({
+        (await this.reportesService.obtenerLogsReportes()).subscribe({
             next: (data) => {
                 this.logs = data;
             },

@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { Router } from '@angular/router';
 import { LoginService } from '../../services/login/login.service';
 import { MenuService } from '../../services/menu/menu.service';
+import { SecureStorageService } from '../../services/secure-storage.service';
 
 import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
@@ -19,12 +20,15 @@ export class LoginComponent implements OnInit {
     formLogin: FormGroup;
     showPassword: boolean = false;
     recordar: boolean = false;
+    cargando: boolean = false;
+    anio: number = new Date().getFullYear();
 
     constructor(
         private form: FormBuilder,
         private router: Router,
         private loginService: LoginService,
-        private menuService: MenuService
+        private menuService: MenuService,
+        private secureStorage: SecureStorageService
     ) {
         this.formLogin = this.form.group({
             username: [
@@ -45,15 +49,14 @@ export class LoginComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        const rememberedUser = localStorage.getItem('rememberedUser');
-        const rememberedPass = localStorage.getItem('rememberedPass');
-        if (rememberedUser && rememberedPass) {
-            this.formLogin.patchValue({
-                username: rememberedUser,
-                password: rememberedPass
-            });
-            this.recordar = true;
-        }
+        this.secureStorage.getItem('rememberedUser').then(rememberedUser => {
+            if (rememberedUser && rememberedUser.toLowerCase() !== 'null' && rememberedUser.trim() !== '') {
+                this.formLogin.patchValue({
+                    username: rememberedUser
+                });
+                this.recordar = true;
+            }
+        });
     }
 
     togglePassword(): void {
@@ -66,25 +69,27 @@ export class LoginComponent implements OnInit {
             return;
         }
 
-        this.loginService.login(this.formLogin.value).subscribe({
-            next: (data) => {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('idUser', data.idUser);
-                localStorage.setItem('idEmpresa', data.idEmpresa);
-                localStorage.setItem('idRol', data.rol);
+        this.cargando = true;
 
-                if (this.recordar) {
-                    localStorage.setItem('rememberedUser', this.formLogin.get('username')?.value);
-                    localStorage.setItem('rememberedPass', this.formLogin.get('password')?.value);
+        this.loginService.login(this.formLogin.value).subscribe({
+            next: async (data) => {
+                const username = this.formLogin.get('username')?.value;
+                await this.secureStorage.setItem('token', data.token);
+                await this.secureStorage.setItem('idUser', data.idUser);
+                await this.secureStorage.setItem('idEmpresa', data.idEmpresa);
+                await this.secureStorage.setItem('idRol', data.rol);
+
+                if (this.recordar && username) {
+                    await this.secureStorage.setItem('rememberedUser', username);
                 } else {
-                    localStorage.removeItem('rememberedUser');
-                    localStorage.removeItem('rememberedPass');
+                    this.secureStorage.removeItem('rememberedUser');
                 }
 
                 this.menuService.cargarModulos();
                 this.router.navigate(['/home']);
             },
             error: (error: HttpErrorResponse) => {
+                this.cargando = false;
                 Swal.fire(
                     'Información',
                     error.error.msg,
@@ -92,6 +97,7 @@ export class LoginComponent implements OnInit {
                 );
             },
             complete: () => {
+                this.cargando = false;
                 this.formLogin.reset();
             }
         });

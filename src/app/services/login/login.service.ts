@@ -3,6 +3,7 @@ import { LoginInterface } from '../../interfaces/loginInterface';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject, catchError, tap, map } from 'rxjs';
 import { enviroment } from '../../../enviroments/enviroment';
+import { SecureStorageService } from '../secure-storage.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +17,8 @@ export class LoginService {
     currentUserData : BehaviorSubject<any> = new BehaviorSubject<any>({});
 
     constructor(
-        private http: HttpClient
+        private http: HttpClient,
+        private secureStorage: SecureStorageService
     ) { 
         this.urlApp = enviroment.endpoint;
         this.urlAppAPI = 'api/usuario/'
@@ -51,14 +53,11 @@ export class LoginService {
         return this.currentUserData.asObservable();
     }
 
-    obtenerInformacionUsuario(): Observable<any[]> {
-        let token = localStorage.getItem('token');
-        // let idUser = localStorage.getItem('idUser');
+    async obtenerInformacionUsuario(): Promise<Observable<any[]>> {
+        const token = await this.secureStorage.getItem('token');
         
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`)
-        let body = {
-            // id_usuario : Number(idUser)
-        };
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`)
+        const body = {};
 
         return this.http.post<any>(
             this.urlApp+this.urlAppAPI+'getInfoUser',

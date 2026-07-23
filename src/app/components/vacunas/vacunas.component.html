@@ -12,7 +12,7 @@
                 </div>
 
                 <p-table #tablaVacunas [value]="vacunas" [paginator]="true" [rows]="10" responsiveLayout="scroll"
-                    [globalFilterFields]="['nombre_vacuna', 'cantidad_dosis', 'fecha_vencimiento', 'estado']">
+                    [globalFilterFields]="['nombre_vacuna', 'cantidad_dosis', 'fecha_vencimiento', 'estado']" stripedRows>
                     <ng-template pTemplate="header">
                         <tr>
                             <th>Nombre</th>
@@ -33,7 +33,7 @@
                             <td>
                                 <p-button icon="fa fa-pencil" class="p-button-text p-button-sm"
                                     (onClick)="editarVacuna(row)" />
-                                <p-button icon="fa fa-trash" class="p-button-text p-button-sm"
+                                <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger"
                                     (onClick)="borrarVacuna(row.id)" />
                             </td>
                         </tr>

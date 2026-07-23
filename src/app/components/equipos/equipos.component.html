@@ -11,7 +11,7 @@
         </div>
 
         <p-table #tabla [value]="equipos" [paginator]="true" [rows]="10" responsiveLayout="scroll"
-            [globalFilterFields]="['nombre', 'tipo_equipo', 'marca']">
+            [globalFilterFields]="['nombre', 'tipo_equipo', 'marca']" stripedRows>
 
             <ng-template pTemplate="header">
                 <tr>

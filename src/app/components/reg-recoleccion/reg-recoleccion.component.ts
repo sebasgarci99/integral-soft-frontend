@@ -4,6 +4,7 @@ import { ViewChild } from '@angular/core';
 
 import { RecoleccionService } from '../../services/recoleccion/recoleccion.service';
 import { ConsultorioService } from '../../services/consultorio/consultorio.service';
+import { SecureStorageService } from '../../services/secure-storage.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { CommonModule } from '@angular/common';
@@ -155,7 +156,8 @@ export class RegRecoleccionComponent implements OnInit{
         private RecoleccionService: RecoleccionService,
         private consultorioService: ConsultorioService,
         private messageService: MessageService,
-        private confirmService: ConfirmationService
+        private confirmService: ConfirmationService,
+        private secureStorage: SecureStorageService
     ) {}
 
     ngOnInit(): void { 
@@ -233,8 +235,8 @@ export class RegRecoleccionComponent implements OnInit{
             message: '¿Estás seguro de eliminar este registro de recolección?',
             acceptLabel: 'Sí',
             rejectLabel: 'No',
-            accept: () => {
-                this.RecoleccionService.borrarRecoleccion(Number(id)).subscribe(() => {
+            accept: async () => {
+                (await this.RecoleccionService.borrarRecoleccion(Number(id))).subscribe(() => {
                     this.cargarRegistrosRecoleccion();
                     this.messageService.add({ severity: 'success', summary: 'Registro de peso eliminado (inactivado).' });
                 });
@@ -281,9 +283,9 @@ export class RegRecoleccionComponent implements OnInit{
         this.mostrarMensajeOK = false;
     }
 
-    cargarConsultorios() {
+    async cargarConsultorios() {
         try {
-            this.consultorioService.obtenerDatosConsultorios().subscribe((data) => {
+            (await this.consultorioService.obtenerDatosConsultorios()).subscribe((data) => {
                 this.consultoriosOpts = data.filter(e => e.estado == 'A').map((item: any) => ({
                     label: item.codigo+'-'+item.descripcion,
                     value: item.id
@@ -295,9 +297,9 @@ export class RegRecoleccionComponent implements OnInit{
         
     }
 
-    cargarRegistrosRecoleccion() {
+    async cargarRegistrosRecoleccion() {
         try {
-            this.RecoleccionService.obtenerRegistrosRecoleccion().subscribe((data) => {  
+            (await this.RecoleccionService.obtenerRegistrosRecoleccion()).subscribe((data) => {  
                 const registros = data.map((reg:any) => ({
                         ...reg,
                         pretratamiento : reg.pret_usado,
@@ -323,7 +325,7 @@ export class RegRecoleccionComponent implements OnInit{
     }
 
     // Función que lanza el WS de creación o actualización del registro de recolección.
-    crearActualizarRecoleccion(): void {
+    async crearActualizarRecoleccion(): Promise<void> {
         if (this.isEdit) {
 
             // Por precausión, realizamos la validación de la llave del registro
@@ -333,14 +335,14 @@ export class RegRecoleccionComponent implements OnInit{
             }
 
             // Si se esta editando
-            this.RecoleccionService.actualizarRecoleccion(Number(this.formData.id_registropeso), this.formData).subscribe(() => {
+            (await this.RecoleccionService.actualizarRecoleccion(Number(this.formData.id_registropeso), this.formData)).subscribe(() => {
                 this.cargarRegistrosRecoleccion();
                 this.displayDialog = false;
                 this.messageService.add({ severity: 'success', summary: 'Registro de peso actualizado correctamente.' });
             });
         } else {
             // Si se va a crear el registro
-            this.RecoleccionService.crearRecoleccion(this.formData).subscribe(() => {
+            (await this.RecoleccionService.crearRecoleccion(this.formData)).subscribe(() => {
                 this.cargarRegistrosRecoleccion();
                 this.displayDialog = false;
                 this.messageService.add({ severity: 'success', summary: 'Registro de peso creado correctamente.' });
@@ -461,10 +463,15 @@ export class RegRecoleccionComponent implements OnInit{
     }
 
     cargarInfoUsuarioSesion() {
-        this.datosUsuario = {
-            "idEmpresa" : localStorage.getItem('idEmpresa'),
-            "idRol" : localStorage.getItem('idRol')
-        }
+        Promise.all([
+            this.secureStorage.getItem('idEmpresa'),
+            this.secureStorage.getItem('idRol')
+        ]).then(([idEmpresa, idRol]) => {
+            this.datosUsuario = {
+                "idEmpresa": idEmpresa,
+                "idRol": idRol
+            }
+        });
     }
 
     validarFechaEsHoy(fecha: string | Date): boolean {

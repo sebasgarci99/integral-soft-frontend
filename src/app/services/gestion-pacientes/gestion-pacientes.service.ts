@@ -4,6 +4,7 @@ import { map, Observable } from 'rxjs';
 import { enviroment } from '../../../enviroments/enviroment';
 import { GestionPaciente, GestionPacienteResponse } from '../../interfaces/gestion-pacientes';
 import { ProcedimientoRiesgo } from '../../interfaces/gestion-pacientes';
+import { SecureStorageService } from '../secure-storage.service';
 
 @Injectable({
     providedIn: 'root'
@@ -13,133 +14,161 @@ export class GestionPacientesService {
     private urlApp: string;
     private urlAppAPI: string;
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private secureStorage: SecureStorageService) {
         this.urlApp = enviroment.endpoint;
         this.urlAppAPI = 'api/gestion_pacientes/';
     }
 
-    private getAuthHeaders(): HttpHeaders {
-        const token = localStorage.getItem('token');
+    private async getAuthHeaders(): Promise<HttpHeaders> {
+        const token = await this.secureStorage.getItem('token');
         return new HttpHeaders().set('authorization', `Bearer ${token}`);
     }
 
-    private getBaseBody(): { id_usuario: number; id_empresa: number } {
+    private async getBaseBody(): Promise<Record<string, unknown>> {
+        const [idUser, idEmpresa] = await Promise.all([
+            this.secureStorage.getItem('idUser'),
+            this.secureStorage.getItem('idEmpresa')
+        ]);
         return {
-            id_usuario: Number(localStorage.getItem('idUser')),
-            id_empresa: Number(localStorage.getItem('idEmpresa'))
+            id_usuario: Number(idUser),
+            id_empresa: Number(idEmpresa)
         };
     }
 
-    obtenerPacientes(): Observable<GestionPaciente[]> {
+    async obtenerPacientes(): Promise<Observable<GestionPaciente[]>> {
+        const headers = await this.getAuthHeaders();
+        const body = await this.getBaseBody();
         return this.http.post<GestionPacienteResponse>(
             this.urlApp + this.urlAppAPI + 'getPacientes',
-            this.getBaseBody(),
-            { headers: this.getAuthHeaders() }
+            body,
+            { headers }
         ).pipe(
             map(response => (response.body as GestionPaciente[]) || [])
         );
     }
 
-    obtenerPaciente(idPaciente: number): Observable<{ paciente: GestionPaciente; historico: any[] }> {
-        const body = { ...this.getBaseBody(), id_paciente: idPaciente };
+    async obtenerPaciente(idPaciente: number): Promise<Observable<{ paciente: GestionPaciente; historico: any[] }>> {
+        const headers = await this.getAuthHeaders();
+        const baseBody = await this.getBaseBody();
+        const body = { ...baseBody, id_paciente: idPaciente };
         return this.http.post<GestionPacienteResponse>(
             this.urlApp + this.urlAppAPI + 'getPacienteById',
             body,
-            { headers: this.getAuthHeaders() }
+            { headers }
         ).pipe(
             map(response => (response.body as any) || { paciente: {}, historico: [] })
         );
     }
 
-    crearPaciente(data: GestionPaciente): Observable<GestionPacienteResponse> {
-        const body = { ...this.getBaseBody(), ...data };
+    async crearPaciente(data: GestionPaciente): Promise<Observable<GestionPacienteResponse>> {
+        const headers = await this.getAuthHeaders();
+        const baseBody = await this.getBaseBody();
+        const body = { ...baseBody, ...data };
         return this.http.post<GestionPacienteResponse>(
             this.urlApp + this.urlAppAPI + 'crearPaciente',
             body,
-            { headers: this.getAuthHeaders() }
+            { headers }
         );
     }
 
-    actualizarPaciente(data: GestionPaciente): Observable<GestionPacienteResponse> {
-        const body = { ...this.getBaseBody(), ...data };
+    async actualizarPaciente(data: GestionPaciente): Promise<Observable<GestionPacienteResponse>> {
+        const headers = await this.getAuthHeaders();
+        const baseBody = await this.getBaseBody();
+        const body = { ...baseBody, ...data };
         return this.http.post<GestionPacienteResponse>(
             this.urlApp + this.urlAppAPI + 'actualizarPaciente',
             body,
-            { headers: this.getAuthHeaders() }
+            { headers }
         );
     }
 
-    inactivarPaciente(id_paciente: number): Observable<GestionPacienteResponse> {
-        const body = { ...this.getBaseBody(), id_paciente: Number(id_paciente) };
+    async inactivarPaciente(id_paciente: number): Promise<Observable<GestionPacienteResponse>> {
+        const headers = await this.getAuthHeaders();
+        const baseBody = await this.getBaseBody();
+        const body = { ...baseBody, id_paciente: Number(id_paciente) };
         return this.http.post<GestionPacienteResponse>(
             this.urlApp + this.urlAppAPI + 'inactivarPaciente',
             body,
-            { headers: this.getAuthHeaders() }
+            { headers }
         );
     }
 
-    obtenerTiposConsentimiento(): Observable<any[]> {
+    async obtenerTiposConsentimiento(): Promise<Observable<any[]>> {
+        const headers = await this.getAuthHeaders();
+        const body = await this.getBaseBody();
         return this.http.post<GestionPacienteResponse>(
             this.urlApp + this.urlAppAPI + 'getTiposConsentimiento',
-            this.getBaseBody(),
-            { headers: this.getAuthHeaders() }
+            body,
+            { headers }
         ).pipe(
             map(response => (response.body as any[]) || [])
         );
     }
 
-    enviarBorrador(id_paciente: number, id_cita: number, tipo_consentimiento: string, correo_destino: string, funcion_borrador: string): Observable<GestionPacienteResponse> {
-        const body = { ...this.getBaseBody(), id_paciente, id_cita, tipo_consentimiento, correo_destino, funcion_borrador };
+    async enviarBorrador(id_paciente: number, id_cita: number, tipo_consentimiento: string, correo_destino: string, funcion_borrador: string): Promise<Observable<GestionPacienteResponse>> {
+        const headers = await this.getAuthHeaders();
+        const baseBody = await this.getBaseBody();
+        const body = { ...baseBody, id_paciente, id_cita, tipo_consentimiento, correo_destino, funcion_borrador };
         return this.http.post<GestionPacienteResponse>(
             this.urlApp + this.urlAppAPI + 'enviarBorrador',
             body,
-            { headers: this.getAuthHeaders() }
+            { headers }
         );
     }
 
-    generarConsentimiento(id_paciente: number, id_cita: number, tipo_consentimiento: string, datos: any, firma_digital_paciente: string, funcion_pdf: string): Observable<GestionPacienteResponse> {
-        const body = { ...this.getBaseBody(), id_paciente, id_cita, tipo_consentimiento, datos, firma_digital_paciente, funcion_pdf };
+    async generarConsentimiento(id_paciente: number, id_cita: number, tipo_consentimiento: string, datos: any, firma_digital_paciente: string, funcion_pdf: string): Promise<Observable<GestionPacienteResponse>> {
+        const headers = await this.getAuthHeaders();
+        const baseBody = await this.getBaseBody();
+        const body = { ...baseBody, id_paciente, id_cita, tipo_consentimiento, datos, firma_digital_paciente, funcion_pdf };
         return this.http.post<GestionPacienteResponse>(
             this.urlApp + this.urlAppAPI + 'generarConsentimiento',
             body,
-            { headers: this.getAuthHeaders() }
+            { headers }
         );
     }
 
-    obtenerConsentimientos(id_paciente: number): Observable<any[]> {
-        const body = { ...this.getBaseBody(), id_paciente };
+    async obtenerConsentimientos(id_paciente: number): Promise<Observable<any[]>> {
+        const headers = await this.getAuthHeaders();
+        const baseBody = await this.getBaseBody();
+        const body = { ...baseBody, id_paciente };
         return this.http.post<GestionPacienteResponse>(
             this.urlApp + this.urlAppAPI + 'getConsentimientos',
             body,
-            { headers: this.getAuthHeaders() }
+            { headers }
         ).pipe(
             map(response => (response.body as any[]) || [])
         );
     }
 
-    reenviarConsentimiento(id_consentimiento: number, correo_destino: string): Observable<GestionPacienteResponse> {
-        const body = { ...this.getBaseBody(), id_consentimiento, correo_destino };
+    async reenviarConsentimiento(id_consentimiento: number, correo_destino: string): Promise<Observable<GestionPacienteResponse>> {
+        const headers = await this.getAuthHeaders();
+        const baseBody = await this.getBaseBody();
+        const body = { ...baseBody, id_consentimiento, correo_destino };
         return this.http.post<GestionPacienteResponse>(
             this.urlApp + this.urlAppAPI + 'reenviarConsentimiento',
             body,
-            { headers: this.getAuthHeaders() }
+            { headers }
         );
     }
 
-    descargarConsentimientoById(id_consentimiento: number): Observable<GestionPacienteResponse> {
-        const body = { ...this.getBaseBody(), id_consentimiento };
+    async descargarConsentimientoById(id_consentimiento: number): Promise<Observable<GestionPacienteResponse>> {
+        const headers = await this.getAuthHeaders();
+        const baseBody = await this.getBaseBody();
+        const body = { ...baseBody, id_consentimiento };
         return this.http.post<GestionPacienteResponse>(
             this.urlApp + this.urlAppAPI + 'descargarConsentimientoById',
             body,
-            { headers: this.getAuthHeaders() }
+            { headers }
         );
     }
 
-    obtenerProcedimientosRiesgos(): Observable<ProcedimientoRiesgo[]> {
+    async obtenerProcedimientosRiesgos(): Promise<Observable<ProcedimientoRiesgo[]>> {
+        const headers = await this.getAuthHeaders();
+        const body = await this.getBaseBody();
         return this.http.post<GestionPacienteResponse>(
             this.urlApp + this.urlAppAPI + 'getProcedimientosRiesgos',
-            this.getBaseBody(),
-            { headers: this.getAuthHeaders() }
+            body,
+            { headers }
         ).pipe(
             map(response => (response.body as ProcedimientoRiesgo[]) || [])
         );

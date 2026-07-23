@@ -6,6 +6,7 @@ import { map, Observable } from 'rxjs';
 import { enviroment } from '../../../enviroments/enviroment';
 import { GraficaUsuario } from '../../interfaces/GraficaUsuario';
 import { ReporteGraficasResponse } from '../../interfaces/ReporteGraficasResponse';
+import { SecureStorageService } from '../secure-storage.service';
 
 @Injectable({
     providedIn: 'root'
@@ -16,7 +17,7 @@ export class ReportesService {
     private urlAppAPI: string;
     private urlAppAPI_enviarMail: string;
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private secureStorage: SecureStorageService) {
         this.urlApp = enviroment.endpoint;
         this.urlAppAPI = 'api/reportes/';
         this.urlAppAPI_enviarMail = 'api/enviarmail/';
@@ -25,14 +26,14 @@ export class ReportesService {
     /* ─────────────────────────────────────────────
        LISTAR (GET) ─ getReportTotalizado
    ───────────────────────────────────────────── */
-    obtenerReporteTotalizado(
+    async obtenerReporteTotalizado(
         fechaInicio: Date,
         fechaFin: Date,
         consultorio: number | null
-    ): Observable<any[]> {
+    ): Promise<Observable<any[]>> {
 
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = {
@@ -54,14 +55,14 @@ export class ReportesService {
     /* ─────────────────────────────────────────────
        LISTAR (GET) ─ getReportDetallado
    ───────────────────────────────────────────── */
-    obtenerReporteDetallado(
+    async obtenerReporteDetallado(
         fechaInicio: Date,
         fechaFin: Date,
         consultorio: number | null
-    ): Observable<any[]> {
+    ): Promise<Observable<any[]>> {
 
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = {
@@ -83,9 +84,9 @@ export class ReportesService {
     /* ─────────────────────────────────────────────
        LISTAR (GET) ─ getResumenMes (graficas)
    ───────────────────────────────────────────── */
-    obtenerReporteResumenMes(): Observable<any> {
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
+    async obtenerReporteResumenMes(): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = {
@@ -104,9 +105,9 @@ export class ReportesService {
     /* ─────────────────────────────────────────────
         LISTAR (GET) ─ getResumenMesActual (graficas)
     ───────────────────────────────────────────── */
-    obtenerReporteResumenMesActual(): Observable<any> {
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
+    async obtenerReporteResumenMesActual(): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = {
@@ -125,9 +126,9 @@ export class ReportesService {
     /* ─────────────────────────────────────────────
         LISTAR (GET) ─ getResumenMesActualConsultorios (graficas)
     ───────────────────────────────────────────── */
-    obtenerReporteResumenMesActualConsultorio(): Observable<any> {
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
+    async obtenerReporteResumenMesActualConsultorio(): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = {
@@ -146,13 +147,13 @@ export class ReportesService {
     /* ─────────────────────────────────────────────
         LISTAR (GET) ─ enviarReporteCorreosConsultorios
     ───────────────────────────────────────────── */
-    enviarReporteCorreosConsultorios(
+    async enviarReporteCorreosConsultorios(
         fechaInicio: Date,
         fechaFin: Date,
         consultorio: number | null,
         tipoReporte: String
-    ): Observable<any> {
-        const token = localStorage.getItem('token');
+    ): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = {
@@ -172,8 +173,8 @@ export class ReportesService {
     /* ─────────────────────────────────────────────
         LISTAR (GET) ─ obtenerLogsReportes
     ───────────────────────────────────────────── */
-    obtenerLogsReportes(): Observable<any[]> {
-        const token = localStorage.getItem('token');
+    async obtenerLogsReportes(): Promise<Observable<any[]>> {
+        const token = await this.secureStorage.getItem('token');
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
         return this.http.post<any>(
@@ -188,9 +189,9 @@ export class ReportesService {
     /* ─────────────────────────────────────────────
         LISTAR (GET) ─ getReporteGraficaxUsuario
     ───────────────────────────────────────────── */
-    obtenerReportesxUsuario(): Observable<GraficaUsuario[]> {
+    async obtenerReportesxUsuario(): Promise<Observable<GraficaUsuario[]>> {
 
-        const token = localStorage.getItem('token')
+        const token = await this.secureStorage.getItem('token');
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = {};
@@ -207,13 +208,13 @@ export class ReportesService {
     /* ─────────────────────────────────────────────
         LISTAR (GET) ─ getReporteVacunacion
     ───────────────────────────────────────────── */
-    obtenerReporteVacunacion(
+    async obtenerReporteVacunacion(
         fechaInicio: String,
         fechaFin: String,
         paciente: number | null
-    ): Observable<any[]> {
+    ): Promise<Observable<any[]>> {
 
-        const token = localStorage.getItem('token')
+        const token = await this.secureStorage.getItem('token');
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = {
@@ -234,13 +235,13 @@ export class ReportesService {
     /* ─────────────────────────────────────────────
         LISTAR (GET) ─ getReporteVacunasAplicadas
     ───────────────────────────────────────────── */
-    obtenerReporteVacunasAplicadas(
+    async obtenerReporteVacunasAplicadas(
         fechaInicio: String,
         fechaFin: String,
         vacuna: number | null
-    ): Observable<any[]> {
+    ): Promise<Observable<any[]>> {
 
-        const token = localStorage.getItem('token')
+        const token = await this.secureStorage.getItem('token');
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = {

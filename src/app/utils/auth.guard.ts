@@ -1,36 +1,31 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import Swal from 'sweetalert2';
+import { SecureStorageService } from '../services/secure-storage.service';
 
-export const authGuard: CanActivateFn = (route, state) => {
+export const authGuard: CanActivateFn = async (route, state) => {
 
     const router = inject(Router);
-    const token = localStorage.getItem('token');
+    const secureStorage = inject(SecureStorageService);
+    const token = await secureStorage.getItem('token');
 
-    // 1ra validación: se confirma o valida si hay token
     if (!token) {
-        // Redirige a /login si no hay token
         return router.parseUrl('/login');
     }
 
-    // 2da validación. tOKEN EXPIRADO
     const payload = JSON.parse(atob(token.split('.')[1]));
     const exp = payload.exp;
-    // Validamos si la sesión del token expiro
-    if(Date.now() >= exp * 1000) {
-        // Token expirado
-        Swal.fire({
+
+    if (Date.now() >= exp * 1000) {
+        await Swal.fire({
             icon: 'error',
             title: 'Sesión expirada',
             text: 'Tu sesión ha caducado. Por favor, vuelve a iniciar sesión.',
             confirmButtonText: 'OK'
-        }).then(() => {
-            localStorage.removeItem('token');
-            router.navigate(['/login']);
         });
+        secureStorage.removeItem('token');
+        return router.parseUrl('/login');
     }
 
-
-    // Permite la activación de la ruta
     return true;
 };

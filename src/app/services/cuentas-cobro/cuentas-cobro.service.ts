@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { CuentaCobro, CuentasCobroResponse } from '../../interfaces/cuenta-cobro';
 import { enviroment } from '../../../enviroments/enviroment';
+import { SecureStorageService } from '../secure-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class CuentasCobroService {
@@ -10,15 +11,15 @@ export class CuentasCobroService {
     private urlApp: string;
     private urlAppAPI: string;
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private secureStorage: SecureStorageService) {
         this.urlApp = enviroment.endpoint;
         this.urlAppAPI = 'api/cuentas_cobro/';
     }
 
-    obtenerCuentasCobro(): Observable<CuentaCobro[]> {
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
-        const idEmpresa = localStorage.getItem('idEmpresa');
+    async obtenerCuentasCobro(): Promise<Observable<CuentaCobro[]>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
 
         const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = {
@@ -35,10 +36,10 @@ export class CuentasCobroService {
         );
     }
 
-    crearCuentaCobro(data: any): Observable<any> {
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
-        const idEmpresa = localStorage.getItem('idEmpresa');
+    async crearCuentaCobro(data: any): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
 
         const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
@@ -63,8 +64,8 @@ export class CuentasCobroService {
         );
     }
 
-    inactivarCuentaCobro(id: number): Observable<any> {
-        const token = localStorage.getItem('token');
+    async inactivarCuentaCobro(id: number): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
 
         const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = {
@@ -78,8 +79,8 @@ export class CuentasCobroService {
         );
     }
 
-    generarDocumento(id: number): Observable<any> {
-        const token = localStorage.getItem('token');
+    async generarDocumento(id: number): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
         const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
         return this.http.post<any>(
@@ -93,10 +94,10 @@ export class CuentasCobroService {
         return;
     }
 
-    actualizarCuentaCobro(data: any): Observable<any> {
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
-        const idEmpresa = localStorage.getItem('idEmpresa');
+    async actualizarCuentaCobro(data: any): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
         const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
         const body = {
@@ -115,10 +116,10 @@ export class CuentasCobroService {
         );
     }
 
-    reenviarCuentaCobro(idCuentaCobro: number): Observable<any> {
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
-        const idEmpresa = localStorage.getItem('idEmpresa');
+    async reenviarCuentaCobro(idCuentaCobro: number): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
         const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
         return this.http.post<any>(
@@ -128,10 +129,10 @@ export class CuentasCobroService {
         );
     }
 
-    actualizarConfigPeriodicidad(data: any): Observable<any> {
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
-        const idEmpresa = localStorage.getItem('idEmpresa');
+    async actualizarConfigPeriodicidad(data: any): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
         const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
         const body = {
@@ -152,10 +153,10 @@ export class CuentasCobroService {
         );
     }
 
-    obtenerLogTareas(idCuentaCobro: number): Observable<any> {
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
-        const idEmpresa = localStorage.getItem('idEmpresa');
+    async obtenerLogTareas(idCuentaCobro: number): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
         const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
         
         return this.http.post<any>(

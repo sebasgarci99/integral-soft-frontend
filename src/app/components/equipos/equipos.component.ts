@@ -72,20 +72,20 @@ export class EquiposComponent implements OnInit {
         };
     }
 
-    cargarSedes() {
-        this.equipoService.obtenerSedes().subscribe({
+    async cargarSedes() {
+        (await this.equipoService.obtenerSedes()).subscribe({
             next: (sedes) => {
                 this.sedes = sedes;
             }
         });
     }
 
-    cargarAreasPorSede(idSede: number) {
+    async cargarAreasPorSede(idSede: number) {
         if (!idSede) {
             this.areas = [];
             return;
         }
-        this.equipoService.obtenerAreas(idSede).subscribe({
+        (await this.equipoService.obtenerAreas(idSede)).subscribe({
             next: (areas) => {
                 this.areas = areas;
             }
@@ -98,8 +98,8 @@ export class EquiposComponent implements OnInit {
         this.cargarAreasPorSede(idSede);
     }
 
-    cargarEquipos() {
-        this.equipoService.obtenerEquipos().subscribe({
+    async cargarEquipos() {
+        (await this.equipoService.obtenerEquipos()).subscribe({
             next: (equipos) => {
                 this.equipos = equipos;
             }
@@ -137,8 +137,8 @@ export class EquiposComponent implements OnInit {
             message: '¿Está seguro de inactivar este equipo?',
             acceptLabel: 'Sí',
             rejectLabel: 'No',
-            accept: () => {
-                this.equipoService.inactivarEquipo(id).subscribe(() => {
+            accept: async () => {
+                (await this.equipoService.inactivarEquipo(id)).subscribe(() => {
                     this.cargarEquipos();
                     this.messageService.add({ severity: 'success', summary: 'Equipo inactivado.' });
                 });
@@ -146,11 +146,11 @@ export class EquiposComponent implements OnInit {
         });
     }
 
-    guardarEquipo() {
+    async guardarEquipo() {
         if (!this.validarCampos()) return;
 
         if (this.isEdit) {
-            this.equipoService.editarEquipo(this.formData).subscribe((res) => {
+            (await this.equipoService.editarEquipo(this.formData)).subscribe((res) => {
                 if (res.state === 'OK') {
                     this.cargarEquipos();
                     this.displayDialog = false;
@@ -160,7 +160,7 @@ export class EquiposComponent implements OnInit {
                 }
             });
         } else {
-            this.equipoService.crearEquipo(this.formData).subscribe((res) => {
+            (await this.equipoService.crearEquipo(this.formData)).subscribe((res) => {
                 if (res.state === 'OK') {
                     this.cargarEquipos();
                     this.displayDialog = false;

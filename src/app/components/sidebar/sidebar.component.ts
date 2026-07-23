@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { MenuService } from '../../services/menu/menu.service';
+import { SecureStorageService } from '../../services/secure-storage.service';
 import { ModuloPadre, Modulo } from '../../interfaces/modulo';
 import Swal from 'sweetalert2';
 
@@ -16,18 +17,25 @@ import Swal from 'sweetalert2';
 })
 export class SidebarComponent implements OnInit, OnDestroy {
 
+    @ViewChild('sidebarRef') sidebarRef!: ElementRef;
+
     logo: string | null | undefined;
     nombreCompleto: string = '';
     idRol: string = '';
+    rolUsuario: string = 'Usuario';
     modulosAgrupados: ModuloPadre[] = [];
     modulosDirectos: Modulo[] = [];
     currentRoute: string = '';
+    userMenuAbierto: boolean = false;
+    sidebarAbierto: boolean = false;
+    gruposAbiertos: Set<string> = new Set();
 
     private subs: Subscription[] = [];
 
     constructor(
         private router: Router,
-        private menuService: MenuService
+        private menuService: MenuService,
+        private secureStorage: SecureStorageService
     ) {}
 
     ngOnInit(): void {
@@ -49,16 +57,23 @@ export class SidebarComponent implements OnInit, OnDestroy {
                 if (!data || !data.nombre_completo) return;
                 this.nombreCompleto = data.nombre_completo;
                 this.idRol = data.id_rol;
+                this.rolUsuario = this.obtenerNombreRol(data.id_rol);
 
-                if (data.id_usuario != localStorage.getItem('idUser')) {
-                    localStorage.setItem('idUser', data.id_usuario);
-                }
-                if (data.id_rol != localStorage.getItem('idRol')) {
-                    localStorage.setItem('idRol', data.id_rol);
-                }
-                if (data.id_empresa != localStorage.getItem('idEmpresa')) {
-                    localStorage.setItem('idEmpresa', data.id_empresa);
-                }
+                this.secureStorage.getItem('idUser').then(idUser => {
+                    if (data.id_usuario != idUser) {
+                        this.secureStorage.setItem('idUser', data.id_usuario);
+                    }
+                });
+                this.secureStorage.getItem('idRol').then(idRol => {
+                    if (data.id_rol != idRol) {
+                        this.secureStorage.setItem('idRol', data.id_rol);
+                    }
+                });
+                this.secureStorage.getItem('idEmpresa').then(idEmpresa => {
+                    if (data.id_empresa != idEmpresa) {
+                        this.secureStorage.setItem('idEmpresa', data.id_empresa);
+                    }
+                });
 
                 setTimeout(() => {
                     this.logo = 'data:image/png;base64,' + data.blob_foto_perfil;
@@ -72,10 +87,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
 
     cerrarSesion(): void {
-        localStorage.removeItem('token');
-        localStorage.removeItem('idUser');
-        localStorage.removeItem('idEmpresa');
-        localStorage.removeItem('idRol');
+        this.secureStorage.removeItem('token');
+        this.secureStorage.removeItem('idUser');
+        this.secureStorage.removeItem('idEmpresa');
+        this.secureStorage.removeItem('idRol');
         this.menuService.limpiar();
         this.router.navigate(['/login']);
     }
@@ -85,7 +100,41 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
 
     isGrupoAbierto(grupo: ModuloPadre): boolean {
-        return this.isGrupoActivo(grupo);
+        return this.gruposAbiertos.has(grupo.modulo) || this.isGrupoActivo(grupo);
+    }
+
+    toggleGrupo(grupo: ModuloPadre): void {
+        if (this.gruposAbiertos.has(grupo.modulo)) {
+            this.gruposAbiertos.delete(grupo.modulo);
+        } else {
+            this.gruposAbiertos.add(grupo.modulo);
+        }
+    }
+
+    toggleUserMenu(): void {
+        this.userMenuAbierto = !this.userMenuAbierto;
+    }
+
+    abrirSidebar(): void {
+        this.sidebarAbierto = true;
+    }
+
+    cerrarSidebar(): void {
+        this.sidebarAbierto = false;
+    }
+
+    cerrarSidebarMovil(): void {
+        if (window.innerWidth < 992) {
+            this.cerrarSidebar();
+        }
+    }
+
+    private obtenerNombreRol(idRol: string): string {
+        switch (idRol) {
+            case '1': return 'Administrador';
+            case '2': return 'Usuario';
+            default: return 'Usuario';
+        }
     }
 
     getGrupoId(nombre: string): string {

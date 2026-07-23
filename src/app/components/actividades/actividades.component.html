@@ -134,7 +134,7 @@
             </div>
             <div class="card-body p-0">
                 <p-table #tabla [value]="actividades" [paginator]="true" [rows]="10" responsiveLayout="scroll"
-                    [globalFilterFields]="['titulo', 'descripcion', 'tipo_periodicidad']" styleClass="p-datatable-sm">
+                    [globalFilterFields]="['titulo', 'descripcion', 'tipo_periodicidad']" styleClass="p-datatable-sm" stripedRows>
                     <ng-template pTemplate="header">
                         <tr>
                             <th class="bg-light">Título</th>

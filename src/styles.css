@@ -92,7 +92,6 @@
 
 /* --- Tablas CRUD globales --- */
 .p-datatable .p-datatable-thead > tr > th {
-    background: var(--bg-light);
     color: var(--text-medium);
     font-weight: 600;
     font-size: 0.9rem;
@@ -103,17 +102,12 @@
 }
 
 .p-datatable .p-datatable-tbody > tr {
-    background-color: #ffffff;
     transition: background-color 0.15s ease;
     border-bottom: 1px solid var(--border-light);
 }
 
 .p-datatable .p-datatable-tbody > tr:last-child {
     border-bottom: none;
-}
-
-.p-datatable .p-datatable-tbody > tr:hover {
-    background-color: #f0f7ff !important;
 }
 
 .p-datatable .p-datatable-tbody > tr > td {
@@ -165,6 +159,11 @@
 }
 
 /* --- Dialog global --- */
+.p-dialog {
+    border-radius: 16px;
+    overflow: hidden;
+}
+
 .p-dialog .p-dialog-header {
     padding: 1rem 1.5rem;
     background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
@@ -220,6 +219,58 @@
     border-bottom: 3px solid var(--primary);
     margin-bottom: -2px;
     font-weight: 600;
+}
+
+/* --- Tabs view (p-tabView) --- */
+.p-tabview .p-tabview-nav {
+    justify-content: center;
+    border: none;
+    border-bottom: 2px solid var(--border-light);
+    background: transparent;
+    padding: 0;
+}
+
+.p-tabview .p-tabview-nav li {
+    margin: 0 2px;
+}
+
+.p-tabview .p-tabview-nav li .p-tabview-nav-link {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.2s ease;
+}
+
+.p-tabview .p-tabview-nav li:not(.p-highlight):hover .p-tabview-nav-link {
+    background: var(--bg-light);
+    color: var(--text-dark);
+}
+
+.p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+    color: var(--primary);
+    border-bottom: 3px solid var(--primary);
+    margin-bottom: -2px;
+    font-weight: 600;
+    background: transparent;
+}
+
+.p-tabview .p-tabview-panels {
+    padding: 1.5rem 0 0 0;
+    background: transparent;
+}
+
+/* --- Steps --- */
+.p-steps .p-steps-item.p-highlight .p-steps-number {
+    background: var(--primary);
+    color: #ffffff;
+}
+
+.p-steps .p-steps-item.p-highlight .p-steps-title {
+    color: var(--primary);
 }
 
 /* --- Tags de estado --- */

@@ -84,8 +84,8 @@ export class ClientesComponent implements OnInit {
         this.cargarClientes();
     }
 
-    cargarClientes() {
-        this.clienteService.obtenerDatosClientes().subscribe((data) => {
+    async cargarClientes() {
+        (await this.clienteService.obtenerDatosClientes()).subscribe((data) => {
             if (data) {
                 this.clientes = data;
             }
@@ -112,8 +112,8 @@ export class ClientesComponent implements OnInit {
             message: '¿Estás seguro de eliminar este cliente?',
             acceptLabel: 'Sí',
             rejectLabel: 'No',
-            accept: () => {
-                this.clienteService.borrarCliente(id).subscribe(() => {
+            accept: async () => {
+                (await this.clienteService.borrarCliente(id)).subscribe(() => {
                     this.cargarClientes();
                     this.messageService.add({ severity: 'success', summary: 'Cliente inactivado.' });
                 });
@@ -121,7 +121,7 @@ export class ClientesComponent implements OnInit {
         });
     }
 
-    crearActualizarCliente() {
+    async crearActualizarCliente() {
         if (this.clienteForm.invalid) {
             this.clienteForm.markAllAsTouched();
             return;
@@ -130,7 +130,7 @@ export class ClientesComponent implements OnInit {
         const clienteData = this.clienteForm.value;
 
         if (this.isEdit) {
-            this.clienteService.actualizarCliente(clienteData.id_cliente, clienteData).subscribe((res) => {
+            (await this.clienteService.actualizarCliente(clienteData.id_cliente, clienteData)).subscribe((res) => {
                 if (res.state == 'OK') {
                     this.cargarClientes();
                     this.displayDialog = false;
@@ -141,7 +141,7 @@ export class ClientesComponent implements OnInit {
                 }
             });
         } else {
-            this.clienteService.crearCliente(clienteData).subscribe((res) => {
+            (await this.clienteService.crearCliente(clienteData)).subscribe((res) => {
                 if (res.state == 'OK') {
                     this.messageService.add({ severity: 'success', summary: 'Cliente creado correctamente.' });
                     this.cargarClientes();

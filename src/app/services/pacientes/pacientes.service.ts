@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { enviroment } from '../../../enviroments/enviroment';
+import { SecureStorageService } from '../secure-storage.service';
 
 @Injectable({
     providedIn: 'root'
@@ -11,7 +12,7 @@ export class PacientesService {
     private urlApp: string;
     private urlAppAPI: string;
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private secureStorage: SecureStorageService) {
         this.urlApp = enviroment.endpoint;
         this.urlAppAPI = 'api/pacientes/';
     }
@@ -19,9 +20,9 @@ export class PacientesService {
     // ===========================================
     // GET - obtener todos los pacientes
     // ===========================================
-    obtenerPacientes(): Observable<any[]> {
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
+    async obtenerPacientes(): Promise<Observable<any[]>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
 
         const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = { id_usuario: Number(idUser) };
@@ -38,9 +39,9 @@ export class PacientesService {
     // ===========================================
     // GET - obtener todos los pacientes del modulo de vacunacion. se añade la ultima fecha de registro de vac.
     // ===========================================
-    obtenerPacientesVacunacion(): Observable<any[]> {
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
+    async obtenerPacientesVacunacion(): Promise<Observable<any[]>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
 
         const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = { id_usuario: Number(idUser) };
@@ -57,10 +58,10 @@ export class PacientesService {
     // ===========================================
     // POST - crear paciente
     // ===========================================
-    crearPaciente(data: any): Observable<any> {
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
-        const idEmpresa = localStorage.getItem('idEmpresa');
+    async crearPaciente(data: any): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
 
         const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
@@ -110,10 +111,10 @@ export class PacientesService {
     // ===========================================
     // POST - actualizar paciente
     // ===========================================
-    actualizarPaciente(data: any): Observable<any> {
-        const token = localStorage.getItem('token');
-        const idUser = localStorage.getItem('idUser');
-        const idEmpresa = localStorage.getItem('idEmpresa');
+    async actualizarPaciente(data: any): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
 
         const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
@@ -166,8 +167,8 @@ export class PacientesService {
     // ===========================================
     // DELETE (lógico) - eliminar paciente
     // ===========================================
-    borrarPaciente(id_paciente: number): Observable<any> {
-        const token = localStorage.getItem('token');
+    async borrarPaciente(id_paciente: number): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
         const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
         const body = { id_paciente: Number(id_paciente) };

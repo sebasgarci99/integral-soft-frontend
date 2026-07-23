@@ -88,8 +88,8 @@ export class RegTemperaturaComponent implements OnInit {
         this.cargarSedes();
     }
 
-    cargarSedes() {
-        this.registroService.obtenerSedes().subscribe({
+    async cargarSedes() {
+        (await this.registroService.obtenerSedes()).subscribe({
             next: (sedes) => {
                 this.sedes = sedes;
             }
@@ -107,10 +107,10 @@ export class RegTemperaturaComponent implements OnInit {
         this.cargarEquiposPorSede();
     }
 
-    cargarEquiposPorSede() {
+    async cargarEquiposPorSede() {
         if (!this.sedeSeleccionada) return;
 
-        this.registroService.obtenerEquiposBySede(this.sedeSeleccionada.id_sede).subscribe({
+        (await this.registroService.obtenerEquiposBySede(this.sedeSeleccionada.id_sede)).subscribe({
             next: (equipos) => {
                 this.equipos = equipos;
             }
@@ -130,10 +130,10 @@ export class RegTemperaturaComponent implements OnInit {
         }
     }
 
-    cargarAreasPorSede() {
+    async cargarAreasPorSede() {
         if (!this.sedeSeleccionada) return;
 
-        this.registroService.obtenerAreas(this.sedeSeleccionada.id_sede).subscribe({
+        (await this.registroService.obtenerAreas(this.sedeSeleccionada.id_sede)).subscribe({
             next: (areas) => {
                 this.areas = areas;
             }
@@ -237,13 +237,13 @@ export class RegTemperaturaComponent implements OnInit {
         this.formData = this.resetForm();
     }
 
-    cargarRegistros() {
+    async cargarRegistros() {
         const idSede = this.sedeSeleccionada?.id_sede;
         const idEquipo = this.equipoSeleccionado?.id_equipo;
 
         if (!idSede || !idEquipo) return;
 
-        this.registroService.obtenerRegistros(idSede, idEquipo).subscribe((res) => {
+        (await this.registroService.obtenerRegistros(idSede, idEquipo)).subscribe((res) => {
             this.registros = res;
             this.cargarRegistrosMesActualGrafica();
         });
@@ -289,7 +289,7 @@ export class RegTemperaturaComponent implements OnInit {
         return area ? area.nombre : '';
     }
 
-    guardarRegistro() {
+    async guardarRegistro() {
         let dataFormulario = {
             ...this.formData,
             id_sede: this.sedeSeleccionada?.id_sede,
@@ -303,7 +303,7 @@ export class RegTemperaturaComponent implements OnInit {
                 id_registro: this.registroEditando.id_registro
             };
 
-            this.registroService.editarRegistro(dataEdicion).subscribe((res) => {
+            (await this.registroService.editarRegistro(dataEdicion)).subscribe((res) => {
                 if (res.state === 'OK') {
                     this.messageService.add({
                         severity: 'success',
@@ -319,7 +319,7 @@ export class RegTemperaturaComponent implements OnInit {
                 }
             });
         } else {
-            this.registroService.crearRegistro(dataFormulario).subscribe((res) => {
+            (await this.registroService.crearRegistro(dataFormulario)).subscribe((res) => {
                 if (res.state === 'OK') {
                     this.messageService.add({
                         severity: 'success',
@@ -342,8 +342,8 @@ export class RegTemperaturaComponent implements OnInit {
             header: 'Eliminar registro',
             message: '¿Desea eliminar este registro?',
             icon: 'fa fa-exclamation-triangle',
-            accept: () => {
-                this.registroService.eliminarRegistro(id).subscribe(() => {
+            accept: async () => {
+                (await this.registroService.eliminarRegistro(id)).subscribe(() => {
                     this.cargarRegistros();
                     this.messageService.add({
                         severity: 'success',

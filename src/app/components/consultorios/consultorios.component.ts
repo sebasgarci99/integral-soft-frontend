@@ -70,8 +70,8 @@ export class ConsultoriosComponent implements OnInit{
         };
     }
 
-    cargarConsultorios() {
-        this.consultorioService.obtenerDatosConsultorios().subscribe((data) => {
+    async cargarConsultorios() {
+        (await this.consultorioService.obtenerDatosConsultorios()).subscribe((data) => {
             // Mostrar los consultorios activos
             this.consultorios = data;
         });
@@ -96,8 +96,8 @@ export class ConsultoriosComponent implements OnInit{
             message: '¿Estás seguro de eliminar este consultorio?',
             acceptLabel: 'Sí',
             rejectLabel: 'No',
-            accept: () => {
-                this.consultorioService.borrarConsultorio(id).subscribe(() => {
+            accept: async () => {
+                (await this.consultorioService.borrarConsultorio(id)).subscribe(() => {
                     this.cargarConsultorios();
                     this.messageService.add({ severity: 'success', summary: 'Consultorio inactivado.' });
                 });
@@ -105,14 +105,14 @@ export class ConsultoriosComponent implements OnInit{
         });
     }
 
-    crearActualizarConsultorio() {
+    async crearActualizarConsultorio() {
         if(!this.validarCampos()) {
             console.log("error")
             return;
         }
 
         if (this.isEdit) {
-            this.consultorioService.actualizarConsultorio(this.formData.id, this.formData).subscribe((res) => {
+            (await this.consultorioService.actualizarConsultorio(this.formData.id, this.formData)).subscribe((res) => {
                 if(res.state == 'OK') {
                     this.cargarConsultorios();
                     this.displayDialog = false;
@@ -123,7 +123,7 @@ export class ConsultoriosComponent implements OnInit{
                 }
             });
         } else {
-            this.consultorioService.crearConsultorio(this.formData).subscribe((res) => {
+            (await this.consultorioService.crearConsultorio(this.formData)).subscribe((res) => {
                 if(res.state == 'OK') {
                     this.messageService.add({ severity: 'success', summary: 'Consultorio creado correctamente.' });
                     this.cargarConsultorios();

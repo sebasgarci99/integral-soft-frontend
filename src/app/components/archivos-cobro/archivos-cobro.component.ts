@@ -63,8 +63,8 @@ export class ArchivosCobroComponent implements OnInit {
         this.cargarTiposArchivos();
     }
 
-    cargarTiposArchivos() {
-        this.archivosCobroService.getTiposArchivosAdjuntos().subscribe({
+    async cargarTiposArchivos() {
+        (await this.archivosCobroService.getTiposArchivosAdjuntos()).subscribe({
             next: (response) => {
                 if (response.state === 'OK') {
                     this.tiposArchivos = response.body as TipoArchivoAdjunto[];
@@ -107,16 +107,16 @@ export class ArchivosCobroComponent implements OnInit {
         this.displayDialog = true;
     }
 
-    guardarTipoArchivo() {
+    async guardarTipoArchivo() {
         if (!this.validarFormulario()) {
             return;
         }
 
         if (this.esEdicion) {
-            this.archivosCobroService.actualizarTipoArchivoAdjunto(
+            (await this.archivosCobroService.actualizarTipoArchivoAdjunto(
                 this.formData.id_tipo_archivo,
                 this.formData
-            ).subscribe({
+            )).subscribe({
                 next: (response) => {
                     if (response.state === 'OK') {
                         this.messageService.add({
@@ -144,7 +144,7 @@ export class ArchivosCobroComponent implements OnInit {
                 }
             });
         } else {
-            this.archivosCobroService.crearTipoArchivoAdjunto(this.formData).subscribe({
+            (await this.archivosCobroService.crearTipoArchivoAdjunto(this.formData)).subscribe({
                 next: (response) => {
                     if (response.state === 'OK') {
                         this.messageService.add({
@@ -181,8 +181,8 @@ export class ArchivosCobroComponent implements OnInit {
             message: '¿Está seguro de eliminar este tipo de archivo? Se eliminarán todos los archivos asociados.',
             acceptLabel: 'Sí',
             rejectLabel: 'No',
-            accept: () => {
-                this.archivosCobroService.inactivarTipoArchivoAdjunto(tipo.id_tipo_archivo!).subscribe({
+            accept: async () => {
+                (await this.archivosCobroService.inactivarTipoArchivoAdjunto(tipo.id_tipo_archivo!)).subscribe({
                     next: (response) => {
                         if (response.state === 'OK') {
                             this.messageService.add({
@@ -236,7 +236,7 @@ export class ArchivosCobroComponent implements OnInit {
         }
 
         const reader = new FileReader();
-        reader.onload = () => {
+        reader.onload = async () => {
             const base64 = (reader.result as string).split(',')[1];
             const data = {
                 id_tipo_archivo: this.tipoSeleccionado!.id_tipo_archivo,
@@ -245,7 +245,7 @@ export class ArchivosCobroComponent implements OnInit {
                 mime_type: this.archivoSeleccionado!.type
             };
 
-            this.archivosCobroService.subirArchivoAdjunto(data).subscribe({
+            (await this.archivosCobroService.subirArchivoAdjunto(data)).subscribe({
                 next: (response) => {
                     if (response.state === 'OK') {
                         this.messageService.add({
@@ -276,7 +276,7 @@ export class ArchivosCobroComponent implements OnInit {
         reader.readAsDataURL(this.archivoSeleccionado);
     }
 
-    descargarArchivo(tipo: TipoArchivoAdjunto) {
+    async descargarArchivo(tipo: TipoArchivoAdjunto) {
         if (!tipo.tiene_archivo || !tipo.nombre_archivo) {
             this.messageService.add({
                 severity: 'warn',
@@ -286,7 +286,7 @@ export class ArchivosCobroComponent implements OnInit {
             return;
         }
 
-        this.archivosCobroService.getArchivosAdjuntos().subscribe({
+        (await this.archivosCobroService.getArchivosAdjuntos()).subscribe({
             next: (response) => {
                 if (response.state === 'OK') {
                     const archivos = response.body as ArchivoAdjunto[];
@@ -302,8 +302,8 @@ export class ArchivosCobroComponent implements OnInit {
         });
     }
 
-    private descargarArchivoPorTipo(idArchivo: number, nombre: string, mimeType: string) {
-        this.archivosCobroService.descargarArchivo(idArchivo).subscribe({
+    private async descargarArchivoPorTipo(idArchivo: number, nombre: string, mimeType: string) {
+        (await this.archivosCobroService.descargarArchivo(idArchivo)).subscribe({
             next: (blob) => {
                 let data = blob.body;
                 console.log(data)

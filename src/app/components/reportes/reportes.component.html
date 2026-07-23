@@ -55,7 +55,8 @@
                             [rowsPerPageOptions]="[5, 10, 20]"
                             *ngIf="datos.length" 
                             [responsiveLayout]="'scroll'" 
-                            [scrollable]="true">
+                            [scrollable]="true"
+                            stripedRows>
                             <ng-template pTemplate="header">
                                 <tr>
                                     <th *ngFor="let col of columnas">{{ col.header }}</th>
@@ -81,7 +82,7 @@
         </div>
 
 <p-dialog header="Historial de envíos de reportes" [(visible)]="showLogsDialog" [modal]="true" [style]="{width: '90vw', maxWidth: '1200px'}" [draggable]="false" [resizable]="false">
-    <p-table [value]="logs" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 20, 50]" [size]="'small'" [responsiveLayout]="'scroll'" [scrollable]="true">
+    <p-table [value]="logs" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 20, 50]" [size]="'small'" [responsiveLayout]="'scroll'" [scrollable]="true" stripedRows>
         <ng-template pTemplate="header">
             <tr>
                 <th>Fecha envío</th>

@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { enviroment } from '../../../enviroments/enviroment';
 import { Vacunas } from '../../interfaces/vacunas';
 import { map, Observable } from 'rxjs';
+import { SecureStorageService } from '../secure-storage.service';
 
 @Injectable({
     providedIn: 'root'
@@ -12,7 +13,7 @@ export class RegVacunacionService {
     private urlApp: string;
     private urlAppAPI: string;
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private secureStorage: SecureStorageService) {
         this.urlApp = enviroment.endpoint;
         this.urlAppAPI = 'api/reg_vacunacion/'
     }
@@ -20,11 +21,11 @@ export class RegVacunacionService {
     // ================================
     // GET - obtener vacunas
     // ================================
-    obtenerVacunasPaciente(id_paciente: number): Observable<Vacunas[]> {
-        let token = localStorage.getItem('token');
+    async obtenerVacunasPaciente(id_paciente: number): Promise<Observable<Vacunas[]>> {
+        const token = await this.secureStorage.getItem('token');
 
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
-        let body = { id_paciente };
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        const body = { id_paciente };
 
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'getRegVacunacionxPaciente',
@@ -38,9 +39,9 @@ export class RegVacunacionService {
     // ================================
     // POST - crear o actualizar registro de vacunación
     // ================================
-    crearActualizarRegVacunacion(data: any): Observable<any> {
-        let token = localStorage.getItem('token');
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+    async crearActualizarRegVacunacion(data: any): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'crearActualizarRegVacunacion',
@@ -51,9 +52,9 @@ export class RegVacunacionService {
         );
     }
 
-    inactivarRegVacunacion(id_vacunacion: number): Observable<any> {
-        let token = localStorage.getItem('token');
-        let headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+    async inactivarRegVacunacion(id_vacunacion: number): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'inactivarRegVacunacion',

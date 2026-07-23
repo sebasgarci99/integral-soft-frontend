@@ -107,29 +107,29 @@ export class CuentasCobroComponent implements OnInit {
         private confirmService: ConfirmationService
     ) { }
 
-    ngOnInit(): void {
-        this.cargarCuentasCobro();
-        this.cargarClientes();
+    async ngOnInit(): Promise<void> {
+        await this.cargarCuentasCobro();
+        await this.cargarClientes();
     }
 
-    cargarCuentasCobro() {
-        this.cuentasCobroService.obtenerCuentasCobro().subscribe({
-            next: (data) => {
+    async cargarCuentasCobro(): Promise<void> {
+        (await this.cuentasCobroService.obtenerCuentasCobro()).subscribe({
+            next: (data: any) => {
                 this.cuentasCobro = data;
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Error al cargar cuentas de cobro:', err);
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar las cuentas de cobro.' });
             }
         });
     }
 
-    cargarClientes() {
-        this.clienteService.obtenerDatosClientes().subscribe({
-            next: (data) => {
-                this.clientes = data.filter(e => e.estado == 'A');
+    async cargarClientes(): Promise<void> {
+        (await this.clienteService.obtenerDatosClientes()).subscribe({
+            next: (data: any) => {
+                this.clientes = data.filter((e: any) => e.estado == 'A');
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Error al cargar clientes:', err);
             }
         });
@@ -158,7 +158,7 @@ export class CuentasCobroComponent implements OnInit {
         this.displayDialog = false;
     }
 
-    crearCuentaCobro() {
+    async crearCuentaCobro(): Promise<void> {
         if (!this.validarFormulario()) {
             return;
         }
@@ -178,8 +178,8 @@ export class CuentasCobroComponent implements OnInit {
             dataToSend.hora_ejecucion = this.formData.hora_ejecucion ? this.formData.hora_ejecucion.getHours() : 8;
         }
 
-        this.cuentasCobroService.crearCuentaCobro(dataToSend).subscribe({
-            next: (res) => {
+        (await this.cuentasCobroService.crearCuentaCobro(dataToSend)).subscribe({
+            next: (res: any) => {
                 if (res.state === 'OK') {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cuenta de cobro creada correctamente.' });
                     this.cargarCuentasCobro();
@@ -188,7 +188,7 @@ export class CuentasCobroComponent implements OnInit {
                     this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Ocurrió un problema: ' + res.body });
                 }
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Error al crear cuenta de cobro:', err);
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo crear la cuenta de cobro.' });
             }
@@ -233,9 +233,9 @@ export class CuentasCobroComponent implements OnInit {
             message: '¿Estás seguro de inactivar esta cuenta de cobro?',
             acceptLabel: 'Sí',
             rejectLabel: 'No',
-            accept: () => {
-                this.cuentasCobroService.inactivarCuentaCobro(id).subscribe({
-                    next: (res) => {
+            accept: async () => {
+                (await this.cuentasCobroService.inactivarCuentaCobro(id)).subscribe({
+                    next: (res: any) => {
                         if (res.state === 'OK') {
                             this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cuenta de cobro inactivada.' });
                             this.cargarCuentasCobro();
@@ -243,7 +243,7 @@ export class CuentasCobroComponent implements OnInit {
                             this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Ocurrió un problema: ' + res.body });
                         }
                     },
-                    error: (err) => {
+                    error: (err: any) => {
                         console.error('Error al inactivar cuenta de cobro:', err);
                         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo inactivar la cuenta de cobro.' });
                     }
@@ -252,9 +252,9 @@ export class CuentasCobroComponent implements OnInit {
         });
     }
 
-    generarPdf(id: number) {
-        this.cuentasCobroService.generarDocumento(id).subscribe({
-            next: (res) => {
+    async generarPdf(id: number): Promise<void> {
+        (await this.cuentasCobroService.generarDocumento(id)).subscribe({
+            next: (res: any) => {
                 let response = JSON.parse(res);
                 if (response.state == 'OK') {
                     const html = response.body.html;
@@ -293,7 +293,7 @@ export class CuentasCobroComponent implements OnInit {
                     this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el documento.' });
                 }
             },
-            error: (err) => {
+            error: (err: any) => {
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el documento.' });
             }
         });
@@ -409,7 +409,7 @@ export class CuentasCobroComponent implements OnInit {
         this.displayEditDialog = true;
     }
 
-    guardarEdicion() {
+    async guardarEdicion(): Promise<void> {
         if (!this.editFormData.descripcion_servicio || this.editFormData.descripcion_servicio.trim() === '') {
             this.messageService.add({ severity: 'warn', summary: 'Advertencia', detail: 'La descripción del servicio es requerida.' });
             return;
@@ -426,8 +426,8 @@ export class CuentasCobroComponent implements OnInit {
             fecha_emision: this.formatearFechaEnvio(this.editFormData.fecha_emision)
         };
 
-        this.cuentasCobroService.actualizarCuentaCobro(dataToSend).subscribe({
-            next: (res) => {
+        (await this.cuentasCobroService.actualizarCuentaCobro(dataToSend)).subscribe({
+            next: async (res: any) => {
                 if (res.state === 'OK') {
                     if (this.isAccountBase) {
                         const configData = {
@@ -438,8 +438,8 @@ export class CuentasCobroComponent implements OnInit {
                             aplica_archivos_adjuntos: this.editFormData.aplica_archivos_adjuntos
                         };
 
-                        this.cuentasCobroService.actualizarConfigPeriodicidad(configData).subscribe({
-                            next: (resConfig) => {
+                        (await this.cuentasCobroService.actualizarConfigPeriodicidad(configData)).subscribe({
+                            next: (resConfig: any) => {
                                 if (resConfig.state === 'OK') {
                                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cuenta de cobro y periodicidad actualizadas correctamente.' });
                                 } else {
@@ -448,7 +448,7 @@ export class CuentasCobroComponent implements OnInit {
                                 this.displayEditDialog = false;
                                 this.cargarCuentasCobro();
                             },
-                            error: (err) => {
+                            error: (err: any) => {
                                 console.error('Error al actualizar periodicidad:', err);
                                 this.messageService.add({ severity: 'warn', summary: 'Advertencia', detail: 'Cuenta actualizada, pero no se pudo actualizar la periodicidad.' });
                                 this.displayEditDialog = false;
@@ -464,7 +464,7 @@ export class CuentasCobroComponent implements OnInit {
                     this.messageService.add({ severity: 'error', summary: 'Error', detail: res.msg || 'Ocurrió un problema al actualizar.' });
                 }
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Error al actualizar cuenta de cobro:', err);
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo actualizar la cuenta de cobro.' });
             }
@@ -483,16 +483,16 @@ export class CuentasCobroComponent implements OnInit {
             message: `¿Está seguro de reenviar esta cuenta de cobro${mensajeAdjuntos} al cliente: <strong>${row.nombre_cliente}</strong>, y al correo electrónico registrado: <strong>${row.correo_cliente || 'No registrado'}</strong>?`,
             acceptLabel: 'Sí, Reenviar',
             rejectLabel: 'No',
-            accept: () => {
-                this.cuentasCobroService.reenviarCuentaCobro(row.id_cuenta_cobro!).subscribe({
-                    next: (res) => {
+            accept: async () => {
+                (await this.cuentasCobroService.reenviarCuentaCobro(row.id_cuenta_cobro!)).subscribe({
+                    next: (res: any) => {
                         if (res.state === 'OK') {
                             this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cuenta de cobro reenviada exitosamente.' });
                         } else {
                             this.messageService.add({ severity: 'error', summary: 'Error', detail: res.msg || 'No se pudo reenviar la cuenta de cobro.' });
                         }
                     },
-                    error: (err) => {
+                    error: (err: any) => {
                         console.error('Error al reenviar cuenta de cobro:', err);
                         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo reenviar la cuenta de cobro.' });
                     }
@@ -505,17 +505,17 @@ export class CuentasCobroComponent implements OnInit {
         this.displayEditDialog = false;
     }
 
-    verLogTareas(row: CuentaCobro) {
+    async verLogTareas(row: CuentaCobro): Promise<void> {
         if (!row?.id_cuenta_cobro) return;
 
         this.selectedCuentaPeriodicidad = row.info_periodicidad;
         
-        this.cuentasCobroService.obtenerLogTareas(row.id_cuenta_cobro).subscribe({
-            next: (data) => {
+        (await this.cuentasCobroService.obtenerLogTareas(row.id_cuenta_cobro)).subscribe({
+            next: (data: any) => {
                 this.logTareas = data;
                 this.displayLogDialog = true;
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Error al obtener log de tareas:', err);
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo obtener el log de envíos.' });
             }

@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { enviroment } from '../../../enviroments/enviroment';
+import { SecureStorageService } from '../secure-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class ArchivosCobroService {
@@ -9,17 +10,18 @@ export class ArchivosCobroService {
     private urlApp: string;
     private urlAppAPI: string;
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private secureStorage: SecureStorageService) {
         this.urlApp = enviroment.endpoint;
         this.urlAppAPI = 'api/cuentas_cobro/archivos/';
     }
 
-    private getHeaders(): HttpHeaders {
-        const token = localStorage.getItem('token');
+    private async getHeaders(): Promise<HttpHeaders> {
+        const token = await this.secureStorage.getItem('token');
         return new HttpHeaders().set('authorization', `Bearer ${token}`);
     }
 
-    crearTipoArchivoAdjunto(data: any): Observable<any> {
+    async crearTipoArchivoAdjunto(data: any): Promise<Observable<any>> {
+        const headers = await this.getHeaders();
         const body = {
             nombre_tipo: data.nombre_tipo,
             descripcion: data.descripcion
@@ -27,11 +29,12 @@ export class ArchivosCobroService {
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'crearTipoArchivoAdjunto',
             body,
-            { headers: this.getHeaders() }
+            { headers }
         );
     }
 
-    actualizarTipoArchivoAdjunto(id: number, data: any): Observable<any> {
+    async actualizarTipoArchivoAdjunto(id: number, data: any): Promise<Observable<any>> {
+        const headers = await this.getHeaders();
         const body = {
             id: id,
             nombre_tipo: data.nombre_tipo,
@@ -40,11 +43,12 @@ export class ArchivosCobroService {
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'actualizarTipoArchivoAdjunto',
             body,
-            { headers: this.getHeaders() }
+            { headers }
         );
     }
 
-    subirArchivoAdjunto(data: any): Observable<any> {
+    async subirArchivoAdjunto(data: any): Promise<Observable<any>> {
+        const headers = await this.getHeaders();
         const body = {
             id_tipo_archivo: data.id_tipo_archivo,
             archivo_base64: data.archivo_base64,
@@ -54,41 +58,43 @@ export class ArchivosCobroService {
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'subirArchivoAdjunto',
             body,
-            { headers: this.getHeaders() }
+            { headers }
         );
     }
 
-    getTiposArchivosAdjuntos(): Observable<any> {
+    async getTiposArchivosAdjuntos(): Promise<Observable<any>> {
+        const headers = await this.getHeaders();
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'GetTiposArchivosAdjuntos',
             {},
-            { headers: this.getHeaders() }
+            { headers }
         );
     }
 
-    getArchivosAdjuntos(): Observable<any> {
+    async getArchivosAdjuntos(): Promise<Observable<any>> {
+        const headers = await this.getHeaders();
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'GetArchivosAdjuntos',
             {},
-            { headers: this.getHeaders() }
+            { headers }
         );
     }
 
-    inactivarTipoArchivoAdjunto(id: number): Observable<any> {
+    async inactivarTipoArchivoAdjunto(id: number): Promise<Observable<any>> {
+        const headers = await this.getHeaders();
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'inactivarTipoArchivoAdjunto',
             { id: id },
-            { headers: this.getHeaders() }
+            { headers }
         );
     }
 
-    descargarArchivo(idArchivo: number): Observable<any> {
+    async descargarArchivo(idArchivo: number): Promise<Observable<any>> {
+        const headers = await this.getHeaders();
         return this.http.post(
             this.urlApp + this.urlAppAPI + 'descargarArchivo',
             { id_archivo: idArchivo },
-            {
-                headers: this.getHeaders()
-            }
+            { headers }
         );
     }
 }

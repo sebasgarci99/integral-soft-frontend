@@ -12,7 +12,7 @@
                 </div>
 
                 <p-table #tablaPacientes [value]="pacientes" [paginator]="true" [rows]="10" responsiveLayout="scroll"
-                    [globalFilterFields]="['nombres', 'apellidos', 'numero_documento', 'correo_electronico']" styleClass="tabla-pacientes">
+                    [globalFilterFields]="['nombres', 'apellidos', 'numero_documento', 'correo_electronico']" styleClass="tabla-pacientes" stripedRows>
                     <ng-template pTemplate="header">
                         <tr>
                             <th style="width:22%">Paciente</th>
@@ -466,7 +466,7 @@
                         <ng-container *ngSwitchCase="3">
                             <div class="form-section">
                                 <div class="form-section-title"><i class="fa fa-clock-rotate-left"></i> Histórico de Novedades</div>
-                                <p-table [value]="historico" responsiveLayout="scroll" [paginator]="true" [rows]="10" styleClass="tabla-historico">
+                                <p-table [value]="historico" responsiveLayout="scroll" [paginator]="true" [rows]="10" styleClass="tabla-historico" stripedRows>
                                     <ng-template pTemplate="header">
                                         <tr>
                                             <th>Fecha</th>
@@ -581,7 +581,7 @@
                             <p-progressSpinner strokeWidth="4" fill="transparent"></p-progressSpinner>
                             <span class="mt-2 fw-bold">{{ cargandoPdf ? 'Generando PDF...' : 'Enviando correo, por favor espere...' }}</span>
                         </div>
-                        <p-table [value]="consentimientos" responsiveLayout="scroll" [paginator]="true" [rows]="10">
+                        <p-table [value]="consentimientos" responsiveLayout="scroll" [paginator]="true" [rows]="10" stripedRows>
                             <ng-template pTemplate="header">
                                 <tr>
                                     <th>Tipo</th>

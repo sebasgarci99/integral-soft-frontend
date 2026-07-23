@@ -102,15 +102,15 @@ export class ReportesVacunacionComponent {
         console.log(this.filtro);
 
         try {
-            this.reportesService.obtenerReporteVacunacion(
+            (await this.reportesService.obtenerReporteVacunacion(
                 this.obtenerFechaHoraActualFormatoIso(this.filtro.fechaInicio),
                 this.obtenerFechaHoraActualFormatoIso(this.filtro.fechaFin, true),
                 this.filtro.paciente
-            ).subscribe((data) => {
+            )).subscribe((data: any) => {
 
                 const mapAnios = new Map<number, AnioGrupo>();
 
-                data.forEach(item => {
+                data.forEach((item: any) => {
                     const anio = Number(item.anio_vacunacion);
 
                     if (!mapAnios.has(anio)) {
@@ -124,7 +124,7 @@ export class ReportesVacunacionComponent {
                     const anioGrupo = mapAnios.get(anio)!;
 
                     let paciente = anioGrupo.pacientes.find(
-                        p => p.documento === item.numero_documento
+                        (p: any) => p.documento === item.numero_documento
                     );
 
                     if (!paciente) {
@@ -152,7 +152,7 @@ export class ReportesVacunacionComponent {
                 });
 
                 this.anioGrupos = Array.from(mapAnios.values())
-                    .sort((a, b) => b.anio - a.anio);
+                    .sort((a: any, b: any) => b.anio - a.anio);
             });
         } catch (e) {
             console.error(e)
@@ -176,8 +176,8 @@ export class ReportesVacunacionComponent {
     }
 
     async obtenerPacientes() {
-        this.pacientesService.obtenerPacientes().subscribe(data => {
-            this.pacientes = data.filter(e => e.estado === 'A').map(e => {
+        (await this.pacientesService.obtenerPacientes()).subscribe((data: any) => {
+            this.pacientes = data.filter((e: any) => e.estado === 'A').map((e: any) => {
                 return {
                     key: e.id_paciente,
                     nombreCompleto: `${e.nombres} ${e.apellidos}`,
@@ -195,15 +195,15 @@ export class ReportesVacunacionComponent {
         this.expandedVacAnios = {};
         this.expandedVacunas = {};
 
-        this.reportesService.obtenerReporteVacunasAplicadas(
+        (await this.reportesService.obtenerReporteVacunasAplicadas(
             this.obtenerFechaHoraActualFormatoIso(this.filtroVac.fechaInicio),
             this.obtenerFechaHoraActualFormatoIso(this.filtroVac.fechaFin, true),
             this.filtroVac.vacuna
-        ).subscribe(data => {
+        )).subscribe((data: any) => {
 
             const mapAnios = new Map<number, VacunacionAnioGrupo>();
 
-            data.forEach(item => {
+            data.forEach((item: any) => {
 
                 const anio = Number(item.anio_vacunacion);
 
@@ -219,7 +219,7 @@ export class ReportesVacunacionComponent {
 
                 // ================= VACUNA =================
                 let vacuna = anioGrupo.vacunas.find(
-                    v => v.nombre_vacuna === item.nombre_vacuna
+                    (v: any) => v.nombre_vacuna === item.nombre_vacuna
                 );
 
                 if (!vacuna) {
@@ -245,14 +245,14 @@ export class ReportesVacunacionComponent {
 
             this.vacunacionAnios = Array
                 .from(mapAnios.values())
-                .sort((a, b) => b.anio - a.anio);
+                .sort((a: any, b: any) => b.anio - a.anio);
 
         });
     }
 
     async obtenerVacunas() {
-        this.VacunaService.obtenerVacunas().subscribe(data => {
-            this.vacunas = data.filter(e => e.estado === 'A').map(e => {
+        (await this.VacunaService.obtenerVacunas()).subscribe((data: any) => {
+            this.vacunas = data.filter((e: any) => e.estado === 'A').map((e: any) => {
                 return {
                     key: e.id,
                     nombre_vacuna: e.nombre_vacuna

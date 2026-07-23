@@ -5,6 +5,7 @@ import { enviroment } from '../../../enviroments/enviroment';
 import { Sede } from '../../interfaces/sede';
 import { Area } from '../../interfaces/area';
 import { Equipo } from '../../interfaces/equipo';
+import { SecureStorageService } from '../secure-storage.service';
 
 @Injectable({
     providedIn: 'root'
@@ -14,60 +15,68 @@ export class RegistroTemperaturaService {
     private urlApp: string;
     private urlAppAPI: string;
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private secureStorage: SecureStorageService) {
         this.urlApp = enviroment.endpoint;
         this.urlAppAPI = 'api/reg_temperatura/';
     }
 
-    private getHeaders(): HttpHeaders {
-        const token = localStorage.getItem('token');
+    private async getHeaders(): Promise<HttpHeaders> {
+        const token = await this.secureStorage.getItem('token');
         return new HttpHeaders().set('authorization', `Bearer ${token}`);
     }
 
-    private getBodyBase(): Record<string, unknown> {
+    private async getBodyBase(): Promise<Record<string, unknown>> {
+        const [idUser, idEmpresa] = await Promise.all([
+            this.secureStorage.getItem('idUser'),
+            this.secureStorage.getItem('idEmpresa')
+        ]);
         return {
-            id_usuario: Number(localStorage.getItem('idUser')),
-            id_empresa: Number(localStorage.getItem('idEmpresa'))
+            id_usuario: Number(idUser),
+            id_empresa: Number(idEmpresa)
         };
     }
 
     // ==============================
     // Sedes
     // ==============================
-    obtenerSedes(): Observable<Sede[]> {
+    async obtenerSedes(): Promise<Observable<Sede[]>> {
+        const headers = await this.getHeaders();
         return this.http.post<any>(
             this.urlApp + 'api/sede/getSedesByEmpresa',
             {},
-            { headers: this.getHeaders() }
+            { headers }
         ).pipe(map(r => r.body as Sede[]));
     }
 
     // ==============================
     // Áreas
     // ==============================
-    obtenerAreas(id_sede: number): Observable<Area[]> {
+    async obtenerAreas(id_sede: number): Promise<Observable<Area[]>> {
+        const headers = await this.getHeaders();
         return this.http.post<any>(
             this.urlApp + 'api/area/getAreasBySede',
             { id_sede },
-            { headers: this.getHeaders() }
+            { headers }
         ).pipe(map(r => r.body as Area[]));
     }
 
     // ==============================
     // Equipos
     // ==============================
-    obtenerEquiposBySede(id_sede: number): Observable<Equipo[]> {
+    async obtenerEquiposBySede(id_sede: number): Promise<Observable<Equipo[]>> {
+        const headers = await this.getHeaders();
         return this.http.post<any>(
             this.urlApp + 'api/equipo/getEquiposBySede',
             { id_sede },
-            { headers: this.getHeaders() }
+            { headers }
         ).pipe(map(r => r.body as Equipo[]));
     }
 
     // ==============================
     // GET - listar registros
     // ==============================
-    obtenerRegistros(id_sede?: number, id_equipo?: number): Observable<any[]> {
+    async obtenerRegistros(id_sede?: number, id_equipo?: number): Promise<Observable<any[]>> {
+        const headers = await this.getHeaders();
         const body: Record<string, unknown> = {};
         if (id_sede) {
             body['id_sede'] = id_sede;
@@ -79,40 +88,43 @@ export class RegistroTemperaturaService {
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'getRegistrosTemperatura',
             body,
-            { headers: this.getHeaders() }
+            { headers }
         ).pipe(map(response => response.body as any[]));
     }
 
     // ==============================
     // POST - crear registro
     // ==============================
-    crearRegistro(data: any): Observable<any> {
+    async crearRegistro(data: any): Promise<Observable<any>> {
+        const headers = await this.getHeaders();
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'crearRegistroTemperatura',
             data,
-            { headers: this.getHeaders() }
+            { headers }
         );
     }
 
     // ==============================
     // POST - editar registro
     // ==============================
-    editarRegistro(data: any): Observable<any> {
+    async editarRegistro(data: any): Promise<Observable<any>> {
+        const headers = await this.getHeaders();
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'editarRegistroTemperatura',
             data,
-            { headers: this.getHeaders() }
+            { headers }
         );
     }
 
     // ==============================
     // DELETE - eliminar registro
     // ==============================
-    eliminarRegistro(id_registro: number): Observable<any> {
+    async eliminarRegistro(id_registro: number): Promise<Observable<any>> {
+        const headers = await this.getHeaders();
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'eliminarRegistroTemperatura',
             { id_registro },
-            { headers: this.getHeaders() }
+            { headers }
         );
     }
 }

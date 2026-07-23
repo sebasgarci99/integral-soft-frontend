@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActividadesService } from '../../services/actividades/actividades.service';
+import { SecureStorageService } from '../../services/secure-storage.service';
 import {
     Actividad,
     ActividadInstancia,
@@ -156,11 +157,14 @@ export class ActividadesComponent implements OnInit {
     constructor(
         private actividadesService: ActividadesService,
         private messageService: MessageService,
-        private confirmService: ConfirmationService
+        private confirmService: ConfirmationService,
+        private secureStorage: SecureStorageService
     ) { }
 
     ngOnInit(): void {
-        this.rolUsuario = Number(localStorage.getItem('idRol'));
+        this.secureStorage.getItem('idRol').then(idRol => {
+            this.rolUsuario = Number(idRol) || 0;
+        });
         this.horaActual = new Date();
         setInterval(() => {
             this.horaActual = new Date();
@@ -293,12 +297,12 @@ export class ActividadesComponent implements OnInit {
         this.mostrarDetalleDia(diaCalendario.fecha);
     }
 
-    cargarActividades(): void {
+    async cargarActividades(): Promise<void> {
         // Rol 2 (invitado): usar getActividadesxUsuario
         // Otros roles: usar getActividades (comportamiento actual)
         const servicio$ = this.rolUsuario === 2
-            ? this.actividadesService.getActividadesxUsuario()
-            : this.actividadesService.getActividades();
+            ? await this.actividadesService.getActividadesxUsuario()
+            : await this.actividadesService.getActividades();
 
         servicio$.subscribe({
             next: (data) => {
@@ -320,8 +324,8 @@ export class ActividadesComponent implements OnInit {
         });
     }
 
-    cargarTiposActividad(): void {
-        this.actividadesService.getTiposActividad().subscribe({
+    async cargarTiposActividad(): Promise<void> {
+        (await this.actividadesService.getTiposActividad()).subscribe({
             next: (data) => {
                 if (data.state === 'OK') {
                     this.tiposActividad = data.body || [];
@@ -333,8 +337,8 @@ export class ActividadesComponent implements OnInit {
         });
     }
 
-    cargarUsuarios(): void {
-        this.actividadesService.getUsuariosEmpresa().subscribe({
+    async cargarUsuarios(): Promise<void> {
+        (await this.actividadesService.getUsuariosEmpresa()).subscribe({
             next: (data) => {
                 if (data.body) {
                     this.usuariosEmpresa = data.body.map((u: any) => ({
@@ -514,8 +518,8 @@ export class ActividadesComponent implements OnInit {
         this.instanciaDetalleSeleccionada = null;
     }
 
-    cargarCumplimientos(idInstancia: number): void {
-        this.actividadesService.getCumplimiento(undefined, undefined, undefined, idInstancia).subscribe({
+    async cargarCumplimientos(idInstancia: number): Promise<void> {
+        (await this.actividadesService.getCumplimiento(undefined, undefined, undefined, idInstancia)).subscribe({
             next: (data) => {
                 if (data.state === 'OK') {
                     this.cumplimientos = data.body || [];
@@ -571,13 +575,13 @@ export class ActividadesComponent implements OnInit {
         this.instanciaDetalleSeleccionada = null;
     }
 
-    iniciarActividad(): void {
+    async iniciarActividad(): Promise<void> {
         if (!this.instanciaSeleccionada) return;
 
-        this.actividadesService.iniciarActividad(
+        (await this.actividadesService.iniciarActividad(
             this.instanciaSeleccionada.id_instancia,
             this.formIniciar.observaciones
-        ).subscribe({
+        )).subscribe({
             next: (res) => {
                 if (res.state === 'OK') {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Actividad iniciada correctamente.' });
@@ -594,7 +598,7 @@ export class ActividadesComponent implements OnInit {
         });
     }
 
-    finalizarActividad(): void {
+    async finalizarActividad(): Promise<void> {
         if (!this.instanciaSeleccionada) return;
 
         if ((!this.formFinalizar.tipos_realizados || this.formFinalizar.tipos_realizados.length === 0)
@@ -603,12 +607,12 @@ export class ActividadesComponent implements OnInit {
             return;
         }
 
-        this.actividadesService.finalizarActividad(
+        (await this.actividadesService.finalizarActividad(
             this.instanciaSeleccionada.id_instancia,
             this.formFinalizar.observaciones,
             this.formFinalizar.evidencia,
             this.formFinalizar.tipos_realizados
-        ).subscribe({
+        )).subscribe({
             next: (res) => {
                 if (res.state === 'OK') {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Actividad finalizada correctamente.' });
@@ -638,16 +642,16 @@ export class ActividadesComponent implements OnInit {
         this.displayCambiarFechaDialog = false;
     }
 
-    cambiarFechaInstancia(): void {
+    async cambiarFechaInstancia(): Promise<void> {
         if (!this.instanciaSeleccionada || !this.formCambiarFecha.nueva_fecha) return;
 
         const fechaStr = this.formatearFecha(this.formCambiarFecha.nueva_fecha);
 
-        this.actividadesService.cambiarFechaInstancia(
+        (await this.actividadesService.cambiarFechaInstancia(
             this.instanciaSeleccionada.id_instancia,
             fechaStr,
             this.getHoraFecha(this.formCambiarFecha.nueva_hora)
-        ).subscribe({
+        )).subscribe({
             next: (res) => {
                 if (res.state === 'OK') {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Fecha de instancia actualizada correctamente.' });
@@ -690,7 +694,7 @@ export class ActividadesComponent implements OnInit {
         return '09:00';
     }
 
-    guardarActividad(): void {
+    async guardarActividad(): Promise<void> {
         if (!this.validarFormulario()) return;
 
         const dataToSend: any = {
@@ -710,7 +714,7 @@ export class ActividadesComponent implements OnInit {
 
         if (this.actividadEdicion) {
             dataToSend.id_actividad = this.actividadEdicion.id_actividad;
-            this.actividadesService.actualizarActividad(dataToSend).subscribe({
+            (await this.actividadesService.actualizarActividad(dataToSend)).subscribe({
                 next: (res) => {
                     if (res.state === 'OK') {
                         this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Actividad actualizada correctamente.' });
@@ -726,7 +730,7 @@ export class ActividadesComponent implements OnInit {
                 }
             });
         } else {
-            this.actividadesService.crearActividad(dataToSend).subscribe({
+            (await this.actividadesService.crearActividad(dataToSend)).subscribe({
                 next: (res) => {
                     if (res.state === 'OK') {
                         this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Actividad creada correctamente.' });
@@ -751,8 +755,8 @@ export class ActividadesComponent implements OnInit {
             message: '¿Estás seguro de eliminar esta actividad?',
             acceptLabel: 'Sí',
             rejectLabel: 'No',
-            accept: () => {
-                this.actividadesService.eliminarActividad(id).subscribe({
+            accept: async () => {
+                (await this.actividadesService.eliminarActividad(id)).subscribe({
                     next: (res) => {
                         if (res.state === 'OK') {
                             this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Actividad eliminada.' });
@@ -777,8 +781,8 @@ export class ActividadesComponent implements OnInit {
             message: `¿Estás seguro de eliminar la instancia del ${this.formatearFechaVisual(inst.fecha)}?`,
             acceptLabel: 'Sí',
             rejectLabel: 'No',
-            accept: () => {
-                this.actividadesService.eliminarInstanciaActividad(inst.id_instancia).subscribe({
+            accept: async () => {
+                (await this.actividadesService.eliminarInstanciaActividad(inst.id_instancia)).subscribe({
                     next: (res) => {
                         if (res.state === 'OK') {
                             this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Instancia eliminada.' });
