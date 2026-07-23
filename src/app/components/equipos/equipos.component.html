@@ -1,13 +1,13 @@
 <div class="card mt-2">
     <div class="card-body">
-        <div class="flex justify-content-between mb-3">
-            <h3 class="text-center">Gestión de Equipos</h3>
-            <p-button label="Crear equipo" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" />
+        <div class="component-header">
+            <h3><i class="fa fa-laptop-medical"></i> Gestión de Equipos</h3>
+            <p-button label="Nuevo Equipo" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" styleClass="btn-nuevo"></p-button>
         </div>
 
-        <div class="flex justify-content-between mb-2 text-end">
-            <input #gbInput pInputText type="text" placeholder="Buscar..."
-                (input)="tabla.filterGlobal(gbInput.value, 'contains')" />
+        <div class="search-bar">
+            <input #gbInput pInputText type="text"
+                (input)="tabla.filterGlobal(gbInput.value, 'contains')" placeholder="Buscar por nombre, tipo o marca..." />
         </div>
 
         <p-table #tabla [value]="equipos" [paginator]="true" [rows]="10" responsiveLayout="scroll"

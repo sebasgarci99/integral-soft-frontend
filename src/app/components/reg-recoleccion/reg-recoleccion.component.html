@@ -1,22 +1,23 @@
 
         <div class="card mt-2">
             <div class="card-body">
-                <!-- Título + botón -->
-                <div class="flex justify-content-between mb-3">
-                    <h3 class="text-center m-0 mb-2">Menú de Registros de Recolección</h3>
-                    <p-button 
-                        label="Registrar recolección" 
-                        icon="fa fa-plus" 
-                        severity="info"
-                        (onClick)="abrirFormulario()">
-                    </p-button>
+                <div class="component-header">
+                    <h3><i class="fa fa-truck"></i> Gestión de Recolección</h3>
+                    <p-button label="Nueva Recolección" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" styleClass="btn-nuevo"></p-button>
+                </div>
+
+                <div class="search-bar">
+                    <input #gbInput pInputText type="text"
+                        (input)="tabla.filterGlobal(gbInput.value, 'contains')" placeholder="Buscar por consultorio o fecha..." />
                 </div>
 
                 <!-- Tabla -->
                 <p-table 
+                    #tabla
                     [value]="recolecciones" 
                     [paginator]="true" 
                     [rows]="10" 
+                    [globalFilterFields]="['consultorio', 'fecha_registro']"
                     responsiveLayout="scroll">
                     <ng-template pTemplate="header">
                         <tr>
@@ -368,7 +369,7 @@
                                     <small class="p-error text-error-small" *ngIf="formData.firma == null">
                                         Debes registrar la firma.
                                     </small>
-                                    <p-tag severity="success" *ngIf="mostrarMensajeOK" value="Firma registrada correctamente." />
+                                    <p-tag severity="info" *ngIf="mostrarMensajeOK" value="Firma registrada correctamente." />
                                     
                                     <div class="mt-2 flex gap-2">
                                         <p-button label="Limpiar firma" icon="fa fa-trash" (onClick)="firmaPad.clear()"></p-button>

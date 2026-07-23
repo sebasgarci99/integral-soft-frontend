@@ -1,13 +1,8 @@
 
-        <div class="page-header mb-4">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h3 class="mb-1"><i class="fa fa-calendar-plus-o me-2"></i>Programador de Actividades</h3>
-                    <!-- <p class="text-muted mb-0 small">Administra y programa tus actividades recurrentes</p> -->
-                </div>
-                <p-button *ngIf="esAdmin || esUsuarioInvitado" label="Nueva Actividad" icon="fa fa-plus" severity="info"
-                    (onClick)="abrirFormulario()" />
-            </div>
+        <div class="component-header mb-4">
+            <h3><i class="fa fa-calendar-plus-o"></i> Programador de Actividades</h3>
+            <p-button *ngIf="esAdmin || esUsuarioInvitado" label="Nueva Actividad" icon="fa fa-plus" severity="info"
+                (onClick)="abrirFormulario()" styleClass="btn-nuevo" />
         </div>
 
         <div class="row">
@@ -506,7 +501,7 @@
                         label="Cambiar Fecha" icon="fa fa-calendar" severity="info"
                         (onClick)="abrirCambiarFechaDialog(instanciaDetalleSeleccionada)" />
                     <p-button *ngIf="esHoy(fechaSeleccionada) && instanciaDetalleSeleccionada.estado === 'programada'"
-                        label="Iniciar Actividad" icon="fa fa-play" severity="success"
+                        label="Iniciar Actividad" icon="fa fa-play" severity="info"
                         (onClick)="abrirIniciarDialog(instanciaDetalleSeleccionada)" />
                     <p-button *ngIf="esHoy(fechaSeleccionada) && instanciaDetalleSeleccionada.estado === 'iniciada'"
                         label="Finalizar Actividad" icon="fa fa-check" severity="info"
@@ -547,7 +542,7 @@
     </div>
     <ng-template pTemplate="footer">
         <p-button label="Cancelar" severity="secondary" (onClick)="displayIniciarDialog = false" />
-        <p-button label="Iniciar" icon="fa fa-play" severity="success" (onClick)="iniciarActividad()" />
+        <p-button label="Iniciar" icon="fa fa-play" severity="info" (onClick)="iniciarActividad()" />
     </ng-template>
 </p-dialog>
 
@@ -617,7 +612,7 @@
     </div>
     <ng-template pTemplate="footer">
         <p-button label="Cancelar" severity="secondary" (onClick)="displayFinalizarDialog = false" />
-        <p-button label="Finalizar" icon="fa fa-check" severity="success" (onClick)="finalizarActividad()" />
+        <p-button label="Finalizar" icon="fa fa-check" severity="info" (onClick)="finalizarActividad()" />
     </ng-template>
 </p-dialog>
 
@@ -658,7 +653,7 @@
     </div>
     <ng-template pTemplate="footer">
         <p-button label="Cancelar" severity="secondary" (onClick)="cerrarCambiarFechaDialog()" />
-        <p-button label="Guardar Cambios" icon="fa fa-check" severity="success" (onClick)="cambiarFechaInstancia()" />
+        <p-button label="Guardar Cambios" icon="fa fa-check" severity="info" (onClick)="cambiarFechaInstancia()" />
     </ng-template>
 </p-dialog>
 

@@ -4,15 +4,15 @@
         <div class="card mt-2">
             <div class="card-body">
 
-                <div class="flex justify-content-between mb-3">
-                    <h3 class="text-center">Gestión de la vacunación de los pacientes</h3>
+                <div class="component-header">
+                    <h3><i class="fa fa-syringe"></i> Vacunación de Pacientes</h3>
                 </div>
 
                 <!-- BUSCADOR -->
-                <div class="flex justify-content-end mb-2 text-end">
+                <div class="search-bar">
                     <input #gbInput pInputText type="text"
                         (input)="tablaPacientes.filterGlobal(gbInput.value, 'contains')"
-                        placeholder="Buscar paciente..." />
+                        placeholder="Buscar por nombre o documento..." />
                 </div>
 
                 <!-- TABLA DE PACIENTES - PRINCIPAL EN LA FORMA -->
@@ -249,7 +249,7 @@
                                 <small class="p-error text-error-small text-error-small" *ngIf="formData.firma == null">
                                     Debes registrar la firma.
                                 </small>
-                                <p-tag severity="success" *ngIf="firmaOK" value="Firma registrada correctamente." />
+                                <p-tag severity="info" *ngIf="firmaOK" value="Firma registrada correctamente." />
 
                                 <div class="mt-2 flex gap-2">
                                     <p-button label="Maximizar" severity="danger" icon="fa fa-expand"
@@ -371,7 +371,7 @@
                 <p-button label="Limpiar firma" icon="fa fa-trash" (onClick)="firmaPadFull.clear()"
                     severity="secondary"></p-button>
                 <p-button label="Guardar firma" icon="fa fa-check" (onClick)="guardarFirmaFull()"
-                    severity="success"></p-button>
+                    severity="info"></p-button>
             </div>
         </div>
 

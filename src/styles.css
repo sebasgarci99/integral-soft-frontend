@@ -1,5 +1,300 @@
-/* You can add global styles to this file, and also import other style files */
+/* ============================================= */
+/* GLOBAL STYLES - Paleta Azul/Blanco/Gris       */
+/* ============================================= */
 
+/* --- Base --- */
 :root {
     --login-bg-image: url('/img-login6.JPG');
+    --primary: #007ec8;
+    --primary-dark: #005f99;
+    --primary-light: #dbeafe;
+    --text-dark: #1e293b;
+    --text-medium: #334155;
+    --text-muted: #64748b;
+    --border-light: #e9ecef;
+    --border-medium: #e2e8f0;
+    --bg-light: #f1f5f9;
+    --bg-page: #f8f9fa;
+}
+
+/* --- Cards globales --- */
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card .card-body {
+    padding: 1.25rem 1.5rem;
+}
+
+/* --- Header de componentes CRUD --- */
+.component-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border-light);
+}
+
+.component-header h3 {
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.component-header h3 i {
+    color: var(--primary);
+    margin-right: 0.5rem;
+}
+
+.btn-nuevo {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    padding: 0.6rem 1.2rem !important;
+    box-shadow: 0 2px 8px rgba(0, 126, 200, 0.3);
+    transition: all 0.2s ease !important;
+}
+
+.btn-nuevo:hover {
+    box-shadow: 0 4px 12px rgba(0, 126, 200, 0.45);
+    transform: translateY(-1px);
+}
+
+/* --- Barra de búsqueda global --- */
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.search-bar .p-inputtext,
+.search-input {
+    border-radius: 10px;
+    border: 1px solid var(--border-medium);
+    padding: 0.6rem 1rem 0.6rem 2.2rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.868-3.834zm-5.242.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 0.7rem center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-size: 0.95rem;
+    width: 280px;
+}
+
+.search-bar .p-inputtext:focus,
+.search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(0, 126, 200, 0.15);
+}
+
+/* --- Tablas CRUD globales --- */
+.p-datatable .p-datatable-thead > tr > th {
+    background: var(--bg-light);
+    color: var(--text-medium);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.85rem 1rem;
+    border-bottom: 2px solid var(--border-medium);
+}
+
+.p-datatable .p-datatable-tbody > tr {
+    background-color: #ffffff;
+    transition: background-color 0.15s ease;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.p-datatable .p-datatable-tbody > tr:last-child {
+    border-bottom: none;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+    background-color: #f0f7ff !important;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    color: var(--text-medium);
+    vertical-align: middle;
+}
+
+/* Paginador */
+.p-datatable .p-paginator {
+    border-top: 1px solid var(--border-light);
+    padding: 0.5rem 1rem;
+    background: #ffffff;
+    border-radius: 0 0 15px 15px;
+}
+
+.p-datatable .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+    background: var(--primary);
+    border-radius: 8px;
+}
+
+/* --- Botones globales --- */
+:root {
+    --btn-radius: 10px;
+}
+
+.p-button {
+    border-radius: var(--btn-radius) !important;
+}
+
+/* --- Inputs / Dropdowns / Calendars --- */
+.p-inputtext,
+.p-dropdown,
+.p-calendar,
+.p-inputtextarea,
+.p-multiselect {
+    border-radius: 8px !important;
+}
+
+/* --- Float labels --- */
+.p-floatlabel {
+    display: block;
+}
+
+/* --- Textarea sin resize --- */
+.p-inputtextarea {
+    resize: none;
+}
+
+/* --- Dialog global --- */
+.p-dialog .p-dialog-header {
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.p-dialog .p-dialog-header .p-dialog-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-dark);
+}
+
+.p-dialog .p-dialog-content {
+    padding: 0 2rem;
+    overflow-y: auto;
+}
+
+.p-dialog .p-dialog-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-light);
+    background: #fafbfc;
+}
+
+/* --- Confirm dialog z-index --- */
+.p-confirm-dialog {
+    z-index: 1100 !important;
+}
+
+/* --- Tabs menu --- */
+.p-tabmenu .p-tabmenu-nav {
+    justify-content: center;
+    border-bottom: 2px solid var(--border-light);
+    padding: 0;
+}
+
+.p-tabmenu .p-tabmenu-nav .p-menuitem-link {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    border-radius: 8px 8px 0 0;
+    margin: 0 2px;
+}
+
+.p-tabmenu .p-tabmenu-nav .p-menuitem-link:hover {
+    background: var(--bg-light);
+    color: var(--text-dark);
+}
+
+.p-tabmenu .p-tabmenu-nav .p-menuitem-link.p-highlight {
+    color: var(--primary);
+    border-bottom: 3px solid var(--primary);
+    margin-bottom: -2px;
+    font-weight: 600;
+}
+
+/* --- Tags de estado --- */
+.p-tag {
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* --- SweetAlert2 --- */
+.swal2-container {
+    z-index: 100000 !important;
+}
+
+.swal2-confirm {
+    background-color: var(--primary) !important;
+    border-radius: 10px !important;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+}
+
+.swal2-cancel {
+    border-radius: 10px !important;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+}
+
+.swal2-popup {
+    border-radius: 15px !important;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+}
+
+/* --- Checkbox labels --- */
+.checkbox-label {
+    font-weight: 500;
+    color: #475569;
+    font-size: 1rem;
+}
+
+/* --- Loading overlay --- */
+.loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    border-radius: 8px;
+}
+
+/* --- Nota informativa --- */
+.nota-info {
+    font-size: 0.85rem;
+    color: #6b7280;
+    background: #f9fafb;
+    border-left: 3px solid var(--primary);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0 6px 6px 0;
+    margin-top: 0.5rem;
+}
+
+/* --- Field radio buttons --- */
+.field-radiobutton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* --- Responsive global --- */
+@media (max-width: 768px) {
+    .p-datatable .p-datatable-thead > tr > th,
+    .p-datatable .p-datatable-tbody > tr > td {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
 }

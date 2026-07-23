@@ -559,7 +559,7 @@
                             <div class="signature-pad-container">
                                 <canvas #firmaPad></canvas>
                             </div>
-                            <p-tag severity="success" *ngIf="firmaOK" value="Firma registrada correctamente."></p-tag>
+                            <p-tag severity="info" *ngIf="firmaOK" value="Firma registrada correctamente."></p-tag>
                             <div class="mt-2 flex gap-2 justify-content-center">
                                 <p-button label="Maximizar" severity="danger" icon="fa fa-expand" (onClick)="openFullscreen()"></p-button>
                                 <p-button label="Limpiar firma" icon="fa fa-trash" (onClick)="limpiarFirma()"></p-button>

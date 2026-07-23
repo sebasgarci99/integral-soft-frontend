@@ -1,14 +1,14 @@
 
         <div class="card mt-2">
             <div class="card-body">
-                <div class="flex justify-content-between mb-3">
-                    <h3 class="text-center">Gestión de Vacunas</h3>
-                    <p-button label="Crear vacuna" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" />
+                <div class="component-header">
+                    <h3><i class="fa fa-syringe"></i> Gestión de Vacunas</h3>
+                    <p-button label="Nueva Vacuna" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" styleClass="btn-nuevo"></p-button>
                 </div>
 
-                <div class="flex justify-content-between mb-2 text-end">
+                <div class="search-bar">
                     <input #gbInput pInputText type="text"
-                        (input)="tablaVacunas.filterGlobal(gbInput.value, 'contains')" placeholder="Buscar..." />
+                        (input)="tablaVacunas.filterGlobal(gbInput.value, 'contains')" placeholder="Buscar por nombre o dosis..." />
                 </div>
 
                 <p-table #tablaVacunas [value]="vacunas" [paginator]="true" [rows]="10" responsiveLayout="scroll"

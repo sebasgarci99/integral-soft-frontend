@@ -1,14 +1,14 @@
 <div class="flex-grow-1 p-4 dashboard">
         <div class="card mt-2">
             <div class="card-body">
-                <div class="flex justify-content-between mb-3">
-                    <h3 class="text-center">Menú de Clientes</h3>
-                    <p-button label="Crear cliente" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" />
+                <div class="component-header">
+                    <h3><i class="fa fa-users"></i> Gestión de Clientes</h3>
+                    <p-button label="Nuevo Cliente" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" styleClass="btn-nuevo"></p-button>
                 </div>
 
-                <div class="flex justify-content-between mb-2 text-end">
+                <div class="search-bar">
                     <input #gbInput pInputText type="text"
-                        (input)="tablaClientes.filterGlobal(gbInput.value, 'contains')" placeholder="Buscar..." />
+                        (input)="tablaClientes.filterGlobal(gbInput.value, 'contains')" placeholder="Buscar por nombre, documento o correo..." />
                 </div>
 
                 <p-table #tablaClientes [value]="clientes" [paginator]="true" [rows]="10" responsiveLayout="scroll"

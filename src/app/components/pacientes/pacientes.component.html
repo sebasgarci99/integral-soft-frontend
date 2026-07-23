@@ -2,15 +2,15 @@
 <div class="flex-grow-1 p-4 dashboard">
         <div class="card mt-2">
             <div class="card-body">
-                <div class="flex justify-content-between mb-3">
-                    <h3 class="text-center m-0 mb-2">Gestión de Pacientes</h3>
+                <div class="component-header">
+                    <h3><i class="fa fa-user-injured"></i> Gestión de Pacientes</h3>
                     <p-button label="Registrar Paciente" icon="fa fa-plus" severity="info"
-                        (onClick)="abrirFormulario()"></p-button>
+                        (onClick)="abrirFormulario()" styleClass="btn-nuevo"></p-button>
                 </div>
 
-                <div class="flex justify-content-between mb-2 text-end">
+                <div class="search-bar">
                     <input #gbInput pInputText type="text"
-                        (input)="tablaPacientes.filterGlobal(gbInput.value, 'contains')" placeholder="Buscar..." />
+                        (input)="tablaPacientes.filterGlobal(gbInput.value, 'contains')" placeholder="Buscar por nombre, documento o teléfono..." />
                 </div>
 
                 <p-table #tablaPacientes [value]="pacientes" [paginator]="true" [rows]="10" responsiveLayout="scroll"

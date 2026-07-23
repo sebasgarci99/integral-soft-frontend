@@ -2,8 +2,8 @@
         <div class="card mt-1">
             <div *ngIf="datosUsuario.idRol == '1'" class="card-body">
 
-                <div class="flex justify-content-between mb-1">
-                    <h2 class="text-center">Panel de control</h2> 
+                <div class="component-header">
+                    <h3><i class="fa fa-tachometer-alt"></i> Panel de Control</h3>
                 </div>
 
                 <div *ngFor="let fila of getGraficasEnFilas()" class="row mb-4">

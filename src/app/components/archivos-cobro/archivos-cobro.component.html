@@ -1,14 +1,14 @@
 
         <div class="card mt-2">
             <div class="card-body">
-                <div class="flex justify-content-between mb-3">
-                    <h3 class="text-center">Archivos Adjuntos - Cuentas de Cobro</h3>
-                    <p-button label="Crear Tipo de Archivo" icon="fa fa-plus" severity="info" (onClick)="abrirDialogoCrear()" />
+                <div class="component-header">
+                    <h3><i class="fa fa-folder-open"></i> Archivos de Cobro</h3>
+                    <p-button label="Nuevo Archivo" icon="fa fa-plus" severity="info" (onClick)="abrirDialogoCrear()" styleClass="btn-nuevo"></p-button>
                 </div>
 
-                <div class="flex justify-content-between mb-2 text-end">
-                    <input #gbInput pInputText type="text" (input)="tabla.filterGlobal(gbInput.value, 'contains')"
-                        placeholder="Buscar..." />
+                <div class="search-bar">
+                    <input #gbInput pInputText type="text"
+                        (input)="tabla.filterGlobal(gbInput.value, 'contains')" placeholder="Buscar por nombre o descripción..." />
                 </div>
 
                 <p-table #tabla [value]="tiposArchivos" [paginator]="true" [rows]="10" responsiveLayout="scroll"
