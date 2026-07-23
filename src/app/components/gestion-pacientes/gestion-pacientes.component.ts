@@ -25,6 +25,7 @@ import { TagModule } from 'primeng/tag';
 import { AccordionModule } from 'primeng/accordion';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
     selector: 'app-gestion-pacientes',
@@ -50,7 +51,8 @@ import { MultiSelectModule } from 'primeng/multiselect';
         TagModule,
         AccordionModule,
         ProgressSpinnerModule,
-        MultiSelectModule
+        MultiSelectModule,
+        TooltipModule
     ],
     templateUrl: './gestion-pacientes.component.html',
     styleUrl: './gestion-pacientes.component.css',

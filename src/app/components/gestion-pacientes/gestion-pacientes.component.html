@@ -1,28 +1,26 @@
 
         <div class="card mt-2">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <h3 class="mb-0">Gestión de Pacientes</h3>
-                    </div>
-                    <p-button label="Nuevo Paciente" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()"></p-button>
+                <div class="component-header">
+                    <h3><i class="fa fa-user-injured"></i> Gestión de Pacientes</h3>
+                    <p-button label="Nuevo Paciente" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" styleClass="btn-nuevo-paciente"></p-button>
                 </div>
 
-                <div class="flex justify-content-between mb-2 text-end">
+                <div class="search-bar">
                     <input #gbInput pInputText type="text"
-                        (input)="tablaPacientes.filterGlobal(gbInput.value, 'contains')" placeholder="Buscar..." />
+                        (input)="tablaPacientes.filterGlobal(gbInput.value, 'contains')" placeholder="Buscar paciente por nombre, documento o correo..." />
                 </div>
 
                 <p-table #tablaPacientes [value]="pacientes" [paginator]="true" [rows]="10" responsiveLayout="scroll"
-                    [globalFilterFields]="['nombres', 'apellidos', 'numero_documento', 'correo_electronico']">
+                    [globalFilterFields]="['nombres', 'apellidos', 'numero_documento', 'correo_electronico']" styleClass="tabla-pacientes">
                     <ng-template pTemplate="header">
                         <tr>
-                            <th>Paciente</th>
-                            <th>Documento</th>
-                            <th>Correo</th>
-                            <th>Fecha Cita</th>
-                            <th>Estado Cita</th>
-                            <th>Acciones</th>
+                            <th style="width:22%">Paciente</th>
+                            <th style="width:18%">Documento</th>
+                            <th style="width:22%">Correo</th>
+                            <th style="width:16%">Fecha Cita</th>
+                            <th style="width:12%">Estado Cita</th>
+                            <th style="width:10%; text-align:center">Acciones</th>
                         </tr>
                     </ng-template>
 
@@ -37,9 +35,11 @@
                                 <span *ngIf="!row.estado_cita">-</span>
                             </td>
                             <td>
-                                <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="abrirFormulario(row)"></p-button>
-                                <p-button icon="fa fa-clock-rotate-left" class="p-button-text p-button-sm" severity="info" (onClick)="abrirHistorico(row)"></p-button>
-                                <p-button icon="fa fa-trash" class="p-button-text p-button-sm" (onClick)="inactivar(row)" *ngIf="row.estado !== 'I'"></p-button>
+                                <div class="acciones-cell">
+                                    <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="abrirFormulario(row)" pTooltip="Editar paciente" tooltipPosition="top"></p-button>
+                                    <p-button icon="fa fa-clock-rotate-left" class="p-button-text p-button-sm" severity="info" (onClick)="abrirHistorico(row)" pTooltip="Histórico" tooltipPosition="top"></p-button>
+                                    <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="inactivar(row)" *ngIf="row.estado !== 'I'" pTooltip="Inactivar" tooltipPosition="top"></p-button>
+                                </div>
                             </td>
                         </tr>
                     </ng-template>
@@ -50,12 +50,13 @@
                     [modal]="true" [style]="{ width: '55rem', 'max-height': '90vh' }"
                     [contentStyle]="{ 'overflow-y': 'auto' }" [draggable]="false">
 
-                    <p-tabMenu [model]="tabs" [(activeItem)]="activeItem" styleClass="mb-4"></p-tabMenu>
+                    <p-tabMenu [model]="tabs" [(activeItem)]="activeItem" styleClass="mb-3"></p-tabMenu>
 
                     <ng-container [ngSwitch]="currentTab">
                         <!-- TAB 1: DATOS BÁSICOS -->
                         <ng-container *ngSwitchCase="0">
-                            <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fa fa-user"></i> Datos Personales</div>
                                 <div class="col-12 d-md-flex d-sm-grid">
                                     <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
                                         <input pInputText [(ngModel)]="formData.nombres" class="w-100" maxlength="70" />
@@ -102,7 +103,10 @@
                                         <label>Teléfono *</label>
                                     </p-floatlabel>
                                 </div>
+                            </div>
 
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fa fa-address-card"></i> Contacto y Ubicación</div>
                                 <div class="col-12 d-md-flex d-sm-grid">
                                     <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
                                         <input pInputText [(ngModel)]="formData.correo_electronico" class="w-100" />
@@ -135,8 +139,11 @@
                                         <label>Acompañante</label>
                                     </p-floatlabel>
                                 </div>
+                            </div>
 
-                                <div class="col-12 d-md-flex d-sm-grid" *ngIf="isEdit">
+                            <div class="form-section" *ngIf="isEdit">
+                                <div class="form-section-title"><i class="fa fa-cog"></i> Estado</div>
+                                <div class="col-12 d-md-flex d-sm-grid">
                                     <p-floatlabel variant="on" class="col-lg-3 col-sm-12 mt-3">
                                         <p-dropdown [options]="[{ label: 'Activo', value: 'A' }, { label: 'Inactivo', value: 'I' }]"
                                             [(ngModel)]="formData.estado" appendTo="body" class="w-100"
@@ -149,7 +156,8 @@
 
                         <!-- TAB 2: CITA -->
                         <ng-container *ngSwitchCase="1">
-                            <div class="p-fluid grid p-formgrid" style="padding: 0 0.75rem;">
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fa fa-calendar-check"></i> Agenda de Cita</div>
                                 <div class="col-12 d-md-flex d-sm-grid">
                                     <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-1">
                                         <p-calendar id="fecha_cita" [(ngModel)]="formData.fecha_cita" dateFormat="yy-mm-dd"
@@ -158,13 +166,13 @@
                                         <label>Fecha y hora de cita</label>
                                     </p-floatlabel>
                                     <div class="col-lg-6 col-md-12 mt-3" *ngIf="isEdit && formData.id_cita">
-                                        <p-button label="Enviar borrador de consentimiento" icon="fa fa-envelope" severity="help"
+                                        <p-button label="Enviar borrador de consentimiento" icon="fa fa-envelope" severity="info"
                                             (onClick)="abrirBorradorDesdeFormulario()"></p-button>
                                     </div>
                                 </div>
-                                <div class="col-12 mt-3 text-muted" *ngIf="isEdit">
+                                <div class="col-12 mt-3 nota-info" *ngIf="isEdit">
                                     <small>
-                                        <strong>Nota:</strong> Si modifica la fecha de cita, se reagendará la cita activa.
+                                        <strong><i class="fa fa-info-circle me-1"></i>Nota:</strong> Si modifica la fecha de cita, se reagendará la cita activa.
                                         Si el paciente no tiene cita activa, se creará una nueva.
                                     </small>
                                 </div>
@@ -173,11 +181,9 @@
 
                         <!-- TAB 3: CONSENTIMIENTOS -->
                         <ng-container *ngSwitchCase="2">
-                            <div class="p-fluid grid p-formgrid" style="padding: 0 0.75rem;">
-
-                                <!-- Selector de tipo de consentimiento -->
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fa fa-file-signature"></i> Gestión de Consentimientos</div>
                                 <div class="col-12 mt-2">
-                                    <label for="tipoConsentimientoTab" style="display:block; margin-bottom:0.5rem; font-weight:600;">Tipo de consentimiento</label>
                                     <p-dropdown id="tipoConsentimientoTab" [options]="tiposConsentimientoOficial" optionLabel="label"
                                         [(ngModel)]="tipoConsentimientoInfoSeleccionado" placeholder="Seleccione tipo de consentimiento..."
                                         (onChange)="tipoConsentimientoCambio()" appendTo="body" class="w-100"></p-dropdown>
@@ -187,8 +193,8 @@
 
                                 <!-- SECCIÓN: CONSENTIMIENTO INFORMADO -->
                                 <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_doc'">
-                                    <div class="col-12 mt-3">
-                                        <h5 class="mb-3">Datos del consentimiento informado</h5>
+                                    <div class="consentimiento-card">
+                                        <h5><i class="fa fa-file-medical"></i> Datos del consentimiento informado</h5>
 
                                         <div class="col-12 mt-3 mb-3">
                                             <p-floatlabel variant="on" class="w-100">
@@ -253,21 +259,21 @@
                                         </div>
 
                                         <div class="col-12 mt-4 d-flex gap-2 justify-content-end">
-                                            <p-button *ngIf="!firmaConsentimientoOK" label="Generar consentimiento informado" icon="fa fa-file-signature" severity="success"
-                                                (onClick)="abrirFirmaConsentimiento()"></p-button>
-                                            <p-button *ngIf="firmaConsentimientoOK" label="Firma registrada" icon="fa fa-check" severity="success" disabled="true"></p-button>
+                                            <p-button *ngIf="!firmaConsentimientoOK" label="Generar consentimiento informado" icon="fa fa-file-signature" severity="info"
+                                                (onClick)="abrirFirmaConsentimiento()" styleClass="btn-generar-consentimiento"></p-button>
+                                            <p-button *ngIf="firmaConsentimientoOK" label="Firma registrada" icon="fa fa-check" severity="secondary" disabled="true"></p-button>
                                             <p-button *ngIf="firmaConsentimientoOK" label="Limpiar firma" icon="fa fa-trash" severity="secondary"
                                                 (onClick)="limpiarFirmaConsentimiento()"></p-button>
                                             <p-button *ngIf="firmaConsentimientoOK" label="Aceptar y generar documento" icon="fa fa-save" severity="info"
-                                                (onClick)="generarConsentimientoInformado()" [loading]="cargandoDocumento"></p-button>
+                                                (onClick)="generarConsentimientoInformado()" [loading]="cargandoDocumento" styleClass="btn-generar-documento"></p-button>
                                         </div>
                                     </div>
                                 </ng-container>
 
                                 <!-- SECCIÓN: CONSENTIMIENTO INFORMADO CE -->
                                 <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce'">
-                                    <div class="col-12 mt-3">
-                                        <h5 class="mb-3">Consentimiento Informado - Consulta Médica Especializada</h5>
+                                    <div class="consentimiento-card">
+                                        <h5><i class="fa fa-stethoscope"></i> Consentimiento Informado - Consulta Médica Especializada</h5>
 
                                         <div class="d-flex align-items-center mb-3">
                                             <p-checkbox [(ngModel)]="aplicaAcudienteCE" binary="true" inputId="aplicaAcudienteCE"></p-checkbox>
@@ -290,27 +296,27 @@
                                                     <label>N° documento *</label>
                                                 </p-floatlabel>
                                             </div>
-                                            <div class="mt-2 p-2 bg-light rounded">
-                                                <small class="text-muted"><i class="fa fa-info-circle me-1"></i>Se requerirán <strong>2 firmas</strong>: 1) Firma del paciente  2) Firma del familiar responsable</small>
+                                            <div class="consentimiento-info-box">
+                                                <small><i class="fa fa-info-circle me-1"></i>Se requerirán <strong>2 firmas</strong>: 1) Firma del paciente  2) Firma del familiar responsable</small>
                                             </div>
                                         </ng-container>
 
                                         <div class="col-12 mt-4 d-flex gap-2 justify-content-end">
-                                            <p-button *ngIf="!firmaCEOK" label="Generar consentimiento informado" icon="fa fa-file-signature" severity="success"
-                                                (onClick)="abrirFirmaConsentimientoCE()"></p-button>
-                                            <p-button *ngIf="firmaCEOK" label="Firmas registradas" icon="fa fa-check" severity="success" disabled="true"></p-button>
+                                            <p-button *ngIf="!firmaCEOK" label="Generar consentimiento informado" icon="fa fa-file-signature" severity="info"
+                                                (onClick)="abrirFirmaConsentimientoCE()" styleClass="btn-generar-consentimiento"></p-button>
+                                            <p-button *ngIf="firmaCEOK" label="Firmas registradas" icon="fa fa-check" severity="secondary" disabled="true"></p-button>
                                             <p-button *ngIf="firmaCEOK" label="Limpiar firmas" icon="fa fa-trash" severity="secondary"
                                                 (onClick)="limpiarFirmaFull()"></p-button>
                                             <p-button *ngIf="firmaCEOK" label="Aceptar y generar documento" icon="fa fa-save" severity="info"
-                                                (onClick)="generarConsentimientoCE()" [loading]="cargandoDocumento"></p-button>
+                                                (onClick)="generarConsentimientoCE()" [loading]="cargandoDocumento" styleClass="btn-generar-documento"></p-button>
                                         </div>
                                     </div>
                                 </ng-container>
 
                                 <!-- SECCIÓN: CONSENTIMIENTO INFORMADO GENERAL -->
                                 <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_general'">
-                                    <div class="col-12 mt-3">
-                                        <h5 class="mb-3">Consentimiento Informado General</h5>
+                                    <div class="consentimiento-card">
+                                        <h5><i class="fa fa-file-contract"></i> Consentimiento Informado General</h5>
 
                                         <!-- Edad calculada -->
                                         <div class="col-12 d-md-flex d-sm-grid">
@@ -434,21 +440,21 @@
                                                     <textarea pInputTextarea [(ngModel)]="consentimientoDiferidoDetalle" class="w-100 p-inputtext" rows="3" maxlength="2000"></textarea>
                                                     <label>Detalle del consentimiento diferido</label>
                                                 </p-floatlabel>
-                                                <div class="mt-2 p-2 bg-light rounded">
-                                                    <small class="text-muted d-block"><i class="fa fa-info-circle me-1"></i>Se requerirán <strong>2 firmas</strong>: 1) Firma del paciente  2) Firma del representante legal</small>
+                                                <div class="consentimiento-info-box">
+                                                    <small class="d-block"><i class="fa fa-info-circle me-1"></i>Se requerirán <strong>2 firmas</strong>: 1) Firma del paciente  2) Firma del representante legal</small>
                                                 </div>
                                             </ng-container>
                                         </div>
 
                                         <!-- Botones de firma y generación -->
                                         <div class="col-12 mt-4 d-flex gap-2 justify-content-end">
-                                            <p-button *ngIf="!firmaGeneralOK" label="Generar consentimiento informado general" icon="fa fa-file-signature" severity="success"
-                                                (onClick)="abrirFirmaConsentimientoGeneral()"></p-button>
-                                            <p-button *ngIf="firmaGeneralOK" label="Firma registrada" icon="fa fa-check" severity="success" disabled="true"></p-button>
+                                            <p-button *ngIf="!firmaGeneralOK" label="Generar consentimiento informado general" icon="fa fa-file-signature" severity="info"
+                                                (onClick)="abrirFirmaConsentimientoGeneral()" styleClass="btn-generar-consentimiento"></p-button>
+                                            <p-button *ngIf="firmaGeneralOK" label="Firma registrada" icon="fa fa-check" severity="secondary" disabled="true"></p-button>
                                             <p-button *ngIf="firmaGeneralOK" label="Limpiar firma" icon="fa fa-trash" severity="secondary"
                                                 (onClick)="limpiarFirmaFull()"></p-button>
                                             <p-button *ngIf="firmaGeneralOK" label="Aceptar y generar documento" icon="fa fa-save" severity="info"
-                                                (onClick)="generarConsentimientoGeneral()" [loading]="cargandoDocumento"></p-button>
+                                                (onClick)="generarConsentimientoGeneral()" [loading]="cargandoDocumento" styleClass="btn-generar-documento"></p-button>
                                         </div>
                                     </div>
                                 </ng-container>
@@ -458,8 +464,9 @@
 
                         <!-- TAB 4: HISTÓRICO -->
                         <ng-container *ngSwitchCase="3">
-                            <div style="padding: 0 0.75rem;">
-                                <p-table [value]="historico" responsiveLayout="scroll" [paginator]="true" [rows]="10">
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fa fa-clock-rotate-left"></i> Histórico de Novedades</div>
+                                <p-table [value]="historico" responsiveLayout="scroll" [paginator]="true" [rows]="10" styleClass="tabla-historico">
                                     <ng-template pTemplate="header">
                                         <tr>
                                             <th>Fecha</th>
@@ -491,7 +498,7 @@
                     <ng-template pTemplate="footer">
                         <div class="flex justify-content-center text-center gap-2 mt-3">
                             <p-button label="Cancelar" icon="fa fa-times" severity="secondary" (onClick)="cerrar()"></p-button>
-                            <p-button label="Guardar" icon="fa fa-check" (onClick)="guardar()" *ngIf="currentTab === 0 || currentTab === 1"></p-button>
+                            <p-button label="Guardar" icon="fa fa-check" severity="info" (onClick)="guardar()" *ngIf="currentTab === 0 || currentTab === 1"></p-button>
                         </div>
                     </ng-template>
                 </p-dialog>
@@ -590,7 +597,7 @@
                                     <td>{{ c.fecha_registro }}</td>
                                     <td>{{ c.nombre_paciente }}</td>
                                     <td>
-                                        <p-button icon="fa fa-download" class="p-button-text p-button-sm" severity="success"
+                                        <p-button icon="fa fa-download" class="p-button-text p-button-sm" severity="info"
                                             (onClick)="descargarConsentimientoPdf(c)" [loading]="cargandoPdf" [disabled]="cargandoReenvio"></p-button>
                                     </td>
                                     <td>
@@ -627,38 +634,38 @@
             <p-button label="Cerrar" severity="danger" (onClick)="closeFullscreen()"></p-button>
             <div class="flex gap-2">
                 <p-button label="Limpiar firma" icon="fa fa-trash" (onClick)="limpiarFirmaFull()" severity="secondary"></p-button>
-                <p-button *ngIf="(tieneConsentimientoDiferido || (tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE)) && !firmaGeneralOK" label="Guardar firma paciente" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
-                <p-button *ngIf="tieneConsentimientoDiferido && firmaGeneralOK && !firmaAcompananteOK" label="Guardar firma representante" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
-                <p-button *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE && firmaGeneralOK && !firmaAcudienteCEOK" label="Guardar firma familiar" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
-                <p-button *ngIf="!tieneConsentimientoDiferido && !(tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE)" label="Guardar firma" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
+                <p-button *ngIf="(tieneConsentimientoDiferido || (tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE)) && !firmaGeneralOK" label="Guardar firma paciente" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="info"></p-button>
+                <p-button *ngIf="tieneConsentimientoDiferido && firmaGeneralOK && !firmaAcompananteOK" label="Guardar firma representante" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="info"></p-button>
+                <p-button *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE && firmaGeneralOK && !firmaAcudienteCEOK" label="Guardar firma familiar" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="info"></p-button>
+                <p-button *ngIf="!tieneConsentimientoDiferido && !(tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE)" label="Guardar firma" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="info"></p-button>
             </div>
         </div>
         <div class="signature-wrapper">
-            <div class="text-center mb-2" *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE">
-                <span class="badge bg-secondary me-2" [class.bg-success]="firmaCEOK">
+            <div class="firma-badge-group" *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE">
+                <span class="firma-badge" [class.firmado]="firmaCEOK">
                     <i class="fa fa-user me-1"></i> Paciente: {{ firmaCEOK ? 'Firmado' : 'Pendiente' }}
                 </span>
-                <span class="badge bg-secondary" [class.bg-success]="firmaAcudienteCEOK">
+                <span class="firma-badge" [class.firmado]="firmaAcudienteCEOK">
                     <i class="fa fa-user-tie me-1"></i> Familiar: {{ firmaAcudienteCEOK ? 'Firmado' : 'Pendiente' }}
                 </span>
             </div>
-            <div class="text-center mb-2" *ngIf="tieneConsentimientoDiferido">
-                <span class="badge bg-secondary me-2" [class.bg-success]="firmaGeneralOK">
+            <div class="firma-badge-group" *ngIf="tieneConsentimientoDiferido">
+                <span class="firma-badge" [class.firmado]="firmaGeneralOK">
                     <i class="fa fa-user me-1"></i> Paciente: {{ firmaGeneralOK ? 'Firmado' : 'Pendiente' }}
                 </span>
-                <span class="badge bg-secondary" [class.bg-success]="firmaAcompananteOK">
+                <span class="firma-badge" [class.firmado]="firmaAcompananteOK">
                     <i class="fa fa-user-tie me-1"></i> Representante: {{ firmaAcompananteOK ? 'Firmado' : 'Pendiente' }}
                 </span>
             </div>
-            <div class="text-center mb-2" *ngIf="!tieneConsentimientoDiferido && !(tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE)">
-                <span class="badge bg-secondary" [class.bg-success]="firmaGeneralOK">
+            <div class="firma-badge-group" *ngIf="!tieneConsentimientoDiferido && !(tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE)">
+                <span class="firma-badge" [class.firmado]="firmaGeneralOK">
                     <i class="fa fa-user me-1"></i> Paciente: {{ firmaGeneralOK ? 'Firmado' : 'Pendiente' }}
                 </span>
             </div>
-            <div class="text-center fw-bold mb-2 text-primary" *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE">
+            <div class="firma-activa-text" *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE">
                 {{ !firmaCEOK ? 'Firma del Paciente' : (!firmaAcudienteCEOK ? 'Firma del Familiar Responsable' : 'Ambas firmas completadas') }}
             </div>
-            <div class="text-center fw-bold mb-2 text-primary" *ngIf="tieneConsentimientoDiferido && !(tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE)">
+            <div class="firma-activa-text" *ngIf="tieneConsentimientoDiferido && !(tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE)">
                 {{ !firmaGeneralOK ? 'Firma del Paciente' : (!firmaAcompananteOK ? 'Firma del Representante Legal' : 'Ambas firmas completadas') }}
             </div>
             <canvas #firmaPadFull></canvas>
