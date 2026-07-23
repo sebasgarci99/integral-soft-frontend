@@ -46,7 +46,7 @@
                 </p-table>
 
                 <!-- DIALOG CREAR/EDITAR PACIENTE -->
-                <p-dialog header="{{ isEdit ? 'Editar Paciente' : 'Nuevo Paciente' }}" [(visible)]="displayDialog"
+                <p-dialog header="{{ isEdit ? 'Editar Paciente - ' + formData.nombres + ' ' + formData.apellidos : 'Nuevo Paciente' }}" [(visible)]="displayDialog"
                     [modal]="true" [style]="{ width: '55rem', 'max-height': '90vh' }"
                     [contentStyle]="{ 'overflow-y': 'auto' }" [draggable]="false">
 
@@ -264,113 +264,46 @@
                                     </div>
                                 </ng-container>
 
-                                <!-- SECCIÓN: TIPO C (riesgos de vacunación) -->
-                                <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_oficial_tipo_c'">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <label class="col-8">¿Padece alguna enfermedad actualmente?</label>
-                                        <div class="col-4 field-radiobutton justify-content-end">
-                                            <p-radioButton name="tiene_enfermedad_actual" [value]="true" [(ngModel)]="formData.tiene_enfermedad_actual"></p-radioButton>
-                                            <label class="me-2">Sí</label>
-                                            <p-radioButton name="tiene_enfermedad_actual" [value]="false" [(ngModel)]="formData.tiene_enfermedad_actual"></p-radioButton>
-                                            <label>No</label>
+                                <!-- SECCIÓN: CONSENTIMIENTO INFORMADO CE -->
+                                <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce'">
+                                    <div class="col-12 mt-3">
+                                        <h5 class="mb-3">Consentimiento Informado - Consulta Médica Especializada</h5>
+
+                                        <div class="d-flex align-items-center mb-3">
+                                            <p-checkbox [(ngModel)]="aplicaAcudienteCE" binary="true" inputId="aplicaAcudienteCE"></p-checkbox>
+                                            <label for="aplicaAcudienteCE" class="ms-2">¿Aplica acudiente / familiar responsable?</label>
                                         </div>
-                                    </div>
-                                    <p-floatlabel variant="on" class="col-12 mt-2" *ngIf="formData.tiene_enfermedad_actual === true">
-                                        <textarea pInputTextarea [(ngModel)]="formData.enfermedades_actuales" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
-                                        <label>Enfermedades actuales</label>
-                                    </p-floatlabel>
 
-                                    <hr>
+                                        <ng-container *ngIf="aplicaAcudienteCE">
+                                            <div class="col-12 d-md-flex d-sm-grid">
+                                                <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                                    <input pInputText [(ngModel)]="nombreAcudienteCE" class="w-100" maxlength="200" />
+                                                    <label>Nombre del familiar responsable *</label>
+                                                </p-floatlabel>
+                                                <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
+                                                    <p-dropdown name="tipoDocAcudienteCE" id="tipoDocAcudienteCE" [options]="tiposDocumento" [(ngModel)]="tipoDocAcudienteCE" appendTo="body" class="w-100"
+                                                        [ngClass]="{ 'p-inputwrapper-filled': tipoDocAcudienteCE }"></p-dropdown>
+                                                    <label for="tipoDocAcudienteCE">Tipo documento</label>
+                                                </p-floatlabel>
+                                                <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3">
+                                                    <input pInputText [(ngModel)]="numDocAcudienteCE" class="w-100" maxlength="20" />
+                                                    <label>N° documento *</label>
+                                                </p-floatlabel>
+                                            </div>
+                                            <div class="mt-2 p-2 bg-light rounded">
+                                                <small class="text-muted"><i class="fa fa-info-circle me-1"></i>Se requerirán <strong>2 firmas</strong>: 1) Firma del paciente  2) Firma del familiar responsable</small>
+                                            </div>
+                                        </ng-container>
 
-                                    <div class="d-flex align-items-center mb-2">
-                                        <label class="col-8">¿Es alérgico a algún medicamento, alimento o vacuna?</label>
-                                        <div class="col-4 field-radiobutton justify-content-end">
-                                            <p-radioButton name="es_alergico" [value]="true" [(ngModel)]="formData.es_alergico"></p-radioButton>
-                                            <label class="me-2">Sí</label>
-                                            <p-radioButton name="es_alergico" [value]="false" [(ngModel)]="formData.es_alergico"></p-radioButton>
-                                            <label>No</label>
+                                        <div class="col-12 mt-4 d-flex gap-2 justify-content-end">
+                                            <p-button *ngIf="!firmaCEOK" label="Generar consentimiento informado" icon="fa fa-file-signature" severity="success"
+                                                (onClick)="abrirFirmaConsentimientoCE()"></p-button>
+                                            <p-button *ngIf="firmaCEOK" label="Firmas registradas" icon="fa fa-check" severity="success" disabled="true"></p-button>
+                                            <p-button *ngIf="firmaCEOK" label="Limpiar firmas" icon="fa fa-trash" severity="secondary"
+                                                (onClick)="limpiarFirmaFull()"></p-button>
+                                            <p-button *ngIf="firmaCEOK" label="Aceptar y generar documento" icon="fa fa-save" severity="info"
+                                                (onClick)="generarConsentimientoCE()" [loading]="cargandoDocumento"></p-button>
                                         </div>
-                                    </div>
-                                    <p-floatlabel variant="on" class="col-12 mt-2" *ngIf="formData.es_alergico === true">
-                                        <textarea pInputTextarea [(ngModel)]="formData.uso_medicamentos" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
-                                        <label>Uso de medicamentos / alergias</label>
-                                    </p-floatlabel>
-
-                                    <hr>
-
-                                    <div class="d-flex align-items-center mb-2">
-                                        <label class="col-8">¿Tiene fiebre actualmente?</label>
-                                        <div class="col-4 field-radiobutton justify-content-end">
-                                            <p-radioButton name="tiene_fiebre_actual" [value]="true" [(ngModel)]="formData.tiene_fiebre_actual"></p-radioButton>
-                                            <label class="me-2">Sí</label>
-                                            <p-radioButton name="tiene_fiebre_actual" [value]="false" [(ngModel)]="formData.tiene_fiebre_actual"></p-radioButton>
-                                            <label>No</label>
-                                        </div>
-                                    </div>
-
-                                    <hr>
-
-                                    <div class="d-flex align-items-center mb-2">
-                                        <label class="col-8">¿Ha tenido convulsiones o trastorno neurológico?</label>
-                                        <div class="col-4 field-radiobutton justify-content-end">
-                                            <p-radioButton name="padece_convulsiones" [value]="true" [(ngModel)]="formData.padece_convulsiones"></p-radioButton>
-                                            <label class="me-2">Sí</label>
-                                            <p-radioButton name="padece_convulsiones" [value]="false" [(ngModel)]="formData.padece_convulsiones"></p-radioButton>
-                                            <label>No</label>
-                                        </div>
-                                    </div>
-
-                                    <hr>
-
-                                    <div class="d-flex align-items-center mb-2">
-                                        <label class="col-8">¿Ha presentado reacción grave tras una vacuna?</label>
-                                        <div class="col-4 field-radiobutton justify-content-end">
-                                            <p-radioButton name="reaccion_vacuna" [value]="true" [(ngModel)]="formData.reaccion_vacuna"></p-radioButton>
-                                            <label class="me-2">Sí</label>
-                                            <p-radioButton name="reaccion_vacuna" [value]="false" [(ngModel)]="formData.reaccion_vacuna"></p-radioButton>
-                                            <label>No</label>
-                                        </div>
-                                    </div>
-                                    <p-floatlabel variant="on" class="col-12 mt-2" *ngIf="formData.reaccion_vacuna === true">
-                                        <textarea pInputTextarea [(ngModel)]="formData.reacciones_previas_vacunas" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
-                                        <label>Reacciones previas a vacunas</label>
-                                    </p-floatlabel>
-
-                                    <hr>
-
-                                    <div class="d-flex align-items-center mb-2">
-                                        <label class="col-8">¿Le han suministrado alguna vacuna en las últimas 4 semanas?</label>
-                                        <div class="col-4 field-radiobutton justify-content-end">
-                                            <p-radioButton name="tenido_vacuna_ultsemanas" [value]="true" [(ngModel)]="formData.tenido_vacuna_ultsemanas"></p-radioButton>
-                                            <label class="me-2">Sí</label>
-                                            <p-radioButton name="tenido_vacuna_ultsemanas" [value]="false" [(ngModel)]="formData.tenido_vacuna_ultsemanas"></p-radioButton>
-                                            <label>No</label>
-                                        </div>
-                                    </div>
-
-                                    <hr>
-
-                                    <p-floatlabel variant="on" class="col-12 mt-2">
-                                        <textarea pInputTextarea [(ngModel)]="formData.alergias_graves" class="w-100 p-inputtext" rows="3" maxlength="500"></textarea>
-                                        <label>Alergias graves</label>
-                                    </p-floatlabel>
-
-                                    <div class="col-12 d-flex mt-3">
-                                        <p-floatlabel variant="on" class="col-6 me-2">
-                                            <p-dropdown [options]="opcionesSiNo" [(ngModel)]="formData.esta_embarazada" appendTo="body" class="w-100"
-                                                [ngClass]="{ 'p-inputwrapper-filled': formData.esta_embarazada !== undefined && formData.esta_embarazada !== null }"></p-dropdown>
-                                            <label>¿Está embarazada?</label>
-                                        </p-floatlabel>
-                                        <p-floatlabel variant="on" class="col-6">
-                                            <p-dropdown [options]="opcionesSiNo" [(ngModel)]="formData.esta_lactando" appendTo="body" class="w-100"
-                                                [ngClass]="{ 'p-inputwrapper-filled': formData.esta_lactando !== undefined && formData.esta_lactando !== null }"></p-dropdown>
-                                            <label>¿Está lactando?</label>
-                                        </p-floatlabel>
-                                    </div>
-
-                                    <div class="col-12 mt-4 text-end" *ngIf="isEdit && formData.id_cita">
-                                        <p-button label="Generar consentimiento informado" icon="fa fa-file-signature" severity="success"
-                                            (onClick)="abrirConsentimientoDesdeFormulario()"></p-button>
                                     </div>
                                 </ng-container>
 
@@ -694,12 +627,21 @@
             <p-button label="Cerrar" severity="danger" (onClick)="closeFullscreen()"></p-button>
             <div class="flex gap-2">
                 <p-button label="Limpiar firma" icon="fa fa-trash" (onClick)="limpiarFirmaFull()" severity="secondary"></p-button>
-                <p-button *ngIf="tieneConsentimientoDiferido && !firmaGeneralOK" label="Guardar firma paciente" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
+                <p-button *ngIf="(tieneConsentimientoDiferido || (tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE)) && !firmaGeneralOK" label="Guardar firma paciente" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
                 <p-button *ngIf="tieneConsentimientoDiferido && firmaGeneralOK && !firmaAcompananteOK" label="Guardar firma representante" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
-                <p-button *ngIf="!tieneConsentimientoDiferido" label="Guardar firma" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
+                <p-button *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE && firmaGeneralOK && !firmaAcudienteCEOK" label="Guardar firma familiar" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
+                <p-button *ngIf="!tieneConsentimientoDiferido && !(tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE)" label="Guardar firma" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="success"></p-button>
             </div>
         </div>
         <div class="signature-wrapper">
+            <div class="text-center mb-2" *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE">
+                <span class="badge bg-secondary me-2" [class.bg-success]="firmaCEOK">
+                    <i class="fa fa-user me-1"></i> Paciente: {{ firmaCEOK ? 'Firmado' : 'Pendiente' }}
+                </span>
+                <span class="badge bg-secondary" [class.bg-success]="firmaAcudienteCEOK">
+                    <i class="fa fa-user-tie me-1"></i> Familiar: {{ firmaAcudienteCEOK ? 'Firmado' : 'Pendiente' }}
+                </span>
+            </div>
             <div class="text-center mb-2" *ngIf="tieneConsentimientoDiferido">
                 <span class="badge bg-secondary me-2" [class.bg-success]="firmaGeneralOK">
                     <i class="fa fa-user me-1"></i> Paciente: {{ firmaGeneralOK ? 'Firmado' : 'Pendiente' }}
@@ -708,12 +650,15 @@
                     <i class="fa fa-user-tie me-1"></i> Representante: {{ firmaAcompananteOK ? 'Firmado' : 'Pendiente' }}
                 </span>
             </div>
-            <div class="text-center mb-2" *ngIf="!tieneConsentimientoDiferido">
+            <div class="text-center mb-2" *ngIf="!tieneConsentimientoDiferido && !(tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE)">
                 <span class="badge bg-secondary" [class.bg-success]="firmaGeneralOK">
                     <i class="fa fa-user me-1"></i> Paciente: {{ firmaGeneralOK ? 'Firmado' : 'Pendiente' }}
                 </span>
             </div>
-            <div class="text-center fw-bold mb-2 text-primary" *ngIf="tieneConsentimientoDiferido">
+            <div class="text-center fw-bold mb-2 text-primary" *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE">
+                {{ !firmaCEOK ? 'Firma del Paciente' : (!firmaAcudienteCEOK ? 'Firma del Familiar Responsable' : 'Ambas firmas completadas') }}
+            </div>
+            <div class="text-center fw-bold mb-2 text-primary" *ngIf="tieneConsentimientoDiferido && !(tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && aplicaAcudienteCE)">
                 {{ !firmaGeneralOK ? 'Firma del Paciente' : (!firmaAcompananteOK ? 'Firma del Representante Legal' : 'Ambas firmas completadas') }}
             </div>
             <canvas #firmaPadFull></canvas>

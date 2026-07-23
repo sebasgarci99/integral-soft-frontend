@@ -122,6 +122,16 @@ export class GestionPacientesComponent implements OnInit {
     riesgosInfo = '';
     lugarProcedimientoInfo = '';
 
+    // Propiedades para CONSENTIMIENTO INFORMADO CE
+    aplicaAcudienteCE = false;
+    nombreAcudienteCE = '';
+    tipoDocAcudienteCE = '';
+    numDocAcudienteCE = '';
+    firmaAcudienteCEOK = false;
+    firmaAcudienteCEDataURL = '';
+    firmaCEOK = false;
+    firmaCEDataURL = '';
+
     // Propiedades para CONSENTIMIENTO INFORMADO GENERAL
     edadPacienteGeneral = '';
     autorizaHcCorreo = 'N';
@@ -254,6 +264,14 @@ export class GestionPacientesComponent implements OnInit {
         this.persona2TipoDoc = '';
         this.persona2NumDoc = '';
         this.persona2Parentesco = '';
+        this.aplicaAcudienteCE = false;
+        this.nombreAcudienteCE = '';
+        this.tipoDocAcudienteCE = '';
+        this.numDocAcudienteCE = '';
+        this.firmaAcudienteCEOK = false;
+        this.firmaAcudienteCEDataURL = '';
+        this.firmaCEOK = false;
+        this.firmaCEDataURL = '';
         this.acudiente = '';
         this.numDocAcudiente = '';
         this.correoBorrador = '';
@@ -637,6 +655,14 @@ export class GestionPacientesComponent implements OnInit {
         this.firmaGeneralDataURL = '';
         this.firmaAcompananteOK = false;
         this.firmaAcompananteDataURL = '';
+        this.aplicaAcudienteCE = false;
+        this.nombreAcudienteCE = '';
+        this.tipoDocAcudienteCE = '';
+        this.numDocAcudienteCE = '';
+        this.firmaAcudienteCEOK = false;
+        this.firmaAcudienteCEDataURL = '';
+        this.firmaCEOK = false;
+        this.firmaCEDataURL = '';
         if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_doc') {
             this.gestionPacientesService.obtenerProcedimientosRiesgos().subscribe({
                 next: (data) => { this.procedimientosDisponibles = data; },
@@ -807,16 +833,26 @@ abrirFirmaConsentimientoGeneral(): void {
     guardarFirmaFull(): void {
         if (this.firmaPadFull && !this.firmaPadFull.isEmpty()) {
             const dataURL = this.firmaPadFull.toDataURL('image/png');
+            const esDualCE = this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce' && this.aplicaAcudienteCE;
 
-            if (this.tieneConsentimientoDiferido) {
+            if (this.tieneConsentimientoDiferido || esDualCE) {
                 if (!this.firmaGeneralOK) {
                     this.firmaGeneralDataURL = dataURL;
                     this.firmaGeneralOK = true;
+                    if (esDualCE) {
+                        this.firmaCEOK = true;
+                        this.firmaCEDataURL = dataURL;
+                    }
                     this.firmaPadFull?.clear();
-                    this.messageService.add({ severity: 'success', summary: 'Firma guardada', detail: 'Firma del paciente registrada. Ahora firme el representante legal.' });
-                } else if (!this.firmaAcompananteOK) {
-                    this.firmaAcompananteDataURL = dataURL;
-                    this.firmaAcompananteOK = true;
+                    this.messageService.add({ severity: 'success', summary: 'Firma guardada', detail: esDualCE ? 'Firma del paciente registrada. Ahora firme el familiar responsable.' : 'Firma del paciente registrada. Ahora firme el representante legal.' });
+                } else if (esDualCE ? !this.firmaAcudienteCEOK : !this.firmaAcompananteOK) {
+                    if (esDualCE) {
+                        this.firmaAcudienteCEDataURL = dataURL;
+                        this.firmaAcudienteCEOK = true;
+                    } else {
+                        this.firmaAcompananteDataURL = dataURL;
+                        this.firmaAcompananteOK = true;
+                    }
                     this.fullscreen = false;
                     this.messageService.add({ severity: 'success', summary: 'Firmas completas', detail: 'Ambas firmas registradas correctamente.' });
                 }
@@ -827,6 +863,10 @@ abrirFirmaConsentimientoGeneral(): void {
             } else {
                 this.firmaGeneralDataURL = dataURL;
                 this.firmaGeneralOK = true;
+                if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_ce') {
+                    this.firmaCEOK = true;
+                    this.firmaCEDataURL = dataURL;
+                }
                 this.fullscreen = false;
             }
         } else {
@@ -904,6 +944,78 @@ abrirFirmaConsentimientoGeneral(): void {
             error: () => {
                 this.cargandoDocumento = false;
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al generar consentimiento informado general.' });
+            }
+        });
+    }
+
+    abrirFirmaConsentimientoCE(): void {
+        if (!this.pacienteActivo || !this.formData.id_cita) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'No hay una cita activa para generar consentimiento.' });
+            return;
+        }
+        if (this.aplicaAcudienteCE && (!this.nombreAcudienteCE || !this.numDocAcudienteCE)) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Complete todos los datos del familiar responsable.' });
+            return;
+        }
+        this.fullscreen = true;
+        this.firmaCEOK = false;
+        this.firmaCEDataURL = '';
+        this.firmaAcudienteCEOK = false;
+        this.firmaAcudienteCEDataURL = '';
+        this.firmaGeneralOK = false;
+        this.firmaGeneralDataURL = '';
+        setTimeout(() => this.initSignaturePad(), 100);
+    }
+
+    generarConsentimientoCE(): void {
+        if (!this.firmaCEOK || !this.firmaCEDataURL) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Debe registrar la firma del paciente.' });
+            return;
+        }
+        if (this.aplicaAcudienteCE && (!this.firmaAcudienteCEOK || !this.firmaAcudienteCEDataURL)) {
+            this.messageService.add({ severity: 'warn', summary: 'Firma del familiar requerida', detail: 'El consentimiento con acudiente requiere la firma del familiar responsable.' });
+            return;
+        }
+        const paciente = this.pacienteActivo || (this.isEdit ? this.formData : null);
+        if (!paciente || !paciente.id_cita) return;
+
+        const datos: any = {
+            aplica_acudiente: this.aplicaAcudienteCE,
+            nombre_acudiente: this.aplicaAcudienteCE ? this.nombreAcudienteCE : null,
+            tipo_documento_acudiente: this.aplicaAcudienteCE ? this.tipoDocAcudienteCE : null,
+            num_documento_acudiente: this.aplicaAcudienteCE ? this.numDocAcudienteCE : null,
+            firma_acompanante: this.firmaAcudienteCEDataURL || null
+        };
+
+        this.cargandoDocumento = true;
+        this.gestionPacientesService.generarConsentimiento(
+            paciente.id_paciente,
+            paciente.id_cita,
+            this.tipoConsentimientoInfoSeleccionado?.key,
+            datos,
+            this.firmaCEDataURL,
+            this.tipoConsentimientoInfoSeleccionado?.funcion
+        ).subscribe({
+            next: (res: any) => {
+                this.cargandoDocumento = false;
+                if (res.state === 'OK') {
+                    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Consentimiento informado CE generado. Descargando PDF...' });
+                    this.cerrarTodosLosDialogos();
+                    this.firmaCEOK = false;
+                    this.firmaCEDataURL = '';
+                    this.firmaAcudienteCEOK = false;
+                    this.firmaAcudienteCEDataURL = '';
+                    this.firmaGeneralOK = false;
+                    this.firmaGeneralDataURL = '';
+                    this.descargarPdfDesdeBase64(res.body.pdf_base64, `Consentimiento_Informado_CE_${paciente.numero_documento}_${new Date().toISOString().split('T')[0]}.pdf`);
+                    this.cargarPacientes();
+                } else {
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: String(res.msg || 'Error al generar consentimiento') });
+                }
+            },
+            error: () => {
+                this.cargandoDocumento = false;
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al generar consentimiento informado CE.' });
             }
         });
     }
