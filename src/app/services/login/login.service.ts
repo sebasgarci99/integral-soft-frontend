@@ -53,6 +53,11 @@ export class LoginService {
         return this.currentUserData.asObservable();
     }
 
+    renovarToken(token: string): Observable<any> {
+        const headers = new HttpHeaders({ authorization: `Bearer ${token}` });
+        return this.http.post<any>(this.urlApp + this.urlAppAPI + 'renovar-token', {}, { headers });
+    }
+
     async obtenerInformacionUsuario(): Promise<Observable<any[]>> {
         const token = await this.secureStorage.getItem('token');
         

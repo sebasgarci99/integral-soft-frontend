@@ -50,7 +50,7 @@
                     [modal]="true" [style]="{ width: '55rem', 'max-height': '90vh' }"
                     [contentStyle]="{ 'overflow-y': 'auto' }" [draggable]="false">
 
-                    <p-tabMenu [model]="tabs" [(activeItem)]="activeItem" styleClass="mb-3"></p-tabMenu>
+                    <p-tabMenu [model]="tabs" [(activeItem)]="activeItem" [scrollable]="true" styleClass="mb-3"></p-tabMenu>
 
                     <ng-container [ngSwitch]="currentTab">
                         <!-- TAB 1: DATOS BÁSICOS -->

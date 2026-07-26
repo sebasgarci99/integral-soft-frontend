@@ -1,0 +1,177 @@
+<div class="flex-grow-1 p-4 dashboard">
+    <div class="card mt-2">
+        <div class="card-body">
+            <div class="component-header">
+                <h3><i class="fa fa-exchange-alt"></i> Movimientos de Inventario</h3>
+                <p-button label="Nuevo Movimiento" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" styleClass="btn-nuevo" />
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Fecha Desde</label>
+                    <p-calendar [(ngModel)]="fechaDesde" dateFormat="yy-mm-dd" [showIcon]="true"
+                        placeholder="Fecha desde" styleClass="w-100" appendTo="body" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Fecha Hasta</label>
+                    <p-calendar [(ngModel)]="fechaHasta" dateFormat="yy-mm-dd" [showIcon]="true"
+                        placeholder="Fecha hasta" styleClass="w-100" appendTo="body" />
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <p-button label="Filtrar" icon="fa fa-search" severity="info" (onClick)="filtrarPorFechas()" />
+                </div>
+            </div>
+
+            <p-table [value]="movimientos" [paginator]="true" [rows]="10" responsiveLayout="scroll" stripedRows>
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>N° Documento</th>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Sede</th>
+                        <th>Doc. Referencia</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-row>
+                    <tr>
+                        <td><strong>{{ row.numero_documento }}</strong></td>
+                        <td>{{ row.fecha_movimiento }}</td>
+                        <td>
+                            <span class="badge" [ngClass]="row.TipoMovimiento?.signo === 1 ? 'badge-entrada' : 'badge-salida'">
+                                {{ row.TipoMovimiento?.codigo }}
+                            </span>
+                        </td>
+                        <td>{{ row.Sede?.nombre }}</td>
+                        <td>{{ row.documento_referencia || '—' }}</td>
+                        <td>
+                            <span class="badge" [ngClass]="row.estado === 'A' ? 'badge-active' : 'badge-inactive'">
+                                {{ row.estado === 'A' ? 'Activo' : 'Anulado' }}
+                            </span>
+                        </td>
+                        <td>
+                            <p-button icon="fa fa-eye" class="p-button-text p-button-sm" (onClick)="verDetalle(row)" />
+                            <p-button *ngIf="row.estado === 'A'" icon="fa fa-ban" class="p-button-text p-button-sm" severity="danger" (onClick)="anularMovimiento(row)" />
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+
+            <p-dialog header="Registrar Movimiento" [(visible)]="displayDialog" *ngIf="displayDialog"
+                [modal]="true" [style]="{ width: '60rem' }" [draggable]="false" appendTo="body">
+                <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
+                    <div class="col-12 d-md-flex d-sm-grid">
+                        <div class="col-lg-4 col-md-12 mt-3 me-2">
+                            <label class="form-label">Tipo de Movimiento *</label>
+                            <p-dropdown [(ngModel)]="formData.id_tipo_movimiento" [options]="tiposMovimiento"
+                                optionLabel="nombre" optionValue="id_tipo_movimiento" class="w-100" appendTo="body"
+                                placeholder="Seleccionar tipo">
+                            </p-dropdown>
+                        </div>
+                        <div class="col-lg-4 col-md-12 mt-3 me-2">
+                            <label class="form-label">Fecha *</label>
+                            <p-calendar [(ngModel)]="formData.fecha_movimiento" dateFormat="yy-mm-dd"
+                                [showIcon]="true" placeholder="Fecha del movimiento" styleClass="w-100" appendTo="body" />
+                        </div>
+                        <div class="col-lg-4 col-md-12 mt-3">
+                            <label class="form-label">Doc. Referencia</label>
+                            <input pInputText [(ngModel)]="formData.documento_referencia" class="w-100" placeholder="Ej: OC-001" />
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-3">
+                        <label class="form-label">Sede *</label>
+                        <p-dropdown [(ngModel)]="formData.id_sede" [options]="sedes" optionLabel="nombre"
+                            optionValue="id_sede" placeholder="Seleccionar sede" class="w-100" appendTo="body" />
+                    </div>
+
+                    <div class="col-12 mt-3">
+                        <label class="form-label">Observación</label>
+                        <textarea pInputTextarea [(ngModel)]="formData.observacion" rows="2" class="w-100"
+                            placeholder="Detalle o referencia del movimiento"></textarea>
+                    </div>
+
+                    <div class="col-12 mt-4">
+                        <h5><i class="fa fa-list"></i> Productos</h5>
+                        <div *ngFor="let item of detalleItems; let i = index" class="detalle-row mb-2 p-3 rounded">
+                            <div class="row align-items-end">
+                                <div class="col-md-3">
+                                    <label class="form-label small">Producto *</label>
+                                    <p-dropdown [(ngModel)]="item.id_producto" [options]="productos"
+                                        optionLabel="nombre" optionValue="id_producto" placeholder="Producto"
+                                        class="w-100" appendTo="body" (onChange)="onProductoSeleccionado(item)" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small">Cantidad *</label>
+                                    <input pInputText [(ngModel)]="item.cantidad" type="number" class="w-100" min="0.01" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small">Costo Unit.</label>
+                                    <input pInputText [(ngModel)]="item.costo_unitario" type="number" class="w-100" />
+                                </div>
+                                <div class="col-md-2" *ngIf="item.productoSeleccionado?.maneja_lote">
+                                    <label class="form-label small">Lote</label>
+                                    <input pInputText [(ngModel)]="item.lote" class="w-100" />
+                                </div>
+                                <div class="col-md-2" *ngIf="item.productoSeleccionado?.maneja_vencimiento">
+                                    <label class="form-label small">Vencimiento</label>
+                                    <p-calendar [(ngModel)]="item.fecha_vencimiento" dateFormat="yy-mm-dd"
+                                        [showIcon]="true" placeholder="Vencimiento" styleClass="w-100" appendTo="body" />
+                                </div>
+                                <div class="col-md-1">
+                                    <p-button icon="fa fa-trash" severity="danger" class="p-button-text p-button-sm"
+                                        (onClick)="eliminarDetalle(i)" [disabled]="detalleItems.length <= 1" />
+                                </div>
+                            </div>
+                        </div>
+                        <p-button label="Agregar Producto" icon="fa fa-plus" severity="secondary" (onClick)="agregarDetalle()" styleClass="mt-2" />
+                    </div>
+                </div>
+
+                <ng-template pTemplate="footer">
+                    <div class="flex justify-content-end gap-2">
+                        <p-button label="Cancelar" class="m-2" icon="fa fa-times" severity="secondary" (onClick)="displayDialog = false" />
+                        <p-button label="Guardar" class="m-2" icon="fa fa-check" severity="info" (onClick)="guardar()" />
+                    </div>
+                </ng-template>
+            </p-dialog>
+
+            <p-dialog header="Detalle del Movimiento" [(visible)]="displayDetalle" [modal]="true"
+                [style]="{ width: '50rem' }" [draggable]="false" appendTo="body">
+                <div *ngIf="movimientoSeleccionado">
+                    <div class="row mb-3">
+                        <div class="col-6"><strong>N° Documento:</strong> {{ movimientoSeleccionado.numero_documento }}</div>
+                        <div class="col-6"><strong>Fecha:</strong> {{ movimientoSeleccionado.fecha_movimiento }}</div>
+                        <div class="col-6"><strong>Tipo:</strong> {{ movimientoSeleccionado.TipoMovimiento?.nombre }}</div>
+                        <div class="col-6"><strong>Sede:</strong> {{ movimientoSeleccionado.Sede?.nombre }}</div>
+                        <div class="col-12"><strong>Observación:</strong> {{ movimientoSeleccionado.observacion || '—' }}</div>
+                    </div>
+                    <p-table [value]="movimientoSeleccionado.Detalles || []" stripedRows>
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Costo Unit.</th>
+                                <th>Lote</th>
+                                <th>Vencimiento</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-det>
+                            <tr>
+                                <td>{{ det.Producto?.nombre }}</td>
+                                <td>{{ det.cantidad }}</td>
+                                <td>{{ det.costo_unitario || '—' }}</td>
+                                <td>{{ det.lote || '—' }}</td>
+                                <td>{{ det.fecha_vencimiento || '—' }}</td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </p-dialog>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

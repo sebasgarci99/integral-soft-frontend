@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActividadesService } from '../../services/actividades/actividades.service';
@@ -66,7 +66,7 @@ import { TooltipModule } from 'primeng/tooltip';
     styleUrl: './actividades.component.css',
     providers: [MessageService, ConfirmationService]
 })
-export class ActividadesComponent implements OnInit {
+export class ActividadesComponent implements OnInit, AfterViewInit {
     actividades: Actividad[] = [];
     instancias: ActividadInstancia[] = [];
     tiposActividad: TipoActividad[] = [];
@@ -74,9 +74,17 @@ export class ActividadesComponent implements OnInit {
     cumplimientos: RegistroCumplimiento[] = [];
 
     rolUsuario: number = 0;
+    idUsuarioSesion: number = 0;
     horaActual: Date = new Date();
     horaDefault: Date = (() => { const d = new Date(); d.setHours(9, 0, 0, 0); return d; })();
     horaDefaultEditing: Date = new Date();
+
+    readonly HOUR_HEIGHT = 60;
+    readonly START_HOUR = 5;
+    readonly END_HOUR = 22;
+    hours: number[] = [];
+
+    @ViewChild('timelineContainer') timelineContainerRef!: ElementRef;
 
     fechaSeleccionada: Date = new Date();
     fechaMes: Date = new Date();
@@ -165,16 +173,35 @@ export class ActividadesComponent implements OnInit {
         this.secureStorage.getItem('idRol').then(idRol => {
             this.rolUsuario = Number(idRol) || 0;
         });
+        this.secureStorage.getItem('idUser').then(idUser => {
+            this.idUsuarioSesion = Number(idUser) || 0;
+        });
         this.horaActual = new Date();
         setInterval(() => {
             this.horaActual = new Date();
         }, 60000);
+
+        this.hours = Array.from(
+            { length: this.END_HOUR - this.START_HOUR + 1 },
+            (_, i) => i + this.START_HOUR
+        );
 
         this.cargarActividades();
         this.cargarTiposActividad();
         this.cargarUsuarios();
         this.generarCalendario();
         this.actualizarCalendario();
+    }
+
+    ngAfterViewInit(): void {
+        setTimeout(() => this.scrollToNow(), 500);
+    }
+
+    scrollToNow(): void {
+        if (!this.timelineContainerRef?.nativeElement) return;
+        const top = this.getCurrentTimeLinePosition();
+        const scrollTo = Math.max(0, top - this.HOUR_HEIGHT * 2);
+        this.timelineContainerRef.nativeElement.scrollTop = scrollTo;
     }
 
     get esAdmin(): boolean {
@@ -412,6 +439,39 @@ export class ActividadesComponent implements OnInit {
         return this.instancias.filter(inst => inst.fecha == fechaStr);
     }
 
+    getMinutesFromMidnight(timeStr: string): number {
+        if (!timeStr) return 0;
+        const [h, m] = timeStr.split(':').map(Number);
+        return h * 60 + (m || 0);
+    }
+
+    getEventTop(inst: ActividadInstancia): number {
+        const minutos = this.getMinutesFromMidnight(inst.hora_inicio);
+        const baseline = this.START_HOUR * 60;
+        return Math.max(0, (minutos - baseline) * (this.HOUR_HEIGHT / 60));
+    }
+
+    getEventHeight(inst: ActividadInstancia): number {
+        const inicio = this.getMinutesFromMidnight(inst.hora_inicio);
+        const fin = this.getMinutesFromMidnight(inst.hora_fin);
+        const duracion = Math.max(fin - inicio, 15);
+        return Math.max(duracion * (this.HOUR_HEIGHT / 60), 20);
+    }
+
+    formatHour(hour: number): string {
+        if (hour === 0) return '12:00 AM';
+        if (hour < 12) return `${hour}:00 AM`;
+        if (hour === 12) return '12:00 PM';
+        return `${hour - 12}:00 PM`;
+    }
+
+    getCurrentTimeLinePosition(): number {
+        const ahora = new Date();
+        const minutos = ahora.getHours() * 60 + ahora.getMinutes();
+        const baseline = this.START_HOUR * 60;
+        return Math.max(0, (minutos - baseline) * (this.HOUR_HEIGHT / 60));
+    }
+
     getBadgeSeverity(estado: string): string {
         switch (estado) {
             case 'completada': return 'success';
@@ -482,14 +542,14 @@ export class ActividadesComponent implements OnInit {
                 descripcion: '',
                 tipos_actividad: [],
                 fecha_inicio: new Date(),
-                fecha_fin: null,
+                fecha_fin: new Date(),
                 tipo_periodicidad: 'diaria',
                 dias_semana: [],
                 cada_n_dias: null,
                 intervalo_semanas: 1,
                 hora_default: '09:00',
                 duracion_minutos: 60,
-                invitados: []
+                invitados: this.idUsuarioSesion ? [this.idUsuarioSesion] : []
             };
             this.horaDefaultEditing = new Date();
             this.horaDefaultEditing.setHours(9, 0, 0, 0);

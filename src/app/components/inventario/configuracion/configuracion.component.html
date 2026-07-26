@@ -1,0 +1,226 @@
+<div class="flex-grow-1 p-4 dashboard">
+    <div class="card mt-2">
+        <div class="card-body">
+            <div class="component-header">
+                <h3><i class="fa fa-cog"></i> Configuración de Inventario</h3>
+            </div>
+
+            <p-tabview [(activeIndex)]="activeTab">
+                <p-tabpanel header="Grupos">
+                    <div class="mb-3">
+                        <p-button label="Nuevo Grupo" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('grupo')" />
+                    </div>
+                    <p-table [value]="grupos" [paginator]="true" [rows]="10" stripedRows>
+                        <ng-template pTemplate="header">
+                            <tr><th>Nombre</th><th>Descripción</th><th>Acciones</th></tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-row>
+                            <tr>
+                                <td>{{ row.nombre }}</td>
+                                <td>{{ row.descripcion || '—' }}</td>
+                                <td>
+                                    <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'grupo')" />
+                                    <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'grupo')" />
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </p-tabpanel>
+
+                <p-tabpanel header="Categorías">
+                    <div class="mb-3">
+                        <p-button label="Nueva Categoría" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('categoria')" />
+                    </div>
+                    <p-table [value]="categorias" [paginator]="true" [rows]="10" stripedRows>
+                        <ng-template pTemplate="header">
+                            <tr><th>Nombre</th><th>Grupo</th><th>Descripción</th><th>Acciones</th></tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-row>
+                            <tr>
+                                <td>{{ row.nombre }}</td>
+                                <td>{{ row.Grupo?.nombre }}</td>
+                                <td>{{ row.descripcion || '—' }}</td>
+                                <td>
+                                    <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'categoria')" />
+                                    <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'categoria')" />
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </p-tabpanel>
+
+                <p-tabpanel header="Unidades de Medida">
+                    <div class="mb-3">
+                        <p-button label="Nueva Unidad" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('unidad')" />
+                    </div>
+                    <p-table [value]="unidades" [paginator]="true" [rows]="10" stripedRows>
+                        <ng-template pTemplate="header">
+                            <tr><th>Nombre</th><th>Abreviatura</th><th>Acciones</th></tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-row>
+                            <tr>
+                                <td>{{ row.nombre }}</td>
+                                <td>{{ row.abreviatura }}</td>
+                                <td>
+                                    <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'unidad')" />
+                                    <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'unidad')" />
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </p-tabpanel>
+
+                <p-tabpanel header="Tipos de Movimiento">
+                    <div class="mb-3">
+                        <p-button label="Nuevo Tipo" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('tipo_movimiento')" />
+                    </div>
+                    <p-table [value]="tiposMovimiento" [paginator]="true" [rows]="10" stripedRows>
+                        <ng-template pTemplate="header">
+                            <tr><th>Código</th><th>Nombre</th><th>Signo</th><th>Acciones</th></tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-row>
+                            <tr>
+                                <td><span class="badge" [ngClass]="row.signo === 1 ? 'badge-entrada' : 'badge-salida'">{{ row.codigo }}</span></td>
+                                <td>{{ row.nombre }}</td>
+                                <td>{{ row.signo === 1 ? 'Entrada (+)' : 'Salida (-)' }}</td>
+                                <td>
+                                    <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'tipo_movimiento')" />
+                                    <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'tipo_movimiento')" />
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </p-tabpanel>
+
+                <p-tabpanel header="Semaforo de Vencimiento">
+                    <div class="mb-3">
+                        <p-button label="Nueva Configuración" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('semaforo')" />
+                    </div>
+                    <p-table [value]="semaforos" [paginator]="true" [rows]="10" stripedRows>
+                        <ng-template pTemplate="header">
+                            <tr><th>Orden</th><th>Nombre</th><th>Días Min</th><th>Días Max</th><th>Color</th><th>Acciones</th></tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-row>
+                            <tr>
+                                <td>{{ row.orden }}</td>
+                                <td>{{ row.nombre }}</td>
+                                <td>{{ row.dias_minimo }}</td>
+                                <td>{{ row.dias_maximo }}</td>
+                                <td><span class="badge" [ngClass]="'semaforo-' + row.color.toLowerCase()">{{ row.color }}</span></td>
+                                <td>
+                                    <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'semaforo')" />
+                                    <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'semaforo')" />
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </p-tabpanel>
+            </p-tabview>
+
+            <p-dialog header="{{ isEdit ? 'Editar' : 'Nuevo' }}" [(visible)]="displayDialog" *ngIf="displayDialog"
+                [modal]="true" [style]="{ width: '40rem' }" [draggable]="false" appendTo="body">
+                <div class="p-fluid" style="padding: 0rem 1rem;">
+                    <div *ngIf="dialogType === 'grupo'">
+                        <div class="mt-3">
+                            <label class="form-label">Nombre *</label>
+                            <input pInputText [(ngModel)]="formData.nombre" class="w-100" placeholder="Nombre del grupo" />
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea pInputTextarea [(ngModel)]="formData.descripcion" rows="2" class="w-100" placeholder="Descripción del grupo"></textarea>
+                        </div>
+                    </div>
+
+                    <div *ngIf="dialogType === 'categoria'">
+                        <div class="mt-3">
+                            <label class="form-label">Grupo *</label>
+                            <p-dropdown [(ngModel)]="formData.id_grupo_producto" [options]="grupos"
+                                optionLabel="nombre" optionValue="id_grupo_producto" class="w-100" appendTo="body"
+                                placeholder="Seleccionar grupo">
+                            </p-dropdown>
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label">Nombre *</label>
+                            <input pInputText [(ngModel)]="formData.nombre" class="w-100" placeholder="Nombre de la categoría" />
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea pInputTextarea [(ngModel)]="formData.descripcion" rows="2" class="w-100" placeholder="Descripción de la categoría"></textarea>
+                        </div>
+                    </div>
+
+                    <div *ngIf="dialogType === 'unidad'">
+                        <div class="mt-3">
+                            <label class="form-label">Nombre *</label>
+                            <input pInputText [(ngModel)]="formData.nombre" class="w-100" placeholder="Ej: Unidad, Caja, Litro" />
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label">Abreviatura *</label>
+                            <input pInputText [(ngModel)]="formData.abreviatura" class="w-100" placeholder="Ej: UN, CJA, LTR" />
+                        </div>
+                    </div>
+
+                    <div *ngIf="dialogType === 'tipo_movimiento'">
+                        <div class="mt-3">
+                            <label class="form-label">Código *</label>
+                            <input pInputText [(ngModel)]="formData.codigo" class="w-100" maxlength="10" placeholder="Ej: ENT, SAL, TRA" />
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label">Nombre *</label>
+                            <input pInputText [(ngModel)]="formData.nombre" class="w-100" placeholder="Nombre del tipo de movimiento" />
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label">Signo *</label>
+                            <p-dropdown [(ngModel)]="formData.signo"
+                                [options]="[{label:'Entrada (+1)', value:1},{label:'Salida (-1)', value:-1}]"
+                                optionLabel="label" optionValue="value" class="w-100" appendTo="body"
+                                placeholder="Seleccionar signo">
+                            </p-dropdown>
+                        </div>
+                    </div>
+
+                    <div *ngIf="dialogType === 'semaforo'">
+                        <div class="mt-3">
+                            <label class="form-label">Nombre *</label>
+                            <input pInputText [(ngModel)]="formData.nombre" class="w-100" placeholder="Ej: Crítico, Alerta, Normal" />
+                        </div>
+                        <div class="d-md-flex">
+                            <div class="col-6 mt-3 me-2">
+                                <label class="form-label">Días Mínimo *</label>
+                                <input pInputText [(ngModel)]="formData.dias_minimo" type="number" class="w-100" placeholder="0" />
+                            </div>
+                            <div class="col-6 mt-3">
+                                <label class="form-label">Días Máximo *</label>
+                                <input pInputText [(ngModel)]="formData.dias_maximo" type="number" class="w-100" placeholder="90" />
+                            </div>
+                        </div>
+                        <div class="d-md-flex">
+                            <div class="col-6 mt-3 me-2">
+                                <label class="form-label">Color *</label>
+                                <p-dropdown [(ngModel)]="formData.color"
+                                    [options]="[{label:'ROJO', value:'ROJO'},{label:'AMARILLO', value:'AMARILLO'},{label:'NARANJA', value:'NARANJA'},{label:'VERDE', value:'VERDE'},{label:'GRIS', value:'GRIS'}]"
+                                    optionLabel="label" optionValue="value" class="w-100" appendTo="body"
+                                    placeholder="Seleccionar color">
+                                </p-dropdown>
+                            </div>
+                            <div class="col-6 mt-3">
+                                <label class="form-label">Orden *</label>
+                                <input pInputText [(ngModel)]="formData.orden" type="number" class="w-100" placeholder="1" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <ng-template pTemplate="footer">
+                    <div class="flex justify-content-end gap-2">
+                        <p-button label="Cancelar" class="m-2" icon="fa fa-times" severity="secondary" (onClick)="displayDialog = false" />
+                        <p-button label="Guardar" class="m-2" icon="fa fa-check" severity="info" (onClick)="guardar()" />
+                    </div>
+                </ng-template>
+            </p-dialog>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

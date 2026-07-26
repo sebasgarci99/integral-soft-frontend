@@ -18,6 +18,13 @@ import { ArchivosCobroComponent } from './components/archivos-cobro/archivos-cob
 import { InfoUsuarioComponent } from './components/info-usuario/info-usuario.component';
 import { GestionPacientesComponent } from './components/gestion-pacientes/gestion-pacientes.component';
 import { EquiposComponent } from './components/equipos/equipos.component';
+import { InventarioComponent } from './components/inventario/inventario.component';
+import { ProductosComponent } from './components/inventario/productos/productos.component';
+import { MovimientosComponent } from './components/inventario/movimientos/movimientos.component';
+import { KardexComponent } from './components/inventario/kardex/kardex.component';
+import { StockComponent } from './components/inventario/stock/stock.component';
+import { ConfiguracionComponent } from './components/inventario/configuracion/configuracion.component';
+import { ReporteProductosComponent } from './components/inventario/reporte-productos/reporte-productos.component';
 
 export const routes: Routes = [
     { path: 'login', component: LoginComponent },
@@ -43,6 +50,13 @@ export const routes: Routes = [
             { path: 'info-usuario', component: InfoUsuarioComponent },
             { path: 'gestion_pacientes', component: GestionPacientesComponent },
             { path: 'equipos', component: EquiposComponent },
+            { path: 'inventario', component: InventarioComponent },
+            { path: 'inventario/productos', component: ProductosComponent },
+            { path: 'inventario/movimientos', component: MovimientosComponent },
+            { path: 'inventario/kardex', component: KardexComponent },
+            { path: 'inventario/stock', component: StockComponent },
+            { path: 'inventario/configuracion', component: ConfiguracionComponent },
+            { path: 'inventario/reporte-productos', component: ReporteProductosComponent },
         ]
     }
 ];

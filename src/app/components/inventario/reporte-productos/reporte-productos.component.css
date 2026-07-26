@@ -1,0 +1,55 @@
+.stat-card {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem;
+    border-radius: 12px;
+}
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-right: 1rem;
+}
+.stat-info h4 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+.stat-info span {
+    color: var(--text-medium);
+    font-size: 0.85rem;
+}
+.semaforo-rojo { background-color: #fee2e2; color: #dc2626; }
+.semaforo-amarillo { background-color: #fef9c3; color: #ca8a04; }
+.semaforo-naranja { background-color: #ffedd5; color: #ea580c; }
+.semaforo-verde { background-color: #dcfce7; color: #16a34a; }
+.semaforo-gris { background-color: #f3f4f6; color: #6b7280; }
+.badge {
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.badge-sin-stock {
+    background-color: #f3f4f6;
+    color: #6b7280;
+}
+.row-stock-bajo {
+    background-color: #fffbeb !important;
+}
+.row-sin-stock {
+    opacity: 0.6;
+}
+@media print {
+    .component-header div,
+    .row.mt-3.mb-3 {
+        display: none !important;
+    }
+    .stat-card {
+        border: 1px solid #e5e7eb;
+    }
+}

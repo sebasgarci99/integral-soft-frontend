@@ -5,7 +5,7 @@
 /* --- Base --- */
 :root {
     --login-bg-image: url('/img-login6.JPG');
-    --primary: #007ec8;
+    --primary: #3da1b8;
     --primary-dark: #005f99;
     --primary-light: #dbeafe;
     --text-dark: #1e293b;
@@ -177,14 +177,9 @@
 }
 
 .p-dialog .p-dialog-content {
-    padding: 0 2rem;
+    padding: 1rem 2rem;
     overflow-y: auto;
-}
-
-.p-dialog .p-dialog-footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--border-light);
-    background: #fafbfc;
+    font-size: 1.1rem;
 }
 
 /* --- Confirm dialog z-index --- */

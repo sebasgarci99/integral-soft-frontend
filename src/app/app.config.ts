@@ -9,15 +9,18 @@ import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 import { definePreset, palette } from '@primeng/themes';
 
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { authInterceptor } from './utils/auth.interceptor';
+
 const CustomAura = definePreset(Aura, {
     semantic: {
-        primary: palette('#007ec8')
+        primary: palette('#3da1b8')
     }
 });
 
 export const appConfig: ApplicationConfig = {
     providers: [
-        provideZoneChangeDetection({ eventCoalescing: true }), 
+        provideZoneChangeDetection({ eventCoalescing: true }),
         provideRouter(routes),
         provideAnimationsAsync(),
         providePrimeNG({
@@ -27,6 +30,7 @@ export const appConfig: ApplicationConfig = {
                     darkModeSelector: false || 'none'
                 }
             }
-        })
+        }),
+        provideHttpClient(withInterceptors([authInterceptor]))
     ]
 };

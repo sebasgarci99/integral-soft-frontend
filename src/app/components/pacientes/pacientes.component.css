@@ -140,6 +140,18 @@ textarea {
     .select_tipoDocumento {
         width: 100%; 
     }
+
+    ::ng-deep .p-tabmenu .p-tabmenu-nav {
+        overflow-x: auto;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    ::ng-deep .p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
 }
 
 /* @media (max-width: 991.98px) {
@@ -155,6 +167,19 @@ textarea {
         width: 24rem !important;
         max-width: 24rem !important;
         height: 88% !important;
+    }
+
+    ::ng-deep .p-tabmenu .p-tabmenu-nav {
+        overflow-x: auto;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    ::ng-deep .p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link {
+        padding: 0.6rem 1rem;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 }
 

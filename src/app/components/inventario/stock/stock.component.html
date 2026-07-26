@@ -1,0 +1,66 @@
+<div class="flex-grow-1 p-4 dashboard">
+    <div class="card mt-2">
+        <div class="card-body">
+            <div class="component-header">
+                <h3><i class="fa fa-warehouse"></i> Stock por Sede</h3>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <p-dropdown [options]="sedes" [(ngModel)]="selectedSede" placeholder="Todas las sedes"
+                        optionLabel="nombre" [showClear]="true" (onChange)="onSedeChange()" class="w-100" appendTo="body" />
+                </div>
+            </div>
+
+            <div class="search-bar">
+                <input #gbInput pInputText type="text" (input)="tablaStock.filterGlobal(gbInput.value, 'contains')"
+                    placeholder="Buscar por producto, lote, sede..." />
+            </div>
+
+            <p-table #tablaStock [value]="stocks" [paginator]="true" [rows]="15" responsiveLayout="scroll"
+                [globalFilterFields]="['Producto.nombre', 'Producto.codigo', 'lote', 'Sede.nombre']" stripedRows>
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Código</th>
+                        <th>Producto</th>
+                        <th>Sede</th>
+                        <th>Cantidad</th>
+                        <th>Unidad</th>
+                        <th>Lote</th>
+                        <th>Vencimiento</th>
+                        <th>Días Rest.</th>
+                        <th>Estado</th>
+                        <th>Stock Bajo</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-row>
+                    <tr [ngClass]="{ 'row-stock-bajo': row.stock_bajo }">
+                        <td>{{ row.Producto?.codigo }}</td>
+                        <td>{{ row.Producto?.nombre }}</td>
+                        <td>{{ row.Sede?.nombre }}</td>
+                        <td><strong>{{ row.cantidad }}</strong></td>
+                        <td>{{ row.Producto?.UnidadMedida?.abreviatura }}</td>
+                        <td>{{ row.lote || '—' }}</td>
+                        <td>{{ row.fecha_vencimiento || '—' }}</td>
+                        <td>
+                            <span *ngIf="row.dias_vencimiento !== null">{{ row.dias_vencimiento }} días</span>
+                            <span *ngIf="row.dias_vencimiento === null">—</span>
+                        </td>
+                        <td>
+                            <span *ngIf="row.color_semaforo" class="badge" [ngClass]="getColorClass(row.color_semaforo)">
+                                {{ row.color_semaforo }}
+                            </span>
+                            <span *ngIf="!row.color_semaforo">—</span>
+                        </td>
+                        <td>
+                            <i *ngIf="row.stock_bajo" class="fa fa-exclamation-triangle text-warning"></i>
+                            <i *ngIf="!row.stock_bajo" class="fa fa-check text-success"></i>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>

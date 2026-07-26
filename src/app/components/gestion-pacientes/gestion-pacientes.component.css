@@ -88,6 +88,11 @@
     transform: translateY(-1px);
 }
 
+/* --- Float labels dentro del dialog --- */
+::ng-deep .p-dialog .p-floatlabel label {
+    font-size: 1rem;
+}
+
 /* --- Secciones de formulario --- */
 .form-section {
     padding: 0.75rem 1rem;
@@ -227,9 +232,43 @@
     .search-bar .p-inputtext {
         width: 100%;
     }
+
+    ::ng-deep .p-tabmenu .p-tabmenu-nav {
+        overflow-x: auto;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    ::ng-deep .p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .consentimiento-card .col-12.mt-4.d-flex {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .consentimiento-card .col-12.mt-4.d-flex .p-button {
+        white-space: nowrap;
+    }
 }
 
 @media (max-width: 576px) {
+    ::ng-deep .p-tabmenu .p-tabmenu-nav {
+        overflow-x: auto;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    ::ng-deep .p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link {
+        padding: 0.6rem 1rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
     .fullscreen-card {
         width: 100vw;
         height: 100vh;
@@ -245,5 +284,31 @@
     .fullscreen-header .flex {
         flex-wrap: wrap;
         justify-content: center;
+    }
+
+    .fullscreen-header .flex .p-button {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.75rem;
+    }
+
+    .firma-badge-group {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .firma-badge {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .consentimiento-card .col-12.mt-4.d-flex {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 0.5rem;
+    }
+
+    .consentimiento-card .col-12.mt-4.d-flex .p-button {
+        font-size: 0.8rem;
+        white-space: nowrap;
     }
 }

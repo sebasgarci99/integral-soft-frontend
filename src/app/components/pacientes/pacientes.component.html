@@ -52,7 +52,7 @@
                     [modal]="true" [style]="{ width: '47rem', 'max-height': '85vh', height: '82%' }"
                     [contentStyle]="{ 'overflow-y': 'auto' }" [draggable]="false">
                     <!-- <p-steps [model]="steps" [activeIndex]="current" styleClass="mb-4"></p-steps> -->
-                    <p-tabMenu [model]="steps" [(activeItem)]="activeItem" styleClass="mb-4"></p-tabMenu>
+                    <p-tabMenu [model]="steps" [(activeItem)]="activeItem" [scrollable]="true" styleClass="mb-4"></p-tabMenu>
 
                     <ng-container [ngSwitch]="current">
                         <!-- Paso 1: Datos personales -->

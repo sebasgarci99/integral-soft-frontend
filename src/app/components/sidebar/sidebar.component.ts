@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -30,6 +30,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     sidebarAbierto: boolean = false;
     gruposAbiertos: Set<string> = new Set();
 
+    private touchStartX: number = 0;
     private subs: Subscription[] = [];
 
     constructor(
@@ -125,6 +126,20 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
     cerrarSidebarMovil(): void {
         if (window.innerWidth < 992) {
+            this.cerrarSidebar();
+        }
+    }
+
+    @HostListener('touchstart', ['$event'])
+    onTouchStart(e: TouchEvent): void {
+        this.touchStartX = e.touches[0].clientX;
+    }
+
+    @HostListener('touchend', ['$event'])
+    onTouchEnd(e: TouchEvent): void {
+        if (window.innerWidth >= 992) return;
+        const diffX = e.changedTouches[0].clientX - this.touchStartX;
+        if (diffX > 80) {
             this.cerrarSidebar();
         }
     }

@@ -884,6 +884,10 @@ abrirFirmaConsentimientoGeneral(): void {
         this.firmaGeneralDataURL = '';
         this.firmaAcompananteOK = false;
         this.firmaAcompananteDataURL = '';
+        this.firmaCEOK = false;
+        this.firmaCEDataURL = '';
+        this.firmaAcudienteCEOK = false;
+        this.firmaAcudienteCEDataURL = '';
     }
 
     async generarConsentimientoGeneral(): Promise<void> {

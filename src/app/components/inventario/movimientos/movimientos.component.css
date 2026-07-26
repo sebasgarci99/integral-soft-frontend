@@ -1,0 +1,6 @@
+.badge { padding: 0.25rem 0.65rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+.badge-entrada { background-color: #dcfce7; color: #16a34a; }
+.badge-salida { background-color: #fee2e2; color: #dc2626; }
+.badge-active { background-color: #dcfce7; color: #16a34a; }
+.badge-inactive { background-color: #f3f4f6; color: #6b7280; }
+.detalle-row { background-color: #f8f9fa; border: 1px solid #e9ecef; }
