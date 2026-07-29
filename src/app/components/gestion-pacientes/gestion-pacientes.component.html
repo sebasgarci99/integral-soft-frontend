@@ -87,7 +87,7 @@
                                     </p-floatlabel>
                                     <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
                                         <p-calendar id="fecha_nacimiento" [(ngModel)]="formData.fecha_nacimiento" dateFormat="yy-mm-dd"
-                                            [locale]="local_espaniol" showIcon="true" class="w-100"></p-calendar>
+                                            [locale]="local_espaniol" showIcon="true" class="w-100" appendTo="body"></p-calendar>
                                         <label>Fecha de nacimiento *</label>
                                     </p-floatlabel>
                                 </div>
@@ -288,8 +288,8 @@
                                                 </p-floatlabel>
                                                 <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
                                                     <p-dropdown name="tipoDocAcudienteCE" id="tipoDocAcudienteCE" [options]="tiposDocumento" [(ngModel)]="tipoDocAcudienteCE" appendTo="body" class="w-100"
-                                                        [ngClass]="{ 'p-inputwrapper-filled': tipoDocAcudienteCE }"></p-dropdown>
-                                                    <label for="tipoDocAcudienteCE">Tipo documento</label>
+                                                        [ngClass]="{ 'p-inputwrapper-filled': tipoDocAcudienteCE }" [placeholder]="'Tipo de documento'"></p-dropdown>
+                                                    <!-- <label for="tipoDocAcudienteCE">Tipo documento</label> -->
                                                 </p-floatlabel>
                                                 <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3">
                                                     <input pInputText [(ngModel)]="numDocAcudienteCE" class="w-100" maxlength="20" />
@@ -297,18 +297,36 @@
                                                 </p-floatlabel>
                                             </div>
                                             <div class="consentimiento-info-box">
-                                                <small><i class="fa fa-info-circle me-1"></i>Se requerirán <strong>2 firmas</strong>: 1) Firma del paciente  2) Firma del familiar responsable</small>
+                                                <small><i class="fa fa-info-circle me-1"></i>2 etapas: 1) Firma del paciente (opcional)  2) Firma del familiar responsable (obligatoria)</small>
+                                            </div>
+                                        </ng-container>
+                                        <ng-container *ngIf="!aplicaAcudienteCE">
+                                            <div class="consentimiento-info-box">
+                                                <small><i class="fa fa-info-circle me-1"></i>Se requerirá 1 firma: Firma del paciente</small>
                                             </div>
                                         </ng-container>
 
                                         <div class="col-12 mt-4 d-flex gap-2 justify-content-end">
-                                            <p-button *ngIf="!firmaCEOK" label="Generar consentimiento informado" icon="fa fa-file-signature" severity="info"
-                                                (onClick)="abrirFirmaConsentimientoCE()" styleClass="btn-generar-consentimiento"></p-button>
-                                            <p-button *ngIf="firmaCEOK" label="Firmas registradas" icon="fa fa-check" severity="secondary" disabled="true"></p-button>
-                                            <p-button *ngIf="firmaCEOK" label="Limpiar firmas" icon="fa fa-trash" severity="secondary"
-                                                (onClick)="limpiarFirmaFull()"></p-button>
-                                            <p-button *ngIf="firmaCEOK" label="Aceptar y generar documento" icon="fa fa-save" severity="info"
-                                                (onClick)="generarConsentimientoCE()" [loading]="cargandoDocumento" styleClass="btn-generar-documento"></p-button>
+                                            <ng-container *ngIf="aplicaAcudienteCE; else sinAcudiente">
+                                                <p-button *ngIf="!firmaGeneralOK" label="Firma del paciente (opcional)" icon="fa fa-file-signature" severity="info"
+                                                    (onClick)="abrirFirmaConsentimientoCE()" styleClass="btn-generar-consentimiento"></p-button>
+                                                <p-button *ngIf="firmaGeneralOK && !firmaAcudienteCEOK" label="Firma del familiar responsable" icon="fa fa-file-signature" severity="info"
+                                                    (onClick)="abrirFirmaConsentimientoCE()" styleClass="btn-generar-consentimiento"></p-button>
+                                                <p-button *ngIf="firmaGeneralOK && firmaAcudienteCEOK" label="Firmas completas" icon="fa fa-check" severity="secondary" disabled="true"></p-button>
+                                                <p-button *ngIf="firmaGeneralOK && firmaAcudienteCEOK" label="Limpiar firmas" icon="fa fa-trash" severity="secondary"
+                                                    (onClick)="limpiarFirmaFull()"></p-button>
+                                                <p-button *ngIf="firmaGeneralOK && firmaAcudienteCEOK" label="Aceptar y generar documento" icon="fa fa-save" severity="info"
+                                                    (onClick)="generarConsentimientoCE()" [loading]="cargandoDocumento" styleClass="btn-generar-documento"></p-button>
+                                            </ng-container>
+                                            <ng-template #sinAcudiente>
+                                                <p-button *ngIf="!firmaCEOK" label="Generar consentimiento informado" icon="fa fa-file-signature" severity="info"
+                                                    (onClick)="abrirFirmaConsentimientoCE()" styleClass="btn-generar-consentimiento"></p-button>
+                                                <p-button *ngIf="firmaCEOK" label="Firmas registradas" icon="fa fa-check" severity="secondary" disabled="true"></p-button>
+                                                <p-button *ngIf="firmaCEOK" label="Limpiar firmas" icon="fa fa-trash" severity="secondary"
+                                                    (onClick)="limpiarFirmaFull()"></p-button>
+                                                <p-button *ngIf="firmaCEOK" label="Aceptar y generar documento" icon="fa fa-save" severity="info"
+                                                    (onClick)="generarConsentimientoCE()" [loading]="cargandoDocumento" styleClass="btn-generar-documento"></p-button>
+                                            </ng-template>
                                         </div>
                                     </div>
                                 </ng-container>
@@ -368,8 +386,8 @@
                                             </p-floatlabel>
                                             <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
                                                 <p-dropdown name="persona1TipoDoc" id="persona1TipoDoc" [options]="tiposDocumento" [(ngModel)]="persona1TipoDoc" appendTo="body" class="w-100"
-                                                    [ngClass]="{ 'p-inputwrapper-filled': persona1TipoDoc }"></p-dropdown>
-                                                <label for="persona1TipoDoc">Tipo documento *</label>
+                                                    [ngClass]="{ 'p-inputwrapper-filled': persona1TipoDoc }" placeholder="Tipo documento"></p-dropdown>
+                                                <!-- <label>Tipo documento *</label> -->
                                             </p-floatlabel>
                                             <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
                                                 <input pInputText [(ngModel)]="persona1NumDoc" class="w-100" maxlength="20" />
@@ -394,8 +412,8 @@
                                                 </p-floatlabel>
                                                 <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
                                                     <p-dropdown name="persona2TipoDoc" id="persona2TipoDoc" [options]="tiposDocumento" [(ngModel)]="persona2TipoDoc" appendTo="body" class="w-100"
-                                                        [ngClass]="{ 'p-inputwrapper-filled': persona2TipoDoc }"></p-dropdown>
-                                                    <label for="persona2TipoDoc">Tipo documento</label>
+                                                        [ngClass]="{ 'p-inputwrapper-filled': persona2TipoDoc }" placeholder="Tipo de documento"></p-dropdown>
+                                                    <!-- <label for="persona2TipoDoc">Tipo documento</label> -->
                                                 </p-floatlabel>
                                                 <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
                                                     <input pInputText [(ngModel)]="persona2NumDoc" class="w-100" maxlength="20" />
@@ -422,8 +440,8 @@
                                                     </p-floatlabel>
                                                     <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
                                                         <p-dropdown name="acompananteTipoDoc" id="acompananteTipoDoc" [options]="tiposDocumento" [(ngModel)]="acompananteTipoDoc" appendTo="body" class="w-100"
-                                                            [ngClass]="{ 'p-inputwrapper-filled': acompananteTipoDoc }"></p-dropdown>
-                                                        <label for="acompananteTipoDoc">Tipo documento</label>
+                                                            [ngClass]="{ 'p-inputwrapper-filled': acompananteTipoDoc }" placeholder="Tipo de documento."></p-dropdown>
+                                                        <!-- <label for="acompananteTipoDoc">Tipo documento</label> -->
                                                     </p-floatlabel>
                                                     <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3">
                                                         <input pInputText [(ngModel)]="acompananteNumDoc" class="w-100" maxlength="20" />
