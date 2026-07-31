@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
@@ -38,6 +38,8 @@ export class ProductosComponent implements OnInit {
     selectedGrupo: Grupo | null = null;
     selectedCategoria: Categoria | null = null;
 
+    @ViewChild('tablaProductos') tablaProductos?: Table;
+
     constructor(
         private inventarioService: InventarioService,
         private messageService: MessageService,
@@ -45,14 +47,20 @@ export class ProductosComponent implements OnInit {
     ) {}
 
     ngOnInit(): void {
-        this.cargarDatos();
+        this.cargarDatosIniciales();
     }
 
-    async cargarDatos() {
-        await this.cargarProductos();
+    async cargarDatosIniciales() {
         await this.cargarGrupos();
         await this.cargarCategorias();
         await this.cargarUnidades();
+    }
+
+    aplicarFiltroGlobal(event: Event) {
+        const valor = (event.target as HTMLInputElement).value;
+        if (this.tablaProductos) {
+            this.tablaProductos.filterGlobal(valor, 'contains');
+        }
     }
 
     async cargarProductos() {
@@ -73,7 +81,7 @@ export class ProductosComponent implements OnInit {
         (await this.inventarioService.getGrupos()).subscribe({
             next: (res) => {
                 if (res.state === 'OK') {
-                    this.grupos = (res.body || []).map((g: Grupo) => ({ label: g.nombre, ...g }));
+                    this.grupos = res.body || [];
                 }
             }
         });
@@ -99,19 +107,39 @@ export class ProductosComponent implements OnInit {
         });
     }
 
-    onGrupoChange() {
+    seleccionarGrupo(grupo: Grupo) {
+        if (this.selectedGrupo && this.selectedGrupo.id_grupo_producto === grupo.id_grupo_producto) {
+            this.selectedGrupo = null;
+            this.selectedCategoria = null;
+            this.categorias = [];
+            this.productos = [];
+            return;
+        }
+        this.selectedGrupo = grupo;
         this.selectedCategoria = null;
-        this.cargarCategorias(this.selectedGrupo?.id_grupo_producto);
+        this.cargarCategorias(grupo.id_grupo_producto);
         this.cargarProductos();
+    }
+
+    obtenerClaseGradiente(index: number): string {
+        return `grupo-gradient-${(index % 8) + 1}`;
     }
 
     onCategoriaChange() {
         this.cargarProductos();
     }
 
+    limpiarFiltros() {
+        this.selectedGrupo = null;
+        this.selectedCategoria = null;
+        this.categorias = [];
+        this.productos = [];
+    }
+
     abrirFormulario() {
         this.isEdit = false;
         this.formData = {
+            id_grupo_producto: this.selectedGrupo?.id_grupo_producto,
             maneja_lote: false,
             maneja_vencimiento: false,
             stock_minimo: 0,
@@ -122,7 +150,10 @@ export class ProductosComponent implements OnInit {
 
     editarProducto(producto: Producto) {
         this.isEdit = true;
-        this.formData = { ...producto };
+        this.formData = {
+            ...producto,
+            id_grupo_producto: producto.Categoria?.Grupo?.id_grupo_producto
+        };
         this.displayDialog = true;
     }
 

@@ -12,10 +12,11 @@
                     </div>
                     <p-table [value]="grupos" [paginator]="true" [rows]="10" stripedRows>
                         <ng-template pTemplate="header">
-                            <tr><th>Nombre</th><th>Descripción</th><th>Acciones</th></tr>
+                            <tr><th>Icono</th><th>Nombre</th><th>Descripción</th><th>Acciones</th></tr>
                         </ng-template>
                         <ng-template pTemplate="body" let-row>
                             <tr>
+                                <td><i [class]="row.icono || 'fa fa-cube'"></i></td>
                                 <td>{{ row.nombre }}</td>
                                 <td>{{ row.descripcion || '—' }}</td>
                                 <td>
@@ -124,6 +125,24 @@
                         <div class="mt-3">
                             <label class="form-label">Nombre *</label>
                             <input pInputText [(ngModel)]="formData.nombre" class="w-100" placeholder="Nombre del grupo" />
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label">Icono</label>
+                            <p-dropdown [(ngModel)]="formData.icono" [options]="iconos" optionLabel="label" optionValue="value"
+                                placeholder="Seleccionar un icono" class="w-100" appendTo="body">
+                                <ng-template pTemplate="selectedItem" let-item>
+                                    <div class="d-flex align-items-center gap-2" *ngIf="item">
+                                        <i [class]="item.value"></i>
+                                        <span>{{ item.label }}</span>
+                                    </div>
+                                </ng-template>
+                                <ng-template pTemplate="item" let-item>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i [class]="item.value"></i>
+                                        <span>{{ item.label }}</span>
+                                    </div>
+                                </ng-template>
+                            </p-dropdown>
                         </div>
                         <div class="mt-3">
                             <label class="form-label">Descripción</label>

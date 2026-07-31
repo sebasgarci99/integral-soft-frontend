@@ -2,6 +2,8 @@ export interface Grupo {
     id_grupo_producto: number;
     nombre: string;
     descripcion: string;
+    icono?: string;
+    cantidad_productos?: number;
     estado: string;
 }
 

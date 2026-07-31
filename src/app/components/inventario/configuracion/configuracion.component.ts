@@ -14,6 +14,11 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { InventarioService } from '../../../services/inventario/inventario.service';
 import { Grupo, Categoria, UnidadMedida, TipoMovimiento, Semaforo } from '../../../interfaces/inventario';
 
+interface IconoOption {
+    label: string;
+    value: string;
+}
+
 @Component({
     selector: 'app-config-inventario',
     standalone: true,
@@ -38,6 +43,50 @@ export class ConfiguracionComponent implements OnInit {
     dialogType: string = '';
     isEdit: boolean = false;
     formData: any = {};
+
+    iconos: IconoOption[] = [
+        { label: 'Cubo / Caja', value: 'fa fa-cube' },
+        { label: 'Caja abierta', value: 'fa fa-box-open' },
+        { label: 'Caja cerrada', value: 'fa fa-box' },
+        { label: 'Canasta de compras', value: 'fa fa-shopping-basket' },
+        { label: 'Carrito de compras', value: 'fa fa-shopping-cart' },
+        { label: 'Etiqueta', value: 'fa fa-tag' },
+        { label: 'Etiquetas', value: 'fa fa-tags' },
+        { label: 'Uso general', value: 'fa fa-cubes' },
+        { label: 'Laptop / Tecnología', value: 'fa fa-laptop' },
+        { label: 'Móvil', value: 'fa fa-mobile-alt' },
+        { label: 'Herramientas', value: 'fa fa-tools' },
+        { label: 'Coche / Automotriz', value: 'fa fa-car' },
+        { label: 'Bicicleta', value: 'fa fa-bicycle' },
+        { label: 'Camión / Envíos', value: 'fa fa-truck' },
+        { label: 'Avión', value: 'fa fa-plane' },
+        { label: 'Utensilios / Restaurante', value: 'fa fa-utensils' },
+        { label: 'Mug / Bebidas', value: 'fa fa-coffee' },
+        { label: 'Vino / Licores', value: 'fa fa-wine-glass' },
+        { label: 'Píldoras / Farmacia', value: 'fa fa-pills' },
+        { label: 'Médico', value: 'fa fa-stethoscope' },
+        { label: 'Corazón', value: 'fa fa-heart' },
+        { label: 'Ropa / Camiseta', value: 'fa fa-tshirt' },
+        { label: 'Zapato', value: 'fa fa-shoe-prints' },
+        { label: 'Libro', value: 'fa fa-book' },
+        { label: 'Papel', value: 'fa fa-file-alt' },
+        { label: 'Lápiz / Papelería', value: 'fa fa-pencil-alt' },
+        { label: 'Hogar', value: 'fa fa-home' },
+        { label: 'Silla / Muebles', value: 'fa fa-chair' },
+        { label: 'Lámpara', value: 'fa fa-lightbulb' },
+        { label: 'Enchufe / Eléctrico', value: 'fa fa-plug' },
+        { label: 'Jardín / Planta', value: 'fa fa-leaf' },
+        { label: 'Pintura', value: 'fa fa-paint-roller' },
+        { label: 'Deportes / Pelota', value: 'fa fa-futbol' },
+        { label: 'Música', value: 'fa fa-music' },
+        { label: 'Juguetes', value: 'fa fa-gamepad' },
+        { label: 'Mascotas', value: 'fa fa-paw' },
+        { label: 'Limpieza', value: 'fa fa-broom' },
+        { label: 'Químico', value: 'fa fa-flask' },
+        { label: 'Construcción', value: 'fa fa-hard-hat' },
+        { label: 'Seguridad', value: 'fa fa-shield-alt' },
+        { label: 'Regalo', value: 'fa fa-gift' }
+    ];
 
     constructor(
         private inventarioService: InventarioService,

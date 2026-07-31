@@ -160,6 +160,27 @@ export class GestionPacientesComponent implements OnInit {
     firmaGeneralDataURL = '';
     firmaAcompananteOK = false;
 
+    // Propiedades para CONSENTIMIENTO INFORMADO EXAMENES DE LABORATORIO
+    condicionConsentimientoLab = 'PACIENTE';
+    explicoGlicemiaLab = 'N';
+    explicoDrogasLab = 'N';
+    edadPacienteLab = '';
+    nombreAcudienteLab = '';
+    tipoDocAcudienteLab = '';
+    numDocAcudienteLab = '';
+    parentescoAcudienteLab = '';
+    firmaPacienteLabOK = false;
+    firmaPacienteLabDataURL = '';
+    firmaAcudienteLabOK = false;
+    firmaAcudienteLabDataURL = '';
+    etapaFirmaLab: 'PACIENTE' | 'ACUDIENTE' = 'PACIENTE';
+
+    condicionesConsentimiento = [
+        { label: 'Paciente', value: 'PACIENTE' },
+        { label: 'Familiar', value: 'FAMILIAR' },
+        { label: 'Acompañante', value: 'ACOMPANANTE' }
+    ];
+
     tiposDocumento = [
         { label: 'C.C.', value: 'CC' },
         { label: 'T.I.', value: 'TI' },
@@ -285,6 +306,22 @@ export class GestionPacientesComponent implements OnInit {
         this.displayCorreoReenvio = false;
         this.correoReenvio = '';
         this.consentimientoReenvio = null;
+
+        // Nuevos consentimientos
+        this.condicionConsentimientoLab = 'PACIENTE';
+        this.explicoGlicemiaLab = 'N';
+        this.explicoDrogasLab = 'N';
+        this.edadPacienteLab = '';
+        this.nombreAcudienteLab = '';
+        this.tipoDocAcudienteLab = '';
+        this.numDocAcudienteLab = '';
+        this.parentescoAcudienteLab = '';
+        this.firmaPacienteLabOK = false;
+        this.firmaPacienteLabDataURL = '';
+        this.firmaAcudienteLabOK = false;
+        this.firmaAcudienteLabDataURL = '';
+        this.etapaFirmaLab = 'PACIENTE';
+
         this.fullscreen = false;
     }
 
@@ -665,6 +702,22 @@ export class GestionPacientesComponent implements OnInit {
         this.firmaAcudienteCEDataURL = '';
         this.firmaCEOK = false;
         this.firmaCEDataURL = '';
+
+        // Nuevos consentimientos
+        this.condicionConsentimientoLab = 'PACIENTE';
+        this.explicoGlicemiaLab = 'N';
+        this.explicoDrogasLab = 'N';
+        this.edadPacienteLab = '';
+        this.nombreAcudienteLab = '';
+        this.tipoDocAcudienteLab = '';
+        this.numDocAcudienteLab = '';
+        this.parentescoAcudienteLab = '';
+        this.firmaPacienteLabOK = false;
+        this.firmaPacienteLabDataURL = '';
+        this.firmaAcudienteLabOK = false;
+        this.firmaAcudienteLabDataURL = '';
+        this.etapaFirmaLab = 'PACIENTE';
+
         if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_doc') {
             (await this.gestionPacientesService.obtenerProcedimientosRiesgos()).subscribe({
                 next: (data) => { this.procedimientosDisponibles = data; },
@@ -673,6 +726,9 @@ export class GestionPacientesComponent implements OnInit {
         }
         if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_general') {
             this.edadPacienteGeneral = this.calcularEdad(this.formData.fecha_nacimiento);
+        }
+        if (this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_examenes_laboratorio') {
+            this.edadPacienteLab = this.calcularEdad(this.formData.fecha_nacimiento);
         }
     }
 
@@ -868,6 +924,41 @@ abrirFirmaConsentimientoGeneral(): void {
             return;
         }
 
+        // Examenes de Laboratorio: dos etapas si no es Paciente
+        const esLab = this.tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_examenes_laboratorio';
+        if (esLab) {
+            if (this.etapaFirmaLab === 'PACIENTE') {
+                if (this.firmaPadFull && !this.firmaPadFull.isEmpty()) {
+                    const dataURL = this.firmaPadFull.toDataURL('image/png');
+                    this.firmaPacienteLabDataURL = dataURL;
+                    this.firmaPacienteLabOK = true;
+                    if (this.condicionConsentimientoLab !== 'PACIENTE') {
+                        this.etapaFirmaLab = 'ACUDIENTE';
+                        this.firmaPadFull?.clear();
+                        this.messageService.add({ severity: 'success', summary: 'Firma guardada', detail: 'Ahora firme el acudiente.' });
+                    } else {
+                        this.fullscreen = false;
+                        this.messageService.add({ severity: 'success', summary: 'Firma guardada', detail: 'Firma del paciente registrada.' });
+                    }
+                } else {
+                    this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Debe dibujar la firma antes de guardar.' });
+                }
+                return;
+            }
+            if (this.etapaFirmaLab === 'ACUDIENTE') {
+                if (this.firmaPadFull && !this.firmaPadFull.isEmpty()) {
+                    const dataURL = this.firmaPadFull.toDataURL('image/png');
+                    this.firmaAcudienteLabDataURL = dataURL;
+                    this.firmaAcudienteLabOK = true;
+                    this.fullscreen = false;
+                    this.messageService.add({ severity: 'success', summary: 'Firmas completas', detail: 'Firma del acudiente registrada.' });
+                } else {
+                    this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Debe dibujar la firma del acudiente antes de guardar.' });
+                }
+                return;
+            }
+        }
+
         // Resto de casos: firma obligatoria
         if (this.firmaPadFull && !this.firmaPadFull.isEmpty()) {
             const dataURL = this.firmaPadFull.toDataURL('image/png');
@@ -914,6 +1005,11 @@ abrirFirmaConsentimientoGeneral(): void {
         this.firmaCEDataURL = '';
         this.firmaAcudienteCEOK = false;
         this.firmaAcudienteCEDataURL = '';
+        this.firmaPacienteLabOK = false;
+        this.firmaPacienteLabDataURL = '';
+        this.firmaAcudienteLabOK = false;
+        this.firmaAcudienteLabDataURL = '';
+        this.etapaFirmaLab = 'PACIENTE';
     }
 
     async generarConsentimientoGeneral(): Promise<void> {
@@ -1061,6 +1157,151 @@ abrirFirmaConsentimientoGeneral(): void {
             error: () => {
                 this.cargandoDocumento = false;
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al generar consentimiento informado CE.' });
+            }
+        });
+    }
+
+    abrirFirmaConsentimientoSimple(): void {
+        if (!this.pacienteActivo || !this.formData.id_cita) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'No hay una cita activa para generar consentimiento.' });
+            return;
+        }
+        this.firmaGeneralOK = false;
+        this.firmaGeneralDataURL = '';
+        this.fullscreen = true;
+        setTimeout(() => this.initSignaturePad(), 100);
+    }
+
+    async generarConsentimientoSimple(): Promise<void> {
+        if (!this.firmaGeneralOK || !this.firmaGeneralDataURL) {
+            this.messageService.add({ severity: 'warn', summary: 'Firma requerida', detail: 'Debe registrar la firma del paciente.' });
+            return;
+        }
+        const paciente = this.pacienteActivo || (this.isEdit ? this.formData : null);
+        if (!paciente || !paciente.id_cita) return;
+
+        const tipo = this.tipoConsentimientoInfoSeleccionado?.key;
+        const label = tipo === 'consentimiento_informado_vih' ? 'VIH' : 'General';
+
+        this.cargandoDocumento = true;
+        (await this.gestionPacientesService.generarConsentimiento(
+            paciente.id_paciente,
+            paciente.id_cita,
+            tipo,
+            {},
+            this.firmaGeneralDataURL,
+            this.tipoConsentimientoInfoSeleccionado?.funcion
+        )).subscribe({
+            next: (res: any) => {
+                this.cargandoDocumento = false;
+                if (res.state === 'OK') {
+                    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: `Consentimiento informado ${label} generado. Descargando PDF...` });
+                    this.cerrarTodosLosDialogos();
+                    this.limpiarEstadoConsentimientos();
+                    this.descargarPdfDesdeBase64(res.body.pdf_base64, `Consentimiento_${label}_${paciente.numero_documento}_${new Date().toISOString().split('T')[0]}.pdf`);
+                    this.cargarPacientes();
+                } else {
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: String(res.msg || 'Error al generar consentimiento') });
+                }
+            },
+            error: () => {
+                this.cargandoDocumento = false;
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: `Error al generar consentimiento informado ${label}.` });
+            }
+        });
+    }
+
+    abrirFirmaConsentimientoLab(): void {
+        if (!this.pacienteActivo || !this.formData.id_cita) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'No hay una cita activa para generar consentimiento.' });
+            return;
+        }
+        if (!this.edadPacienteLab) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'La edad del paciente es requerida.' });
+            return;
+        }
+        if (!this.explicoGlicemiaLab) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Indique si se explicó el procedimiento de Glicemia.' });
+            return;
+        }
+        if (!this.explicoDrogasLab) {
+            this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Indique si se explicó el procedimiento de Drogas de abuso.' });
+            return;
+        }
+        if (this.condicionConsentimientoLab !== 'PACIENTE') {
+            if (!this.nombreAcudienteLab || !this.tipoDocAcudienteLab || !this.numDocAcudienteLab || !this.parentescoAcudienteLab) {
+                this.messageService.add({ severity: 'warn', summary: 'IMPORTANTE', detail: 'Complete todos los datos del acudiente.' });
+                return;
+            }
+        }
+        if (!this.firmaPacienteLabOK) {
+            this.firmaPacienteLabDataURL = '';
+            this.firmaAcudienteLabOK = false;
+            this.firmaAcudienteLabDataURL = '';
+            this.etapaFirmaLab = 'PACIENTE';
+        } else if (this.condicionConsentimientoLab !== 'PACIENTE' && !this.firmaAcudienteLabOK) {
+            this.etapaFirmaLab = 'ACUDIENTE';
+        } else {
+            this.firmaPacienteLabOK = false;
+            this.firmaPacienteLabDataURL = '';
+            this.firmaAcudienteLabOK = false;
+            this.firmaAcudienteLabDataURL = '';
+            this.etapaFirmaLab = 'PACIENTE';
+        }
+        this.fullscreen = true;
+        setTimeout(() => this.initSignaturePad(), 100);
+    }
+
+    async generarConsentimientoLab(): Promise<void> {
+        if (!this.firmaPacienteLabOK || !this.firmaPacienteLabDataURL) {
+            this.messageService.add({ severity: 'warn', summary: 'Firma requerida', detail: 'Debe registrar la firma del paciente.' });
+            return;
+        }
+        if (this.condicionConsentimientoLab !== 'PACIENTE' && (!this.firmaAcudienteLabOK || !this.firmaAcudienteLabDataURL)) {
+            this.messageService.add({ severity: 'warn', summary: 'Firma requerida', detail: 'Debe registrar la firma del acudiente.' });
+            return;
+        }
+        const paciente = this.pacienteActivo || (this.isEdit ? this.formData : null);
+        if (!paciente || !paciente.id_cita) return;
+
+        const datos: any = {
+            edad_paciente: this.edadPacienteLab,
+            condicion_consentimiento: this.condicionConsentimientoLab,
+            explico_glicemia: this.explicoGlicemiaLab,
+            explico_drogas: this.explicoDrogasLab
+        };
+        if (this.condicionConsentimientoLab !== 'PACIENTE') {
+            datos.acompanante_nombre = this.nombreAcudienteLab;
+            datos.acompanante_tipo_documento = this.tipoDocAcudienteLab;
+            datos.acompanante_num_documento = this.numDocAcudienteLab;
+            datos.acompanante_parentesco = this.parentescoAcudienteLab;
+            datos.firma_acompanante = this.firmaAcudienteLabDataURL;
+        }
+
+        this.cargandoDocumento = true;
+        (await this.gestionPacientesService.generarConsentimiento(
+            paciente.id_paciente,
+            paciente.id_cita,
+            this.tipoConsentimientoInfoSeleccionado?.key,
+            datos,
+            this.firmaPacienteLabDataURL,
+            this.tipoConsentimientoInfoSeleccionado?.funcion
+        )).subscribe({
+            next: (res: any) => {
+                this.cargandoDocumento = false;
+                if (res.state === 'OK') {
+                    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Consentimiento informado de exámenes de laboratorio generado. Descargando PDF...' });
+                    this.cerrarTodosLosDialogos();
+                    this.limpiarEstadoConsentimientos();
+                    this.descargarPdfDesdeBase64(res.body.pdf_base64, `Consentimiento_Examenes_Laboratorio_${paciente.numero_documento}_${new Date().toISOString().split('T')[0]}.pdf`);
+                    this.cargarPacientes();
+                } else {
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: String(res.msg || 'Error al generar consentimiento') });
+                }
+            },
+            error: () => {
+                this.cargandoDocumento = false;
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al generar consentimiento informado de exámenes de laboratorio.' });
             }
         });
     }

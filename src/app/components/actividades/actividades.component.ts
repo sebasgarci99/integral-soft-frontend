@@ -492,6 +492,35 @@ export class ActividadesComponent implements OnInit, AfterViewInit {
         }
     }
 
+    abrirFormularioDesdeHorario(hora: number): void {
+        this.currentStep = 0;
+        this.activeItem = this.steps[0];
+        this.actividadEdicion = null;
+
+        const fechaInicio = new Date(this.fechaSeleccionada);
+        fechaInicio.setHours(0, 0, 0, 0);
+
+        this.horaDefaultEditing = new Date(this.fechaSeleccionada);
+        this.horaDefaultEditing.setHours(hora, 0, 0, 0);
+
+        this.formData = {
+            titulo: '',
+            descripcion: '',
+            tipos_actividad: [],
+            fecha_inicio: new Date(this.fechaSeleccionada),
+            fecha_fin: null,
+            tipo_periodicidad: 'diaria',
+            dias_semana: [],
+            cada_n_dias: null,
+            intervalo_semanas: 1,
+            hora_default: this.formatHoraFromDate(this.horaDefaultEditing),
+            duracion_minutos: 60,
+            invitados: this.idUsuarioSesion ? [this.idUsuarioSesion] : []
+        };
+
+        this.displayDialog = true;
+    }
+
     abrirFormulario(actividad?: Actividad): void {
         this.currentStep = 0;
         this.activeItem = this.steps[0];
@@ -513,6 +542,15 @@ export class ActividadesComponent implements OnInit, AfterViewInit {
                 }
             }
 
+            if (actividad.hora_default) {
+                const [h, m] = actividad.hora_default.split(':').map(Number);
+                this.horaDefaultEditing = new Date();
+                this.horaDefaultEditing.setHours(h, m, 0, 0);
+            } else {
+                this.horaDefaultEditing = new Date();
+                this.horaDefaultEditing.setHours(9, 0, 0, 0);
+            }
+
             this.formData = {
                 id_actividad: actividad.id_actividad,
                 titulo: actividad.titulo,
@@ -524,18 +562,10 @@ export class ActividadesComponent implements OnInit, AfterViewInit {
                 dias_semana: actividad.dias_semana ? actividad.dias_semana.split(',') : [],
                 cada_n_dias: actividad.cada_n_dias,
                 intervalo_semanas: actividad.intervalo_semanas || 1,
-                hora_default: this.formatHoraFromDate(this.getHoraDefault()),
+                hora_default: this.formatHoraFromDate(this.horaDefaultEditing),
                 duracion_minutos: actividad.duracion_minutos || 60,
                 invitados: actividad.invitados?.map((inv: any) => inv.id_usuario || inv.id) || []
             };
-            if (actividad.hora_default) {
-                const [h, m] = actividad.hora_default.split(':').map(Number);
-                this.horaDefaultEditing = new Date();
-                this.horaDefaultEditing.setHours(h, m, 0, 0);
-            } else {
-                this.horaDefaultEditing = new Date();
-                this.horaDefaultEditing.setHours(9, 0, 0, 0);
-            }
         } else {
             this.formData = {
                 titulo: '',
@@ -563,7 +593,10 @@ export class ActividadesComponent implements OnInit, AfterViewInit {
         this.actividadEdicion = null;
     }
 
-    abrirDetalleInstancia(instancia: ActividadInstancia): void {
+    abrirDetalleInstancia(instancia: ActividadInstancia, event?: Event): void {
+        if (event) {
+            event.stopPropagation();
+        }
         this.instanciaDetalleSeleccionada = null;
         this.instanciaSeleccionada = instancia;
         this.cargarCumplimientos(instancia.id_instancia);

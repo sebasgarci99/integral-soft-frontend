@@ -25,6 +25,7 @@ import { KardexComponent } from './components/inventario/kardex/kardex.component
 import { StockComponent } from './components/inventario/stock/stock.component';
 import { ConfiguracionComponent } from './components/inventario/configuracion/configuracion.component';
 import { ReporteProductosComponent } from './components/inventario/reporte-productos/reporte-productos.component';
+import { ProgramacionPacientesComponent } from './components/programacion-pacientes/programacion-pacientes.component';
 
 export const routes: Routes = [
     { path: 'login', component: LoginComponent },
@@ -57,6 +58,7 @@ export const routes: Routes = [
             { path: 'inventario/stock', component: StockComponent },
             { path: 'inventario/configuracion', component: ConfiguracionComponent },
             { path: 'inventario/reporte-productos', component: ReporteProductosComponent },
+            { path: 'programacion_pacientes', component: ProgramacionPacientesComponent },
         ]
     }
 ];

@@ -1,0 +1,238 @@
+<div class="programacion-container">
+    <div class="component-header mb-3">
+        <h3><i class="fa-solid fa-calendar-check"></i> Programaci&oacute;n de Pacientes</h3>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <button pButton type="button" icon="fa-solid fa-chevron-left" class="p-button-text" (click)="cambiarMes(-1)"></button>
+                    <h5 class="mb-0 text-capitalize">{{ getNombreMes() }}</h5>
+                    <button pButton type="button" icon="fa-solid fa-chevron-right" class="p-button-text" (click)="cambiarMes(1)"></button>
+                </div>
+                <div class="card-body">
+                    <div class="custom-calendar">
+                        <div class="calendar-weekdays">
+                            <div class="weekday" *ngFor="let d of ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']">{{ d }}</div>
+                        </div>
+                        <div class="calendar-days">
+                            <div class="calendar-day" *ngFor="let dia of diasCalendario"
+                                [class.other-month]="!dia.esMesActual"
+                                [class.today]="dia.esHoy"
+                                [class.selected]="dia.esSeleccionado"
+                                [class.has-activities]="dia.tieneCitas"
+                                (click)="seleccionarFecha(dia)">
+                                <div class="day-number">{{ dia.numero }}</div>
+                                <div class="day-indicators" *ngIf="dia.tieneCitas">
+                                    <span class="day-dot dot-programada"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ diaSeleccionadoTexto }}</h5>
+                    <button pButton type="button" label="Nueva cita" icon="fa-solid fa-plus" (click)="abrirFormulario()"></button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="day-agenda">
+                        <div class="agenda-scroll-content">
+                            <div class="agenda-hour-row" *ngFor="let hour of hours">
+                                <div class="agenda-hour-label">{{ formatHour(hour) }}</div>
+                                <div class="agenda-hour-slot" (click)="abrirFormularioDesdeHorario(hour)"></div>
+                            </div>
+
+                            <div class="cita-event" *ngFor="let cita of getCitasDelDia(fechaSeleccionada)"
+                                [class.cita-event--programada]="cita.estado_cita === 'PROGRAMADA'"
+                                [class.cita-event--cancelada]="cita.estado_cita === 'CANCELADA'"
+                                [class.cita-event--cumplida]="cita.estado_cita === 'CUMPLIDA'"
+                                [ngStyle]="getEventStyle(cita)"
+                                (click)="abrirDetalle(cita)">
+                                <div class="cita-event-title">{{ cita.nombre_paciente }}</div>
+                                <div class="cita-event-time">{{ cita.hora_inicio }} - {{ cita.hora_fin }}</div>
+                                <div class="cita-event-type" *ngIf="cita.tipo_cita">{{ cita.tipo_cita }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-dialog [(visible)]="displayDialog" [modal]="true" [style]="{ width: '90vw', maxWidth: '600px' }" [breakpoints]="{ '960px': '75vw', '640px': '100vw' }" styleClass="programacion-dialog" [header]="esEdicion ? 'Editar cita' : 'Nueva cita'">
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <label class="form-label">Paciente</label>
+            <div class="input-group">
+                <p-autoComplete
+                    [(ngModel)]="formData.pacienteSeleccionado"
+                    [suggestions]="filteredPacientes"
+                    (completeMethod)="buscarPacientes($event)"
+                    field="nombre_completo"
+                    placeholder="Buscar paciente..."
+                    class="flex-grow-1"
+                    [forceSelection]="true"
+                    (onSelect)="seleccionarPaciente($event)">
+                </p-autoComplete>
+                <button pButton type="button" icon="fa-solid fa-user-plus" class="p-button-secondary" (click)="abrirNuevoPaciente()"></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <label class="form-label">Fecha</label>
+            <p-calendar [(ngModel)]="formData.fecha_cita" dateFormat="yy-mm-dd" [showIcon]="true" class="w-100"></p-calendar>
+        </div>
+        <div class="col-12 col-md-6">
+            <label class="form-label">Hora inicio</label>
+            <p-calendar [(ngModel)]="formData.hora_inicio_date" [timeOnly]="true" hourFormat="12" [showIcon]="true" icon="fa-solid fa-clock" class="w-100"></p-calendar>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <label class="form-label">Duraci&oacute;n (min)</label>
+            <p-inputNumber [(ngModel)]="formData.duracion_minutos" [min]="15" [step]="15" class="w-100"></p-inputNumber>
+        </div>
+        <div class="col-12 col-md-6">
+            <label class="form-label">Tipo de cita</label>
+            <input pInputText class="w-100" [(ngModel)]="formData.tipo_cita" placeholder="Ej: Consulta general" />
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <label class="form-label">Motivo / Observaciones</label>
+            <textarea pInputTextarea class="w-100" [(ngModel)]="formData.motivo" rows="3"></textarea>
+        </div>
+    </div>
+
+    <div class="text-end pt-2">
+        <button pButton type="button" label="Cancelar" class="p-button-text me-2" (click)="displayDialog = false"></button>
+        <button pButton type="button" label="Guardar" icon="fa-solid fa-save" (click)="confirmarGuardar()"></button>
+    </div>
+</p-dialog>
+
+<p-dialog [(visible)]="displayConfirmDialog" [modal]="true" [style]="{ width: '90vw', maxWidth: '450px' }" [breakpoints]="{ '960px': '75vw', '640px': '100vw' }" styleClass="programacion-dialog" header="Confirmar agendamiento">
+    <p>&iquest;Desea notificar al paciente sobre esta cita?</p>
+
+    <div class="mb-2">
+        <p-checkbox [(ngModel)]="confirmData.enviar_correo" [binary]="true" [disabled]="!puedeEnviarCorreo" inputId="chkCorreo"></p-checkbox>
+        <label for="chkCorreo" class="ms-2">Enviar correo</label>
+    </div>
+    <div class="mb-3">
+        <p-checkbox [(ngModel)]="confirmData.enviar_whatsapp" [binary]="true" [disabled]="!puedeEnviarWhatsapp" inputId="chkWhatsapp"></p-checkbox>
+        <label for="chkWhatsapp" class="ms-2">Abrir WhatsApp Web</label>
+        <small class="text-muted d-block ms-4">Se abrir&aacute; una pesta&ntilde;a para que usted env&iacute;e el mensaje.</small>
+    </div>
+
+    <div class="text-end">
+        <button pButton type="button" label="Solo guardar" class="p-button-text me-2" (click)="confirmData.enviar_correo = false; confirmData.enviar_whatsapp = false; guardarCita()"></button>
+        <button pButton type="button" label="Guardar y notificar" icon="fa-solid fa-paper-plane" (click)="guardarCita()"></button>
+    </div>
+</p-dialog>
+
+<p-dialog [(visible)]="displayNuevoPacienteDialog" [modal]="true" [style]="{ width: '90vw', maxWidth: '800px' }" [breakpoints]="{ '960px': '75vw', '640px': '100vw' }" styleClass="programacion-dialog" header="Nuevo paciente">
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <label class="form-label">Nombres *</label>
+            <input pInputText class="w-100" [(ngModel)]="nuevoPaciente.nombres" />
+        </div>
+        <div class="col-12 col-md-6">
+            <label class="form-label">Apellidos *</label>
+            <input pInputText class="w-100" [(ngModel)]="nuevoPaciente.apellidos" />
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <label class="form-label">Tipo documento *</label>
+            <p-dropdown [options]="tiposDocumento" [(ngModel)]="nuevoPaciente.tipo_documento" placeholder="Seleccione" class="w-100"></p-dropdown>
+        </div>
+        <div class="col-12 col-md-6">
+            <label class="form-label">N&uacute;mero documento *</label>
+            <input pInputText class="w-100" [(ngModel)]="nuevoPaciente.numero_documento" />
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <label class="form-label">Fecha nacimiento *</label>
+            <p-calendar [(ngModel)]="nuevoPaciente.fecha_nacimiento" dateFormat="yy-mm-dd" [showIcon]="true" class="w-100"></p-calendar>
+        </div>
+        <div class="col-12 col-md-6">
+            <label class="form-label">Sexo *</label>
+            <p-dropdown [options]="sexoOptions" [(ngModel)]="nuevoPaciente.sexo" placeholder="Seleccione" class="w-100"></p-dropdown>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <label class="form-label">Tel&eacute;fono</label>
+            <input pInputText class="w-100" [(ngModel)]="nuevoPaciente.telefono_contacto" placeholder="3001234567" />
+            <small class="text-muted">El indicativo 57 ya est&aacute; incluido.</small>
+        </div>
+        <div class="col-12 col-md-6">
+            <label class="form-label">Correo</label>
+            <input pInputText class="w-100" [(ngModel)]="nuevoPaciente.correo_electronico" placeholder="correo@ejemplo.com" />
+        </div>
+    </div>
+
+    <div class="text-end pt-2">
+        <button pButton type="button" label="Cancelar" class="p-button-text me-2" (click)="displayNuevoPacienteDialog = false"></button>
+        <button pButton type="button" label="Guardar paciente" icon="fa-solid fa-save" (click)="guardarNuevoPaciente()"></button>
+    </div>
+</p-dialog>
+
+<p-dialog [(visible)]="displayDetalleDialog" [modal]="true" [style]="{ width: '90vw', maxWidth: '450px' }" [breakpoints]="{ '960px': '75vw', '640px': '100vw' }" styleClass="programacion-dialog" header="Detalle de cita">
+    <div *ngIf="citaDetalle" class="cita-detalle">
+        <div class="cita-detalle-header">
+            <h5 class="mb-0">{{ citaDetalle.nombre_paciente }}</h5>
+            <span class="badge" [class.badge-programada]="citaDetalle.estado_cita === 'PROGRAMADA'"
+                [class.badge-cancelada]="citaDetalle.estado_cita === 'CANCELADA'"
+                [class.badge-cumplida]="citaDetalle.estado_cita === 'CUMPLIDA'">
+                {{ citaDetalle.estado_cita }}
+            </span>
+        </div>
+
+        <div class="cita-detalle-body">
+            <div class="info-row">
+                <i class="fa-regular fa-calendar"></i>
+                <span>{{ citaDetalle.fecha_cita | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="info-row">
+                <i class="fa-regular fa-clock"></i>
+                <span>{{ citaDetalle.hora_inicio }} - {{ citaDetalle.hora_fin }}</span>
+            </div>
+            <div class="info-row">
+                <i class="fa-solid fa-tag"></i>
+                <span>{{ citaDetalle.tipo_cita || 'No especificado' }}</span>
+            </div>
+            <div class="info-row">
+                <i class="fa-solid fa-align-left"></i>
+                <span>{{ citaDetalle.motivo || 'No especificado' }}</span>
+            </div>
+        </div>
+
+        <div class="cita-detalle-actions" *ngIf="citaDetalle.estado_cita === 'PROGRAMADA'">
+            <button pButton type="button" icon="fa-solid fa-pen" label="Editar" class="p-button-secondary p-button-sm" (click)="displayDetalleDialog = false; abrirFormulario(citaDetalle!)"></button>
+            <button pButton type="button" icon="fa-solid fa-check" label="Cumplida" class="p-button-success p-button-sm" (click)="marcarCumplida()"></button>
+            <button pButton type="button" icon="fa-solid fa-times" label="Cancelar" class="p-button-danger p-button-sm" (click)="cancelarCita()"></button>
+        </div>
+    </div>
+
+    <div class="text-end mt-3">
+        <button pButton type="button" label="Cerrar" class="p-button-text p-button-sm" (click)="displayDetalleDialog = false"></button>
+    </div>
+</p-dialog>
+
+<p-confirmDialog></p-confirmDialog>
+<p-toast></p-toast>

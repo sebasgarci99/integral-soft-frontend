@@ -81,16 +81,11 @@
                         </small>
                     </div>
                     <div class="card-body p-0">
-                        <div *ngIf="getInstanciasDelDia(fechaSeleccionada).length === 0"
-                            class="text-center text-muted py-5">
-                            <i class="fa fa-calendar-times fa-3x mb-3 text-secondary"></i>
-                            <p class="mb-0">No hay actividades programadas</p>
-                        </div>
-                        <div class="day-agenda" #timelineContainer *ngIf="getInstanciasDelDia(fechaSeleccionada).length > 0">
+                        <div class="day-agenda" #timelineContainer>
                             <div class="agenda-scroll-content">
                                 <div class="agenda-hour-row" *ngFor="let hour of hours">
                                     <div class="agenda-hour-label">{{ formatHour(hour) }}</div>
-                                    <div class="agenda-hour-slot"></div>
+                                    <div class="agenda-hour-slot" (click)="abrirFormularioDesdeHorario(hour)"></div>
                                 </div>
                                 <div class="agenda-event" *ngFor="let inst of getInstanciasDelDia(fechaSeleccionada)"
                                     [style.top.px]="getEventTop(inst)"
@@ -99,7 +94,7 @@
                                     [class.agenda-event--iniciada]="inst.estado === 'iniciada'"
                                     [class.agenda-event--completada]="inst.estado === 'completada'"
                                     [class.agenda-event--cancelada]="inst.estado === 'cancelada'"
-                                    (click)="abrirDetalleInstancia(inst)">
+                                    (click)="abrirDetalleInstancia(inst, $event)">
                                     <div class="agenda-event-title">{{ inst.actividad?.titulo }}</div>
                                     <div class="agenda-event-time">{{ formatearHora(inst.hora_inicio) }} - {{ formatearHora(inst.hora_fin) }}</div>
                                 </div>

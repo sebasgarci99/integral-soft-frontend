@@ -3,26 +3,47 @@
         <div class="card-body">
             <div class="component-header">
                 <h3><i class="fa fa-cube"></i> Catálogo de Productos</h3>
-                <p-button label="Nuevo Producto" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" styleClass="btn-nuevo" />
+                <p-button label="Nuevo Producto" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" styleClass="btn-nuevo" [disabled]="!selectedGrupo" />
             </div>
 
-            <div class="row mb-3">
-                <div class="col-md-3">
-                    <p-dropdown [options]="grupos" [(ngModel)]="selectedGrupo" placeholder="Todos los grupos"
-                        optionLabel="nombre" [showClear]="true" (onChange)="onGrupoChange()" class="w-100" appendTo="body" />
+            <div class="grupos-cards-container mb-3">
+                <div class="d-flex flex-wrap gap-3">
+                    <div *ngFor="let grupo of grupos; let i = index" class="grupo-card"
+                        [class]="obtenerClaseGradiente(i)"
+                        [class.selected]="selectedGrupo?.id_grupo_producto === grupo.id_grupo_producto"
+                        (click)="seleccionarGrupo(grupo)" role="button" tabindex="0">
+                        <div class="grupo-card-icon">
+                            <i [class]="grupo.icono || 'fa fa-cube'"></i>
+                        </div>
+                        <div class="grupo-card-label">{{ grupo.nombre }}</div>
+                        <div class="grupo-card-count">
+                            <span class="badge-grupo">{{ grupo.cantidad_productos || 0 }} producto{{ (grupo.cantidad_productos || 0) !== 1 ? 's' : '' }}</span>
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
                 <div class="col-md-3">
                     <p-dropdown [options]="categorias" [(ngModel)]="selectedCategoria" placeholder="Todas las categorías"
                         optionLabel="nombre" [showClear]="true" (onChange)="onCategoriaChange()" class="w-100" appendTo="body" />
                 </div>
+                <div class="col-md-3" *ngIf="selectedGrupo">
+                    <p-button label="Limpiar selección" icon="fa fa-times" severity="secondary" (onClick)="limpiarFiltros()" />
+                </div>
             </div>
 
             <div class="search-bar">
-                <input #gbInput pInputText type="text" (input)="tablaProductos.filterGlobal(gbInput.value, 'contains')"
+                <input pInputText type="text" (input)="aplicarFiltroGlobal($event)"
                     placeholder="Buscar por código, nombre..." />
             </div>
 
-            <p-table #tablaProductos [value]="productos" [paginator]="true" [rows]="10" responsiveLayout="scroll"
+            <div *ngIf="!selectedGrupo" class="empty-state">
+                <i class="fa fa-hand-pointer"></i>
+                <p>Selecciona un grupo para consultar el catálogo</p>
+            </div>
+
+            <p-table *ngIf="selectedGrupo" #tablaProductos [value]="productos" [paginator]="true" [rows]="10" responsiveLayout="scroll"
                 [globalFilterFields]="['codigo', 'nombre', 'Categoria.nombre', 'Categoria.Grupo.nombre']" stripedRows>
                 <ng-template pTemplate="header">
                     <tr>
@@ -74,6 +95,16 @@
                     <div class="col-12 mt-3">
                         <label class="form-label">Descripción</label>
                         <textarea pInputTextarea [(ngModel)]="formData.descripcion" rows="2" class="w-100" placeholder="Descripción del producto"></textarea>
+                    </div>
+
+                    <div class="col-12 d-md-flex d-sm-grid">
+                        <div class="col-lg-6 col-md-12 mt-3 me-2">
+                            <label class="form-label">Grupo</label>
+                            <p-dropdown [(ngModel)]="formData.id_grupo_producto" [options]="grupos"
+                                optionLabel="nombre" optionValue="id_grupo_producto" class="w-100" appendTo="body"
+                                placeholder="Seleccionar grupo" [disabled]="true">
+                            </p-dropdown>
+                        </div>
                     </div>
 
                     <div class="col-12 d-md-flex d-sm-grid">

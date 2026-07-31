@@ -330,6 +330,12 @@
 .agenda-hour-slot {
     flex: 1;
     border-left: 1px solid #e9ecef;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.agenda-hour-slot:hover {
+    background-color: #f0f7ff;
 }
 
 /* ─── BLOQUES DE EVENTO ─── */

@@ -477,6 +477,122 @@
                                     </div>
                                 </ng-container>
 
+                                <!-- SECCIÓN: CONSENTIMIENTO INFORMADO GENERAL DETEKTA -->
+                                <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_general_detekta'">
+                                    <div class="consentimiento-card">
+                                        <h5><i class="fa fa-file-contract"></i> Consentimiento Informado General</h5>
+                                        <div class="consentimiento-info-box">
+                                            <small><i class="fa fa-info-circle me-1"></i>El profesional responsable y el procedimiento están definidos en el documento.</small>
+                                        </div>
+                                        <div class="col-12 mt-4 d-flex gap-2 justify-content-end">
+                                            <p-button *ngIf="!firmaGeneralOK" label="Generar consentimiento informado" icon="fa fa-file-signature" severity="info"
+                                                (onClick)="abrirFirmaConsentimientoSimple()" styleClass="btn-generar-consentimiento"></p-button>
+                                            <p-button *ngIf="firmaGeneralOK" label="Firma registrada" icon="fa fa-check" severity="secondary" disabled="true"></p-button>
+                                            <p-button *ngIf="firmaGeneralOK" label="Limpiar firma" icon="fa fa-trash" severity="secondary"
+                                                (onClick)="limpiarFirmaFull()"></p-button>
+                                            <p-button *ngIf="firmaGeneralOK" label="Aceptar y generar documento" icon="fa fa-save" severity="info"
+                                                (onClick)="generarConsentimientoSimple()" [loading]="cargandoDocumento" styleClass="btn-generar-documento"></p-button>
+                                        </div>
+                                    </div>
+                                </ng-container>
+
+                                <!-- SECCIÓN: CONSENTIMIENTO INFORMADO VIH -->
+                                <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_vih'">
+                                    <div class="consentimiento-card">
+                                        <h5><i class="fa fa-file-medical"></i> Consentimiento Informado VIH</h5>
+                                        <div class="consentimiento-info-box">
+                                            <small><i class="fa fa-info-circle me-1"></i>El profesional responsable y el procedimiento están definidos en el documento.</small>
+                                        </div>
+                                        <div class="col-12 mt-4 d-flex gap-2 justify-content-end">
+                                            <p-button *ngIf="!firmaGeneralOK" label="Generar consentimiento informado" icon="fa fa-file-signature" severity="info"
+                                                (onClick)="abrirFirmaConsentimientoSimple()" styleClass="btn-generar-consentimiento"></p-button>
+                                            <p-button *ngIf="firmaGeneralOK" label="Firma registrada" icon="fa fa-check" severity="secondary" disabled="true"></p-button>
+                                            <p-button *ngIf="firmaGeneralOK" label="Limpiar firma" icon="fa fa-trash" severity="secondary"
+                                                (onClick)="limpiarFirmaFull()"></p-button>
+                                            <p-button *ngIf="firmaGeneralOK" label="Aceptar y generar documento" icon="fa fa-save" severity="info"
+                                                (onClick)="generarConsentimientoSimple()" [loading]="cargandoDocumento" styleClass="btn-generar-documento"></p-button>
+                                        </div>
+                                    </div>
+                                </ng-container>
+
+                                <!-- SECCIÓN: CONSENTIMIENTO INFORMADO EXAMENES DE LABORATORIO -->
+                                <ng-container *ngIf="tipoConsentimientoInfoSeleccionado?.key === 'consentimiento_informado_examenes_laboratorio'">
+                                    <div class="consentimiento-card">
+                                        <h5><i class="fa fa-flask"></i> Consentimiento Informado Exámenes de Laboratorio</h5>
+
+                                        <!-- Edad calculada -->
+                                        <div class="col-12 d-md-flex d-sm-grid">
+                                            <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                                <input pInputText [ngModel]="edadPacienteLab" class="w-100" readonly />
+                                                <label>Edad del paciente</label>
+                                            </p-floatlabel>
+                                        </div>
+
+                                        <!-- Condición -->
+                                        <div class="col-12 mt-4">
+                                            <h6 class="mb-2">Consentimiento otorgado en condición de</h6>
+                                        </div>
+                                        <div class="col-12 d-md-flex d-sm-grid">
+                                            <p-dropdown [options]="condicionesConsentimiento" [(ngModel)]="condicionConsentimientoLab" appendTo="body" class="w-100"
+                                                [ngClass]="{ 'p-inputwrapper-filled': condicionConsentimientoLab }"></p-dropdown>
+                                        </div>
+
+                                        <!-- Acudiente si no es Paciente -->
+                                        <ng-container *ngIf="condicionConsentimientoLab !== 'PACIENTE'">
+                                            <div class="col-12 d-md-flex d-sm-grid mt-3">
+                                                <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                                    <input pInputText [(ngModel)]="nombreAcudienteLab" class="w-100" maxlength="200" />
+                                                    <label>Nombre del acudiente *</label>
+                                                </p-floatlabel>
+                                                <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3 me-2">
+                                                    <p-dropdown name="tipoDocAcudienteLab" id="tipoDocAcudienteLab" [options]="tiposDocumento" [(ngModel)]="tipoDocAcudienteLab" appendTo="body" class="w-100"
+                                                        [ngClass]="{ 'p-inputwrapper-filled': tipoDocAcudienteLab }" placeholder="Tipo documento"></p-dropdown>
+                                                </p-floatlabel>
+                                                <p-floatlabel variant="on" class="col-lg-3 col-md-12 mt-3">
+                                                    <input pInputText [(ngModel)]="numDocAcudienteLab" class="w-100" maxlength="20" />
+                                                    <label>N° documento *</label>
+                                                </p-floatlabel>
+                                            </div>
+                                            <div class="col-12 d-md-flex d-sm-grid">
+                                                <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                                    <input pInputText [(ngModel)]="parentescoAcudienteLab" class="w-100" maxlength="100" />
+                                                    <label>Parentesco *</label>
+                                                </p-floatlabel>
+                                            </div>
+                                        </ng-container>
+
+                                        <!-- Explico Glicemia -->
+                                        <div class="col-12 mt-4">
+                                            <h6 class="mb-2">EXPLICO: Curvas de glicemia y glicemia pre/post en embarazadas</h6>
+                                        </div>
+                                        <div class="col-12 d-md-flex d-sm-grid">
+                                            <p-dropdown [options]="opcionesSN" [(ngModel)]="explicoGlicemiaLab" appendTo="body" class="w-100"
+                                                [ngClass]="{ 'p-inputwrapper-filled': explicoGlicemiaLab }"></p-dropdown>
+                                        </div>
+
+                                        <!-- Explico Drogas -->
+                                        <div class="col-12 mt-4">
+                                            <h6 class="mb-2">EXPLICO: Drogas de abuso</h6>
+                                        </div>
+                                        <div class="col-12 d-md-flex d-sm-grid">
+                                            <p-dropdown [options]="opcionesSN" [(ngModel)]="explicoDrogasLab" appendTo="body" class="w-100"
+                                                [ngClass]="{ 'p-inputwrapper-filled': explicoDrogasLab }"></p-dropdown>
+                                        </div>
+
+                                        <!-- Botones de firma y generación -->
+                                        <div class="col-12 mt-4 d-flex gap-2 justify-content-end">
+                                            <p-button *ngIf="!firmaPacienteLabOK" label="Firma del paciente" icon="fa fa-file-signature" severity="info"
+                                                (onClick)="abrirFirmaConsentimientoLab()" styleClass="btn-generar-consentimiento"></p-button>
+                                            <p-button *ngIf="firmaPacienteLabOK" label="Firma del paciente registrada" icon="fa fa-check" severity="secondary" disabled="true"></p-button>
+                                            <p-button *ngIf="condicionConsentimientoLab !== 'PACIENTE' && !firmaAcudienteLabOK" label="Firma del acudiente" icon="fa fa-file-signature" severity="info"
+                                                (onClick)="abrirFirmaConsentimientoLab()" styleClass="btn-generar-consentimiento"></p-button>
+                                            <p-button *ngIf="condicionConsentimientoLab !== 'PACIENTE' && firmaAcudienteLabOK" label="Firma del acudiente registrada" icon="fa fa-check" severity="secondary" disabled="true"></p-button>
+                                            <p-button *ngIf="firmaPacienteLabOK && (condicionConsentimientoLab === 'PACIENTE' || firmaAcudienteLabOK)" label="Aceptar y generar documento" icon="fa fa-save" severity="info"
+                                                (onClick)="generarConsentimientoLab()" [loading]="cargandoDocumento" styleClass="btn-generar-documento"></p-button>
+                                        </div>
+                                    </div>
+                                </ng-container>
+
                             </div>
                         </ng-container>
 
