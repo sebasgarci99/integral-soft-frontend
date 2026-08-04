@@ -22,7 +22,8 @@
     padding: 20px 16px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    position: relative;
     border-bottom: 1px solid #f0f4f6;
     flex-shrink: 0;
 }
@@ -33,15 +34,24 @@
     object-fit: contain;
     transform: scale(1.2);
     transform-origin: center center;
+    display: block;
+}
+
+.sidebar-brand .sidebar-close-btn {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 /* Scroll del menú */
 .sidebar-nav-scroll {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 16px 12px;
+    scroll-behavior: smooth;
     scrollbar-width: thin;
     scrollbar-color: #0d8aa6 #f0f4f6;
 

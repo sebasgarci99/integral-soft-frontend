@@ -29,6 +29,7 @@
                 <a class="sidebar-link sidebar-group" data-bs-toggle="collapse"
                     [attr.data-bs-target]="'#' + getGrupoId(grupo.modulo)" role="button"
                     [class.sidebar-group-open]="isGrupoAbierto(grupo)"
+                    [attr.aria-expanded]="isGrupoAbierto(grupo)"
                     (click)="toggleGrupo(grupo)">
                     <span class="sidebar-group-label">
                         <i [class]="grupo.icono"></i>

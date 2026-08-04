@@ -9,7 +9,7 @@ import { InputTextarea } from 'primeng/inputtextarea';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DropdownModule } from 'primeng/dropdown';
-import { TabViewModule } from 'primeng/tabview';
+import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { InventarioService } from '../../../services/inventario/inventario.service';
 import { Grupo, Categoria, UnidadMedida, TipoMovimiento, Semaforo } from '../../../interfaces/inventario';
@@ -25,7 +25,7 @@ interface IconoOption {
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, DialogModule,
               InputTextModule, InputTextarea, ToastModule, ConfirmDialogModule,
-              DropdownModule, TabViewModule],
+              DropdownModule, Tabs, TabList, Tab, TabPanels, TabPanel],
     templateUrl: './configuracion.component.html',
     styleUrls: ['./configuracion.component.css'],
     providers: [MessageService, ConfirmationService]

@@ -17,6 +17,8 @@ import Swal from 'sweetalert2';
 })
 export class SidebarComponent implements OnInit, OnDestroy {
 
+    private readonly GRUPOS_ABIERTOS_KEY = 'sidebar_grupos_abiertos';
+
     @ViewChild('sidebarRef') sidebarRef!: ElementRef;
 
     logo: string | null | undefined;
@@ -41,12 +43,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.currentRoute = this.router.url;
+        this.cargarGruposAbiertos();
 
         this.subs.push(
             this.router.events.pipe(
                 filter(event => event instanceof NavigationEnd)
             ).subscribe((event: any) => {
                 this.currentRoute = event.urlAfterRedirects || event.url;
+                this.scrollAlActivo();
             }),
             this.menuService.getModulosAgrupados().subscribe(grupos => {
                 this.modulosAgrupados = grupos;
@@ -108,8 +112,39 @@ export class SidebarComponent implements OnInit, OnDestroy {
         if (this.gruposAbiertos.has(grupo.modulo)) {
             this.gruposAbiertos.delete(grupo.modulo);
         } else {
+            this.gruposAbiertos.clear();
             this.gruposAbiertos.add(grupo.modulo);
         }
+        this.guardarGruposAbiertos();
+    }
+
+    private cargarGruposAbiertos(): void {
+        try {
+            const guardados = localStorage.getItem(this.GRUPOS_ABIERTOS_KEY);
+            if (guardados) {
+                const nombres = JSON.parse(guardados) as string[];
+                this.gruposAbiertos = new Set(nombres);
+            }
+        } catch (error) {
+            this.gruposAbiertos = new Set();
+        }
+    }
+
+    private guardarGruposAbiertos(): void {
+        try {
+            localStorage.setItem(this.GRUPOS_ABIERTOS_KEY, JSON.stringify([...this.gruposAbiertos]));
+        } catch (error) {}
+    }
+
+    private scrollAlActivo(): void {
+        setTimeout(() => {
+            const contenedor = this.sidebarRef?.nativeElement?.querySelector('.sidebar-nav-scroll');
+            if (!contenedor) return;
+            const activo = contenedor.querySelector('.sidebar-link.active');
+            if (activo) {
+                activo.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        }, 100);
     }
 
     toggleUserMenu(): void {

@@ -5,203 +5,212 @@
                 <h3><i class="fa fa-cog"></i> Configuración de Inventario</h3>
             </div>
 
-            <p-tabview [(activeIndex)]="activeTab">
-            <p-tabpanel header="Grupos">
-                <div class="mb-3">
-                    <p-button label="Nuevo Grupo" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('grupo')" />
-                </div>
-                <div class="position-relative">
-                    <div *ngIf="loadingGrupos" class="uiverse-loader-overlay">
-                        <div class="uiverse-loader-wrapper">
-                            <div class="uiverse-loader">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </div>
+            <p-tabs [(value)]="activeTab" [scrollable]="true">
+                <p-tablist>
+                    <p-tab [value]="0">Grupos</p-tab>
+                    <p-tab [value]="1">Categorías</p-tab>
+                    <p-tab [value]="2">Unidades de Medida</p-tab>
+                    <p-tab [value]="3">Tipos de Movimiento</p-tab>
+                    <p-tab [value]="4">Semaforo de Vencimiento</p-tab>
+                </p-tablist>
+                <p-tabpanels>
+                    <p-tabpanel [value]="0">
+                        <div class="mb-3">
+                            <p-button label="Nuevo Grupo" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('grupo')" />
                         </div>
-                    </div>
-                    <p-table [value]="grupos" [paginator]="true" [rows]="10" stripedRows>
-                        <ng-template pTemplate="header">
-                            <tr><th>Icono</th><th>Nombre</th><th>Descripción</th><th>Acciones</th></tr>
-                        </ng-template>
-                        <ng-template pTemplate="body" let-row>
-                            <tr>
-                                <td><i [class]="row.icono || 'fa fa-cube'"></i></td>
-                                <td>{{ row.nombre }}</td>
-                                <td>{{ row.descripcion || '—' }}</td>
-                                <td>
-                                    <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'grupo')" />
-                                    <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'grupo')" [loading]="loadingEliminar" />
-                                </td>
-                            </tr>
-                        </ng-template>
-                        <ng-template pTemplate="emptymessage">
-                            <tr>
-                                <td colspan="4" class="text-center text-muted p-4">No hay grupos registrados</td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
-                </div>
-            </p-tabpanel>
+                        <div class="position-relative">
+                            <div *ngIf="loadingGrupos" class="uiverse-loader-overlay">
+                                <div class="uiverse-loader-wrapper">
+                                    <div class="uiverse-loader">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p-table [value]="grupos" [paginator]="true" [rows]="10" stripedRows>
+                                <ng-template pTemplate="header">
+                                    <tr><th>Icono</th><th>Nombre</th><th>Descripción</th><th>Acciones</th></tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-row>
+                                    <tr>
+                                        <td><i [class]="row.icono || 'fa fa-cube'"></i></td>
+                                        <td>{{ row.nombre }}</td>
+                                        <td>{{ row.descripcion || '—' }}</td>
+                                        <td>
+                                            <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'grupo')" />
+                                            <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'grupo')" [loading]="loadingEliminar" />
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="emptymessage">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted p-4">No hay grupos registrados</td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </div>
+                    </p-tabpanel>
 
-            <p-tabpanel header="Categorías">
-                <div class="mb-3">
-                    <p-button label="Nueva Categoría" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('categoria')" />
-                </div>
-                <div class="position-relative">
-                    <div *ngIf="loadingCategorias" class="uiverse-loader-overlay">
-                        <div class="uiverse-loader-wrapper">
-                            <div class="uiverse-loader">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </div>
+                    <p-tabpanel [value]="1">
+                        <div class="mb-3">
+                            <p-button label="Nueva Categoría" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('categoria')" />
                         </div>
-                    </div>
-                    <p-table [value]="categorias" [paginator]="true" [rows]="10" stripedRows>
-                        <ng-template pTemplate="header">
-                            <tr><th>Nombre</th><th>Grupo</th><th>Descripción</th><th>Acciones</th></tr>
-                        </ng-template>
-                        <ng-template pTemplate="body" let-row>
-                            <tr>
-                                <td>{{ row.nombre }}</td>
-                                <td>{{ row.Grupo?.nombre }}</td>
-                                <td>{{ row.descripcion || '—' }}</td>
-                                <td>
-                                    <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'categoria')" />
-                                    <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'categoria')" [loading]="loadingEliminar" />
-                                </td>
-                            </tr>
-                        </ng-template>
-                        <ng-template pTemplate="emptymessage">
-                            <tr>
-                                <td colspan="4" class="text-center text-muted p-4">No hay categorías registradas</td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
-                </div>
-            </p-tabpanel>
+                        <div class="position-relative">
+                            <div *ngIf="loadingCategorias" class="uiverse-loader-overlay">
+                                <div class="uiverse-loader-wrapper">
+                                    <div class="uiverse-loader">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p-table [value]="categorias" [paginator]="true" [rows]="10" stripedRows>
+                                <ng-template pTemplate="header">
+                                    <tr><th>Nombre</th><th>Grupo</th><th>Descripción</th><th>Acciones</th></tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-row>
+                                    <tr>
+                                        <td>{{ row.nombre }}</td>
+                                        <td>{{ row.Grupo?.nombre }}</td>
+                                        <td>{{ row.descripcion || '—' }}</td>
+                                        <td>
+                                            <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'categoria')" />
+                                            <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'categoria')" [loading]="loadingEliminar" />
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="emptymessage">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted p-4">No hay categorías registradas</td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </div>
+                    </p-tabpanel>
 
-            <p-tabpanel header="Unidades de Medida">
-                <div class="mb-3">
-                    <p-button label="Nueva Unidad" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('unidad')" />
-                </div>
-                <div class="position-relative">
-                    <div *ngIf="loadingUnidades" class="uiverse-loader-overlay">
-                        <div class="uiverse-loader-wrapper">
-                            <div class="uiverse-loader">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </div>
+                    <p-tabpanel [value]="2">
+                        <div class="mb-3">
+                            <p-button label="Nueva Unidad" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('unidad')" />
                         </div>
-                    </div>
-                    <p-table [value]="unidades" [paginator]="true" [rows]="10" stripedRows>
-                        <ng-template pTemplate="header">
-                            <tr><th>Nombre</th><th>Abreviatura</th><th>Acciones</th></tr>
-                        </ng-template>
-                        <ng-template pTemplate="body" let-row>
-                            <tr>
-                                <td>{{ row.nombre }}</td>
-                                <td>{{ row.abreviatura }}</td>
-                                <td>
-                                    <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'unidad')" />
-                                    <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'unidad')" [loading]="loadingEliminar" />
-                                </td>
-                            </tr>
-                        </ng-template>
-                        <ng-template pTemplate="emptymessage">
-                            <tr>
-                                <td colspan="3" class="text-center text-muted p-4">No hay unidades registradas</td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
-                </div>
-            </p-tabpanel>
+                        <div class="position-relative">
+                            <div *ngIf="loadingUnidades" class="uiverse-loader-overlay">
+                                <div class="uiverse-loader-wrapper">
+                                    <div class="uiverse-loader">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p-table [value]="unidades" [paginator]="true" [rows]="10" stripedRows>
+                                <ng-template pTemplate="header">
+                                    <tr><th>Nombre</th><th>Abreviatura</th><th>Acciones</th></tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-row>
+                                    <tr>
+                                        <td>{{ row.nombre }}</td>
+                                        <td>{{ row.abreviatura }}</td>
+                                        <td>
+                                            <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'unidad')" />
+                                            <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'unidad')" [loading]="loadingEliminar" />
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="emptymessage">
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted p-4">No hay unidades registradas</td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </div>
+                    </p-tabpanel>
 
-            <p-tabpanel header="Tipos de Movimiento">
-                <div class="mb-3">
-                    <p-button label="Nuevo Tipo" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('tipo_movimiento')" />
-                </div>
-                <div class="position-relative">
-                    <div *ngIf="loadingTiposMovimiento" class="uiverse-loader-overlay">
-                        <div class="uiverse-loader-wrapper">
-                            <div class="uiverse-loader">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </div>
+                    <p-tabpanel [value]="3">
+                        <div class="mb-3">
+                            <p-button label="Nuevo Tipo" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('tipo_movimiento')" />
                         </div>
-                    </div>
-                    <p-table [value]="tiposMovimiento" [paginator]="true" [rows]="10" stripedRows>
-                        <ng-template pTemplate="header">
-                            <tr><th>Código</th><th>Nombre</th><th>Signo</th><th>Acciones</th></tr>
-                        </ng-template>
-                        <ng-template pTemplate="body" let-row>
-                            <tr>
-                                <td><span class="badge" [ngClass]="row.signo === 1 ? 'badge-entrada' : 'badge-salida'">{{ row.codigo }}</span></td>
-                                <td>{{ row.nombre }}</td>
-                                <td>{{ row.signo === 1 ? 'Entrada (+)' : 'Salida (-)' }}</td>
-                                <td>
-                                    <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'tipo_movimiento')" />
-                                    <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'tipo_movimiento')" [loading]="loadingEliminar" />
-                                </td>
-                            </tr>
-                        </ng-template>
-                        <ng-template pTemplate="emptymessage">
-                            <tr>
-                                <td colspan="4" class="text-center text-muted p-4">No hay tipos de movimiento registrados</td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
-                </div>
-            </p-tabpanel>
+                        <div class="position-relative">
+                            <div *ngIf="loadingTiposMovimiento" class="uiverse-loader-overlay">
+                                <div class="uiverse-loader-wrapper">
+                                    <div class="uiverse-loader">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p-table [value]="tiposMovimiento" [paginator]="true" [rows]="10" stripedRows>
+                                <ng-template pTemplate="header">
+                                    <tr><th>Código</th><th>Nombre</th><th>Signo</th><th>Acciones</th></tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-row>
+                                    <tr>
+                                        <td><span class="badge" [ngClass]="row.signo === 1 ? 'badge-entrada' : 'badge-salida'">{{ row.codigo }}</span></td>
+                                        <td>{{ row.nombre }}</td>
+                                        <td>{{ row.signo === 1 ? 'Entrada (+)' : 'Salida (-)' }}</td>
+                                        <td>
+                                            <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'tipo_movimiento')" />
+                                            <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'tipo_movimiento')" [loading]="loadingEliminar" />
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="emptymessage">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted p-4">No hay tipos de movimiento registrados</td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </div>
+                    </p-tabpanel>
 
-            <p-tabpanel header="Semaforo de Vencimiento">
-                <div class="mb-3">
-                    <p-button label="Nueva Configuración" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('semaforo')" />
-                </div>
-                <div class="position-relative">
-                    <div *ngIf="loadingSemaforos" class="uiverse-loader-overlay">
-                        <div class="uiverse-loader-wrapper">
-                            <div class="uiverse-loader">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </div>
+                    <p-tabpanel [value]="4">
+                        <div class="mb-3">
+                            <p-button label="Nueva Configuración" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('semaforo')" />
                         </div>
-                    </div>
-                    <p-table [value]="semaforos" [paginator]="true" [rows]="10" stripedRows>
-                        <ng-template pTemplate="header">
-                            <tr><th>Orden</th><th>Nombre</th><th>Días Min</th><th>Días Max</th><th>Color</th><th>Acciones</th></tr>
-                        </ng-template>
-                        <ng-template pTemplate="body" let-row>
-                            <tr>
-                                <td>{{ row.orden }}</td>
-                                <td>{{ row.nombre }}</td>
-                                <td>{{ row.dias_minimo }}</td>
-                                <td>{{ row.dias_maximo }}</td>
-                                <td><span class="badge" [ngClass]="'semaforo-' + row.color.toLowerCase()">{{ row.color }}</span></td>
-                                <td>
-                                    <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'semaforo')" />
-                                    <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'semaforo')" [loading]="loadingEliminar" />
-                                </td>
-                            </tr>
-                        </ng-template>
-                        <ng-template pTemplate="emptymessage">
-                            <tr>
-                                <td colspan="6" class="text-center text-muted p-4">No hay configuraciones de semáforo registradas</td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
-                </div>
-            </p-tabpanel>
-            </p-tabview>
+                        <div class="position-relative">
+                            <div *ngIf="loadingSemaforos" class="uiverse-loader-overlay">
+                                <div class="uiverse-loader-wrapper">
+                                    <div class="uiverse-loader">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p-table [value]="semaforos" [paginator]="true" [rows]="10" stripedRows>
+                                <ng-template pTemplate="header">
+                                    <tr><th>Orden</th><th>Nombre</th><th>Días Min</th><th>Días Max</th><th>Color</th><th>Acciones</th></tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-row>
+                                    <tr>
+                                        <td>{{ row.orden }}</td>
+                                        <td>{{ row.nombre }}</td>
+                                        <td>{{ row.dias_minimo }}</td>
+                                        <td>{{ row.dias_maximo }}</td>
+                                        <td><span class="badge" [ngClass]="'semaforo-' + row.color.toLowerCase()">{{ row.color }}</span></td>
+                                        <td>
+                                            <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editar(row, 'semaforo')" />
+                                            <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="eliminar(row, 'semaforo')" [loading]="loadingEliminar" />
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="emptymessage">
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted p-4">No hay configuraciones de semáforo registradas</td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </div>
+                    </p-tabpanel>
+                </p-tabpanels>
+            </p-tabs>
 
             <p-dialog header="{{ isEdit ? 'Editar' : 'Nuevo' }}" [(visible)]="displayDialog" *ngIf="displayDialog"
                 [modal]="true" [style]="{ width: '40rem' }" [draggable]="false" appendTo="body">

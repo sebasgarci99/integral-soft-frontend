@@ -216,20 +216,26 @@
     font-weight: 600;
 }
 
-/* --- Tabs view (p-tabView) --- */
-.p-tabview .p-tabview-nav {
+/* --- Tabs (p-tabs) --- */
+.p-tabs .p-tablist-tab-list {
+    display: flex;
+    list-style: none;
     justify-content: center;
     border: none;
     border-bottom: 2px solid var(--border-light);
     background: transparent;
     padding: 0;
+    margin: 0;
 }
 
-.p-tabview .p-tabview-nav li {
+.p-tabs .p-tablist-tab-list li {
+    list-style: none;
     margin: 0 2px;
 }
 
-.p-tabview .p-tabview-nav li .p-tabview-nav-link {
+.p-tabs .p-tablist-tab-list li .p-tab {
+    display: flex;
+    align-items: center;
     padding: 0.75rem 1.5rem;
     font-weight: 500;
     font-size: 0.95rem;
@@ -238,14 +244,16 @@
     border: none;
     border-radius: 8px 8px 0 0;
     transition: all 0.2s ease;
+    text-decoration: none;
+    cursor: pointer;
 }
 
-.p-tabview .p-tabview-nav li:not(.p-highlight):hover .p-tabview-nav-link {
+.p-tabs .p-tablist-tab-list li:not(.p-tab-active):hover .p-tab {
     background: var(--bg-light);
     color: var(--text-dark);
 }
 
-.p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+.p-tabs .p-tablist-tab-list li.p-tab-active .p-tab {
     color: var(--primary);
     border-bottom: 3px solid var(--primary);
     margin-bottom: -2px;
@@ -253,7 +261,7 @@
     background: transparent;
 }
 
-.p-tabview .p-tabview-panels {
+.p-tabs .p-tabpanels {
     padding: 1.5rem 0 0 0;
     background: transparent;
 }

@@ -7,7 +7,7 @@ import { ToastModule } from 'primeng/toast';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { DropdownModule } from 'primeng/dropdown';
-import { TabViewModule } from 'primeng/tabview';
+import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 import { InputMaskModule } from 'primeng/inputmask';
 import { PasswordModule } from 'primeng/password';
 import { InfoUsuarioService } from '../../services/info-usuario/info-usuario.service';
@@ -23,7 +23,11 @@ import { SecureStorageService } from '../../services/secure-storage.service';
         ButtonModule,
         InputTextModule,
         DropdownModule,
-        TabViewModule,
+        Tabs,
+        TabList,
+        Tab,
+        TabPanels,
+        TabPanel,
         InputMaskModule,
         PasswordModule
     ],
@@ -35,6 +39,7 @@ export class InfoUsuarioComponent implements OnInit {
 
     loader = false;
     idRol: number = 0;
+    activeTab: number = 0;
 
     datosUsuario: any = {};
     empresa: any = {};
