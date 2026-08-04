@@ -21,7 +21,7 @@
                         placeholder="Hasta" styleClass="w-100" appendTo="body" />
                 </div>
                 <div class="col-md-2">
-                    <p-button label="Buscar" icon="fa fa-search" severity="info" (onClick)="buscarKardex()" />
+                    <p-button label="Buscar" icon="fa fa-search" severity="info" (onClick)="buscarKardex()" [loading]="loadingKardex" />
                 </div>
             </div>
 
@@ -38,40 +38,60 @@
                 </div>
             </div>
 
-            <p-table [value]="movimientos" [paginator]="true" [rows]="15" responsiveLayout="scroll" stripedRows>
-                <ng-template pTemplate="header">
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Tipo</th>
-                        <th>N° Documento</th>
-                        <th>Doc. Ref.</th>
-                        <th class="text-center">Entrada (Cant.)</th>
-                        <th class="text-center">Entrada ($)</th>
-                        <th class="text-center">Salida (Cant.)</th>
-                        <th class="text-center">Salida ($)</th>
-                        <th class="text-center">Saldo (Cant.)</th>
-                        <th class="text-center">Saldo ($ Total)</th>
-                    </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-row>
-                    <tr>
-                        <td>{{ row.fecha_movimiento }}</td>
-                        <td>
-                            <span class="badge" [ngClass]="getSigno(row.tipo_codigo) === 'entrada' ? 'badge-entrada' : 'badge-salida'">
-                                {{ row.tipo_codigo }}
-                            </span>
-                        </td>
-                        <td>{{ row.numero_documento }}</td>
-                        <td>{{ row.documento_referencia || '—' }}</td>
-                        <td class="text-end">{{ row.entrada_cantidad || '—' }}</td>
-                        <td class="text-end">{{ row.entrada_costo_total ? (row.entrada_costo_total | number:'1.0-2') : '—' }}</td>
-                        <td class="text-end">{{ row.salida_cantidad || '—' }}</td>
-                        <td class="text-end">{{ row.salida_costo_total ? (row.salida_costo_total | number:'1.0-2') : '—' }}</td>
-                        <td class="text-end"><strong>{{ row.saldo_cantidad }}</strong></td>
-                        <td class="text-end"><strong>{{ row.saldo_costo_total ? (row.saldo_costo_total | number:'1.0-2') : '—' }}</strong></td>
-                    </tr>
-                </ng-template>
-            </p-table>
+            <div class="position-relative">
+                <div *ngIf="loadingKardex" class="uiverse-loader-overlay">
+                    <div class="uiverse-loader-wrapper">
+                        <div class="uiverse-loader">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <p-table [value]="movimientos" [paginator]="true" [rows]="15" responsiveLayout="scroll" stripedRows>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>N° Documento</th>
+                            <th>Doc. Ref.</th>
+                            <th class="text-center">Entrada (Cant.)</th>
+                            <th class="text-center">Entrada ($)</th>
+                            <th class="text-center">Salida (Cant.)</th>
+                            <th class="text-center">Salida ($)</th>
+                            <th class="text-center">Saldo (Cant.)</th>
+                            <th class="text-center">Saldo ($ Total)</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row>
+                        <tr>
+                            <td>{{ row.fecha_movimiento }}</td>
+                            <td>
+                                <span class="badge" [ngClass]="getSigno(row.tipo_codigo) === 'entrada' ? 'badge-entrada' : 'badge-salida'">
+                                    {{ row.tipo_codigo }}
+                                </span>
+                            </td>
+                            <td>{{ row.numero_documento }}</td>
+                            <td>{{ row.documento_referencia || '—' }}</td>
+                            <td class="text-end">{{ row.entrada_cantidad || '—' }}</td>
+                            <td class="text-end">{{ row.entrada_costo_total ? (row.entrada_costo_total | number:'1.0-2') : '—' }}</td>
+                            <td class="text-end">{{ row.salida_cantidad || '—' }}</td>
+                            <td class="text-end">{{ row.salida_costo_total ? (row.salida_costo_total | number:'1.0-2') : '—' }}</td>
+                            <td class="text-end"><strong>{{ row.saldo_cantidad }}</strong></td>
+                            <td class="text-end"><strong>{{ row.saldo_costo_total ? (row.saldo_costo_total | number:'1.0-2') : '—' }}</strong></td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="10" class="text-center text-muted p-4">
+                                <i class="fa fa-inbox me-2"></i> No se encontraron movimientos para el producto y rango seleccionados
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
         </div>
     </div>
 </div>

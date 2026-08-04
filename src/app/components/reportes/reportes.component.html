@@ -124,8 +124,16 @@
     </p-table>
 </p-dialog>
 
-<div class="overlay" *ngIf="loader">
-    <p-progressSpinner></p-progressSpinner>
+<div class="uiverse-loader-overlay-fullscreen" *ngIf="loader">
+    <div class="uiverse-loader-wrapper">
+        <div class="uiverse-loader">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+    <div class="uiverse-loader-text">Cargando...</div>
 </div>
 
 <p-toast></p-toast>

@@ -8,6 +8,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InventarioService } from '../../services/inventario/inventario.service';
 import { StockBajo, Stock, ApiResponse } from '../../interfaces/inventario';
+import { parseDateSinTimezone } from '../../utils/fecha.util';
 
 @Component({
     selector: 'app-inventario',
@@ -82,5 +83,12 @@ export class InventarioComponent implements OnInit {
             'GRIS': 'semaforo-gris'
         };
         return map[color] || '';
+    }
+
+    formatearFecha(valor: string | Date | null | undefined): string {
+        if (!valor) return '—';
+        const fecha = parseDateSinTimezone(valor);
+        if (!fecha) return '—';
+        return fecha.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
 }

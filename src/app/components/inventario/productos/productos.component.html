@@ -43,114 +43,206 @@
                 <p>Selecciona un grupo para consultar el catálogo</p>
             </div>
 
-            <p-table *ngIf="selectedGrupo" #tablaProductos [value]="productos" [paginator]="true" [rows]="10" responsiveLayout="scroll"
-                [globalFilterFields]="['codigo', 'nombre', 'Categoria.nombre', 'Categoria.Grupo.nombre']" stripedRows>
-                <ng-template pTemplate="header">
-                    <tr>
-                        <th>Código</th>
-                        <th>Nombre</th>
-                        <th>Grupo</th>
-                        <th>Categoría</th>
-                        <th>Unidad</th>
-                        <th>Stock Mín.</th>
-                        <th>Stock Máx.</th>
-                        <th>Lote</th>
-                        <th>Vencimiento</th>
-                        <th>Acciones</th>
-                    </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-row>
-                    <tr>
-                        <td>{{ row.codigo }}</td>
-                        <td>{{ row.nombre }}</td>
-                        <td>{{ row.Categoria?.Grupo?.nombre }}</td>
-                        <td>{{ row.Categoria?.nombre }}</td>
-                        <td>{{ row.UnidadMedida?.abreviatura }}</td>
-                        <td>{{ row.stock_minimo }}</td>
-                        <td>{{ row.stock_maximo }}</td>
-                        <td><i class="fa" [ngClass]="row.maneja_lote ? 'fa-check text-success' : 'fa-times text-muted'"></i></td>
-                        <td><i class="fa" [ngClass]="row.maneja_vencimiento ? 'fa-check text-success' : 'fa-times text-muted'"></i></td>
-                        <td>
-                            <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editarProducto(row)" />
-                            <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="borrarProducto(row)" />
-                        </td>
-                    </tr>
-                </ng-template>
-            </p-table>
-
-            <p-dialog header="{{ isEdit ? 'Editar' : 'Nuevo' }} Producto" [(visible)]="displayDialog"
-                *ngIf="displayDialog" [modal]="true" [style]="{ width: '52rem' }" [draggable]="false" appendTo="body">
-                <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
-                    <div class="col-12 d-md-flex d-sm-grid">
-                        <div class="col-lg-6 col-md-12 mt-3 me-2">
-                            <label class="form-label">Código *</label>
-                            <input pInputText [(ngModel)]="formData.codigo" class="w-100" maxlength="50" [disabled]="isEdit" placeholder="Ej: MED-001" />
-                        </div>
-                        <div class="col-lg-6 col-md-12 mt-3">
-                            <label class="form-label">Nombre *</label>
-                            <input pInputText [(ngModel)]="formData.nombre" class="w-100" maxlength="200" placeholder="Nombre del producto" />
-                        </div>
-                    </div>
-
-                    <div class="col-12 mt-3">
-                        <label class="form-label">Descripción</label>
-                        <textarea pInputTextarea [(ngModel)]="formData.descripcion" rows="2" class="w-100" placeholder="Descripción del producto"></textarea>
-                    </div>
-
-                    <div class="col-12 d-md-flex d-sm-grid">
-                        <div class="col-lg-6 col-md-12 mt-3 me-2">
-                            <label class="form-label">Grupo</label>
-                            <p-dropdown [(ngModel)]="formData.id_grupo_producto" [options]="grupos"
-                                optionLabel="nombre" optionValue="id_grupo_producto" class="w-100" appendTo="body"
-                                placeholder="Seleccionar grupo" [disabled]="true">
-                            </p-dropdown>
-                        </div>
-                    </div>
-
-                    <div class="col-12 d-md-flex d-sm-grid">
-                        <div class="col-lg-6 col-md-12 mt-3 me-2">
-                            <label class="form-label">Categoría *</label>
-                            <p-dropdown [(ngModel)]="formData.id_categoria_producto" [options]="categorias"
-                                optionLabel="nombre" optionValue="id_categoria_producto" class="w-100" appendTo="body"
-                                placeholder="Seleccionar categoría">
-                            </p-dropdown>
-                        </div>
-                        <div class="col-lg-6 col-md-12 mt-3">
-                            <label class="form-label">Unidad de Medida *</label>
-                            <p-dropdown [(ngModel)]="formData.id_unidad_medida" [options]="unidades"
-                                optionLabel="nombre" optionValue="id_unidad_medida" class="w-100" appendTo="body"
-                                placeholder="Seleccionar unidad">
-                            </p-dropdown>
-                        </div>
-                    </div>
-
-                    <div class="col-12 d-md-flex d-sm-grid">
-                        <div class="col-lg-6 col-md-12 mt-3 me-2">
-                            <label class="form-label">Stock Mínimo</label>
-                            <input pInputText [(ngModel)]="formData.stock_minimo" type="number" class="w-100" placeholder="0" />
-                        </div>
-                        <div class="col-lg-6 col-md-12 mt-3">
-                            <label class="form-label">Stock Máximo</label>
-                            <input pInputText [(ngModel)]="formData.stock_maximo" type="number" class="w-100" placeholder="0" />
-                        </div>
-                    </div>
-
-                    <div class="col-12 mt-3 d-md-flex">
-                        <div class="me-4">
-                            <p-checkbox [(ngModel)]="formData.maneja_lote" [binary]="true" inputId="maneja_lote" />
-                            <label for="maneja_lote" class="ms-2">Maneja Lote/Serie</label>
-                        </div>
-                        <div>
-                            <p-checkbox [(ngModel)]="formData.maneja_vencimiento" [binary]="true" inputId="maneja_venc" />
-                            <label for="maneja_venc" class="ms-2">Maneja Vencimiento</label>
+            <div class="position-relative">
+                <div *ngIf="loadingProductos" class="uiverse-loader-overlay">
+                    <div class="uiverse-loader-wrapper">
+                        <div class="uiverse-loader">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
                         </div>
                     </div>
                 </div>
 
+                <p-table *ngIf="selectedGrupo" #tablaProductos [value]="productos" [paginator]="true" [rows]="10" responsiveLayout="scroll"
+                    [globalFilterFields]="['codigo', 'nombre', 'Categoria.nombre', 'Categoria.Grupo.nombre']" stripedRows>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Grupo</th>
+                            <th>Categoría</th>
+                            <th>Unidad</th>
+                            <th>Stock Mín.</th>
+                            <th>Stock Máx.</th>
+                            <th>Lote</th>
+                            <th>Vencimiento</th>
+                            <th>Reg. Invima</th>
+                            <th>Perfil</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row>
+                        <tr>
+                            <td>{{ row.codigo }}</td>
+                            <td>{{ row.nombre }}</td>
+                            <td>{{ row.Categoria?.Grupo?.nombre }}</td>
+                            <td>{{ row.Categoria?.nombre }}</td>
+                            <td>{{ row.UnidadMedida?.abreviatura }}</td>
+                            <td>{{ row.stock_minimo }}</td>
+                            <td>{{ row.stock_maximo }}</td>
+                            <td><i class="fa" [ngClass]="row.maneja_lote ? 'fa-check text-success' : 'fa-times text-muted'"></i></td>
+                            <td><i class="fa" [ngClass]="row.maneja_vencimiento ? 'fa-check text-success' : 'fa-times text-muted'"></i></td>
+                            <td>
+                                <span *ngIf="row.registro_sanitario_invima" class="badge badge-active">{{ row.registro_sanitario_invima }}</span>
+                                <span *ngIf="!row.registro_sanitario_invima" class="badge badge-inactive">Sin registro</span>
+                            </td>
+                            <td>
+                                <span *ngIf="row.perfil_normativo !== 'OTRO'" class="badge" [ngClass]="{
+                                    'badge-medicamento': row.perfil_normativo === 'MEDICAMENTO',
+                                    'badge-dispositivo': row.perfil_normativo === 'DISPOSITIVO_MEDICO',
+                                    'badge-reactivo': row.perfil_normativo === 'REACTIVO'
+                                }">{{ obtenerEtiquetaPerfil(row.perfil_normativo) }}</span>
+                                <span *ngIf="row.perfil_normativo === 'OTRO'">—</span>
+                            </td>
+                            <td>
+                                <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editarProducto(row)" />
+                                <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="borrarProducto(row)" [loading]="loadingEliminar" />
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="12" class="text-center text-muted p-4">
+                                <i class="fa fa-inbox me-2"></i> No se encontraron productos
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+
+            <p-dialog header="{{ isEdit ? 'Editar' : 'Nuevo' }} Producto" [(visible)]="displayDialog"
+                *ngIf="displayDialog" [modal]="true" [style]="{ width: '58rem' }" [draggable]="false" appendTo="body">
+                <p-accordion [activeIndex]="0">
+                    <p-accordionTab header="General" leftIcon="fa fa-info-circle">
+                        <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Código *</label>
+                                    <input pInputText [(ngModel)]="formData.codigo" class="w-100" maxlength="50" [disabled]="isEdit" placeholder="Ej: MED-001" />
+                                </div>
+                                <div class="col-lg-6 col-md-12 mt-2">
+                                    <label class="form-label">Nombre *</label>
+                                    <input pInputText [(ngModel)]="formData.nombre" class="w-100" maxlength="200" placeholder="Nombre del producto" />
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-2">
+                                <label class="form-label">Descripción</label>
+                                <textarea pInputTextarea [(ngModel)]="formData.descripcion" rows="2" class="w-100" placeholder="Descripción del producto"></textarea>
+                            </div>
+
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Grupo</label>
+                                    <p-dropdown [(ngModel)]="formData.id_grupo_producto" [options]="grupos" optionLabel="nombre" optionValue="id_grupo_producto" class="w-100" appendTo="body" placeholder="Seleccionar grupo" [disabled]="true"></p-dropdown>
+                                </div>
+                                <div class="col-lg-6 col-md-12 mt-2">
+                                    <label class="form-label">Perfil normativo</label>
+                                    <p-dropdown [(ngModel)]="formData.perfil_normativo" [options]="perfilesNormativos" optionLabel="label" optionValue="value" class="w-100" appendTo="body" placeholder="Seleccionar perfil"></p-dropdown>
+                                </div>
+                            </div>
+
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Categoría *</label>
+                                    <p-dropdown [(ngModel)]="formData.id_categoria_producto" [options]="categorias" optionLabel="nombre" optionValue="id_categoria_producto" class="w-100" appendTo="body" placeholder="Seleccionar categoría"></p-dropdown>
+                                </div>
+                                <div class="col-lg-6 col-md-12 mt-2">
+                                    <label class="form-label">Unidad de Medida *</label>
+                                    <p-dropdown [(ngModel)]="formData.id_unidad_medida" [options]="unidades" optionLabel="nombre" optionValue="id_unidad_medida" class="w-100" appendTo="body" placeholder="Seleccionar unidad"></p-dropdown>
+                                </div>
+                            </div>
+
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Stock Mínimo</label>
+                                    <input pInputText [(ngModel)]="formData.stock_minimo" type="number" class="w-100" placeholder="0" />
+                                </div>
+                                <div class="col-lg-6 col-md-12 mt-2">
+                                    <label class="form-label">Stock Máximo</label>
+                                    <input pInputText [(ngModel)]="formData.stock_maximo" type="number" class="w-100" placeholder="0" />
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-3 d-md-flex">
+                                <div class="me-4">
+                                    <p-checkbox [(ngModel)]="formData.maneja_lote" [binary]="true" inputId="maneja_lote" />
+                                    <label for="maneja_lote" class="ms-2">Maneja Lote/Serie</label>
+                                </div>
+                                <div>
+                                    <p-checkbox [(ngModel)]="formData.maneja_vencimiento" [binary]="true" inputId="maneja_venc" />
+                                    <label for="maneja_venc" class="ms-2">Maneja Vencimiento</label>
+                                </div>
+                            </div>
+                        </div>
+                    </p-accordionTab>
+
+                    <p-accordionTab header="Información regulatoria" leftIcon="fa fa-file-medical" *ngIf="esPerfilNormativo()">
+                        <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Registro sanitario Invima</label>
+                                    <input pInputText [(ngModel)]="formData.registro_sanitario_invima" class="w-100" maxlength="100" placeholder="Ej: INVIMA 2023M-0012345" />
+                                    <div class="form-text text-muted">Registro vigente o permiso de comercialización expedido por el Invima.</div>
+                                </div>
+                                <div class="col-lg-6 col-md-12 mt-2">
+                                    <label class="form-label">Marca</label>
+                                    <input pInputText [(ngModel)]="formData.marca" class="w-100" maxlength="150" placeholder="Marca del producto" />
+                                </div>
+                            </div>
+
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Clasificación de riesgo</label>
+                                    <input pInputText [(ngModel)]="formData.clasificacion_riesgo" class="w-100" maxlength="50" placeholder="Ej: Clase I, II, III" />
+                                </div>
+                                <div class="col-lg-6 col-md-12 mt-2">
+                                    <label class="form-label">Presentación comercial</label>
+                                    <input pInputText [(ngModel)]="formData.presentacion_comercial" class="w-100" maxlength="200" placeholder="Ej: Caja x 10 unidades" />
+                                </div>
+                            </div>
+
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Serie (cuando aplique)</label>
+                                    <input pInputText [(ngModel)]="formData.serie" class="w-100" maxlength="100" placeholder="Número de serie" />
+                                </div>
+                                <div class="col-lg-6 col-md-12 mt-2">
+                                    <label class="form-label">Vida útil (meses)</label>
+                                    <input pInputText [(ngModel)]="formData.vida_util_meses" type="number" class="w-100" placeholder="Ej: 24" />
+                                </div>
+                            </div>
+                        </div>
+                    </p-accordionTab>
+
+                    <p-accordionTab header="Información farmacéutica" leftIcon="fa fa-pills" *ngIf="esPerfilMedicamento()">
+                        <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Principio activo</label>
+                                    <input pInputText [(ngModel)]="formData.principio_activo" class="w-100" maxlength="250" placeholder="Ej: Acetaminofén" />
+                                </div>
+                                <div class="col-lg-6 col-md-12 mt-2">
+                                    <label class="form-label">Forma farmacéutica</label>
+                                    <input pInputText [(ngModel)]="formData.forma_farmaceutica" class="w-100" maxlength="150" placeholder="Ej: Tableta" />
+                                </div>
+                            </div>
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Concentración</label>
+                                    <input pInputText [(ngModel)]="formData.concentracion" class="w-100" maxlength="100" placeholder="Ej: 500 mg" />
+                                </div>
+                            </div>
+                        </div>
+                    </p-accordionTab>
+                </p-accordion>
+
                 <ng-template pTemplate="footer">
                     <div class="flex justify-content-end gap-2">
-                        <p-button label="Cancelar" class="m-2" icon="fa fa-times" severity="secondary" (onClick)="displayDialog = false" />
-                        <p-button label="Guardar" class="m-2" icon="fa fa-check" severity="info" (onClick)="guardar()" />
+                        <p-button label="Cancelar" class="m-2" icon="fa fa-times" severity="secondary" (onClick)="displayDialog = false" [disabled]="loadingGuardar" />
+                        <p-button label="Guardar" class="m-2" icon="fa fa-check" severity="info" (onClick)="guardar()" [loading]="loadingGuardar" />
                     </div>
                 </ng-template>
             </p-dialog>

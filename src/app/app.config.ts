@@ -11,6 +11,7 @@ import { definePreset, palette } from '@primeng/themes';
 
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './utils/auth.interceptor';
+import { loadingInterceptor } from './interceptors/loading.interceptor';
 
 const CustomAura = definePreset(Aura, {
     semantic: {
@@ -31,6 +32,6 @@ export const appConfig: ApplicationConfig = {
                 }
             }
         }),
-        provideHttpClient(withInterceptors([authInterceptor]))
+        provideHttpClient(withInterceptors([authInterceptor, loadingInterceptor]))
     ]
 };

@@ -9,6 +9,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageService } from 'primeng/api';
 import { InventarioService } from '../../../services/inventario/inventario.service';
 import { Producto, Grupo, Categoria, ApiResponse } from '../../../interfaces/inventario';
+import { parseDateSinTimezone, formatDateLocal } from '../../../utils/fecha.util';
 
 @Component({
     selector: 'app-reporte-productos',
@@ -35,6 +36,10 @@ export class ReporteProductosComponent implements OnInit {
     productosStockBajo: number = 0;
     productosProximosVencer: number = 0;
 
+    loadingGrupos: boolean = false;
+    loadingCategorias: boolean = false;
+    loadingReporte: boolean = false;
+
     opcionesEstado = [
         { label: 'Todos', value: 'TODOS' },
         { label: 'Con Stock Bajo', value: 'STOCK_BAJO' },
@@ -57,11 +62,19 @@ export class ReporteProductosComponent implements OnInit {
     }
 
     async cargarGrupos() {
+        this.loadingGrupos = true;
         (await this.inventarioService.getGrupos()).subscribe({
             next: (res: ApiResponse<Grupo[]>) => {
+                this.loadingGrupos = false;
                 if (res.state === 'OK') {
                     this.grupos = (res.body || []).filter(g => g.estado === 'A');
+                } else {
+                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar los grupos.' });
                 }
+            },
+            error: () => {
+                this.loadingGrupos = false;
+                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
             }
         });
     }
@@ -70,11 +83,19 @@ export class ReporteProductosComponent implements OnInit {
         this.selectedCategoria = null;
         this.categorias = [];
         if (this.selectedGrupo) {
+            this.loadingCategorias = true;
             (await this.inventarioService.getCategorias(this.selectedGrupo.id_grupo_producto)).subscribe({
                 next: (res: ApiResponse<Categoria[]>) => {
+                    this.loadingCategorias = false;
                     if (res.state === 'OK') {
                         this.categorias = (res.body || []).filter(c => c.estado === 'A');
+                    } else {
+                        this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar las categorías.' });
                     }
+                },
+                error: () => {
+                    this.loadingCategorias = false;
+                    this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
                 }
             });
         }
@@ -82,12 +103,14 @@ export class ReporteProductosComponent implements OnInit {
     }
 
     async cargarReporte() {
+        this.loadingReporte = true;
         const filtros: Record<string, unknown> = {};
         if (this.selectedGrupo) filtros['id_grupo'] = this.selectedGrupo.id_grupo_producto;
         if (this.selectedCategoria) filtros['id_categoria'] = this.selectedCategoria.id_categoria_producto;
 
         (await this.inventarioService.getStockConsolidado(filtros)).subscribe({
             next: (res: ApiResponse<Producto[]>) => {
+                this.loadingReporte = false;
                 if (res.state === 'OK') {
                     this.productos = (res.body || []).map(p => ({
                         ...p,
@@ -96,10 +119,15 @@ export class ReporteProductosComponent implements OnInit {
                         color_semaforo: p.color_semaforo || undefined
                     }));
                     this.calcularResumen();
+                } else {
+                    this.productos = [];
+                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar el reporte.' });
                 }
             },
             error: () => {
-                this.messageService.add({ severity: 'error', summary: 'Error al cargar reporte' });
+                this.loadingReporte = false;
+                this.productos = [];
+                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
             }
         });
     }

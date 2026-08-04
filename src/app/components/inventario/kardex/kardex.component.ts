@@ -11,6 +11,7 @@ import { CalendarModule } from 'primeng/calendar';
 import { MessageService } from 'primeng/api';
 import { InventarioService } from '../../../services/inventario/inventario.service';
 import { Producto, KardexRow, KardexResponse } from '../../../interfaces/inventario';
+import { parseDateSinTimezone, formatDateLocal } from '../../../utils/fecha.util';
 
 @Component({
     selector: 'app-kardex',
@@ -31,6 +32,9 @@ export class KardexComponent implements OnInit {
     kardexData: KardexResponse | null = null;
     movimientos: KardexRow[] = [];
 
+    loadingProductos: boolean = false;
+    loadingKardex: boolean = false;
+
     constructor(
         private inventarioService: InventarioService,
         private messageService: MessageService
@@ -41,18 +45,21 @@ export class KardexComponent implements OnInit {
     }
 
     async cargarProductos() {
+        this.loadingProductos = true;
         (await this.inventarioService.getProductos()).subscribe({
             next: (res) => {
+                this.loadingProductos = false;
                 if (res.state === 'OK') {
                     this.productos = res.body || [];
+                } else {
+                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar los productos.' });
                 }
+            },
+            error: () => {
+                this.loadingProductos = false;
+                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
             }
         });
-    }
-
-    formatDate(date: Date): string {
-        const d = new Date(date);
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
     async buscarKardex() {
@@ -61,8 +68,9 @@ export class KardexComponent implements OnInit {
             return;
         }
 
-        const fechaInicio = this.fechaDesde ? this.formatDate(this.fechaDesde) : undefined;
-        const fechaFin = this.fechaHasta ? this.formatDate(this.fechaHasta) : undefined;
+        this.loadingKardex = true;
+        const fechaInicio = this.fechaDesde ? formatDateLocal(this.fechaDesde) ?? undefined : undefined;
+        const fechaFin = this.fechaHasta ? formatDateLocal(this.fechaHasta) ?? undefined : undefined;
 
         (await this.inventarioService.getKardexProducto(
             this.selectedProducto.id_producto,
@@ -71,14 +79,21 @@ export class KardexComponent implements OnInit {
             fechaFin
         )).subscribe({
             next: (res) => {
+                this.loadingKardex = false;
                 if (res.state === 'OK' && res.body) {
                     this.kardexData = res.body;
                     this.movimientos = res.body.movimientos || [];
                 } else {
                     this.kardexData = null;
                     this.movimientos = [];
-                    this.messageService.add({ severity: 'info', summary: 'No se encontraron movimientos' });
+                    this.messageService.add({ severity: 'info', summary: res.msg || 'No se encontraron movimientos' });
                 }
+            },
+            error: () => {
+                this.loadingKardex = false;
+                this.kardexData = null;
+                this.movimientos = [];
+                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
             }
         });
     }

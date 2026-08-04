@@ -13,6 +13,7 @@ import { TabViewModule } from 'primeng/tabview';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { InventarioService } from '../../../services/inventario/inventario.service';
 import { Grupo, Categoria, UnidadMedida, TipoMovimiento, Semaforo } from '../../../interfaces/inventario';
+import { parseDateSinTimezone, formatDateLocal } from '../../../utils/fecha.util';
 
 interface IconoOption {
     label: string;
@@ -38,6 +39,14 @@ export class ConfiguracionComponent implements OnInit {
     unidades: UnidadMedida[] = [];
     tiposMovimiento: TipoMovimiento[] = [];
     semaforos: Semaforo[] = [];
+
+    loadingGrupos: boolean = false;
+    loadingCategorias: boolean = false;
+    loadingUnidades: boolean = false;
+    loadingTiposMovimiento: boolean = false;
+    loadingSemaforos: boolean = false;
+    loadingGuardar: boolean = false;
+    loadingEliminar: boolean = false;
 
     displayDialog: boolean = false;
     dialogType: string = '';
@@ -109,32 +118,92 @@ export class ConfiguracionComponent implements OnInit {
     }
 
     async cargarGrupos() {
+        this.loadingGrupos = true;
         (await this.inventarioService.getGrupos()).subscribe({
-            next: (res) => { if (res.state === 'OK') this.grupos = res.body || []; }
+            next: (res) => {
+                this.loadingGrupos = false;
+                if (res.state === 'OK') {
+                    this.grupos = res.body || [];
+                } else {
+                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar los grupos.' });
+                }
+            },
+            error: () => {
+                this.loadingGrupos = false;
+                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
+            }
         });
     }
 
     async cargarCategorias() {
+        this.loadingCategorias = true;
         (await this.inventarioService.getCategorias()).subscribe({
-            next: (res) => { if (res.state === 'OK') this.categorias = res.body || []; }
+            next: (res) => {
+                this.loadingCategorias = false;
+                if (res.state === 'OK') {
+                    this.categorias = res.body || [];
+                } else {
+                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar las categorías.' });
+                }
+            },
+            error: () => {
+                this.loadingCategorias = false;
+                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
+            }
         });
     }
 
     async cargarUnidades() {
+        this.loadingUnidades = true;
         (await this.inventarioService.getUnidadesMedida()).subscribe({
-            next: (res) => { if (res.state === 'OK') this.unidades = res.body || []; }
+            next: (res) => {
+                this.loadingUnidades = false;
+                if (res.state === 'OK') {
+                    this.unidades = res.body || [];
+                } else {
+                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar las unidades de medida.' });
+                }
+            },
+            error: () => {
+                this.loadingUnidades = false;
+                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
+            }
         });
     }
 
     async cargarTiposMovimiento() {
+        this.loadingTiposMovimiento = true;
         (await this.inventarioService.getTiposMovimiento()).subscribe({
-            next: (res) => { if (res.state === 'OK') this.tiposMovimiento = res.body || []; }
+            next: (res) => {
+                this.loadingTiposMovimiento = false;
+                if (res.state === 'OK') {
+                    this.tiposMovimiento = res.body || [];
+                } else {
+                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar los tipos de movimiento.' });
+                }
+            },
+            error: () => {
+                this.loadingTiposMovimiento = false;
+                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
+            }
         });
     }
 
     async cargarSemaforos() {
+        this.loadingSemaforos = true;
         (await this.inventarioService.getSemaforos()).subscribe({
-            next: (res) => { if (res.state === 'OK') this.semaforos = res.body || []; }
+            next: (res) => {
+                this.loadingSemaforos = false;
+                if (res.state === 'OK') {
+                    this.semaforos = res.body || [];
+                } else {
+                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar las configuraciones de semáforo.' });
+                }
+            },
+            error: () => {
+                this.loadingSemaforos = false;
+                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
+            }
         });
     }
 
@@ -169,6 +238,7 @@ export class ConfiguracionComponent implements OnInit {
             message: `¿Estás seguro de inactivar este registro?`,
             acceptLabel: 'Sí', rejectLabel: 'No',
             accept: async () => {
+                this.loadingEliminar = true;
                 let observable;
                 switch (type) {
                     case 'grupo': observable = await this.inventarioService.inactivarGrupo(item.id_grupo_producto); break;
@@ -179,9 +249,18 @@ export class ConfiguracionComponent implements OnInit {
                 }
                 if (observable) {
                     observable.subscribe({
-                        next: () => {
-                            this.cargarTodos();
-                            this.messageService.add({ severity: 'success', summary: 'Registro inactivado.' });
+                        next: (res: any) => {
+                            this.loadingEliminar = false;
+                            if (res.state === 'OK') {
+                                this.cargarTodos();
+                                this.messageService.add({ severity: 'success', summary: 'Registro inactivado.' });
+                            } else {
+                                this.messageService.add({ severity: 'error', summary: res.msg || 'Error al inactivar el registro.' });
+                            }
+                        },
+                        error: () => {
+                            this.loadingEliminar = false;
+                            this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
                         }
                     });
                 }
@@ -190,6 +269,7 @@ export class ConfiguracionComponent implements OnInit {
     }
 
     async guardar() {
+        this.loadingGuardar = true;
         let observable: any;
         const type = this.dialogType;
 
@@ -224,15 +304,22 @@ export class ConfiguracionComponent implements OnInit {
         if (observable) {
             observable.subscribe({
                 next: (res: any) => {
+                    this.loadingGuardar = false;
                     if (res.state === 'OK') {
                         this.cargarTodos();
                         this.displayDialog = false;
                         this.messageService.add({ severity: 'success', summary: 'Guardado exitosamente.' });
                     } else {
-                        this.messageService.add({ severity: 'error', summary: res.msg });
+                        this.messageService.add({ severity: 'error', summary: res.msg || 'Error al guardar el registro.' });
                     }
+                },
+                error: () => {
+                    this.loadingGuardar = false;
+                    this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
                 }
             });
+        } else {
+            this.loadingGuardar = false;
         }
     }
 

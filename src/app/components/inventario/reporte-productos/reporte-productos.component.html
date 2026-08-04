@@ -72,59 +72,72 @@
                 </div>
             </div>
 
-            <p-table [value]="getProductosFiltrados()" [paginator]="true" [rows]="20" responsiveLayout="scroll"
-                [globalFilterFields]="['codigo', 'nombre', 'Categoria.nombre', 'Categoria.Grupo.nombre']"
-                [sortField]="'nombre'" [sortOrder]="1" stripedRows>
-                <ng-template pTemplate="header">
-                    <tr>
-                        <th pSortableColumn="codigo">Código <p-sortIcon field="codigo" /></th>
-                        <th pSortableColumn="nombre">Producto <p-sortIcon field="nombre" /></th>
-                        <th pSortableColumn="Categoria.Grupo.nombre">Grupo <p-sortIcon field="Categoria.Grupo.nombre" /></th>
-                        <th pSortableColumn="Categoria.nombre">Categoría <p-sortIcon field="Categoria.nombre" /></th>
-                        <th>Unidad</th>
-                        <th pSortableColumn="cantidad_total">Stock Actual <p-sortIcon field="cantidad_total" /></th>
-                        <th pSortableColumn="stock_minimo">Mín. <p-sortIcon field="stock_minimo" /></th>
-                        <th pSortableColumn="stock_maximo">Máx. <p-sortIcon field="stock_maximo" /></th>
-                        <th>Estado Venc.</th>
-                        <th>Stock</th>
-                    </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-row>
-                    <tr [ngClass]="{ 'row-stock-bajo': row.stock_bajo, 'row-sin-stock': (row.cantidad_total || 0) === 0 }">
-                        <td><code>{{ row.codigo }}</code></td>
-                        <td>{{ row.nombre }}</td>
-                        <td>{{ row.Categoria?.Grupo?.nombre || '—' }}</td>
-                        <td>{{ row.Categoria?.nombre || '—' }}</td>
-                        <td>{{ row.UnidadMedida?.abreviatura || '—' }}</td>
-                        <td>
-                            <strong [ngClass]="{
-                                'text-danger': row.stock_bajo,
-                                'text-success': !row.stock_bajo && (row.cantidad_total || 0) > 0
-                            }">{{ row.cantidad_total | number }}</strong>
-                        </td>
-                        <td>{{ row.stock_minimo || '—' }}</td>
-                        <td>{{ row.stock_maximo || '—' }}</td>
-                        <td>
-                            <span *ngIf="row.color_semaforo" class="badge" [ngClass]="getColorClass(row.color_semaforo)">
-                                {{ row.color_semaforo }}
-                            </span>
-                            <span *ngIf="!row.color_semaforo" class="text-muted">—</span>
-                        </td>
-                        <td>
-                            <i *ngIf="row.stock_bajo" class="fa fa-exclamation-triangle text-warning" title="Stock bajo el mínimo"></i>
-                            <i *ngIf="!row.stock_bajo && (row.cantidad_total || 0) > 0" class="fa fa-check text-success"></i>
-                            <span *ngIf="(row.cantidad_total || 0) === 0" class="badge badge-sin-stock">Sin Stock</span>
-                        </td>
-                    </tr>
-                </ng-template>
-                <ng-template pTemplate="emptymessage">
-                    <tr>
-                        <td colspan="10" class="text-center p-4 text-muted">
-                            No se encontraron productos con los filtros seleccionados
-                        </td>
-                    </tr>
-                </ng-template>
-            </p-table>
+            <div class="position-relative">
+                <div *ngIf="loadingReporte || loadingGrupos || loadingCategorias" class="uiverse-loader-overlay">
+                    <div class="uiverse-loader-wrapper">
+                        <div class="uiverse-loader">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <p-table [value]="getProductosFiltrados()" [paginator]="true" [rows]="20" responsiveLayout="scroll"
+                    [globalFilterFields]="['codigo', 'nombre', 'Categoria.nombre', 'Categoria.Grupo.nombre']"
+                    [sortField]="'nombre'" [sortOrder]="1" stripedRows>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th pSortableColumn="codigo">Código <p-sortIcon field="codigo" /></th>
+                            <th pSortableColumn="nombre">Producto <p-sortIcon field="nombre" /></th>
+                            <th pSortableColumn="Categoria.Grupo.nombre">Grupo <p-sortIcon field="Categoria.Grupo.nombre" /></th>
+                            <th pSortableColumn="Categoria.nombre">Categoría <p-sortIcon field="Categoria.nombre" /></th>
+                            <th>Unidad</th>
+                            <th pSortableColumn="cantidad_total">Stock Actual <p-sortIcon field="cantidad_total" /></th>
+                            <th pSortableColumn="stock_minimo">Mín. <p-sortIcon field="stock_minimo" /></th>
+                            <th pSortableColumn="stock_maximo">Máx. <p-sortIcon field="stock_maximo" /></th>
+                            <th>Estado Venc.</th>
+                            <th>Stock</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row>
+                        <tr [ngClass]="{ 'row-stock-bajo': row.stock_bajo, 'row-sin-stock': (row.cantidad_total || 0) === 0 }">
+                            <td><code>{{ row.codigo }}</code></td>
+                            <td>{{ row.nombre }}</td>
+                            <td>{{ row.Categoria?.Grupo?.nombre || '—' }}</td>
+                            <td>{{ row.Categoria?.nombre || '—' }}</td>
+                            <td>{{ row.UnidadMedida?.abreviatura || '—' }}</td>
+                            <td>
+                                <strong [ngClass]="{
+                                    'text-danger': row.stock_bajo,
+                                    'text-success': !row.stock_bajo && (row.cantidad_total || 0) > 0
+                                }">{{ row.cantidad_total | number }}</strong>
+                            </td>
+                            <td>{{ row.stock_minimo || '—' }}</td>
+                            <td>{{ row.stock_maximo || '—' }}</td>
+                            <td>
+                                <span *ngIf="row.color_semaforo" class="badge" [ngClass]="getColorClass(row.color_semaforo)">
+                                    {{ row.color_semaforo }}
+                                </span>
+                                <span *ngIf="!row.color_semaforo" class="text-muted">—</span>
+                            </td>
+                            <td>
+                                <i *ngIf="row.stock_bajo" class="fa fa-exclamation-triangle text-warning" title="Stock bajo el mínimo"></i>
+                                <i *ngIf="!row.stock_bajo && (row.cantidad_total || 0) > 0" class="fa fa-check text-success"></i>
+                                <span *ngIf="(row.cantidad_total || 0) === 0" class="badge badge-sin-stock">Sin Stock</span>
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="10" class="text-center p-4 text-muted">
+                                No se encontraron productos con los filtros seleccionados
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
         </div>
     </div>
 </div>

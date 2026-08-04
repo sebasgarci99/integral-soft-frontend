@@ -34,6 +34,16 @@ export interface Producto {
     stock_maximo: number;
     maneja_lote: boolean;
     maneja_vencimiento: boolean;
+    perfil_normativo: 'MEDICAMENTO' | 'DISPOSITIVO_MEDICO' | 'REACTIVO' | 'OTRO';
+    principio_activo?: string;
+    forma_farmaceutica?: string;
+    concentracion?: string;
+    presentacion_comercial?: string;
+    registro_sanitario_invima?: string;
+    marca?: string;
+    serie?: string;
+    clasificacion_riesgo?: string;
+    vida_util_meses?: number;
     estado: string;
     Categoria?: Categoria;
     UnidadMedida?: UnidadMedida;

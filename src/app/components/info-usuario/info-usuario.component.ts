@@ -10,7 +10,6 @@ import { DropdownModule } from 'primeng/dropdown';
 import { TabViewModule } from 'primeng/tabview';
 import { InputMaskModule } from 'primeng/inputmask';
 import { PasswordModule } from 'primeng/password';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { InfoUsuarioService } from '../../services/info-usuario/info-usuario.service';
 import { SecureStorageService } from '../../services/secure-storage.service';
 
@@ -26,8 +25,7 @@ import { SecureStorageService } from '../../services/secure-storage.service';
         DropdownModule,
         TabViewModule,
         InputMaskModule,
-        PasswordModule,
-        ProgressSpinnerModule
+        PasswordModule
     ],
     templateUrl: './info-usuario.component.html',
     styleUrl: './info-usuario.component.css',

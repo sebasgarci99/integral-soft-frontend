@@ -93,7 +93,7 @@
                                     <tr>
                                         <td>{{ row.Producto?.nombre }}</td>
                                         <td>{{ row.lote || '—' }}</td>
-                                        <td>{{ row.fecha_vencimiento }}</td>
+                                        <td>{{ formatearFecha(row.fecha_vencimiento) }}</td>
                                         <td>{{ row.dias_vencimiento }}</td>
                                         <td>
                                             <span class="badge" [ngClass]="getColorClass(row.color_semaforo)">

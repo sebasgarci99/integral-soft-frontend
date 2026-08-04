@@ -10,6 +10,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageService } from 'primeng/api';
 import { InventarioService } from '../../../services/inventario/inventario.service';
 import { Stock, Sede } from '../../../interfaces/inventario';
+import { parseDateSinTimezone, formatDateLocal } from '../../../utils/fecha.util';
 
 @Component({
     selector: 'app-stock-inv',
@@ -25,6 +26,8 @@ export class StockComponent implements OnInit {
     sedes: Sede[] = [];
     selectedSede: Sede | null = null;
     vistaConsolidada: boolean = false;
+
+    loadingStock: boolean = false;
 
     constructor(
         private inventarioService: InventarioService,
@@ -43,14 +46,22 @@ export class StockComponent implements OnInit {
     }
 
     async cargarStock() {
+        this.loadingStock = true;
         const filtros: Record<string, unknown> = {};
         if (this.selectedSede) filtros['id_sede'] = this.selectedSede.id_sede;
 
         (await this.inventarioService.getStockPorSede(filtros)).subscribe({
             next: (res) => {
+                this.loadingStock = false;
                 if (res.state === 'OK') {
                     this.stocks = res.body || [];
+                } else {
+                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar el stock.' });
                 }
+            },
+            error: () => {
+                this.loadingStock = false;
+                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
             }
         });
     }
@@ -62,9 +73,19 @@ export class StockComponent implements OnInit {
     getColorClass(color: string | null | undefined): string {
         if (!color) return '';
         const map: Record<string, string> = {
-            'ROJO': 'semaforo-rojo', 'AMARILLO': 'semaforo-amarillo',
-            'NARANJA': 'semaforo-naranja', 'VERDE': 'semaforo-verde', 'GRIS': 'semaforo-gris'
+            'ROJO': 'semaforo-rojo',
+            'AMARILLO': 'semaforo-amarillo',
+            'NARANJA': 'semaforo-naranja',
+            'VERDE': 'semaforo-verde',
+            'GRIS': 'semaforo-gris'
         };
         return map[color] || '';
+    }
+
+    formatearFecha(valor: string | Date | null | undefined): string {
+        if (!valor) return '—';
+        const fecha = parseDateSinTimezone(valor);
+        if (!fecha) return '—';
+        return fecha.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
 }

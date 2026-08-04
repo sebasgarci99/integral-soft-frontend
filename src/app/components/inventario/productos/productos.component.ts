@@ -10,16 +10,19 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { CheckboxModule } from 'primeng/checkbox';
+import { AccordionModule } from 'primeng/accordion';
+import { BadgeModule } from 'primeng/badge';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { InventarioService } from '../../../services/inventario/inventario.service';
 import { Producto, Grupo, Categoria, UnidadMedida } from '../../../interfaces/inventario';
+import { parseDateSinTimezone, formatDateLocal } from '../../../utils/fecha.util';
 
 @Component({
     selector: 'app-productos-inv',
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, DialogModule,
               InputTextModule, InputTextarea, ToastModule, ConfirmDialogModule,
-              DropdownModule, CheckboxModule],
+              DropdownModule, CheckboxModule, AccordionModule, BadgeModule],
     templateUrl: './productos.component.html',
     styleUrls: ['./productos.component.css'],
     providers: [MessageService, ConfirmationService]
@@ -37,6 +40,17 @@ export class ProductosComponent implements OnInit {
 
     selectedGrupo: Grupo | null = null;
     selectedCategoria: Categoria | null = null;
+
+    loadingProductos: boolean = false;
+    loadingGuardar: boolean = false;
+    loadingEliminar: boolean = false;
+
+    perfilesNormativos = [
+        { label: 'Otro / No aplica', value: 'OTRO' },
+        { label: 'Medicamento', value: 'MEDICAMENTO' },
+        { label: 'Dispositivo médico', value: 'DISPOSITIVO_MEDICO' },
+        { label: 'Reactivo in vitro', value: 'REACTIVO' }
+    ];
 
     @ViewChild('tablaProductos') tablaProductos?: Table;
 
@@ -64,15 +78,23 @@ export class ProductosComponent implements OnInit {
     }
 
     async cargarProductos() {
+        this.loadingProductos = true;
         const filtros: Record<string, unknown> = {};
         if (this.selectedGrupo) filtros['id_grupo'] = this.selectedGrupo.id_grupo_producto;
         if (this.selectedCategoria) filtros['id_categoria'] = this.selectedCategoria.id_categoria_producto;
 
         (await this.inventarioService.getProductos(filtros)).subscribe({
             next: (res) => {
+                this.loadingProductos = false;
                 if (res.state === 'OK') {
                     this.productos = res.body || [];
+                } else {
+                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar los productos.' });
                 }
+            },
+            error: () => {
+                this.loadingProductos = false;
+                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
             }
         });
     }
@@ -136,24 +158,27 @@ export class ProductosComponent implements OnInit {
         this.productos = [];
     }
 
-    abrirFormulario() {
+    async abrirFormulario() {
         this.isEdit = false;
         this.formData = {
             id_grupo_producto: this.selectedGrupo?.id_grupo_producto,
+            perfil_normativo: 'OTRO',
             maneja_lote: false,
             maneja_vencimiento: false,
             stock_minimo: 0,
             stock_maximo: 0
         };
+        await this.cargarCategorias(this.selectedGrupo?.id_grupo_producto);
         this.displayDialog = true;
     }
 
-    editarProducto(producto: Producto) {
+    async editarProducto(producto: Producto) {
         this.isEdit = true;
         this.formData = {
             ...producto,
             id_grupo_producto: producto.Categoria?.Grupo?.id_grupo_producto
         };
+        await this.cargarCategorias(producto.Categoria?.Grupo?.id_grupo_producto);
         this.displayDialog = true;
     }
 
@@ -165,10 +190,20 @@ export class ProductosComponent implements OnInit {
             acceptLabel: 'Sí',
             rejectLabel: 'No',
             accept: async () => {
+                this.loadingEliminar = true;
                 (await this.inventarioService.inactivarProducto(producto.id_producto)).subscribe({
-                    next: () => {
-                        this.cargarProductos();
-                        this.messageService.add({ severity: 'success', summary: 'Producto inactivado.' });
+                    next: (res) => {
+                        this.loadingEliminar = false;
+                        if (res.state === 'OK') {
+                            this.cargarProductos();
+                            this.messageService.add({ severity: 'success', summary: 'Producto inactivado.' });
+                        } else {
+                            this.messageService.add({ severity: 'error', summary: res.msg || 'Error al inactivar el producto.' });
+                        }
+                    },
+                    error: () => {
+                        this.loadingEliminar = false;
+                        this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
                     }
                 });
             }
@@ -181,30 +216,110 @@ export class ProductosComponent implements OnInit {
             return;
         }
 
+        const erroresPerfil = this.validarCamposPorPerfil();
+        if (erroresPerfil) {
+            this.messageService.add({ severity: 'warn', summary: erroresPerfil });
+            return;
+        }
+
+        const sinRegistroInvima = !this.formData.registro_sanitario_invima || String(this.formData.registro_sanitario_invima).trim() === '';
+        if (sinRegistroInvima) {
+            this.confirmService.confirm({
+                icon: 'fa fa-exclamation-triangle',
+                header: 'Registro sanitario Invima no registrado',
+                message: 'No registraste el registro sanitario Invima. ¿Estás seguro de crear el producto?',
+                acceptLabel: 'Sí, continuar',
+                rejectLabel: 'No, registrar',
+                accept: () => this.guardarDefinitivo()
+            });
+            return;
+        }
+
+        await this.guardarDefinitivo();
+    }
+
+    private validarCamposPorPerfil(): string | null {
+        const perfil = this.formData.perfil_normativo;
+        if (!perfil || perfil === 'OTRO') return null;
+
+        const camposVacios: string[] = [];
+
+        if (perfil === 'MEDICAMENTO') {
+            if (!this.formData.principio_activo?.trim()) camposVacios.push('principio activo');
+            if (!this.formData.forma_farmaceutica?.trim()) camposVacios.push('forma farmacéutica');
+            if (!this.formData.concentracion?.trim()) camposVacios.push('concentración');
+        } else if (perfil === 'DISPOSITIVO_MEDICO') {
+            if (!this.formData.marca?.trim()) camposVacios.push('marca');
+            if (!this.formData.clasificacion_riesgo?.trim()) camposVacios.push('clasificación de riesgo');
+        } else if (perfil === 'REACTIVO') {
+            if (!this.formData.marca?.trim()) camposVacios.push('marca');
+            if (!this.formData.clasificacion_riesgo?.trim()) camposVacios.push('clasificación de riesgo');
+        }
+
+        if (camposVacios.length > 0) {
+            return `Para el perfil ${this.obtenerEtiquetaPerfil(perfil)}, los siguientes campos son obligatorios: ${camposVacios.join(', ')}`;
+        }
+
+        return null;
+    }
+
+    private async guardarDefinitivo() {
+        this.loadingGuardar = true;
         if (this.isEdit) {
             (await this.inventarioService.actualizarProducto(this.formData)).subscribe({
                 next: (res) => {
+                    this.loadingGuardar = false;
                     if (res.state === 'OK') {
                         this.cargarProductos();
                         this.displayDialog = false;
                         this.messageService.add({ severity: 'success', summary: 'Producto actualizado correctamente.' });
                     } else {
-                        this.messageService.add({ severity: 'error', summary: res.msg });
+                        this.messageService.add({ severity: 'error', summary: res.msg || 'Error al actualizar el producto.' });
                     }
+                },
+                error: () => {
+                    this.loadingGuardar = false;
+                    this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
                 }
             });
         } else {
             (await this.inventarioService.crearProducto(this.formData)).subscribe({
                 next: (res) => {
+                    this.loadingGuardar = false;
                     if (res.state === 'OK') {
                         this.cargarProductos();
                         this.displayDialog = false;
                         this.messageService.add({ severity: 'success', summary: 'Producto creado correctamente.' });
                     } else {
-                        this.messageService.add({ severity: 'error', summary: res.msg });
+                        this.messageService.add({ severity: 'error', summary: res.msg || 'Error al crear el producto.' });
                     }
+                },
+                error: () => {
+                    this.loadingGuardar = false;
+                    this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
                 }
             });
         }
+    }
+
+    esPerfilMedicamento(): boolean {
+        return this.formData.perfil_normativo === 'MEDICAMENTO';
+    }
+
+    esPerfilDispositivo(): boolean {
+        return this.formData.perfil_normativo === 'DISPOSITIVO_MEDICO';
+    }
+
+    esPerfilReactivo(): boolean {
+        return this.formData.perfil_normativo === 'REACTIVO';
+    }
+
+    esPerfilNormativo(): boolean {
+        return this.esPerfilMedicamento() || this.esPerfilDispositivo() || this.esPerfilReactivo();
+    }
+
+    obtenerEtiquetaPerfil(perfil: string): string {
+        const p = this.perfilesNormativos.find(x => x.value === perfil);
+        return p ? p.label : 'Otro / No aplica';
     }
 }

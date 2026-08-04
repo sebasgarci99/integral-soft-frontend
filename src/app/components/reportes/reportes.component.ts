@@ -20,7 +20,6 @@ import { DropdownModule } from 'primeng/dropdown';
 import { CalendarModule } from 'primeng/calendar';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
 
 
@@ -46,7 +45,6 @@ import * as XLSX from 'xlsx';
         IconFieldModule,
         InputIconModule,
         InputIconModule,
-        ProgressSpinnerModule,
         TagModule
     ],
     templateUrl: './reportes.component.html',
