@@ -183,12 +183,6 @@
     box-shadow: inset 3px 0 0 #0d8aa6;
 }
 
-.sidebar-submenu .sidebar-link.active {
-    background: #fbfeff;
-    box-shadow: inset 2px 0 0 #0d8aa6;
-    font-weight: 600;
-}
-
 .sidebar-group-active .sidebar-group i:first-child,
 .sidebar-group-active .sidebar-chevron {
     color: #0d8aa6;

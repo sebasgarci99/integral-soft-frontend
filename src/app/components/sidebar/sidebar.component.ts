@@ -101,7 +101,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
 
     isGrupoActivo(grupo: ModuloPadre): boolean {
-        return grupo.hijos.some(h => h.ruta && this.currentRoute.startsWith(h.ruta));
+        return grupo.hijos.some(h => {
+            if (!h.ruta) return false;
+            const ruta = h.ruta.startsWith('/') ? h.ruta : `/${h.ruta}`;
+            return this.router.isActive(ruta, false);
+        });
     }
 
     isGrupoAbierto(grupo: ModuloPadre): boolean {

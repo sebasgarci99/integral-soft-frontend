@@ -38,7 +38,10 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">{{ diaSeleccionadoTexto }}</h5>
-                    <button pButton type="button" label="Nueva cita" icon="fa-solid fa-plus" (click)="abrirFormulario()"></button>
+                    <div>
+                        <button pButton type="button" icon="fa-brands fa-whatsapp" class="p-button-secondary p-button-sm me-2" (click)="abrirConfigPlantillaWhatsApp()" pTooltip="Configurar mensaje WhatsApp"></button>
+                        <button pButton type="button" label="Nueva cita" icon="fa-solid fa-plus" (click)="abrirFormulario()"></button>
+                    </div>
                 </div>
                 <div class="card-body p-0">
                     <div class="day-agenda">
@@ -54,9 +57,13 @@
                                 [class.cita-event--cumplida]="cita.estado_cita === 'CUMPLIDA'"
                                 [ngStyle]="getEventStyle(cita)"
                                 (click)="abrirDetalle(cita)">
-                                <div class="cita-event-title">{{ cita.nombre_paciente }}</div>
+                                <div class="cita-event-title">
+                                    {{ cita.nombre_paciente }}
+                                    <i *ngIf="cita.notificado_whatsapp" class="fa-brands fa-whatsapp text-success ms-1" pTooltip="Notificado el {{ cita.fecha_notificacion_whatsapp | date:'dd/MM/yyyy HH:mm' }}"></i>
+                                </div>
                                 <div class="cita-event-time">{{ cita.hora_inicio }} - {{ cita.hora_fin }}</div>
                                 <div class="cita-event-type" *ngIf="cita.tipo_cita">{{ cita.tipo_cita }}</div>
+                                <button pButton type="button" icon="fa-brands fa-whatsapp" class="p-button-rounded p-button-success p-button-xs cita-event-whatsapp" (click)="notificarWhatsAppDesdeTabla(cita, $event)" pTooltip="Notificar por WhatsApp"></button>
                             </div>
                         </div>
                     </div>
@@ -130,8 +137,8 @@
     </div>
     <div class="mb-3">
         <p-checkbox [(ngModel)]="confirmData.enviar_whatsapp" [binary]="true" [disabled]="!puedeEnviarWhatsapp" inputId="chkWhatsapp"></p-checkbox>
-        <label for="chkWhatsapp" class="ms-2">Abrir WhatsApp Web</label>
-        <small class="text-muted d-block ms-4">Se abrir&aacute; una pesta&ntilde;a para que usted env&iacute;e el mensaje.</small>
+        <label for="chkWhatsapp" class="ms-2">Notificar por WhatsApp</label>
+        <small class="text-muted d-block ms-4">Se abrir&aacute; una ventana lista para enviar el mensaje.</small>
     </div>
 
     <div class="text-end">
@@ -231,6 +238,49 @@
 
     <div class="text-end mt-3">
         <button pButton type="button" label="Cerrar" class="p-button-text p-button-sm" (click)="displayDetalleDialog = false"></button>
+    </div>
+</p-dialog>
+
+<p-dialog [(visible)]="displayPreviewWhatsappDialog" [modal]="true" [style]="{ width: '90vw', maxWidth: '500px' }" [breakpoints]="{ '960px': '75vw', '640px': '100vw' }" styleClass="programacion-dialog" header="Notificar por WhatsApp">
+    <div class="row g-3 mb-3">
+        <div class="col-12">
+            <label class="form-label">N&uacute;mero de destino</label>
+            <input pInputText class="w-100" [value]="previewWhatsappData.telefono" disabled />
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12">
+            <label class="form-label">Mensaje</label>
+            <textarea pInputTextarea class="w-100" [(ngModel)]="previewWhatsappData.mensaje" rows="4" disabled></textarea>
+        </div>
+    </div>
+
+    <div class="alert alert-info text-small">
+        <i class="fa-solid fa-info-circle me-1"></i>
+        Al abrir WhatsApp Web, el mensaje aparecer&aacute; listo. Solo debe presionar <strong>Enter</strong> o el bot&oacute;n de enviar.
+    </div>
+
+    <div class="text-end">
+        <button pButton type="button" label="Cancelar" class="p-button-text me-2" (click)="displayPreviewWhatsappDialog = false"></button>
+        <button pButton type="button" label="Abrir WhatsApp" icon="fa-brands fa-whatsapp" (click)="abrirWhatsAppWebDesdePreview()"></button>
+    </div>
+</p-dialog>
+
+<p-dialog [(visible)]="displayConfigPlantillaDialog" [modal]="true" [style]="{ width: '90vw', maxWidth: '600px' }" [breakpoints]="{ '960px': '75vw', '640px': '100vw' }" styleClass="programacion-dialog" header="Configurar mensaje WhatsApp">
+    <div class="row g-3 mb-3">
+        <div class="col-12">
+            <label class="form-label">Plantilla del mensaje</label>
+            <textarea pInputTextarea class="w-100" [(ngModel)]="plantillaWhatsApp" rows="5"></textarea>
+            <small class="text-muted d-block mt-1">
+                Variables disponibles: <code>{{ '{' }}nombre_paciente{{ '}' }}</code>, <code>{{ '{' }}fecha{{ '}' }}</code>, <code>{{ '{' }}hora{{ '}' }}</code>, <code>{{ '{' }}empresa{{ '}' }}</code>.
+            </small>
+        </div>
+    </div>
+
+    <div class="text-end">
+        <button pButton type="button" label="Cancelar" class="p-button-text me-2" (click)="displayConfigPlantillaDialog = false"></button>
+        <button pButton type="button" label="Guardar plantilla" icon="fa-solid fa-save" (click)="guardarPlantillaWhatsApp()"></button>
     </div>
 </p-dialog>
 

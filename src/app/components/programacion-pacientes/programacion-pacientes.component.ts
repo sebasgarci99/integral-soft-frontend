@@ -11,11 +11,11 @@ import { InputTextarea } from 'primeng/inputtextarea';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DropdownModule } from 'primeng/dropdown';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { TabViewModule } from 'primeng/tabview';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService } from 'primeng/api';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { ProgramacionPacientesService, CitaPaciente, PacienteBusqueda } from '../../services/programacion-pacientes/programacion-pacientes.service';
 
@@ -45,7 +45,8 @@ interface DiaCalendario {
         ToastModule,
         AutoCompleteModule,
         TabViewModule,
-        ConfirmDialogModule
+        ConfirmDialogModule,
+        TooltipModule
     ],
     templateUrl: './programacion-pacientes.component.html',
     styleUrl: './programacion-pacientes.component.css',
@@ -68,10 +69,20 @@ export class ProgramacionPacientesComponent implements OnInit {
     displayConfirmDialog = false;
     displayNuevoPacienteDialog = false;
     displayDetalleDialog = false;
+    displayPreviewWhatsappDialog = false;
+    displayConfigPlantillaDialog = false;
 
     esEdicion = false;
     citaEdicion: CitaPaciente | null = null;
     citaDetalle: CitaPaciente | null = null;
+
+    previewWhatsappData: any = {
+        id_cita: null,
+        telefono: '',
+        mensaje: ''
+    };
+
+    plantillaWhatsApp: string = 'Integral-Soft | Hola {nombre_paciente}, le recordamos su cita programada para el día {fecha} a la hora: {hora}. Feliz día.';
 
     formData: any = {
         id_paciente: null,
@@ -123,6 +134,25 @@ export class ProgramacionPacientesComponent implements OnInit {
     async ngOnInit() {
         this.generarCalendario();
         await this.cargarCitas();
+        await this.cargarPlantillaWhatsApp();
+    }
+
+    async cargarPlantillaWhatsApp() {
+        try {
+            const obs = await this.service.obtenerPlantillaWhatsApp();
+            obs.subscribe({
+                next: (plantilla) => {
+                    if (plantilla && plantilla.trim().length > 0) {
+                        this.plantillaWhatsApp = plantilla;
+                    }
+                },
+                error: () => {
+                    // Se mantiene plantilla por defecto
+                }
+            });
+        } catch (error) {
+            // Se mantiene plantilla por defecto
+        }
     }
 
     generarHoras() {
@@ -500,7 +530,7 @@ export class ProgramacionPacientesComponent implements OnInit {
                             this.displayDialog = false;
                             this.cargarCitas();
                             if (this.confirmData.enviar_whatsapp) {
-                                this.abrirWhatsAppWeb();
+                                this.abrirPreviewWhatsapp(res.body?.id_cita);
                             }
                         } else {
                             this.messageService.add({ severity: 'error', summary: 'Error', detail: res.body || 'No se pudo crear la cita.' });
@@ -519,6 +549,11 @@ export class ProgramacionPacientesComponent implements OnInit {
     abrirDetalle(cita: CitaPaciente) {
         this.citaDetalle = cita;
         this.displayDetalleDialog = true;
+    }
+
+    notificarWhatsAppDesdeTabla(cita: CitaPaciente, event: Event) {
+        event.stopPropagation();
+        this.abrirPreviewWhatsapp(cita.id_cita, cita);
     }
 
     cancelarCita() {
@@ -575,6 +610,134 @@ export class ProgramacionPacientesComponent implements OnInit {
         });
     }
 
+    abrirPreviewWhatsapp(idCita?: number, cita?: CitaPaciente) {
+        const paciente = cita
+            ? {
+                id_paciente: cita.id_paciente,
+                nombres: cita.nombre_paciente?.split(' ')[0] || '',
+                apellidos: cita.nombre_paciente?.split(' ').slice(1).join(' ') || '',
+                telefono_contacto: cita.telefono_contacto,
+                correo_electronico: cita.correo_electronico
+            }
+            : this.formData.pacienteSeleccionado;
+
+        if (!paciente?.telefono_contacto) {
+            this.messageService.add({ severity: 'warn', summary: 'Sin teléfono', detail: 'El paciente no tiene número de contacto.' });
+            return;
+        }
+
+        const idCitaReal = idCita || cita?.id_cita;
+        if (!idCitaReal) {
+            this.messageService.add({ severity: 'warn', summary: 'Sin cita', detail: 'No se encontró el identificador de la cita.' });
+            return;
+        }
+
+        const fecha = cita
+            ? new Date(cita.fecha_cita).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' })
+            : new Date(this.formData.fecha_cita).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const hora = cita ? cita.hora_inicio : this.formData.hora_inicio;
+        const nombrePaciente = `${paciente.nombres || ''} ${paciente.apellidos || ''}`.trim();
+
+        const mensaje = this.plantillaWhatsApp
+            .replace(/{nombre_paciente}/g, nombrePaciente)
+            .replace(/{fecha}/g, fecha)
+            .replace(/{hora}/g, hora || '')
+            .replace(/{empresa}/g, 'Integral-Soft');
+
+        let telefono = String(paciente.telefono_contacto).replace(/\D/g, '');
+        if (!telefono.startsWith('57')) {
+            telefono = '57' + telefono.replace(/^\+?57/, '');
+        }
+
+        this.previewWhatsappData = {
+            id_cita: idCitaReal,
+            telefono,
+            mensaje
+        };
+
+        this.displayPreviewWhatsappDialog = true;
+    }
+
+    abrirWhatsAppWebDesdePreview() {
+        this.displayPreviewWhatsappDialog = false;
+
+        const { telefono, mensaje, id_cita } = this.previewWhatsappData;
+        const mensajeEncoded = encodeURIComponent(mensaje);
+
+        const esMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const url = esMovil
+            ? `https://wa.me/${telefono}?text=${mensajeEncoded}`
+            : `https://web.whatsapp.com/send?phone=${telefono}&text=${mensajeEncoded}`;
+
+        const ancho = 650;
+        const alto = 750;
+        const izquierda = (window.screen.width - ancho) / 2;
+        const arriba = (window.screen.height - alto) / 2;
+
+        const ventana = window.open(
+            url,
+            'whatsappWeb',
+            `width=${ancho},height=${alto},top=${arriba},left=${izquierda},toolbar=no,location=no,status=no,menubar=no`
+        );
+
+        if (ventana) {
+            const intervalo = setInterval(() => {
+                if (ventana.closed) {
+                    clearInterval(intervalo);
+                    this.registrarNotificacionWhatsApp(id_cita);
+                }
+            }, 1000);
+        }
+    }
+
+    async registrarNotificacionWhatsApp(idCita: number) {
+        try {
+            const obs = await this.service.registrarNotificacionWhatsApp(idCita);
+            obs.subscribe({
+                next: (res: any) => {
+                    if (res.state === 'OK') {
+                        this.cargarCitas();
+                    }
+                },
+                error: () => {
+                    // Se ignora el error para no interrumpir la experiencia
+                }
+            });
+        } catch (error) {
+            // Se ignora el error para no interrumpir la experiencia
+        }
+    }
+
+    async guardarPlantillaWhatsApp() {
+        if (!this.plantillaWhatsApp || this.plantillaWhatsApp.trim().length === 0) {
+            this.messageService.add({ severity: 'warn', summary: 'Plantilla vacía', detail: 'Ingrese una plantilla válida.' });
+            return;
+        }
+
+        try {
+            const obs = await this.service.guardarPlantillaWhatsApp(this.plantillaWhatsApp.trim());
+            obs.subscribe({
+                next: (res: any) => {
+                    if (res.state === 'OK') {
+                        this.messageService.add({ severity: 'success', summary: 'Plantilla guardada', detail: 'La plantilla de WhatsApp fue actualizada.' });
+                        this.displayConfigPlantillaDialog = false;
+                    } else {
+                        this.messageService.add({ severity: 'error', summary: 'Error', detail: res.body || 'No se pudo guardar la plantilla.' });
+                    }
+                },
+                error: () => {
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al guardar la plantilla.' });
+                }
+            });
+        } catch (error) {
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al guardar la plantilla.' });
+        }
+    }
+
+    abrirConfigPlantillaWhatsApp() {
+        this.displayConfigPlantillaDialog = true;
+    }
+
     abrirWhatsAppWeb() {
         const paciente = this.formData.pacienteSeleccionado;
         if (!paciente?.telefono_contacto) return;
@@ -590,7 +753,11 @@ export class ProgramacionPacientesComponent implements OnInit {
             : '';
         const hora = this.formData.hora_inicio || '';
 
-        const mensaje = `Integral-Soft | Hola ${nombrePaciente}, le recordamos su cita programada para el día ${fecha} a la hora: ${hora}. Feliz día`;
+        const mensaje = this.plantillaWhatsApp
+            .replace(/{nombre_paciente}/g, nombrePaciente)
+            .replace(/{fecha}/g, fecha)
+            .replace(/{hora}/g, hora)
+            .replace(/{empresa}/g, 'Integral-Soft');
         const mensajeEncoded = encodeURIComponent(mensaje);
 
         const esMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);

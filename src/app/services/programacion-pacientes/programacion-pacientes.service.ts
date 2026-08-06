@@ -17,6 +17,8 @@ export interface CitaPaciente {
     motivo?: string;
     tipo_cita?: string;
     estado_cita?: string;
+    notificado_whatsapp?: boolean;
+    fecha_notificacion_whatsapp?: string | Date;
 }
 
 export interface PacienteBusqueda {
@@ -122,5 +124,26 @@ export class ProgramacionPacientesService {
         body['id_cita'] = idCita;
         body['enviar_correo'] = enviarCorreo;
         return this.http.post<any>(this.urlApp + this.urlAppAPI + 'enviarNotificacionCita', body, { headers });
+    }
+
+    async obtenerPlantillaWhatsApp(): Promise<Observable<string>> {
+        const headers = await this.getAuthHeaders();
+        const body: Record<string, unknown> = await this.getBaseBody();
+        return this.http.post<any>(this.urlApp + this.urlAppAPI + 'obtenerPlantillaWhatsApp', body, { headers })
+            .pipe(map(r => r.body || ''));
+    }
+
+    async guardarPlantillaWhatsApp(plantilla: string): Promise<Observable<any>> {
+        const headers = await this.getAuthHeaders();
+        const body: Record<string, unknown> = await this.getBaseBody();
+        body['plantilla'] = plantilla;
+        return this.http.post<any>(this.urlApp + this.urlAppAPI + 'guardarPlantillaWhatsApp', body, { headers });
+    }
+
+    async registrarNotificacionWhatsApp(idCita: number): Promise<Observable<any>> {
+        const headers = await this.getAuthHeaders();
+        const body: Record<string, unknown> = await this.getBaseBody();
+        body['id_cita'] = idCita;
+        return this.http.post<any>(this.urlApp + this.urlAppAPI + 'registrarNotificacionWhatsApp', body, { headers });
     }
 }
