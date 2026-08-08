@@ -1,0 +1,201 @@
+<div class="landing-container">
+    <div class="landing-card">
+        <div class="landing-header">
+            <h2><i class="fa fa-headset"></i> Gestión de PQRS</h2>
+            <p *ngIf="propiedad" class="propiedad-nombre">{{ propiedad.nombre }}</p>
+        </div>
+
+        <div class="landing-body">
+            <div *ngIf="cargando" class="text-center p-4">
+                <div class="spinner-border text-info" role="status"></div>
+                <p class="mt-2 text-muted">Validando acceso...</p>
+            </div>
+
+            <div *ngIf="codigoInvalido" class="alert alert-danger">
+                <i class="fa fa-exclamation-circle"></i> El enlace no es válido o ha expirado. Por favor escanee nuevamente el código QR.
+            </div>
+
+            <ng-container *ngIf="codigoValido && vista === 'inicio'">
+                <div class="text-center mb-4">
+                    <p class="lead">Bienvenido al canal de PQRS</p>
+                    <p class="text-muted">Seleccione una opción para continuar</p>
+                </div>
+
+                <div class="row g-3 opciones-pqrs">
+                    <div class="col-md-6">
+                        <button class="btn btn-opcion btn-registrar w-100" (click)="irARegistrar()">
+                            <i class="fa fa-edit"></i>
+                            <span>Registrar PQR</span>
+                            <small>Crear una nueva solicitud</small>
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-opcion btn-seguimiento w-100" (click)="irASeguimiento()">
+                            <i class="fa fa-search"></i>
+                            <span>Seguimiento PQR</span>
+                            <small>Consulte el estado de su caso</small>
+                        </button>
+                    </div>
+                </div>
+
+                <div *ngIf="getGoogleMapsEmbedUrl(propiedad?.ubicacion_maps)" class="mt-4">
+                    <label class="form-label"><i class="fa fa-map-marker-alt"></i> Ubicación</label>
+                    <iframe [src]="getSafeMapsUrl(propiedad?.ubicacion_maps)" width="100%" height="250" style="border:0; border-radius:12px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </ng-container>
+
+            <ng-container *ngIf="vista === 'registrar'">
+                <h4 class="mb-3"><i class="fa fa-edit"></i> Registrar PQRS</h4>
+
+                <div *ngIf="!puedeCrear" class="mb-3">
+                    <label class="form-label">Número de documento *</label>
+                    <div class="input-group">
+                        <input pInputText type="text" [(ngModel)]="documentoInicial" class="form-control" placeholder="Ingrese su número de cédula" />
+                        <button class="btn btn-info text-white" (click)="validarLimite()" [disabled]="validandoLimite">
+                            <span *ngIf="validandoLimite" class="spinner-border spinner-border-sm"></span>
+                            <span *ngIf="!validandoLimite">Continuar</span>
+                        </button>
+                    </div>
+                    <div class="form-text">Ingrese su documento para validar que puede crear nuevas solicitudes.</div>
+                </div>
+
+                <div *ngIf="puedeCrear">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre completo *</label>
+                            <input pInputText type="text" [(ngModel)]="formData.nombre_solicitante" class="form-control" placeholder="Su nombre" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Correo electrónico *</label>
+                            <input pInputText type="email" [(ngModel)]="formData.email_solicitante" class="form-control" placeholder="correo@ejemplo.com" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Documento *</label>
+                            <input pInputText type="text" [(ngModel)]="formData.documento_solicitante" class="form-control" [disabled]="true" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Piso / Apartamento</label>
+                            <input pInputText type="text" [(ngModel)]="formData.piso" class="form-control" placeholder="Ej: Torre 2, Apto 301" />
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Ubicación específica</label>
+                            <input pInputText type="text" [(ngModel)]="formData.ubicacion" class="form-control" placeholder="Ej: Zona social, ascensor 1" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo de PQR *</label>
+                            <p-dropdown [options]="tiposPqr" [(ngModel)]="formData.tipo_pqr" optionLabel="label" optionValue="value" class="w-100" appendTo="body" placeholder="Seleccione" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Pretensiones</label>
+                        <textarea pInputTextarea [(ngModel)]="formData.pretensiones" rows="2" class="form-control" placeholder="¿Qué espera como solución?"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Observaciones</label>
+                        <textarea pInputTextarea [(ngModel)]="formData.observaciones" rows="3" class="form-control" placeholder="Describa con detalle la situación"></textarea>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Foto 1</label>
+                            <input type="file" class="form-control" accept="image/*" (change)="onFileSelected($event, 'FOTO1')" />
+                            <div *ngIf="obtenerFoto('FOTO1')" class="mt-2 preview-img">
+                                <img [src]="obtenerFoto('FOTO1')" alt="Foto 1" />
+                                <button class="btn btn-sm btn-danger" (click)="eliminarFoto('FOTO1')">Eliminar</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Foto 2</label>
+                            <input type="file" class="form-control" accept="image/*" (change)="onFileSelected($event, 'FOTO2')" />
+                            <div *ngIf="obtenerFoto('FOTO2')" class="mt-2 preview-img">
+                                <img [src]="obtenerFoto('FOTO2')" alt="Foto 2" />
+                                <button class="btn btn-sm btn-danger" (click)="eliminarFoto('FOTO2')">Eliminar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-outline-secondary" (click)="volverInicio()">Volver</button>
+                        <button class="btn btn-info text-white" (click)="enviarSolicitud()" [disabled]="enviando">
+                            <span *ngIf="enviando" class="spinner-border spinner-border-sm"></span>
+                            <span *ngIf="!enviando">Guardar y enviar</span>
+                        </button>
+                    </div>
+                </div>
+            </ng-container>
+
+            <ng-container *ngIf="vista === 'confirmacion'">
+                <div class="text-center py-4">
+                    <i class="fa fa-check-circle fa-4x text-success mb-3"></i>
+                    <h4>Su solicitud ha sido registrada</h4>
+                    <p class="text-muted">Su código de radicado es:</p>
+                    <div class="radicado-box">{{ codigoRadicadoGenerado }}</div>
+                    <p class="text-muted small mt-3">Hemos enviado una copia de la información al correo que registró.</p>
+                    <button class="btn btn-info text-white mt-3" (click)="volverInicio()">Volver al inicio</button>
+                </div>
+            </ng-container>
+
+            <ng-container *ngIf="vista === 'seguimiento'">
+                <h4 class="mb-3"><i class="fa fa-search"></i> Seguimiento de PQRS</h4>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Código de radicado</label>
+                        <input pInputText type="text" [(ngModel)]="consulta.codigo_radicado" class="form-control" placeholder="PQR-XXXXXX" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Documento</label>
+                        <input pInputText type="text" [(ngModel)]="consulta.documento" class="form-control" placeholder="Número de documento" />
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mb-4">
+                    <button class="btn btn-outline-secondary" (click)="volverInicio()">Volver</button>
+                    <button class="btn btn-info text-white" (click)="consultar()" [disabled]="consultando">
+                        <span *ngIf="consultando" class="spinner-border spinner-border-sm"></span>
+                        <span *ngIf="!consultando">Consultar</span>
+                    </button>
+                </div>
+
+                <div *ngIf="resultados.length === 0 && !consultando" class="alert alert-light text-center">
+                    <i class="fa fa-inbox"></i> No se encontraron solicitudes.
+                </div>
+
+                <div *ngFor="let sol of resultados" class="seguimiento-card mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="mb-0">{{ sol.codigo_radicado }}</h5>
+                            <small class="text-muted">{{ sol.tipo_pqr }} | {{ sol.fecha_radicacion | date:'mediumDate' }}</small>
+                        </div>
+                        <span class="badge" [ngClass]="{
+                            'bg-secondary': sol.estado === 'RADICADO',
+                            'bg-info': sol.estado === 'CATEGORIZADO',
+                            'bg-warning': sol.estado === 'EN_AVANCE',
+                            'bg-success': sol.estado === 'FINALIZADO'
+                        }">{{ sol.estado === 'RADICADO' ? 'Radicado' : sol.estado === 'CATEGORIZADO' ? 'Categorizado' : sol.estado === 'EN_AVANCE' ? 'En avance' : 'Finalizado' }}</span>
+                    </div>
+
+                    <div class="stepper">
+                        <div *ngFor="let paso of pasos; let i = index" class="step" [class.active]="i <= getIndexPaso(sol.estado)" [class.current]="i === getIndexPaso(sol.estado)">
+                            <div class="step-circle">{{ i + 1 }}</div>
+                            <div class="step-label">{{ paso.label }}</div>
+                            <div *ngIf="i < pasos.length - 1" class="step-line"></div>
+                        </div>
+                    </div>
+
+                    <div *ngIf="sol.resumen_finalizacion" class="mt-3 p-2 bg-light rounded">
+                        <strong>Resumen de finalización:</strong> {{ sol.resumen_finalizacion }}
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+
+        <div class="landing-footer">
+            <small>Powered by <a href="https://integral-soft.com.co" target="_blank">Integral-Soft.com.co</a></small>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>

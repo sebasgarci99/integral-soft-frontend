@@ -26,6 +26,7 @@ import { AccordionModule } from 'primeng/accordion';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TooltipModule } from 'primeng/tooltip';
+import { normalizarTelefono } from '../../utils/telefono.util';
 
 @Component({
     selector: 'app-gestion-pacientes',
@@ -408,6 +409,8 @@ export class GestionPacientesComponent implements OnInit {
         if (!this.validarFormulario()) return;
 
         const payload = { ...this.formData };
+        payload.telefono_contacto = normalizarTelefono(payload.telefono_contacto);
+
         if (!this.citaModificada) {
             delete payload.fecha_cita;
         } else if (payload.fecha_cita) {

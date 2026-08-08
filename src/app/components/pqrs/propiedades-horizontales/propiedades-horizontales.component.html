@@ -1,0 +1,213 @@
+<div class="flex-grow-1 p-4 dashboard">
+    <div class="card mt-2">
+        <div class="card-body">
+            <div class="component-header">
+                <h3><i class="fa fa-building"></i> Propiedades Horizontales</h3>
+                <p-button label="Nueva Propiedad" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" styleClass="btn-nuevo" />
+            </div>
+
+            <div class="search-bar">
+                <input pInputText type="text" (input)="aplicarFiltroGlobal($event)" placeholder="Buscar por nombre, NIT, dirección..." />
+            </div>
+
+            <div class="position-relative">
+                <div *ngIf="loadingPropiedades" class="uiverse-loader-overlay">
+                    <div class="uiverse-loader-wrapper">
+                        <div class="uiverse-loader">
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <p-table #tablaPropiedades [value]="propiedades" [paginator]="true" [rows]="10" responsiveLayout="scroll"
+                    [globalFilterFields]="['nombre', 'nit', 'direccion', 'administrador_actual', 'email_pqrs']" stripedRows>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>NIT</th>
+                            <th>Dirección</th>
+                            <th>Administrador</th>
+                            <th>Email PQRS</th>
+                            <th>Teléfono</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row>
+                        <tr>
+                            <td>{{ row.nombre }}</td>
+                            <td>{{ row.nit || '—' }}</td>
+                            <td>{{ row.direccion }}</td>
+                            <td>{{ row.administrador_actual || '—' }}</td>
+                            <td>{{ row.email_pqrs }}</td>
+                            <td>{{ row.telefono || '—' }}</td>
+                            <td>
+                                <span class="badge" [ngClass]="row.estado === 'A' ? 'badge-active' : 'badge-inactive'">
+                                    {{ row.estado === 'A' ? 'Activo' : 'Inactivo' }}
+                                </span>
+                            </td>
+                            <td>
+                                <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editarPropiedad(row)" pTooltip="Editar" />
+                                <p-button icon="fa fa-qrcode" class="p-button-text p-button-sm" severity="info" (onClick)="mostrarQr(row)" pTooltip="Ver QR" />
+                                <p-button icon="fa fa-tags" class="p-button-text p-button-sm" severity="secondary" (onClick)="abrirCategorias(row)" pTooltip="Categorías" />
+                                <p-button icon="fa fa-sync" class="p-button-text p-button-sm" severity="help" (onClick)="renovarCodigo(row)" pTooltip="Renovar código QR" />
+                                <p-button icon="fa fa-power-off" class="p-button-text p-button-sm" [severity]="row.estado === 'A' ? 'danger' : 'success'" (onClick)="inactivarPropiedad(row)" pTooltip="Cambiar estado" />
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="8" class="text-center text-muted p-4">
+                                <i class="fa fa-inbox me-2"></i> No se encontraron propiedades horizontales
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+
+            <p-dialog header="{{ isEdit ? 'Editar' : 'Nueva' }} Propiedad Horizontal" [(visible)]="displayDialog" [modal]="true" [style]="{ width: '50rem' }" [draggable]="false" appendTo="body">
+                <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
+                    <div class="col-12 d-md-flex d-sm-grid">
+                        <div class="col-lg-6 col-md-12 mt-2 me-2">
+                            <label class="form-label">Nombre *</label>
+                            <input pInputText [(ngModel)]="formData.nombre" class="w-100" maxlength="200" placeholder="Nombre de la propiedad" />
+                        </div>
+                        <div class="col-lg-6 col-md-12 mt-2">
+                            <label class="form-label">NIT</label>
+                            <input pInputText [(ngModel)]="formData.nit" class="w-100" maxlength="30" placeholder="NIT" />
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-2">
+                        <label class="form-label">Dirección *</label>
+                        <input pInputText [(ngModel)]="formData.direccion" class="w-100" maxlength="250" placeholder="Dirección" />
+                    </div>
+
+                    <div class="col-12 mt-2">
+                        <label class="form-label">Ubicación (Google Maps)</label>
+                        <textarea pInputTextarea [(ngModel)]="formData.ubicacion_maps" rows="2" class="w-100" placeholder="URL o coordenadas de Google Maps (opcional)"></textarea>
+                    </div>
+
+                    <div class="col-12 mt-2" *ngIf="getGoogleMapsEmbedUrl(formData.ubicacion_maps)">
+                        <label class="form-label">Vista previa</label>
+                        <iframe [src]="getSafeMapsUrl(formData.ubicacion_maps)" width="100%" height="250" style="border:0; border-radius:8px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+
+                    <div class="col-12 d-md-flex d-sm-grid">
+                        <div class="col-lg-3 col-md-12 mt-2 me-2">
+                            <label class="form-label">Pisos</label>
+                            <input pInputText [(ngModel)]="formData.pisos" type="number" class="w-100" placeholder="0" />
+                        </div>
+                        <div class="col-lg-3 col-md-12 mt-2 me-2">
+                            <label class="form-label">Apartamentos</label>
+                            <input pInputText [(ngModel)]="formData.cantidad_aptos" type="number" class="w-100" placeholder="0" />
+                        </div>
+                        <div class="col-lg-3 col-md-12 mt-2 me-2">
+                            <label class="form-label">Consultorios</label>
+                            <input pInputText [(ngModel)]="formData.cantidad_consultorios" type="number" class="w-100" placeholder="0" />
+                        </div>
+                        <div class="col-lg-3 col-md-12 mt-2">
+                            <label class="form-label">Otros</label>
+                            <input pInputText [(ngModel)]="formData.cantidad_otros" type="number" class="w-100" placeholder="0" />
+                        </div>
+                    </div>
+
+                    <div class="col-12 d-md-flex d-sm-grid">
+                        <div class="col-lg-6 col-md-12 mt-2 me-2">
+                            <label class="form-label">Administrador actual</label>
+                            <input pInputText [(ngModel)]="formData.administrador_actual" class="w-100" maxlength="200" placeholder="Nombre del administrador" />
+                        </div>
+                        <div class="col-lg-6 col-md-12 mt-2">
+                            <label class="form-label">Email PQRS *</label>
+                            <input pInputText [(ngModel)]="formData.email_pqrs" class="w-100" maxlength="100" placeholder="correo@ejemplo.com" />
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-2">
+                        <label class="form-label">Teléfono</label>
+                        <input pInputText [(ngModel)]="formData.telefono" class="w-100" maxlength="20" placeholder="Teléfono" />
+                    </div>
+                </div>
+
+                <ng-template pTemplate="footer">
+                    <div class="flex justify-content-end gap-2">
+                        <p-button label="Cancelar" class="m-2" icon="fa fa-times" severity="secondary" (onClick)="displayDialog = false" [disabled]="loadingGuardar" />
+                        <p-button label="Guardar" class="m-2" icon="fa fa-check" severity="info" (onClick)="guardar()" [loading]="loadingGuardar" />
+                    </div>
+                </ng-template>
+            </p-dialog>
+
+            <p-dialog header="Código QR" [(visible)]="displayQrDialog" [modal]="true" [style]="{ width: '32rem' }" [draggable]="false" appendTo="body">
+                <div class="text-center" *ngIf="propiedadSeleccionada">
+                    <h5 class="mb-2">{{ propiedadSeleccionada.nombre }}</h5>
+                    <p class="text-muted small mb-3">Descarga e imprime el código para la puerta del edificio</p>
+                    <div class="qr-container p-3 mb-3" *ngIf="qrDecoradoDataUrl">
+                        <img [src]="qrDecoradoDataUrl" alt="Código QR" class="qr-img" />
+                    </div>
+                    <p class="small text-break text-muted">{{ qrUrl }}</p>
+                </div>
+                <ng-template pTemplate="footer">
+                    <div class="flex justify-content-end gap-2">
+                        <p-button label="Cerrar" class="m-2" icon="fa fa-times" severity="secondary" (onClick)="displayQrDialog = false" />
+                        <p-button label="Descargar HD" class="m-2" icon="fa fa-file-image" severity="success" (onClick)="descargarQr(3)" />
+                        <p-button label="Descargar" class="m-2" icon="fa fa-download" severity="info" (onClick)="descargarQr(1)" />
+                    </div>
+                </ng-template>
+            </p-dialog>
+
+            <p-dialog header="Categorías de PQRS" [(visible)]="displayCategoriasDialog" [modal]="true" [style]="{ width: '42rem' }" [draggable]="false" appendTo="body">
+                <div class="p-fluid grid p-formgrid mb-3">
+                    <div class="col-12 d-md-flex d-sm-grid align-items-end">
+                        <div class="col-lg-8 col-md-12 mt-2 me-2">
+                            <label class="form-label">Nombre de la categoría</label>
+                            <input pInputText [(ngModel)]="categoriaForm.nombre" class="w-100" maxlength="100" placeholder="Ej: Comité de convivencia" />
+                        </div>
+                        <div class="col-lg-3 col-md-12 mt-2 me-2">
+                            <label class="form-label">Orden</label>
+                            <input pInputText [(ngModel)]="categoriaForm.orden" type="number" class="w-100" placeholder="0" />
+                        </div>
+                        <div class="col-lg-1 col-md-12 mt-2">
+                            <p-button icon="fa fa-check" severity="info" (onClick)="guardarCategoria()" pTooltip="Guardar" />
+                        </div>
+                    </div>
+                </div>
+
+                <p-table [value]="categorias" [paginator]="true" [rows]="5" responsiveLayout="scroll" stripedRows>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Orden</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row>
+                        <tr>
+                            <td>{{ row.nombre }}</td>
+                            <td>{{ row.orden }}</td>
+                            <td>
+                                <span class="badge" [ngClass]="row.estado === 'A' ? 'badge-active' : 'badge-inactive'">
+                                    {{ row.estado === 'A' ? 'Activo' : 'Inactivo' }}
+                                </span>
+                            </td>
+                            <td>
+                                <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editarCategoria(row)" />
+                                <p-button icon="fa fa-power-off" class="p-button-text p-button-sm" [severity]="row.estado === 'A' ? 'danger' : 'success'" (onClick)="inactivarCategoria(row)" />
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="4" class="text-center text-muted p-4">
+                                <i class="fa fa-inbox me-2"></i> No hay categorías registradas
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </p-dialog>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

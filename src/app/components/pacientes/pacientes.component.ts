@@ -24,6 +24,7 @@ import { localeEs } from '../../utils/locale-es';
 import { CalendarModule } from 'primeng/calendar';
 import Swal from 'sweetalert2';
 import { StepsModule } from "primeng/steps";
+import { normalizarTelefono } from '../../utils/telefono.util';
 
 @Component({
     selector: 'app-consultorios',
@@ -127,6 +128,8 @@ export class PacientesComponent {
 
     async crearActualizarPaciente() {
         if (!this.validarFormulario()) return;
+
+        this.formData.telefono_contacto = normalizarTelefono(this.formData.telefono_contacto);
 
         if (this.isEdit) {
             (await this.pacientesService.actualizarPaciente(this.formData)).subscribe((res: any) => {

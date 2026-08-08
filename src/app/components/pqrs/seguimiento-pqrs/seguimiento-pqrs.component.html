@@ -1,0 +1,228 @@
+<div class="flex-grow-1 p-4 dashboard">
+    <div class="card mt-2">
+        <div class="card-body">
+            <div class="component-header">
+                <h3><i class="fa fa-tasks"></i> Seguimiento de Procesos PQRS</h3>
+            </div>
+
+            <div class="row mb-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Propiedad horizontal</label>
+                    <p-dropdown [options]="propiedades" [(ngModel)]="propiedadSeleccionada" optionLabel="nombre" [showClear]="true" placeholder="Seleccione una propiedad" (onChange)="onPropiedadChange()" class="w-100" appendTo="body" />
+                </div>
+            </div>
+
+            <div *ngIf="!propiedadSeleccionada" class="empty-state">
+                <i class="fa fa-building"></i>
+                <p>Seleccione una propiedad horizontal para ver sus solicitudes PQRS.</p>
+            </div>
+
+            <div class="position-relative" *ngIf="propiedadSeleccionada">
+                <div *ngIf="cargandoSolicitudes" class="uiverse-loader-overlay">
+                    <div class="uiverse-loader-wrapper">
+                        <div class="uiverse-loader"><span></span><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+
+                <p-table [value]="solicitudes" [paginator]="true" [rows]="10" responsiveLayout="scroll" stripedRows>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Código</th>
+                            <th>Fecha</th>
+                            <th>Solicitante</th>
+                            <th>Documento</th>
+                            <th>Tipo</th>
+                            <th>Categoría</th>
+                            <th>Estado</th>
+                            <th>Días</th>
+                            <th>Bandera</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row>
+                        <tr>
+                            <td>{{ row.codigo_radicado }}</td>
+                            <td>{{ row.fecha_radicacion | date:'shortDate' }}</td>
+                            <td>{{ row.nombre_solicitante }}</td>
+                            <td>{{ row.documento_solicitante }}</td>
+                            <td>{{ getLabelTipoPqr(row.tipo_pqr) }}</td>
+                            <td>{{ row.Categoria?.nombre || '—' }}</td>
+                            <td>
+                                <span class="badge" [ngClass]="{
+                                    'bg-secondary': row.estado === 'RADICADO',
+                                    'bg-info': row.estado === 'CATEGORIZADO',
+                                    'bg-warning': row.estado === 'EN_AVANCE',
+                                    'bg-success': row.estado === 'FINALIZADO'
+                                }">{{ row.estado === 'RADICADO' ? 'Radicado' : row.estado === 'CATEGORIZADO' ? 'Categorizado' : row.estado === 'EN_AVANCE' ? 'En avance' : 'Finalizado' }}</span>
+                            </td>
+                            <td>{{ row.dias_transcurridos }}</td>
+                            <td>
+                                <span *ngIf="row.bandera" [class]="getClaseBandera(row.bandera)">{{ getLabelBandera(row.bandera) }}</span>
+                                <span *ngIf="!row.bandera">—</span>
+                            </td>
+                            <td>
+                                <p-button icon="fa fa-eye" class="p-button-text p-button-sm" severity="info" (onClick)="verDetalle(row)" pTooltip="Ver detalle" />
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="10" class="text-center text-muted p-4">
+                                <i class="fa fa-inbox me-2"></i> No se encontraron solicitudes
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-dialog header="Detalle de la solicitud" [(visible)]="displayDetalle" [modal]="true" [style]="{ width: '60rem' }" [draggable]="false" appendTo="body">
+    <div *ngIf="solicitudSeleccionada">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h5 class="mb-1">{{ solicitudSeleccionada.codigo_radicado }}</h5>
+                <p class="text-muted mb-0">{{ solicitudSeleccionada.nombre_solicitante }} | {{ solicitudSeleccionada.email_solicitante }}</p>
+            </div>
+            <span class="badge" [ngClass]="{
+                'bg-secondary': solicitudSeleccionada.estado === 'RADICADO',
+                'bg-info': solicitudSeleccionada.estado === 'CATEGORIZADO',
+                'bg-warning': solicitudSeleccionada.estado === 'EN_AVANCE',
+                'bg-success': solicitudSeleccionada.estado === 'FINALIZADO'
+            }">{{ solicitudSeleccionada.estado === 'RADICADO' ? 'Radicado' : solicitudSeleccionada.estado === 'CATEGORIZADO' ? 'Categorizado' : solicitudSeleccionada.estado === 'EN_AVANCE' ? 'En avance' : 'Finalizado' }}</span>
+        </div>
+
+        <div class="stepper mb-4">
+            <div *ngFor="let paso of pasos; let i = index" class="step" [class.active]="i <= getIndexPaso(solicitudSeleccionada.estado)" [class.current]="i === getIndexPaso(solicitudSeleccionada.estado)">
+                <div class="step-circle">{{ i + 1 }}</div>
+                <div class="step-label">{{ paso.label }}</div>
+                <div *ngIf="i < pasos.length - 1" class="step-line"></div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6"><strong>Tipo:</strong> {{ getLabelTipoPqr(solicitudSeleccionada.tipo_pqr) }}</div>
+            <div class="col-md-6"><strong>Documento:</strong> {{ solicitudSeleccionada.documento_solicitante }}</div>
+            <div class="col-md-6"><strong>Piso/Ubicación:</strong> {{ solicitudSeleccionada.piso || '—' }} / {{ solicitudSeleccionada.ubicacion || '—' }}</div>
+            <div class="col-md-6"><strong>Fecha radicación:</strong> {{ solicitudSeleccionada.fecha_radicacion | date:'medium' }}</div>
+            <div class="col-md-12"><strong>Pretensiones:</strong> {{ solicitudSeleccionada.pretensiones || '—' }}</div>
+            <div class="col-md-12"><strong>Observaciones:</strong> {{ solicitudSeleccionada.observaciones || '—' }}</div>
+        </div>
+
+        <div *ngIf="solicitudSeleccionada.resumen_finalizacion" class="alert alert-success">
+            <strong>Resumen de finalización:</strong> {{ solicitudSeleccionada.resumen_finalizacion }}
+        </div>
+
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link" [class.active]="vistaDetalle === 'detalle'" (click)="vistaDetalle = 'detalle'">Detalle</a>
+            </li>
+            <li class="nav-item" *ngIf="solicitudSeleccionada.estado === 'RADICADO'">
+                <a class="nav-link" [class.active]="vistaDetalle === 'categoria'" (click)="vistaDetalle = 'categoria'">Categoría</a>
+            </li>
+            <li class="nav-item" *ngIf="solicitudSeleccionada.estado !== 'FINALIZADO'">
+                <a class="nav-link" [class.active]="vistaDetalle === 'avance'" (click)="vistaDetalle = 'avance'">Avance</a>
+            </li>
+            <li class="nav-item" *ngIf="solicitudSeleccionada.estado !== 'FINALIZADO'">
+                <a class="nav-link" [class.active]="vistaDetalle === 'finalizar'" (click)="vistaDetalle = 'finalizar'">Finalizar</a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane show active" *ngIf="vistaDetalle === 'categoria'">
+                <div class="form-section">
+                    <div class="mb-3">
+                        <p-checkbox [(ngModel)]="notificarCategoria" [binary]="true" inputId="notificar-categoria" />
+                        <label for="notificar-categoria" class="ms-2">Notificar al usuario por email</label>
+                    </div>
+                    <label class="form-label">Categoría *</label>
+                    <p-dropdown [options]="categorias" [(ngModel)]="formCategoria.id_categoria" optionLabel="nombre" optionValue="id_categoria_pqrs" class="w-100 mb-3" appendTo="body" placeholder="Seleccione categoría" />
+                    <div class="d-flex justify-content-end">
+                        <p-button label="Guardar categoría" icon="fa fa-check" severity="info" (onClick)="guardarCategoria()" [loading]="guardando" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane show active" *ngIf="vistaDetalle === 'avance'">
+                <div class="form-section">
+                    <div class="mb-3">
+                        <label class="form-label">Descripción del avance *</label>
+                        <textarea pInputTextarea [(ngModel)]="formAvance.descripcion" rows="3" class="w-100" placeholder="Registre la novedad"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <p-checkbox [(ngModel)]="formAvance.avanza_a_finalizacion" [binary]="true" inputId="avanza" />
+                        <label for="avanza" class="ms-2">Avanza a finalización</label>
+                    </div>
+                    <div class="mb-3">
+                        <p-checkbox [(ngModel)]="notificarAvance" [binary]="true" inputId="notificar-avance" />
+                        <label for="notificar-avance" class="ms-2">Notificar al usuario por email</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Adjuntos</label>
+                        <input type="file" class="form-control" accept="image/*,application/pdf" (change)="onFileSelected($event, 'avance')" />
+                        <div class="mt-2 d-flex flex-wrap gap-2">
+                            <div *ngFor="let arch of formAvance.archivos; let i = index" class="adjunto-mini">
+                                <i class="fa fa-file"></i> {{ arch.nombre_original }}
+                                <button class="btn btn-sm btn-link text-danger" (click)="eliminarArchivo(i, 'avance')">Eliminar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <p-button label="Registrar avance" icon="fa fa-check" severity="info" (onClick)="guardarAvance()" [loading]="guardando" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane show active" *ngIf="vistaDetalle === 'finalizar'">
+                <div class="form-section">
+                    <div class="mb-3">
+                        <label class="form-label">Resumen de finalización *</label>
+                        <textarea pInputTextarea [(ngModel)]="formFinalizar.resumen_finalizacion" rows="3" class="w-100" placeholder="Indique cómo se resolvió la solicitud"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <p-checkbox [(ngModel)]="notificarFinalizar" [binary]="true" inputId="notificar-finalizar" />
+                        <label for="notificar-finalizar" class="ms-2">Notificar al usuario por email</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Adjuntos</label>
+                        <input type="file" class="form-control" accept="image/*,application/pdf" (change)="onFileSelected($event, 'finalizar')" />
+                        <div class="mt-2 d-flex flex-wrap gap-2">
+                            <div *ngFor="let arch of formFinalizar.archivos; let i = index" class="adjunto-mini">
+                                <i class="fa fa-file"></i> {{ arch.nombre_original }}
+                                <button class="btn btn-sm btn-link text-danger" (click)="eliminarArchivo(i, 'finalizar')">Eliminar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <p-button label="Finalizar solicitud" icon="fa fa-check" severity="success" (onClick)="finalizarSolicitud()" [loading]="guardando" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane show active" *ngIf="vistaDetalle === 'detalle'">
+                <h6>Archivos de radicación</h6>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <a *ngFor="let arch of solicitudSeleccionada.Archivos" [href]="getPreviewUrl(arch)" target="_blank" class="btn btn-sm btn-outline-info">
+                        <i class="fa" [ngClass]="esImagen(arch.mime_type) ? 'fa-image' : 'fa-file'"></i> {{ arch.nombre_original }}
+                    </a>
+                    <span *ngIf="!solicitudSeleccionada.Archivos?.length" class="text-muted">Sin archivos</span>
+                </div>
+
+                <h6>Avances</h6>
+                <div *ngFor="let avance of solicitudSeleccionada.Avances" class="avance-item mb-2 p-2 border rounded">
+                    <p class="mb-1"><strong>{{ avance.createdAt | date:'medium' }}</strong></p>
+                    <p class="mb-1">{{ avance.descripcion }}</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a *ngFor="let arch of avance.Archivos" [href]="getPreviewUrl(arch)" target="_blank" class="btn btn-sm btn-outline-secondary">
+                            <i class="fa" [ngClass]="esImagen(arch.mime_type) ? 'fa-image' : 'fa-file'"></i> {{ arch.nombre_original }}
+                        </a>
+                    </div>
+                </div>
+                <div *ngIf="!solicitudSeleccionada.Avances?.length" class="text-muted">Sin avances registrados</div>
+            </div>
+        </div>
+    </div>
+</p-dialog>
+
+<p-toast></p-toast>

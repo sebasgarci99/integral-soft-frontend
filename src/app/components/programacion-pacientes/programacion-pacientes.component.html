@@ -59,11 +59,11 @@
                                 (click)="abrirDetalle(cita)">
                                 <div class="cita-event-title">
                                     {{ cita.nombre_paciente }}
-                                    <i *ngIf="cita.notificado_whatsapp" class="fa-brands fa-whatsapp text-success ms-1" pTooltip="Notificado el {{ cita.fecha_notificacion_whatsapp | date:'dd/MM/yyyy HH:mm' }}"></i>
+                                    <i *ngIf="cita.notificado_whatsapp" class="fa-brands fa-whatsapp text-success ms-1" pTooltip="Notificado el {{ cita.fecha_notificacion_whatsapp | date:'dd/MM/yyyy h:mm a' }}"></i>
                                 </div>
                                 <div class="cita-event-time">{{ cita.hora_inicio }} - {{ cita.hora_fin }}</div>
                                 <div class="cita-event-type" *ngIf="cita.tipo_cita">{{ cita.tipo_cita }}</div>
-                                <button pButton type="button" icon="fa-brands fa-whatsapp" class="p-button-rounded p-button-success p-button-xs cita-event-whatsapp" (click)="notificarWhatsAppDesdeTabla(cita, $event)" pTooltip="Notificar por WhatsApp"></button>
+                                <button pButton type="button" icon="fa-brands fa-whatsapp" class="p-button-rounded p-button-success p-button-xs cita-event-whatsapp" (click)="notificarWhatsAppDesdeTabla(cita, $event)" pTooltip="Notificar por WhatsApp" tooltipPosition="top"></button>
                             </div>
                         </div>
                     </div>
@@ -184,8 +184,8 @@
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-6">
             <label class="form-label">Tel&eacute;fono</label>
-            <input pInputText class="w-100" [(ngModel)]="nuevoPaciente.telefono_contacto" placeholder="3001234567" />
-            <small class="text-muted">El indicativo 57 ya est&aacute; incluido.</small>
+            <input pInputText class="w-100" [(ngModel)]="nuevoPaciente.telefono_contacto" placeholder="+573001234567" />
+            <small class="text-muted">Si no incluye indicativo, se asumir&aacute; +57 (Colombia). Para otro pa&iacute;s escriba el indicativo completo, ej: +1 3001234567.</small>
         </div>
         <div class="col-12 col-md-6">
             <label class="form-label">Correo</label>

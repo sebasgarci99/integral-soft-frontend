@@ -16,6 +16,7 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
 import { TabViewModule } from 'primeng/tabview';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TooltipModule } from 'primeng/tooltip';
+import { normalizarTelefono } from '../../utils/telefono.util';
 
 import { ProgramacionPacientesService, CitaPaciente, PacienteBusqueda } from '../../services/programacion-pacientes/programacion-pacientes.service';
 
@@ -106,7 +107,7 @@ export class ProgramacionPacientesComponent implements OnInit {
         numero_documento: '',
         fecha_nacimiento: null,
         sexo: '',
-        telefono_contacto: '57',
+        telefono_contacto: '+57',
         correo_electronico: ''
     };
 
@@ -410,7 +411,7 @@ export class ProgramacionPacientesComponent implements OnInit {
             numero_documento: '',
             fecha_nacimiento: null,
             sexo: '',
-            telefono_contacto: '57',
+            telefono_contacto: '+57',
             correo_electronico: ''
         };
         this.displayNuevoPacienteDialog = true;
@@ -418,6 +419,8 @@ export class ProgramacionPacientesComponent implements OnInit {
 
     async guardarNuevoPaciente() {
         if (!this.validarNuevoPaciente()) return;
+
+        this.nuevoPaciente.telefono_contacto = normalizarTelefono(this.nuevoPaciente.telefono_contacto);
 
         try {
             const obs = await this.service.crearPacienteRapido(this.nuevoPaciente);
@@ -644,10 +647,7 @@ export class ProgramacionPacientesComponent implements OnInit {
             .replace(/{hora}/g, hora || '')
             .replace(/{empresa}/g, 'Integral-Soft');
 
-        let telefono = String(paciente.telefono_contacto).replace(/\D/g, '');
-        if (!telefono.startsWith('57')) {
-            telefono = '57' + telefono.replace(/^\+?57/, '');
-        }
+        let telefono = normalizarTelefono(paciente.telefono_contacto).replace(/^\+/, '');
 
         this.previewWhatsappData = {
             id_cita: idCitaReal,
@@ -742,10 +742,7 @@ export class ProgramacionPacientesComponent implements OnInit {
         const paciente = this.formData.pacienteSeleccionado;
         if (!paciente?.telefono_contacto) return;
 
-        let telefono = String(paciente.telefono_contacto).replace(/\D/g, '');
-        if (!telefono.startsWith('57')) {
-            telefono = '57' + telefono.replace(/^\+?57/, '');
-        }
+        let telefono = normalizarTelefono(paciente.telefono_contacto).replace(/^\+/, '');
 
         const nombrePaciente = `${paciente.nombres || ''} ${paciente.apellidos || ''}`.trim();
         const fecha = this.formData.fecha_cita

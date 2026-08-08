@@ -134,8 +134,9 @@
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
-                                    <input pInputText [(ngModel)]="formData.telefono_contacto" class="w-100" />
+                                    <input pInputText [(ngModel)]="formData.telefono_contacto" class="w-100" placeholder="+573001234567" />
                                     <label>Teléfono</label>
+                                    <small class="text-muted d-block mt-1">Si no incluye indicativo, se asumir&aacute; +57 (Colombia). Para otro pa&iacute;s escriba el indicativo completo, ej: +1 3001234567.</small>
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">

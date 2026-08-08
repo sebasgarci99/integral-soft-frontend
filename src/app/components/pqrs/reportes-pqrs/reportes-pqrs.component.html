@@ -1,0 +1,82 @@
+<div class="flex-grow-1 p-4 dashboard">
+    <div class="card mt-2">
+        <div class="card-body">
+            <div class="component-header">
+                <h3><i class="fa fa-file-excel"></i> Reportes PQRS</h3>
+            </div>
+
+            <div class="row g-3 mb-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Propiedad horizontal</label>
+                    <p-dropdown [options]="propiedades" [(ngModel)]="propiedadSeleccionada" optionLabel="nombre" [showClear]="true" placeholder="Todas" class="w-100" appendTo="body" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Fecha inicio *</label>
+                    <p-calendar [(ngModel)]="filtros.fecha_inicio" dateFormat="yy-mm-dd" class="w-100" appendTo="body" placeholder="yyyy-mm-dd" [showIcon]="true" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Fecha fin *</label>
+                    <p-calendar [(ngModel)]="filtros.fecha_fin" dateFormat="yy-mm-dd" class="w-100" appendTo="body" placeholder="yyyy-mm-dd" [showIcon]="true" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
+                    <p-dropdown [options]="estados" [(ngModel)]="filtros.estado" optionLabel="label" optionValue="value" class="w-100" appendTo="body" placeholder="Seleccione" />
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mb-3">
+                <p-button label="Generar" icon="fa fa-search" severity="info" (onClick)="generar()" [loading]="cargando" />
+                <p-button label="Exportar Excel" icon="fa fa-file-excel" severity="success" (onClick)="exportarExcel()" [disabled]="resultados.length === 0" />
+                <p-button label="Limpiar" icon="fa fa-eraser" severity="secondary" (onClick)="limpiar()" />
+            </div>
+
+            <div class="position-relative">
+                <div *ngIf="cargando" class="uiverse-loader-overlay">
+                    <div class="uiverse-loader-wrapper">
+                        <div class="uiverse-loader"><span></span><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+
+                <p-table [value]="resultados" [paginator]="true" [rows]="10" responsiveLayout="scroll" stripedRows>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Código</th>
+                            <th>Propiedad</th>
+                            <th>Solicitante</th>
+                            <th>Documento</th>
+                            <th>Tipo</th>
+                            <th>Categoría</th>
+                            <th>Estado</th>
+                            <th>Fecha radicación</th>
+                            <th>Días</th>
+                            <th>Avances</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row>
+                        <tr>
+                            <td>{{ row.codigo_radicado }}</td>
+                            <td>{{ row.propiedad_horizontal }}</td>
+                            <td>{{ row.nombre_solicitante }}</td>
+                            <td>{{ row.documento_solicitante }}</td>
+                            <td>{{ row.tipo_pqr }}</td>
+                            <td>{{ row.categoria || '—' }}</td>
+                            <td>{{ row.estado }}</td>
+                            <td>{{ row.fecha_radicacion | date:'shortDate' }}</td>
+                            <td>{{ row.dias_transcurridos }}</td>
+                            <td>{{ row.cantidad_avances }}</td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="10" class="text-center text-muted p-4">
+                                <i class="fa fa-inbox me-2"></i> No hay datos para mostrar
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>

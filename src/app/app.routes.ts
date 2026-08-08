@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './components/login/login.component';
+import { GestionUsuarioComponent } from './components/pqrs/gestion-usuario/gestion-usuario.component';
 import { LayoutComponent } from './components/layout/layout.component';
 import { authGuard } from './utils/auth.guard';
 import { HomeComponent } from './components/home/home.component';
@@ -26,9 +27,14 @@ import { StockComponent } from './components/inventario/stock/stock.component';
 import { ConfiguracionComponent } from './components/inventario/configuracion/configuracion.component';
 import { ReporteProductosComponent } from './components/inventario/reporte-productos/reporte-productos.component';
 import { ProgramacionPacientesComponent } from './components/programacion-pacientes/programacion-pacientes.component';
+import { PropiedadesHorizontalesComponent } from './components/pqrs/propiedades-horizontales/propiedades-horizontales.component';
+import { SeguimientoPqrsComponent } from './components/pqrs/seguimiento-pqrs/seguimiento-pqrs.component';
+import { AlertasPqrsComponent } from './components/pqrs/alertas-pqrs/alertas-pqrs.component';
+import { ReportesPqrsComponent } from './components/pqrs/reportes-pqrs/reportes-pqrs.component';
 
 export const routes: Routes = [
     { path: 'login', component: LoginComponent },
+    { path: 'pqrs/gestion_usuario', component: GestionUsuarioComponent },
     {
         path: '',
         component: LayoutComponent,
@@ -59,6 +65,10 @@ export const routes: Routes = [
             { path: 'inventario/configuracion', component: ConfiguracionComponent },
             { path: 'inventario/reporte-productos', component: ReporteProductosComponent },
             { path: 'programacion_pacientes', component: ProgramacionPacientesComponent },
+            { path: 'pqrs/propiedades', component: PropiedadesHorizontalesComponent },
+            { path: 'pqrs/seguimiento', component: SeguimientoPqrsComponent },
+            { path: 'pqrs/alertas', component: AlertasPqrsComponent },
+            { path: 'pqrs/reportes', component: ReportesPqrsComponent },
         ]
     }
 ];

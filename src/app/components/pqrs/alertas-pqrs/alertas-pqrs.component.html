@@ -1,0 +1,110 @@
+<div class="flex-grow-1 p-4 dashboard">
+    <div class="card mt-2">
+        <div class="card-body">
+            <div class="component-header">
+                <h3><i class="fa fa-flag"></i> Configuración de Alertas PQRS</h3>
+            </div>
+
+            <div class="row mb-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Propiedad horizontal</label>
+                    <p-dropdown [options]="propiedades" [(ngModel)]="propiedadSeleccionada" optionLabel="nombre" [showClear]="true" placeholder="Seleccione una propiedad" (onChange)="onPropiedadChange()" class="w-100" appendTo="body" />
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0" *ngIf="propiedadSeleccionada">
+                    <p-button label="Cargar alertas por defecto" icon="fa fa-magic" severity="secondary" (onClick)="inicializarAlertasPorDefecto()" />
+                    <p-button class="ms-2" label="Nueva alerta" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" />
+                </div>
+            </div>
+
+            <div *ngIf="!propiedadSeleccionada" class="empty-state">
+                <i class="fa fa-building"></i>
+                <p>Seleccione una propiedad horizontal para configurar sus alertas.</p>
+            </div>
+
+            <div class="position-relative" *ngIf="propiedadSeleccionada">
+                <div *ngIf="cargando" class="uiverse-loader-overlay">
+                    <div class="uiverse-loader-wrapper">
+                        <div class="uiverse-loader"><span></span><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+
+                <p-table [value]="alertas" [paginator]="true" [rows]="10" responsiveLayout="scroll" stripedRows>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Orden</th>
+                            <th>Nombre</th>
+                            <th>Condición</th>
+                            <th>Días umbral</th>
+                            <th>Alerta</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row>
+                        <tr>
+                            <td>{{ row.orden }}</td>
+                            <td>{{ row.nombre_condicion }}</td>
+                            <td>{{ getLabelTipoCondicion(row.condicion?.tipo) }}</td>
+                            <td>{{ row.condicion?.tipo === 'DIAS_SIN_MOVIMIENTO' ? (row.dias_umbral || '—') : '—' }}</td>
+                            <td><span [class]="getClaseBadge(row.tipo_alerta)">{{ row.tipo_alerta }}</span></td>
+                            <td>
+                                <span class="badge" [ngClass]="row.estado === 'A' ? 'badge-active' : 'badge-inactive'">
+                                    {{ row.estado === 'A' ? 'Activo' : 'Inactivo' }}
+                                </span>
+                            </td>
+                            <td>
+                                <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editarAlerta(row)" pTooltip="Editar" />
+                                <p-button icon="fa fa-power-off" class="p-button-text p-button-sm" [severity]="row.estado === 'A' ? 'danger' : 'success'" (onClick)="inactivarAlerta(row)" pTooltip="Cambiar estado" />
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="7" class="text-center text-muted p-4">
+                                <i class="fa fa-inbox me-2"></i> No hay alertas configuradas
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-dialog header="{{ isEdit ? 'Editar' : 'Nueva' }} Alerta" [(visible)]="displayDialog" [modal]="true" [style]="{ width: '30rem' }" [draggable]="false" appendTo="body">
+    <div class="p-fluid">
+        <div class="mb-3">
+            <label class="form-label">Nombre de la condición *</label>
+            <input pInputText type="text" [(ngModel)]="formData.nombre_condicion" class="w-100" maxlength="100" placeholder="Ej: Radicado sin categorizar" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Condición *</label>
+            <p-dropdown [options]="tiposCondicion" [ngModel]="formData.condicion?.tipo" optionLabel="label" optionValue="value" class="w-100" appendTo="body" placeholder="Seleccione" (ngModelChange)="formData.condicion = { tipo: $event }; onTipoCondicionChange()" />
+        </div>
+
+        <div class="mb-3" *ngIf="formData.condicion?.tipo === 'DIAS_SIN_MOVIMIENTO'">
+            <label class="form-label">Días umbral *</label>
+            <input pInputText type="number" [(ngModel)]="formData.dias_umbral" class="w-100" placeholder="Ej: 15" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Tipo de alerta *</label>
+            <p-dropdown [options]="tiposAlerta" [(ngModel)]="formData.tipo_alerta" optionLabel="label" optionValue="value" class="w-100" appendTo="body" placeholder="Seleccione" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Orden</label>
+            <input pInputText type="number" [(ngModel)]="formData.orden" class="w-100" placeholder="0" />
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-content-end gap-2">
+            <p-button label="Cancelar" class="m-2" icon="fa fa-times" severity="secondary" (onClick)="displayDialog = false" [disabled]="guardando" />
+            <p-button label="Guardar" class="m-2" icon="fa fa-check" severity="info" (onClick)="guardar()" [loading]="guardando" />
+        </div>
+    </ng-template>
+</p-dialog>
+
+<p-toast></p-toast>
