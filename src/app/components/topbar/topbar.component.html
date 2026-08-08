@@ -1,0 +1,32 @@
+<div class="topbar">
+    <p-toolbar styleClass="topbar-toolbar">
+        <ng-template #start>
+            <button class="topbar-menu-btn d-lg-none" type="button" (click)="onAbrirSidebar()" aria-label="Abrir menú">
+                <i class="fa fa-bars"></i>
+            </button>
+        </ng-template>
+
+        <ng-template #end>
+            <div class="topbar-actions">
+                <button class="topbar-action-btn" type="button" aria-label="Notificaciones">
+                    <i class="fa fa-bell"></i>
+                </button>
+                <button class="topbar-action-btn" type="button" routerLink="/info-usuario" aria-label="Ajustes">
+                    <i class="fa fa-cog"></i>
+                </button>
+                <div class="topbar-user" (click)="menu.toggle($event)">
+                    <img *ngIf="logo" [src]="logo" alt="Usuario" class="topbar-avatar-img" />
+                    <div *ngIf="!logo" class="topbar-avatar-placeholder">
+                        <i class="fa fa-user"></i>
+                    </div>
+                    <div class="topbar-user-info">
+                        <span class="topbar-user-name">{{ nombreCompleto }}</span>
+                        <span class="topbar-user-role">{{ rolUsuario }}</span>
+                    </div>
+                    <i class="fa fa-chevron-down topbar-chevron"></i>
+                </div>
+                <p-menu #menu [model]="items" popup appendTo="body" styleClass="topbar-user-dropdown" />
+            </div>
+        </ng-template>
+    </p-toolbar>
+</div>

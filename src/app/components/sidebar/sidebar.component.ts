@@ -4,9 +4,7 @@ import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { MenuService } from '../../services/menu/menu.service';
-import { SecureStorageService } from '../../services/secure-storage.service';
 import { ModuloPadre, Modulo } from '../../interfaces/modulo';
-import Swal from 'sweetalert2';
 
 @Component({
     selector: 'app-sidebar',
@@ -21,14 +19,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
     @ViewChild('sidebarRef') sidebarRef!: ElementRef;
 
-    logo: string | null | undefined;
-    nombreCompleto: string = '';
-    idRol: string = '';
-    rolUsuario: string = 'Usuario';
     modulosAgrupados: ModuloPadre[] = [];
     modulosDirectos: Modulo[] = [];
     currentRoute: string = '';
-    userMenuAbierto: boolean = false;
     sidebarAbierto: boolean = false;
     gruposAbiertos: Set<string> = new Set();
 
@@ -37,8 +30,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
     constructor(
         private router: Router,
-        private menuService: MenuService,
-        private secureStorage: SecureStorageService
+        private menuService: MenuService
     ) {}
 
     ngOnInit(): void {
@@ -57,47 +49,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
             }),
             this.menuService.getModulosDirectos().subscribe(directos => {
                 this.modulosDirectos = directos;
-            }),
-            this.menuService.datosUsuario$.subscribe(data => {
-                if (!data || !data.nombre_completo) return;
-                this.nombreCompleto = data.nombre_completo;
-                this.idRol = data.id_rol;
-                this.rolUsuario = this.obtenerNombreRol(data.id_rol);
-
-                this.secureStorage.getItem('idUser').then(idUser => {
-                    if (data.id_usuario != idUser) {
-                        this.secureStorage.setItem('idUser', data.id_usuario);
-                    }
-                });
-                this.secureStorage.getItem('idRol').then(idRol => {
-                    if (data.id_rol != idRol) {
-                        this.secureStorage.setItem('idRol', data.id_rol);
-                    }
-                });
-                this.secureStorage.getItem('idEmpresa').then(idEmpresa => {
-                    if (data.id_empresa != idEmpresa) {
-                        this.secureStorage.setItem('idEmpresa', data.id_empresa);
-                    }
-                });
-
-                setTimeout(() => {
-                    this.logo = 'data:image/png;base64,' + data.blob_foto_perfil;
-                }, 200);
             })
         );
     }
 
     ngOnDestroy(): void {
         this.subs.forEach(s => s.unsubscribe());
-    }
-
-    cerrarSesion(): void {
-        this.secureStorage.removeItem('token');
-        this.secureStorage.removeItem('idUser');
-        this.secureStorage.removeItem('idEmpresa');
-        this.secureStorage.removeItem('idRol');
-        this.menuService.limpiar();
-        this.router.navigate(['/login']);
     }
 
     isGrupoActivo(grupo: ModuloPadre): boolean {
@@ -151,10 +108,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
         }, 100);
     }
 
-    toggleUserMenu(): void {
-        this.userMenuAbierto = !this.userMenuAbierto;
-    }
-
     abrirSidebar(): void {
         this.sidebarAbierto = true;
     }
@@ -180,14 +133,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
         const diffX = e.changedTouches[0].clientX - this.touchStartX;
         if (diffX > 80) {
             this.cerrarSidebar();
-        }
-    }
-
-    private obtenerNombreRol(idRol: string): string {
-        switch (idRol) {
-            case '1': return 'Administrador';
-            case '2': return 'Usuario';
-            default: return 'Usuario';
         }
     }
 

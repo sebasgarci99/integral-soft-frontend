@@ -444,7 +444,34 @@
     gap: 0.5rem;
 }
 
-/* --- Responsive global --- */
+/* --- Topbar user menu global styles --- */
+.p-menu.p-menu-overlay {
+    z-index: 9999 !important;
+}
+
+.p-menu.p-menu-overlay .p-menu-list .p-menuitem.menu-logout .p-menuitem-link .p-menuitem-text,
+.p-menu.p-menu-overlay .p-menu-list .p-menuitem.menu-logout .p-menuitem-link .p-menuitem-icon {
+    color: #dc3545 !important;
+}
+
+.p-menu.p-menu-overlay .p-menu-list .p-menuitem.menu-logout .p-menuitem-link:hover,
+.p-menu.p-menu-overlay .p-menu-list .p-menuitem.menu-logout.p-menuitem-active .p-menuitem-link,
+.p-menu.p-menu-overlay .p-menu-list .p-menuitem.menu-logout.p-focus .p-menuitem-link,
+.p-menu.p-menu-overlay .p-menu-list .p-menuitem.menu-logout:hover .p-menuitem-link {
+    background-color: #fff0f0 !important;
+}
+
+.p-menu.p-menu-overlay .p-menu-list .p-menuitem.menu-logout .p-menuitem-link:hover .p-menuitem-text,
+.p-menu.p-menu-overlay .p-menu-list .p-menuitem.menu-logout .p-menuitem-link:hover .p-menuitem-icon,
+.p-menu.p-menu-overlay .p-menu-list .p-menuitem.menu-logout.p-menuitem-active .p-menuitem-text,
+.p-menu.p-menu-overlay .p-menu-list .p-menuitem.menu-logout.p-menuitem-active .p-menuitem-icon,
+.p-menu.p-menu-overlay .p-menu-list .p-menuitem.menu-logout.p-focus .p-menuitem-text,
+.p-menu.p-menu-overlay .p-menu-list .p-menuitem.menu-logout.p-focus .p-menuitem-icon,
+.p-menu.p-menu-overlay .p-menu-list .p-menuitem.menu-logout:hover .p-menuitem-text,
+.p-menu.p-menu-overlay .p-menu-list .p-menuitem.menu-logout:hover .p-menuitem-icon {
+    color: #dc3545 !important;
+}
+
 @media (max-width: 768px) {
     .p-datatable .p-datatable-thead > tr > th,
     .p-datatable .p-datatable-tbody > tr > td {

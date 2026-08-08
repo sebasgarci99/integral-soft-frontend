@@ -8,13 +8,13 @@
     position: fixed;
     left: 0;
     top: 0;
-    z-index: 1030;
+    z-index: 1050;
     background: #ffffff;
     border-right: 1px solid #e8f1f4;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 4px 0 24px rgba(13, 138, 166, 0.06);
+    box-shadow: 8px 0 32px rgba(13, 138, 166, 0.22);
 }
 
 /* Header con logo */
@@ -210,119 +210,6 @@
     font-weight: 600;
 }
 
-/* Footer de usuario */
-.sidebar-footer {
-    padding: 16px;
-    border-top: 1px solid #f0f4f6;
-    background: #ffffff;
-    flex-shrink: 0;
-}
-
-.sidebar-user {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid #e8f1f4;
-}
-
-.sidebar-user:hover {
-    background: #f0f9fc;
-    border-color: #d0e8ef;
-}
-
-.sidebar-user img {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #e6f4f7;
-}
-
-.sidebar-user-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.sidebar-user-name {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #1a3a4c;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.sidebar-user-role {
-    display: block;
-    font-size: 11px;
-    color: #7a99a8;
-    margin-top: 2px;
-}
-
-.sidebar-user-chevron {
-    font-size: 12px;
-    color: #9ab3bf;
-}
-
-/* Dropdown de usuario */
-.sidebar-user-menu {
-    list-style: none;
-    padding: 8px 0;
-    margin: 8px 0 0 0;
-    background: #ffffff;
-    border: 1px solid #e8f1f4;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(13, 138, 166, 0.1);
-}
-
-.sidebar-user-menu a {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    color: #4a6572;
-    text-decoration: none;
-    font-size: 13px;
-    transition: all 0.15s ease;
-    cursor: pointer;
-}
-
-.sidebar-user-menu a:hover {
-    background: #f0f9fc;
-    color: #0d8aa6;
-}
-
-.sidebar-user-menu a.text-danger:hover,
-.sidebar-user-menu a.logout:hover {
-    background: #fff0f0;
-    color: #dc3545;
-}
-
-.sidebar-user-menu i {
-    width: 18px;
-    text-align: center;
-    color: #7a99a8;
-}
-
-.sidebar-user-menu a:hover i {
-    color: #0d8aa6;
-}
-
-.sidebar-user-menu a.logout:hover i {
-    color: #dc3545;
-}
-
-.sidebar-user-divider {
-    height: 1px;
-    background: #f0f4f6;
-    margin: 8px 14px;
-}
-
 /* Botón cerrar móvil */
 .sidebar-close-btn {
     background: none;
@@ -341,6 +228,9 @@
 /* Responsive */
 @media (max-width: 991.98px) {
     .sidebar {
+        top: 0;
+        height: 100vh;
+        z-index: 1050;
         transform: translateX(-100%);
         transition: transform 0.3s ease-in-out;
         box-shadow: none;

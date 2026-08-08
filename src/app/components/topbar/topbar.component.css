@@ -1,0 +1,176 @@
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 260px;
+    right: 0;
+    height: 64px;
+    z-index: 1040;
+}
+
+:host ::ng-deep .topbar-toolbar {
+    height: 64px;
+    padding: 0 1.25rem !important;
+    background: #ffffff !important;
+    border: none !important;
+    border-bottom: 1px solid #e8f1f4 !important;
+    border-radius: 0 !important;
+    box-shadow: 0 4px 12px rgba(13, 138, 166, 0.08);
+}
+
+:host ::ng-deep .topbar-toolbar .p-toolbar-start,
+:host ::ng-deep .topbar-toolbar .p-toolbar-end {
+    display: flex;
+    align-items: center;
+}
+
+.topbar-menu-btn {
+    background: transparent;
+    border: none;
+    color: #000000;
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.topbar-menu-btn:hover {
+    background-color: #e6f4f7;
+    transform: translateY(-1px);
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.topbar-action-btn {
+    background: transparent;
+    border: none;
+    color: #000000;
+    font-size: 1rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.topbar-action-btn:hover {
+    background-color: #e6f4f7;
+    transform: translateY(-1px);
+}
+
+.topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.35rem 0.75rem 0.35rem 0.5rem;
+    margin-left: 0.25rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #334155;
+}
+
+.topbar-user:hover {
+    background-color: #e6f4f7;
+    transform: translateY(-1px);
+}
+
+.topbar-avatar-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #3da1b8;
+}
+
+.topbar-avatar-placeholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e6f4f7;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #3da1b8;
+}
+
+.topbar-avatar-placeholder i {
+    font-size: 1rem;
+}
+
+.topbar-user-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.topbar-user-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #1e293b;
+}
+
+.topbar-user-role {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    color: #64748b;
+}
+
+.topbar-chevron {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+:host ::ng-deep .topbar-user-dropdown {
+    min-width: 180px;
+    z-index: 1100 !important;
+}
+
+:host ::ng-deep .p-menu-overlay {
+    z-index: 1100 !important;
+}
+
+:host ::ng-deep .menu-logout {
+    color: #dc3545;
+}
+
+:host ::ng-deep .menu-logout .p-menuitem-icon {
+    color: #dc3545;
+}
+
+:host ::ng-deep .menu-logout:hover {
+    background: #fff0f0;
+}
+
+:host ::ng-deep .menu-logout.p-focus {
+    background: #fff0f0;
+}
+
+@media (max-width: 991.98px) {
+    .topbar {
+        left: 0;
+    }
+
+    .topbar-user-info {
+        display: none;
+    }
+
+    .topbar-user {
+        padding: 0.35rem;
+    }
+}
