@@ -42,6 +42,7 @@ export class ConsultoriosComponent implements OnInit{
     selectedConsultorio: Consultorio | null = null;
     displayDialog: boolean = false;
     isEdit: boolean = false;
+    correoOriginal: string = '';
 
     formData: Consultorio = this.variarCamposFormulario();
 
@@ -79,12 +80,14 @@ export class ConsultoriosComponent implements OnInit{
 
     abrirFormulario() {
         this.isEdit = false;
+        this.correoOriginal = '';
         this.formData = this.variarCamposFormulario();
         this.displayDialog = true;
     }
 
     editarDatosConsultorio(consultorio: Consultorio) {
         this.isEdit = true;
+        this.correoOriginal = consultorio.correo ?? '';
         this.formData = { ...consultorio };
         this.displayDialog = true;
     }
@@ -112,16 +115,31 @@ export class ConsultoriosComponent implements OnInit{
         }
 
         if (this.isEdit) {
-            (await this.consultorioService.actualizarConsultorio(this.formData.id, this.formData)).subscribe((res) => {
-                if(res.state == 'OK') {
-                    this.cargarConsultorios();
-                    this.displayDialog = false;
-                    this.messageService.add({ severity: 'success', summary: 'Consultorio actualizado correctamente.' });
-                } else {
-                    console.log(res)
-                    this.messageService.add({ severity: 'error', summary: 'Ocurrio un problema: '+res.body });
-                }
-            });
+            const correoCambio = this.formData.correo !== this.correoOriginal;
+            if (correoCambio) {
+                (await this.consultorioService.validarEmailCambio(this.formData.id, this.formData.correo)).subscribe((res) => {
+                    if (res.state === 'NO_OK') {
+                        this.messageService.add({ severity: 'error', summary: res.body?.mensaje || res.body });
+                        return;
+                    }
+                    if (res.body?.requiere_autorizacion) {
+                        this.confirmService.confirm({
+                            header: 'Confirmar cambio de correo',
+                            message: res.body.mensaje,
+                            icon: 'fa fa-envelope',
+                            acceptLabel: 'Sí, continuar',
+                            rejectLabel: 'Cancelar',
+                            accept: async () => {
+                                await this.ejecutarActualizacion(true);
+                            }
+                        });
+                    } else {
+                        this.ejecutarActualizacion(false);
+                    }
+                });
+            } else {
+                await this.ejecutarActualizacion(false);
+            }
         } else {
             (await this.consultorioService.crearConsultorio(this.formData)).subscribe((res) => {
                 if(res.state == 'OK') {
@@ -135,6 +153,19 @@ export class ConsultoriosComponent implements OnInit{
                 
             });
         }
+    }
+
+    private async ejecutarActualizacion(autorizarCambioEmail: boolean) {
+        (await this.consultorioService.actualizarConsultorio(this.formData.id, this.formData, autorizarCambioEmail)).subscribe((res) => {
+            if(res.state == 'OK') {
+                this.cargarConsultorios();
+                this.displayDialog = false;
+                this.messageService.add({ severity: 'success', summary: 'Consultorio actualizado correctamente.' });
+            } else {
+                console.log(res)
+                this.messageService.add({ severity: 'error', summary: 'Ocurrio un problema: '+res.body });
+            }
+        });
     }
 
     validarCampos(): boolean {

@@ -71,7 +71,30 @@ export class ConsultorioService {
         );
     }
 
-    async actualizarConsultorio(id: number, data: Partial<Consultorio>): Promise<Observable<any>> {
+    async validarEmailCambio(idConsultorio: number | null | undefined, nuevoCorreo: string): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
+        
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+
+        const body = {
+            id_consultorio: idConsultorio ?? null,
+            nuevo_correo: nuevoCorreo,
+            id_usuario: Number(idUser),
+            id_empresa: Number(idEmpresa)
+        };
+
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'validar_email',
+            body,
+            {
+                headers: headersWS,
+            }
+        );
+    }
+
+    async actualizarConsultorio(id: number, data: Partial<Consultorio>, autorizarCambioEmail: boolean = false): Promise<Observable<any>> {
         
         const token = await this.secureStorage.getItem('token');
         const idUser = await this.secureStorage.getItem('idUser');
@@ -91,7 +114,8 @@ export class ConsultorioService {
             correo : data.correo,
             estado : 'A',
             id_usuario: idUser,
-            id_empresa: idEmpresa  
+            id_empresa: idEmpresa,
+            autorizar_cambio_email: autorizarCambioEmail
         };
 
         return this.http.post<any>(
