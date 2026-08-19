@@ -38,6 +38,48 @@
     }
 }
 
+/* Ondas animadas */
+.login-waves {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.login-wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 200%;
+    height: 35%;
+    transform: translateX(0);
+}
+
+.login-wave-back {
+    animation: waveFlow 22s linear infinite;
+    height: 42%;
+}
+
+.login-wave-mid {
+    animation: waveFlow 16s linear infinite reverse;
+    height: 30%;
+}
+
+.login-wave-front {
+    animation: waveFlow 11s linear infinite;
+    height: 22%;
+}
+
+@keyframes waveFlow {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
 /* Contenedor de partículas */
 .login-particles {
     position: absolute;
@@ -66,13 +108,6 @@
     display: block;
     width: 100%;
     height: 100%;
-}
-
-.login-shapes {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
 }
 
 /* Logo de branding */
@@ -163,17 +198,34 @@
     padding: 44px 40px 48px 40px;
     box-shadow: 0 32px 90px rgba(0, 0, 0, 0.22);
     border: 1px solid rgba(13, 138, 166, 0.06);
-    animation: panelSlideIn 0.7s ease-out;
+    animation: panelSlideIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes panelSlideIn {
     from {
         opacity: 0;
-        transform: translateX(40px);
+        transform: translateX(50px);
     }
     to {
         opacity: 1;
         transform: translateX(0);
+    }
+}
+
+.animate-in {
+    opacity: 0;
+    animation: fadeInUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: var(--delay, 0s);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 

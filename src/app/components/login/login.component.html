@@ -6,10 +6,22 @@
             <ngx-particles [options]="particlesOptions" id="tsparticles-login"></ngx-particles>
         </div>
 
-        <div class="login-shapes">
-            <div class="login-shape login-shape-1"></div>
-            <div class="login-shape login-shape-2"></div>
-            <div class="login-shape login-shape-3"></div>
+        <div class="login-waves" aria-hidden="true">
+            <svg class="login-wave login-wave-back" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                <path fill="rgba(255,255,255,0.10)" fill-opacity="1"
+                    d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,224C672,245,768,267,864,250.7C960,235,1056,181,1152,165.3C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+                </path>
+            </svg>
+            <svg class="login-wave login-wave-mid" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                <path fill="rgba(255,255,255,0.14)" fill-opacity="1"
+                    d="M0,160L48,176C96,192,192,224,288,218.7C384,213,480,171,576,165.3C672,160,768,192,864,208C960,224,1056,224,1152,202.7C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+                </path>
+            </svg>
+            <svg class="login-wave login-wave-front" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                <path fill="rgba(255,255,255,0.20)" fill-opacity="1"
+                    d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,112C960,96,1056,128,1152,149.3C1248,171,1344,181,1392,186.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+                </path>
+            </svg>
         </div>
 
         <div class="login-brand-logo">
@@ -26,13 +38,13 @@
         </div>
 
         <div class="login-panel">
-            <div class="login-panel-header">
+            <div class="login-panel-header animate-in" style="--delay: 0.1s;">
                 <h2 class="login-title">Bienvenido</h2>
                 <p class="login-subtitle">Ingresa tus credenciales para continuar</p>
             </div>
 
             <form [formGroup]="formLogin" (ngSubmit)="iniciarSesion()" novalidate>
-                <div class="form-group">
+                <div class="form-group animate-in" style="--delay: 0.2s;">
                     <label for="emailInput" class="form-label">Correo electrónico o usuario</label>
                     <div class="input-wrapper">
                         <i class="fas fa-user input-icon-left"></i>
@@ -45,7 +57,7 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group animate-in" style="--delay: 0.3s;">
                     <label for="passwordInput" class="form-label">Contraseña</label>
                     <div class="input-wrapper">
                         <i class="fas fa-lock input-icon-left"></i>
@@ -62,7 +74,7 @@
                     </div>
                 </div>
 
-                <div class="form-check mb-4">
+                <div class="form-check mb-4 animate-in" style="--delay: 0.4s;">
                     <input type="checkbox" id="recordarCheck" class="form-check-input" [(ngModel)]="recordar"
                         name="recordar" [ngModelOptions]="{standalone: true}" />
                     <label for="recordarCheck" class="form-check-label">
@@ -70,7 +82,7 @@
                     </label>
                 </div>
 
-                <button type="submit" class="btn-login" [disabled]="cargando">
+                <button type="submit" class="btn-login animate-in" style="--delay: 0.5s;" [disabled]="cargando">
                     <span>
                         <i class="fa-solid fa-arrow-right-to-bracket"></i> Iniciar sesión
                     </span>

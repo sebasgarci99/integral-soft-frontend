@@ -31,20 +31,20 @@ export class LoginComponent implements OnInit {
         fpsLimit: 60,
         particles: {
             number: {
-                value: 35,
+                value: 24,
                 density: { enable: true, width: 800, height: 800 }
             },
-            color: { value: ['#ffffff', '#0d8aa6', '#3ba9c2'] },
+            color: { value: ['#ffffff', '#e0f7fa'] },
             shape: { type: 'circle' },
             opacity: {
-                value: { min: 0.15, max: 0.45 }
+                value: { min: 0.15, max: 0.4 }
             },
             size: {
-                value: { min: 2, max: 4 }
+                value: { min: 1.5, max: 3 }
             },
             move: {
                 enable: true,
-                speed: 0.35,
+                speed: 0.2,
                 direction: 'none',
                 random: true,
                 straight: false,
@@ -52,21 +52,20 @@ export class LoginComponent implements OnInit {
             },
             links: {
                 enable: true,
-                distance: 130,
+                distance: 140,
                 color: '#ffffff',
-                opacity: 0.2,
+                opacity: 0.12,
                 width: 1
             }
         },
         interactivity: {
             events: {
                 onHover: { enable: true, mode: 'grab' },
-                onClick: { enable: true, mode: 'push' },
+                onClick: { enable: false },
                 resize: { enable: true }
             },
             modes: {
-                grab: { distance: 130, links: { opacity: 0.35 } },
-                push: { quantity: 2 }
+                grab: { distance: 140, links: { opacity: 0.3 } }
             }
         },
         detectRetina: true
