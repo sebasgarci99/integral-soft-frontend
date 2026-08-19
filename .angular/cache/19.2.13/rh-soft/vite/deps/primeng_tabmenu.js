@@ -1,27 +1,27 @@
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon
-} from "./chunk-Y5TSG3FC.js";
-import {
   Tooltip,
   TooltipModule
-} from "./chunk-RMQ2JMIO.js";
+} from "./chunk-NSX63P7Q.js";
 import {
   Badge,
   BadgeModule
-} from "./chunk-MDUWG7PF.js";
+} from "./chunk-RPHQH2E5.js";
 import "./chunk-5G7WYC4N.js";
 import "./chunk-GL4OBHJR.js";
 import {
   Ripple
-} from "./chunk-4KONWXRM.js";
+} from "./chunk-ONSJSHMK.js";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon
+} from "./chunk-BBQZGY27.js";
 import {
   BaseComponent
-} from "./chunk-WF43TL5V.js";
-import "./chunk-EXODVTEF.js";
+} from "./chunk-6ALHR4YL.js";
+import "./chunk-2YOBO3WI.js";
 import {
   BaseStyle
-} from "./chunk-KRMPXBJA.js";
+} from "./chunk-LSE64G43.js";
 import {
   PrimeTemplate,
   SharedModule,
@@ -30,11 +30,7 @@ import {
   getAttribute,
   getOffset,
   getWidth
-} from "./chunk-INN5EP3Z.js";
-import "./chunk-TZIJKBMI.js";
-import {
-  resolve
-} from "./chunk-YAPJLE7E.js";
+} from "./chunk-5PHFTVQI.js";
 import {
   ActivatedRoute,
   Router,
@@ -112,9 +108,13 @@ import {
   ɵɵtextInterpolate,
   ɵɵviewQuery
 } from "./chunk-GG4VMHUD.js";
-import "./chunk-PEBH6BBU.js";
 import "./chunk-WPM5VTLQ.js";
+import "./chunk-PEBH6BBU.js";
 import "./chunk-4S3KYZTJ.js";
+import "./chunk-CWYBPNCF.js";
+import {
+  resolve
+} from "./chunk-NJ25EVEJ.js";
 import "./chunk-TXDUYLVM.js";
 
 // node_modules/primeng/fesm2022/primeng-tabmenu.mjs

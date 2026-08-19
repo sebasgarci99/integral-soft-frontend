@@ -1,7 +1,11 @@
 <div class="login-split">
 
     <!-- Columna izquierda: branding -->
-    <section class="login-brand">
+    <section class="login-brand" [class.is-loading]="cargando">
+        <div class="login-particles">
+            <ngx-particles [options]="particlesOptions" id="tsparticles-login"></ngx-particles>
+        </div>
+
         <div class="login-shapes">
             <div class="login-shape login-shape-1"></div>
             <div class="login-shape login-shape-2"></div>
@@ -67,11 +71,8 @@
                 </div>
 
                 <button type="submit" class="btn-login" [disabled]="cargando">
-                    <span *ngIf="!cargando">
+                    <span>
                         <i class="fa-solid fa-arrow-right-to-bracket"></i> Iniciar sesión
-                    </span>
-                    <span *ngIf="cargando" class="btn-login-loading">
-                        <i class="fa fa-circle-notch fa-spin"></i> Iniciando...
                     </span>
                 </button>
             </form>

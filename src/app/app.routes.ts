@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './components/login/login.component';
 import { GestionUsuarioComponent } from './components/pqrs/gestion-usuario/gestion-usuario.component';
 import { LayoutComponent } from './components/layout/layout.component';
 import { authGuard } from './utils/auth.guard';
@@ -33,7 +32,7 @@ import { AlertasPqrsComponent } from './components/pqrs/alertas-pqrs/alertas-pqr
 import { ReportesPqrsComponent } from './components/pqrs/reportes-pqrs/reportes-pqrs.component';
 
 export const routes: Routes = [
-    { path: 'login', component: LoginComponent },
+    { path: 'login', loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent) },
     { path: 'pqrs/gestion_usuario', component: GestionUsuarioComponent },
     {
         path: '',

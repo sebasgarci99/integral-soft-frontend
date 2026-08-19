@@ -12,12 +12,13 @@
 
     <!-- Menú de navegación -->
     <div class="sidebar-nav-scroll">
-        <ul class="sidebar-menu">
+        <ul class="sidebar-menu" *ngIf="menuCargado" [@listStagger]>
 
             <!-- Módulos directos -->
             <li *ngFor="let item of modulosDirectos">
                 <a class="sidebar-link" [routerLink]="item.ruta" routerLinkActive="active"
-                    [routerLinkActiveOptions]="{ exact: true }" (click)="cerrarSidebarMovil()">
+                    [routerLinkActiveOptions]="{ exact: true }" (click)="cerrarSidebarMovil()"
+                    (mouseenter)="onLinkHover($event)" (mousemove)="onLinkHover($event)" (mouseleave)="onLinkLeave($event)">
                     <i [class]="item.icono"></i>
                     <span>{{ item.modulo }}</span>
                 </a>
@@ -26,11 +27,11 @@
             <!-- Grupos colapsables -->
             <li *ngFor="let grupo of modulosAgrupados"
                 [class.sidebar-group-active]="isGrupoActivo(grupo)">
-                <a class="sidebar-link sidebar-group" data-bs-toggle="collapse"
-                    [attr.data-bs-target]="'#' + getGrupoId(grupo.modulo)" role="button"
+                <a class="sidebar-link sidebar-group" role="button"
                     [class.sidebar-group-open]="isGrupoAbierto(grupo)"
                     [attr.aria-expanded]="isGrupoAbierto(grupo)"
-                    (click)="toggleGrupo(grupo)">
+                    (click)="toggleGrupo(grupo)"
+                    (mouseenter)="onLinkHover($event)" (mousemove)="onLinkHover($event)" (mouseleave)="onLinkLeave($event)">
                     <span class="sidebar-group-label">
                         <i [class]="grupo.icono"></i>
                         <span>{{ grupo.modulo }}</span>
@@ -38,12 +39,13 @@
                     <i class="fa fa-chevron-down sidebar-chevron"></i>
                 </a>
 
-                <div class="collapse" [class.show]="isGrupoAbierto(grupo)" [id]="getGrupoId(grupo.modulo)">
+                <div class="sidebar-submenu-wrapper" *ngIf="isGrupoAbierto(grupo)" [@expandCollapse] [id]="getGrupoId(grupo.modulo)">
                     <ul class="sidebar-submenu">
                         <li *ngFor="let hijo of grupo.hijos">
                             <a class="sidebar-link" *ngIf="hijo.ruta" [routerLink]="hijo.ruta"
                                 routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-                                (click)="cerrarSidebarMovil()">
+                                (click)="cerrarSidebarMovil()"
+                                (mouseenter)="onLinkHover($event)" (mousemove)="onLinkHover($event)" (mouseleave)="onLinkLeave($event)">
                                 <i [class]="hijo.icono"></i>
                                 <span>{{ hijo.modulo }}</span>
                             </a>

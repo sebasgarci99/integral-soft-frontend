@@ -9,9 +9,12 @@ import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 
+import { NgxParticlesModule, NgParticlesService } from '@tsparticles/angular';
+import { loadSlim } from '@tsparticles/slim';
+
 @Component({
     selector: 'app-login',
-    imports: [ReactiveFormsModule, CommonModule, FormsModule],
+    imports: [ReactiveFormsModule, CommonModule, FormsModule, NgxParticlesModule],
     templateUrl: './login.component.html',
     styleUrl: './login.component.css'
 })
@@ -23,12 +26,59 @@ export class LoginComponent implements OnInit {
     cargando: boolean = false;
     anio: number = new Date().getFullYear();
 
+    particlesOptions: any = {
+        fullScreen: { enable: false },
+        fpsLimit: 60,
+        particles: {
+            number: {
+                value: 35,
+                density: { enable: true, width: 800, height: 800 }
+            },
+            color: { value: ['#ffffff', '#0d8aa6', '#3ba9c2'] },
+            shape: { type: 'circle' },
+            opacity: {
+                value: { min: 0.15, max: 0.45 }
+            },
+            size: {
+                value: { min: 2, max: 4 }
+            },
+            move: {
+                enable: true,
+                speed: 0.35,
+                direction: 'none',
+                random: true,
+                straight: false,
+                outModes: { default: 'bounce' }
+            },
+            links: {
+                enable: true,
+                distance: 130,
+                color: '#ffffff',
+                opacity: 0.2,
+                width: 1
+            }
+        },
+        interactivity: {
+            events: {
+                onHover: { enable: true, mode: 'grab' },
+                onClick: { enable: true, mode: 'push' },
+                resize: { enable: true }
+            },
+            modes: {
+                grab: { distance: 130, links: { opacity: 0.35 } },
+                push: { quantity: 2 }
+            }
+        },
+        detectRetina: true
+    };
+
     constructor(
         private form: FormBuilder,
         private router: Router,
         private loginService: LoginService,
         private menuService: MenuService,
-        private secureStorage: SecureStorageService
+        private secureStorage: SecureStorageService,
+        private particlesService: NgParticlesService
     ) {
         this.formLogin = this.form.group({
             username: [
@@ -49,6 +99,10 @@ export class LoginComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.particlesService.init(async (engine) => {
+            await loadSlim(engine);
+        });
+
         this.secureStorage.getItem('rememberedUser').then(rememberedUser => {
             if (rememberedUser && rememberedUser.toLowerCase() !== 'null' && rememberedUser.trim() !== '') {
                 this.formLogin.patchValue({
@@ -64,6 +118,10 @@ export class LoginComponent implements OnInit {
     }
 
     iniciarSesion(): void {
+        if (this.cargando) {
+            return;
+        }
+
         if (this.formLogin.invalid) {
             this.formLogin.markAllAsTouched();
             return;
@@ -90,15 +148,12 @@ export class LoginComponent implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
                 this.cargando = false;
+                this.formLogin.reset();
                 Swal.fire(
                     'Información',
                     error.error.msg,
                     'warning'
                 );
-            },
-            complete: () => {
-                this.cargando = false;
-                this.formLogin.reset();
             }
         });
     }

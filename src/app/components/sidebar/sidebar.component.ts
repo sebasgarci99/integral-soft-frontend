@@ -6,12 +6,43 @@ import { filter } from 'rxjs/operators';
 import { MenuService } from '../../services/menu/menu.service';
 import { ModuloPadre, Modulo } from '../../interfaces/modulo';
 
+import {
+    trigger,
+    transition,
+    style,
+    animate,
+    query,
+    stagger
+} from '@angular/animations';
+
 @Component({
     selector: 'app-sidebar',
     standalone: true,
     imports: [RouterModule, CommonModule],
     templateUrl: './sidebar.component.html',
-    styleUrl: './sidebar.component.css'
+    styleUrl: './sidebar.component.css',
+    animations: [
+        trigger('listStagger', [
+            transition(':enter', [
+                query(':enter', [
+                    style({ opacity: 0, transform: 'translateX(-32px)' }),
+                    stagger(55, [
+                        animate('420ms cubic-bezier(0.25, 0.46, 0.45, 0.94)', style({ opacity: 1, transform: 'translateX(0)' }))
+                    ])
+                ], { optional: true })
+            ])
+        ]),
+        trigger('expandCollapse', [
+            transition(':enter', [
+                style({ opacity: 0, height: '0px', overflow: 'hidden' }),
+                animate('280ms ease-out', style({ opacity: 1, height: '*' }))
+            ]),
+            transition(':leave', [
+                style({ opacity: 1, height: '*' }),
+                animate('220ms ease-in', style({ opacity: 0, height: '0px', overflow: 'hidden' }))
+            ])
+        ])
+    ]
 })
 export class SidebarComponent implements OnInit, OnDestroy {
 
@@ -24,9 +55,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     currentRoute: string = '';
     sidebarAbierto: boolean = false;
     gruposAbiertos: Set<string> = new Set();
+    menuCargado: boolean = false;
 
     private touchStartX: number = 0;
     private subs: Subscription[] = [];
+    private directosCargados: boolean = false;
+    private gruposCargados: boolean = false;
 
     constructor(
         private router: Router,
@@ -46,9 +80,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
             }),
             this.menuService.getModulosAgrupados().subscribe(grupos => {
                 this.modulosAgrupados = grupos;
+                this.gruposCargados = true;
+                this.verificarMenuCargado();
             }),
             this.menuService.getModulosDirectos().subscribe(directos => {
                 this.modulosDirectos = directos;
+                this.directosCargados = true;
+                this.verificarMenuCargado();
             })
         );
     }
@@ -97,6 +135,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
         } catch (error) {}
     }
 
+    private verificarMenuCargado(): void {
+        if (this.gruposCargados && this.directosCargados) {
+            this.menuCargado = true;
+        }
+    }
+
     private scrollAlActivo(): void {
         setTimeout(() => {
             const contenedor = this.sidebarRef?.nativeElement?.querySelector('.sidebar-nav-scroll');
@@ -138,5 +182,22 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
     getGrupoId(nombre: string): string {
         return 'grupo-' + nombre.replace(/\s+/g, '-');
+    }
+
+    onLinkHover(e: MouseEvent): void {
+        const target = e.currentTarget as HTMLElement;
+        if (!target) return;
+        const rect = target.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        target.style.setProperty('--hover-x', `${x}px`);
+        target.style.setProperty('--hover-y', `${y}px`);
+    }
+
+    onLinkLeave(e: MouseEvent): void {
+        const target = e.currentTarget as HTMLElement;
+        if (!target) return;
+        target.style.setProperty('--hover-x', '-999px');
+        target.style.setProperty('--hover-y', '-999px');
     }
 }
