@@ -38,8 +38,8 @@ export class AlertasPqrsComponent implements OnInit {
         dias_umbral: 15
     };
 
-    cargando = false;
     guardando = false;
+    inicializandoAlertas = false;
 
     tiposCondicion = [
         { label: 'Radicado sin categorizar', value: 'RADICADO_SIN_CATEGORIZAR' },
@@ -64,10 +64,8 @@ export class AlertasPqrsComponent implements OnInit {
     }
 
     async cargarPropiedades() {
-        this.cargando = true;
         (await this.propiedadesService.getPropiedadesHorizontales()).subscribe({
             next: (res) => {
-                this.cargando = false;
                 if (res.state === 'OK') {
                     this.propiedades = res.body || [];
                 } else {
@@ -75,7 +73,6 @@ export class AlertasPqrsComponent implements OnInit {
                 }
             },
             error: () => {
-                this.cargando = false;
                 this.messageService.add({ severity: 'error', summary: 'Error de conexión.' });
             }
         });
@@ -91,10 +88,8 @@ export class AlertasPqrsComponent implements OnInit {
 
     async cargarAlertas() {
         if (!this.propiedadSeleccionada) return;
-        this.cargando = true;
         (await this.alertasService.listarAlertasPorPropiedad(this.propiedadSeleccionada.id_propiedad_horizontal)).subscribe({
             next: (res) => {
-                this.cargando = false;
                 if (res.state === 'OK') {
                     this.alertas = res.body || [];
                 } else {
@@ -102,7 +97,6 @@ export class AlertasPqrsComponent implements OnInit {
                 }
             },
             error: () => {
-                this.cargando = false;
                 this.messageService.add({ severity: 'error', summary: 'Error de conexión.' });
             }
         });
@@ -110,8 +104,10 @@ export class AlertasPqrsComponent implements OnInit {
 
     async inicializarAlertasPorDefecto() {
         if (!this.propiedadSeleccionada) return;
+        this.inicializandoAlertas = true;
         (await this.alertasService.inicializarAlertasPorDefecto(this.propiedadSeleccionada.id_propiedad_horizontal)).subscribe({
             next: (res) => {
+                this.inicializandoAlertas = false;
                 if (res.state === 'OK') {
                     this.alertas = res.body || [];
                     this.messageService.add({ severity: 'success', summary: 'Alertas por defecto creadas.' });
@@ -120,6 +116,7 @@ export class AlertasPqrsComponent implements OnInit {
                 }
             },
             error: () => {
+                this.inicializandoAlertas = false;
                 this.messageService.add({ severity: 'error', summary: 'Error de conexión.' });
             }
         });

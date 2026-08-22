@@ -32,9 +32,9 @@ import { getGoogleMapsEmbedUrl } from '../../../utils/google-maps.util';
 export class PropiedadesHorizontalesComponent implements OnInit {
 
     propiedades: PropiedadHorizontal[] = [];
-    loadingPropiedades = false;
     loadingGuardar = false;
     loadingEliminar = false;
+    renovandoCodigo = false;
     displayDialog = false;
     displayQrDialog = false;
     displayCategoriasDialog = false;
@@ -63,6 +63,8 @@ export class PropiedadesHorizontalesComponent implements OnInit {
     categorias: CategoriaPqrs[] = [];
     categoriaForm: Partial<CategoriaPqrs> = {};
     isEditCategoria = false;
+    guardandoCategoria = false;
+    inactivandoCategoria = false;
 
     @ViewChild('tablaPropiedades') tablaPropiedades?: Table;
 
@@ -84,10 +86,8 @@ export class PropiedadesHorizontalesComponent implements OnInit {
     }
 
     async cargarPropiedades() {
-        this.loadingPropiedades = true;
         (await this.pqrsService.getPropiedadesHorizontales()).subscribe({
             next: (res) => {
-                this.loadingPropiedades = false;
                 if (res.state === 'OK') {
                     this.propiedades = res.body || [];
                 } else {
@@ -95,7 +95,6 @@ export class PropiedadesHorizontalesComponent implements OnInit {
                 }
             },
             error: () => {
-                this.loadingPropiedades = false;
                 this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
             }
         });
@@ -310,8 +309,10 @@ export class PropiedadesHorizontalesComponent implements OnInit {
             acceptLabel: 'Sí',
             rejectLabel: 'No',
             accept: async () => {
+                this.renovandoCodigo = true;
                 (await this.pqrsService.renovarCodigoAcceso(propiedad.id_propiedad_horizontal)).subscribe({
                     next: (res) => {
+                        this.renovandoCodigo = false;
                         if (res.state === 'OK') {
                             this.cargarPropiedades();
                             this.messageService.add({ severity: 'success', summary: 'Código renovado correctamente.' });
@@ -320,6 +321,7 @@ export class PropiedadesHorizontalesComponent implements OnInit {
                         }
                     },
                     error: () => {
+                        this.renovandoCodigo = false;
                         this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
                     }
                 });
@@ -367,8 +369,10 @@ export class PropiedadesHorizontalesComponent implements OnInit {
             ? this.pqrsService.actualizarCategoria(payload)
             : this.pqrsService.crearCategoria(payload);
 
+        this.guardandoCategoria = true;
         (await request).subscribe({
             next: (res) => {
+                this.guardandoCategoria = false;
                 if (res.state === 'OK') {
                     this.categoriaForm = {};
                     this.isEditCategoria = false;
@@ -392,8 +396,10 @@ export class PropiedadesHorizontalesComponent implements OnInit {
             acceptLabel: 'Sí',
             rejectLabel: 'No',
             accept: async () => {
+                this.inactivandoCategoria = true;
                 (await this.pqrsService.inactivarCategoria(categoria.id_categoria_pqrs)).subscribe({
                     next: (res) => {
+                        this.inactivandoCategoria = false;
                         if (res.state === 'OK') {
                             this.cargarCategorias();
                             this.messageService.add({ severity: 'success', summary: 'Estado actualizado.' });
@@ -402,6 +408,7 @@ export class PropiedadesHorizontalesComponent implements OnInit {
                         }
                     },
                     error: () => {
+                        this.inactivandoCategoria = false;
                         this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
                     }
                 });

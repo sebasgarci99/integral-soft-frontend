@@ -44,17 +44,6 @@
             </div>
 
             <div class="position-relative">
-                <div *ngIf="loadingProductos" class="uiverse-loader-overlay">
-                    <div class="uiverse-loader-wrapper">
-                        <div class="uiverse-loader">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </div>
-                </div>
-
                 <p-table *ngIf="selectedGrupo" #tablaProductos [value]="productos" [paginator]="true" [rows]="10" responsiveLayout="scroll"
                     [globalFilterFields]="['codigo', 'nombre', 'Categoria.nombre', 'Categoria.Grupo.nombre']" stripedRows>
                     <ng-template pTemplate="header">

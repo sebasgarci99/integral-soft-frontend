@@ -19,16 +19,6 @@
                             <p-button label="Nuevo Grupo" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('grupo')" />
                         </div>
                         <div class="position-relative">
-                            <div *ngIf="loadingGrupos" class="uiverse-loader-overlay">
-                                <div class="uiverse-loader-wrapper">
-                                    <div class="uiverse-loader">
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
-                                    </div>
-                                </div>
-                            </div>
                             <p-table [value]="grupos" [paginator]="true" [rows]="10" stripedRows>
                                 <ng-template pTemplate="header">
                                     <tr><th>Icono</th><th>Nombre</th><th>Descripción</th><th>Acciones</th></tr>
@@ -58,16 +48,6 @@
                             <p-button label="Nueva Categoría" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('categoria')" />
                         </div>
                         <div class="position-relative">
-                            <div *ngIf="loadingCategorias" class="uiverse-loader-overlay">
-                                <div class="uiverse-loader-wrapper">
-                                    <div class="uiverse-loader">
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
-                                    </div>
-                                </div>
-                            </div>
                             <p-table [value]="categorias" [paginator]="true" [rows]="10" stripedRows>
                                 <ng-template pTemplate="header">
                                     <tr><th>Nombre</th><th>Grupo</th><th>Descripción</th><th>Acciones</th></tr>
@@ -97,16 +77,6 @@
                             <p-button label="Nueva Unidad" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('unidad')" />
                         </div>
                         <div class="position-relative">
-                            <div *ngIf="loadingUnidades" class="uiverse-loader-overlay">
-                                <div class="uiverse-loader-wrapper">
-                                    <div class="uiverse-loader">
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
-                                    </div>
-                                </div>
-                            </div>
                             <p-table [value]="unidades" [paginator]="true" [rows]="10" stripedRows>
                                 <ng-template pTemplate="header">
                                     <tr><th>Nombre</th><th>Abreviatura</th><th>Acciones</th></tr>
@@ -135,16 +105,6 @@
                             <p-button label="Nuevo Tipo" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('tipo_movimiento')" />
                         </div>
                         <div class="position-relative">
-                            <div *ngIf="loadingTiposMovimiento" class="uiverse-loader-overlay">
-                                <div class="uiverse-loader-wrapper">
-                                    <div class="uiverse-loader">
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
-                                    </div>
-                                </div>
-                            </div>
                             <p-table [value]="tiposMovimiento" [paginator]="true" [rows]="10" stripedRows>
                                 <ng-template pTemplate="header">
                                     <tr><th>Código</th><th>Nombre</th><th>Signo</th><th>Acciones</th></tr>
@@ -174,16 +134,6 @@
                             <p-button label="Nueva Configuración" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('semaforo')" />
                         </div>
                         <div class="position-relative">
-                            <div *ngIf="loadingSemaforos" class="uiverse-loader-overlay">
-                                <div class="uiverse-loader-wrapper">
-                                    <div class="uiverse-loader">
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
-                                    </div>
-                                </div>
-                            </div>
                             <p-table [value]="semaforos" [paginator]="true" [rows]="10" stripedRows>
                                 <ng-template pTemplate="header">
                                     <tr><th>Orden</th><th>Nombre</th><th>Días Min</th><th>Días Max</th><th>Color</th><th>Acciones</th></tr>

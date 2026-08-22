@@ -1,5 +1,4 @@
-import { Component } from '@angular/core';
-import { OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ConfirmationService, MessageService, SelectItem } from 'primeng/api';
 import { ReportesService } from '../../services/reportes/reportes.service';
 import { ConsultorioService } from '../../services/consultorio/consultorio.service';
@@ -51,10 +50,10 @@ import * as XLSX from 'xlsx';
     styleUrl: './reportes.component.css',
     providers: [MessageService, ConfirmationService]
 })
-export class ReportesComponent {
+export class ReportesComponent implements OnInit {
 
     idRol:number = 0;
-    loader: boolean = false;
+    enviando: boolean = false;
 
     fechaInicio: Date = new Date;
     fechaFin: Date = new Date;
@@ -98,7 +97,9 @@ export class ReportesComponent {
         this.secureStorage.getItem('idRol').then(idRol => {
             this.idRol = Number(idRol) || 0;
         });
+    }
 
+    ngOnInit(): void {
         this.cargarConsultorios();
     }
 
@@ -182,7 +183,7 @@ export class ReportesComponent {
             acceptLabel: 'Sí',
             rejectLabel: 'No',
             accept: async () => {
-                this.loader = true;
+                this.enviando = true;
 
                 (await this.reportesService.enviarReporteCorreosConsultorios(
                     this.fechaInicio, this.fechaFin, this.consultorio, this.tipoReporte
@@ -225,7 +226,7 @@ export class ReportesComponent {
                         });
                     },
                     complete: () => {
-                        this.loader = false;
+                        this.enviando = false;
                     }
                 });
             }
@@ -233,7 +234,6 @@ export class ReportesComponent {
     }
 
     async abrirHistorialEnvios() {
-        this.loader = true;
         this.showLogsDialog = true;
         (await this.reportesService.obtenerLogsReportes()).subscribe({
             next: (data) => {
@@ -246,9 +246,6 @@ export class ReportesComponent {
                     detail: 'No se pudo cargar el historial de envíos.',
                     life: 5000
                 });
-            },
-            complete: () => {
-                this.loader = false;
             }
         });
     }

@@ -11,7 +11,7 @@
                     <p-dropdown [options]="propiedades" [(ngModel)]="propiedadSeleccionada" optionLabel="nombre" [showClear]="true" placeholder="Seleccione una propiedad" (onChange)="onPropiedadChange()" class="w-100" appendTo="body" />
                 </div>
                 <div class="col-md-6 text-md-end mt-3 mt-md-0" *ngIf="propiedadSeleccionada">
-                    <p-button label="Cargar alertas por defecto" icon="fa fa-magic" severity="secondary" (onClick)="inicializarAlertasPorDefecto()" />
+                    <p-button label="Cargar alertas por defecto" icon="fa fa-magic" severity="secondary" (onClick)="inicializarAlertasPorDefecto()" [loading]="inicializandoAlertas" />
                     <p-button class="ms-2" label="Nueva alerta" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" />
                 </div>
             </div>
@@ -22,12 +22,6 @@
             </div>
 
             <div class="position-relative" *ngIf="propiedadSeleccionada">
-                <div *ngIf="cargando" class="uiverse-loader-overlay">
-                    <div class="uiverse-loader-wrapper">
-                        <div class="uiverse-loader"><span></span><span></span><span></span><span></span></div>
-                    </div>
-                </div>
-
                 <p-table [value]="alertas" [paginator]="true" [rows]="10" responsiveLayout="scroll" stripedRows>
                     <ng-template pTemplate="header">
                         <tr>

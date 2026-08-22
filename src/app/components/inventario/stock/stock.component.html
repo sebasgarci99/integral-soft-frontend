@@ -18,17 +18,6 @@
             </div>
 
             <div class="position-relative">
-                <div *ngIf="loadingStock" class="uiverse-loader-overlay">
-                    <div class="uiverse-loader-wrapper">
-                        <div class="uiverse-loader">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </div>
-                </div>
-
                 <p-table #tablaStock [value]="stocks" [paginator]="true" [rows]="15" responsiveLayout="scroll"
                     [globalFilterFields]="['Producto.nombre', 'Producto.codigo', 'lote', 'Sede.nombre']" stripedRows>
                     <ng-template pTemplate="header">

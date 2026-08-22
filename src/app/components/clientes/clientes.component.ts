@@ -49,6 +49,7 @@ export class ClientesComponent implements OnInit {
     displayDialog: boolean = false;
     isEdit: boolean = false;
     clienteForm!: FormGroup;
+    logoPreview: string | null = null;
 
     tiposIdentificacion = [
         { label: 'Cédula de Ciudadanía', value: 'CC' },
@@ -76,6 +77,7 @@ export class ClientesComponent implements OnInit {
             correo_electronico: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
             nombre_contacto: ['', [Validators.maxLength(255)]],
             comentarios_observaciones: ['', [Validators.maxLength(1000)]],
+            logo_base64: [null],
             estado: ['A']
         });
     }
@@ -96,13 +98,39 @@ export class ClientesComponent implements OnInit {
         this.isEdit = false;
         this.clienteForm.reset();
         this.clienteForm.patchValue({ estado: 'A' });
+        this.logoPreview = null;
         this.displayDialog = true;
     }
 
     editarDatosCliente(cliente: Cliente) {
         this.isEdit = true;
         this.clienteForm.patchValue(cliente);
+        this.logoPreview = cliente.logo_base64 || null;
         this.displayDialog = true;
+    }
+
+    onFileSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) return;
+
+        const file = input.files[0];
+        if (!file.type.startsWith('image/')) {
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Seleccione un archivo de imagen válido' });
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64 = reader.result as string;
+            this.logoPreview = base64;
+            this.clienteForm.patchValue({ logo_base64: base64 });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    eliminarLogo(): void {
+        this.logoPreview = null;
+        this.clienteForm.patchValue({ logo_base64: null });
     }
 
     borrarCliente(id: number) {

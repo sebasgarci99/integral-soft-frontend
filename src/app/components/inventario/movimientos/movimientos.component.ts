@@ -17,7 +17,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { InventarioService } from '../../../services/inventario/inventario.service';
 import { Movimiento, TipoMovimiento, Producto, Sede, Stock } from '../../../interfaces/inventario';
-import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, switchMap, forkJoin } from 'rxjs';
 import { parseDateSinTimezone, formatDateLocal } from '../../../utils/fecha.util';
 
 @Component({
@@ -52,10 +52,8 @@ export class MovimientosComponent implements OnInit {
     fechaDesde: Date | null = null;
     fechaHasta: Date | null = null;
 
-    loadingMovimientos: boolean = false;
     loadingGuardar: boolean = false;
     loadingAnular: boolean = false;
-    loadingLotes: boolean = false;
 
     constructor(
         private inventarioService: InventarioService,
@@ -86,27 +84,50 @@ export class MovimientosComponent implements OnInit {
     }
 
     async cargarDatos() {
-        await this.cargarMovimientos();
-        await this.cargarTiposMovimiento();
-        await this.cargarProductos();
-        await this.cargarSedes();
+        try {
+            const [tipos$, productos$, sedes$] = await Promise.all([
+                this.inventarioService.getTiposMovimiento(),
+                this.inventarioService.getProductos(),
+                this.inventarioService.getSedes()
+            ]);
+
+            forkJoin([tipos$, productos$, sedes$]).subscribe({
+                next: ([resTipos, resProductos, resSedes]) => {
+                    if (resTipos.state === 'OK') {
+                        this.tiposMovimiento = resTipos.body || [];
+                    }
+
+                    if (resProductos.state === 'OK') {
+                        this.productos = resProductos.body || [];
+                    }
+
+                    if (resSedes.state === 'OK') {
+                        this.sedes = resSedes.body || [];
+                    }
+
+                    this.cargarMovimientos();
+                },
+                error: () => {
+                    this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
+                }
+            });
+        } catch (error) {
+            this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
+        }
     }
 
     async cargarMovimientos() {
-        this.loadingMovimientos = true;
         const filtros: Record<string, unknown> = {};
         if (this.fechaDesde) filtros['fecha_inicio'] = formatDateLocal(this.fechaDesde);
         if (this.fechaHasta) filtros['fecha_fin'] = formatDateLocal(this.fechaHasta);
 
         (await this.inventarioService.getMovimientos(filtros)).subscribe({
             next: (res) => {
-                this.loadingMovimientos = false;
                 if (res.state === 'OK') {
                     this.movimientos = res.body || [];
                 }
             },
             error: () => {
-                this.loadingMovimientos = false;
                 this.messageService.add({ severity: 'error', summary: 'Error al cargar los movimientos. Intente nuevamente.' });
             }
         });
@@ -228,11 +249,9 @@ export class MovimientosComponent implements OnInit {
         }
 
         item.cargandoLotes = true;
-        this.loadingLotes = true;
         (await this.inventarioService.getLotesPorProductoYSede(item.id_producto, this.formData.id_sede)).subscribe({
             next: (res) => {
                 item.cargandoLotes = false;
-                this.loadingLotes = false;
                 if (res.state === 'OK') {
                     item.lotesDisponibles = (res.body || []).map((l: any) => ({
                         ...l,
@@ -248,7 +267,6 @@ export class MovimientosComponent implements OnInit {
             },
             error: () => {
                 item.cargandoLotes = false;
-                this.loadingLotes = false;
                 item.lotesDisponibles = [];
                 this.messageService.add({ severity: 'error', summary: 'Error al cargar lotes disponibles. Intente nuevamente.' });
             }

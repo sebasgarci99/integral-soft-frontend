@@ -25,13 +25,13 @@
             </div>
 
             <div class="d-flex gap-2 mb-3">
-                <p-button label="Generar" icon="fa fa-search" severity="info" (onClick)="generar()" [loading]="cargando" />
+                <p-button label="Generar" icon="fa fa-search" severity="info" (onClick)="generar()" [loading]="generando" />
                 <p-button label="Exportar Excel" icon="fa fa-file-excel" severity="success" (onClick)="exportarExcel()" [disabled]="resultados.length === 0" />
                 <p-button label="Limpiar" icon="fa fa-eraser" severity="secondary" (onClick)="limpiar()" />
             </div>
 
             <div class="position-relative">
-                <div *ngIf="cargando" class="uiverse-loader-overlay">
+                <div *ngIf="generando" class="uiverse-loader-overlay">
                     <div class="uiverse-loader-wrapper">
                         <div class="uiverse-loader"><span></span><span></span><span></span><span></span></div>
                     </div>

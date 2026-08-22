@@ -1,0 +1,342 @@
+<div class="flex-grow-1 p-4 dashboard calculo-empleado-page">
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-icon">
+                <i class="fa fa-calculator"></i>
+            </div>
+            <div>
+                <h2 class="mb-0">Cálculo Empleado</h2>
+                <p class="header-subtitle">Simulador de nómina según normatividad colombiana</p>
+            </div>
+        </div>
+        <div class="header-badges">
+            <span class="badge badge-year">2026</span>
+            <span class="badge badge-country">Colombia</span>
+        </div>
+    </div>
+
+    <p-toast></p-toast>
+
+    <div class="row g-4 justify-content-center">
+        <!-- FORMULARIO -->
+        <div class="col-12 col-lg-5" [class.mx-auto]="!resultado">
+            <div class="form-card">
+                <div class="form-card-header">
+                    <i class="fa fa-user-edit"></i>
+                    <span>Datos del cálculo</span>
+                </div>
+                <div class="form-card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Periodicidad</label>
+                            <p-select [options]="opcionesPeriodicidad" [(ngModel)]="formData.periodicidad"
+                                optionLabel="label" optionValue="value" class="w-100" appendTo="body"></p-select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo de contrato</label>
+                            <p-select [options]="opcionesContrato" [(ngModel)]="formData.tipoContrato"
+                                optionLabel="label" optionValue="value" class="w-100" appendTo="body"></p-select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Salario base mensual</label>
+                            <p-inputNumber [(ngModel)]="formData.salarioBase" mode="currency" currency="COP"
+                                locale="es-CO" class="w-100" [readonly]="formData.salarioEnSmmlv"
+                                (ngModelChange)="onCambioSalarioBase()"></p-inputNumber>
+                        </div>
+                        <div class="col-md-6" *ngIf="formData.salarioEnSmmlv">
+                            <label class="form-label">Cantidad de SMMLV</label>
+                            <p-inputNumber [(ngModel)]="formData.cantidadSmmlv" [min]="0" [maxFractionDigits]="2"
+                                (ngModelChange)="onCambioCantidadSmmlv()" class="w-100"></p-inputNumber>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Días trabajados</label>
+                            <p-inputNumber [(ngModel)]="formData.diasTrabajados" [min]="0" [max]="30"
+                                class="w-100"></p-inputNumber>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Días incapacidad</label>
+                            <p-inputNumber [(ngModel)]="formData.diasIncapacidad" [min]="0" [max]="30"
+                                class="w-100"></p-inputNumber>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Clase de riesgo ARL</label>
+                            <p-select [options]="opcionesRiesgo" [(ngModel)]="formData.claseRiesgo"
+                                optionLabel="label" optionValue="value" class="w-100" appendTo="body"></p-select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">SMMLV</label>
+                            <p-inputNumber [(ngModel)]="formData.smmlv" mode="currency" currency="COP"
+                                locale="es-CO" class="w-100" (ngModelChange)="onCambioSmmlv()"></p-inputNumber>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Auxilio de transporte</label>
+                            <p-inputNumber [(ngModel)]="formData.auxilioTransporte" mode="currency" currency="COP"
+                                locale="es-CO" class="w-100" [readonly]="formData.auxilioAutomatico"></p-inputNumber>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">UVT</label>
+                            <p-inputNumber [(ngModel)]="formData.uvt" mode="currency" currency="COP"
+                                locale="es-CO" class="w-100"></p-inputNumber>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Opciones adicionales</label>
+                            <div class="checks-row">
+                                <div class="check-item">
+                                    <p-checkbox [(ngModel)]="formData.salarioEnSmmlv" [binary]="true"
+                                        inputId="chkSalarioSmmlv" (ngModelChange)="onToggleSalarioEnSmmlv()"></p-checkbox>
+                                    <label for="chkSalarioSmmlv" class="check-label">Salario en SMMLV</label>
+                                </div>
+                                <div class="check-item">
+                                    <p-checkbox [(ngModel)]="formData.auxilioAutomatico" [binary]="true"
+                                        inputId="chkAuxilioAuto" (ngModelChange)="onToggleAuxilioAutomatico()"></p-checkbox>
+                                    <label for="chkAuxilioAuto" class="check-label">Auxilio automático</label>
+                                </div>
+                                <div class="check-item">
+                                    <p-checkbox [(ngModel)]="formData.aplicaAuxilioTransporte" [binary]="true"
+                                        inputId="chkAuxilio" [disabled]="!!formData.auxilioAutomatico"></p-checkbox>
+                                    <label for="chkAuxilio" class="check-label">Aplica auxilio de transporte</label>
+                                </div>
+                                <div class="check-item">
+                                    <p-checkbox [(ngModel)]="formData.aplicaRetencionFuente" [binary]="true"
+                                        inputId="chkRetencion"></p-checkbox>
+                                    <label for="chkRetencion" class="check-label">Calcular retención en la fuente</label>
+                                </div>
+                                <div class="check-item">
+                                    <p-checkbox [(ngModel)]="formData.aplicaFondoSolidaridad" [binary]="true"
+                                        inputId="chkFondo"></p-checkbox>
+                                    <label for="chkFondo" class="check-label">Fondo solidaridad pensional</label>
+                                </div>
+                                <div class="check-item">
+                                    <p-checkbox [(ngModel)]="formData.aplicaIndemnizacion" [binary]="true"
+                                        inputId="chkIndemnizacion"></p-checkbox>
+                                    <label for="chkIndemnizacion" class="check-label">Incluir liquidación / indemnización</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6" *ngIf="formData.aplicaFondoSolidaridad">
+                            <label class="form-label">% Fondo solidaridad</label>
+                            <p-inputNumber [(ngModel)]="formData.porcentajeFondoSolidaridad" suffix="%" [min]="0"
+                                [max]="100" class="w-100"></p-inputNumber>
+                        </div>
+
+                        <div class="col-md-6" *ngIf="formData.aplicaIndemnizacion && formData.tipoContrato === 'fijo'">
+                            <label class="form-label">Meses restantes del contrato</label>
+                            <p-inputNumber [(ngModel)]="formData.mesesContratoFijoRestantes" [min]="0"
+                                class="w-100"></p-inputNumber>
+                        </div>
+
+                        <div class="col-md-6" *ngIf="formData.aplicaIndemnizacion && formData.tipoContrato === 'indefinido'">
+                            <label class="form-label">Años trabajados</label>
+                            <p-inputNumber [(ngModel)]="formData.anosTrabajados" [min]="0" [maxFractionDigits]="2"
+                                class="w-100"></p-inputNumber>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p-panel header="Horas extras y recargos" class="mt-3" [toggleable]="true" [collapsed]="true">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Horas extras diurnas (HED)</label>
+                        <p-inputNumber [(ngModel)]="formData.horasExtrasDiurnas" [min]="0" [maxFractionDigits]="1"
+                            class="w-100"></p-inputNumber>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Horas extras nocturnas (HEN)</label>
+                        <p-inputNumber [(ngModel)]="formData.horasExtrasNocturnas" [min]="0" [maxFractionDigits]="1"
+                            class="w-100"></p-inputNumber>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Recargo nocturno (horas)</label>
+                        <p-inputNumber [(ngModel)]="formData.recargoNocturno" [min]="0" [maxFractionDigits]="1"
+                            class="w-100"></p-inputNumber>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Recargo dominical/festivo (horas)</label>
+                        <p-inputNumber [(ngModel)]="formData.recargoDominicalFestivo" [min]="0" [maxFractionDigits]="1"
+                            class="w-100"></p-inputNumber>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Hora extra dominical diurna</label>
+                        <p-inputNumber [(ngModel)]="formData.horasExtrasDominicalDiurna" [min]="0" [maxFractionDigits]="1"
+                            class="w-100"></p-inputNumber>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Hora extra dominical nocturna</label>
+                        <p-inputNumber [(ngModel)]="formData.horasExtrasDominicalNocturna" [min]="0" [maxFractionDigits]="1"
+                            class="w-100"></p-inputNumber>
+                    </div>
+                </div>
+            </p-panel>
+
+            <p-panel header="Porcentajes de aportes" class="mt-3" [toggleable]="true" [collapsed]="true">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Salud empleado</label>
+                        <p-inputNumber [(ngModel)]="formData.porcentajeSaludEmpleado" suffix="%" [min]="0" [max]="100"
+                            [maxFractionDigits]="2" class="w-100"></p-inputNumber>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Salud empresa</label>
+                        <p-inputNumber [(ngModel)]="formData.porcentajeSaludEmpresa" suffix="%" [min]="0" [max]="100"
+                            [maxFractionDigits]="2" class="w-100"></p-inputNumber>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Pensión empleado</label>
+                        <p-inputNumber [(ngModel)]="formData.porcentajePensionEmpleado" suffix="%" [min]="0" [max]="100"
+                            [maxFractionDigits]="2" class="w-100"></p-inputNumber>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Pensión empresa</label>
+                        <p-inputNumber [(ngModel)]="formData.porcentajePensionEmpresa" suffix="%" [min]="0" [max]="100"
+                            [maxFractionDigits]="2" class="w-100"></p-inputNumber>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">SENA</label>
+                        <p-inputNumber [(ngModel)]="formData.porcentajeSENA" suffix="%" [min]="0" [max]="100"
+                            [maxFractionDigits]="2" class="w-100"></p-inputNumber>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">ICBF</label>
+                        <p-inputNumber [(ngModel)]="formData.porcentajeICBF" suffix="%" [min]="0" [max]="100"
+                            [maxFractionDigits]="2" class="w-100"></p-inputNumber>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Cajas de compensación</label>
+                        <p-inputNumber [(ngModel)]="formData.porcentajeCajas" suffix="%" [min]="0" [max]="100"
+                            [maxFractionDigits]="2" class="w-100"></p-inputNumber>
+                    </div>
+                </div>
+            </p-panel>
+
+            <div class="d-flex gap-3 mt-4">
+                <p-button label="Calcular nómina" icon="fa fa-calculator" (onClick)="calcular()" [loading]="cargando"
+                    styleClass="btn-calcular w-100"></p-button>
+                <p-button label="Limpiar" icon="fa fa-eraser" severity="secondary" (onClick)="limpiar()"
+                    styleClass="w-100"></p-button>
+            </div>
+        </div>
+
+        <!-- RESULTADOS -->
+        <div class="col-12 col-lg-7" *ngIf="resultado">
+            <!-- RESUMEN PRINCIPAL -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-4">
+                    <div class="summary-card income">
+                        <div class="summary-icon"><i class="fa fa-money-bill-wave"></i></div>
+                        <div class="summary-label">Total devengado</div>
+                        <div class="summary-value">{{ formatearValor(resultado.devengados.totalDevengados) }}</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="summary-card deduction">
+                        <div class="summary-icon"><i class="fa fa-hand-holding-dollar"></i></div>
+                        <div class="summary-label">Deducciones</div>
+                        <div class="summary-value">{{ formatearValor(resultado.deducciones.totalDeducciones) }}</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="summary-card net">
+                        <div class="summary-icon"><i class="fa fa-wallet"></i></div>
+                        <div class="summary-label">Neto a pagar</div>
+                        <div class="summary-value">{{ formatearValor(resultado.totales.netoPagar) }}</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="summary-card company">
+                        <div class="summary-icon"><i class="fa fa-building"></i></div>
+                        <div class="summary-label">Aportes empresa</div>
+                        <div class="summary-value">{{ formatearValor(resultado.aportesEmpresa.totalAportes) }}</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="summary-card provision">
+                        <div class="summary-icon"><i class="fa fa-piggy-bank"></i></div>
+                        <div class="summary-label">Provisiones</div>
+                        <div class="summary-value">{{ formatearValor(resultado.provisiones.totalProvisiones) }}</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="summary-card total">
+                        <div class="summary-icon"><i class="fa fa-chart-line"></i></div>
+                        <div class="summary-label">Costo total empresa</div>
+                        <div class="summary-value">{{ formatearValor(resultado.totales.costoTotalEmpresa) }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DETALLES -->
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="detail-card">
+                        <div class="detail-title"><i class="fa fa-arrow-trend-up icon-income"></i> Devengados</div>
+                        <div class="detail-item"><span>Salario proporcional</span><span>{{ formatearValor(resultado.devengados.salario) }}</span></div>
+                        <div class="detail-item"><span>Auxilio de transporte</span><span>{{ formatearValor(resultado.devengados.auxilioTransporte) }}</span></div>
+                        <div class="detail-item"><span>Horas extras diurnas</span><span>{{ formatearValor(resultado.devengados.horasExtrasDiurnas) }}</span></div>
+                        <div class="detail-item"><span>Horas extras nocturnas</span><span>{{ formatearValor(resultado.devengados.horasExtrasNocturnas) }}</span></div>
+                        <div class="detail-item"><span>Recargo nocturno</span><span>{{ formatearValor(resultado.devengados.recargoNocturno) }}</span></div>
+                        <div class="detail-item"><span>Recargo dominical/festivo</span><span>{{ formatearValor(resultado.devengados.recargoDominicalFestivo) }}</span></div>
+                        <div class="detail-item"><span>Hora extra dominical diurna</span><span>{{ formatearValor(resultado.devengados.horasExtrasDominicalDiurna) }}</span></div>
+                        <div class="detail-item"><span>Hora extra dominical nocturna</span><span>{{ formatearValor(resultado.devengados.horasExtrasDominicalNocturna) }}</span></div>
+                        <div class="detail-item"><span>Incapacidades (66.67%)</span><span>{{ formatearValor(resultado.devengados.incapacidades) }}</span></div>
+                        <div class="detail-item total"><span>Total devengado</span><span>{{ formatearValor(resultado.devengados.totalDevengados) }}</span></div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="detail-card">
+                        <div class="detail-title"><i class="fa fa-arrow-trend-down icon-deduction"></i> Deducciones empleado</div>
+                        <div class="detail-item"><span>Salud empleado</span><span>{{ formatearValor(resultado.deducciones.saludEmpleado) }}</span></div>
+                        <div class="detail-item"><span>Pensión empleado</span><span>{{ formatearValor(resultado.deducciones.pensionEmpleado) }}</span></div>
+                        <div class="detail-item"><span>Fondo solidaridad pensional</span><span>{{ formatearValor(resultado.deducciones.fondoSolidaridad) }}</span></div>
+                        <div class="detail-item"><span>Retención en la fuente</span><span>{{ formatearValor(resultado.deducciones.retencionFuente) }}</span></div>
+                        <div class="detail-item total"><span>Total deducciones</span><span>{{ formatearValor(resultado.deducciones.totalDeducciones) }}</span></div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="detail-card">
+                        <div class="detail-title"><i class="fa fa-building-columns icon-company"></i> Aportes empresa</div>
+                        <div class="detail-item"><span>Salud empresa</span><span>{{ formatearValor(resultado.aportesEmpresa.salud) }}</span></div>
+                        <div class="detail-item"><span>Pensión empresa</span><span>{{ formatearValor(resultado.aportesEmpresa.pension) }}</span></div>
+                        <div class="detail-item"><span>ARL</span><span>{{ formatearValor(resultado.aportesEmpresa.arl) }}</span></div>
+                        <div class="detail-item"><span>SENA</span><span>{{ formatearValor(resultado.aportesEmpresa.sena) }}</span></div>
+                        <div class="detail-item"><span>ICBF</span><span>{{ formatearValor(resultado.aportesEmpresa.icbf) }}</span></div>
+                        <div class="detail-item"><span>Cajas de compensación</span><span>{{ formatearValor(resultado.aportesEmpresa.cajasCompensacion) }}</span></div>
+                        <div class="detail-item total"><span>Total aportes empresa</span><span>{{ formatearValor(resultado.aportesEmpresa.totalAportes) }}</span></div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="detail-card">
+                        <div class="detail-title"><i class="fa fa-calendar-check icon-provision"></i> Provisiones</div>
+                        <div class="detail-item"><span>Prima de servicios</span><span>{{ formatearValor(resultado.provisiones.prima) }}</span></div>
+                        <div class="detail-item"><span>Cesantías</span><span>{{ formatearValor(resultado.provisiones.cesantias) }}</span></div>
+                        <div class="detail-item"><span>Intereses a las cesantías</span><span>{{ formatearValor(resultado.provisiones.interesesCesantias) }}</span></div>
+                        <div class="detail-item"><span>Vacaciones</span><span>{{ formatearValor(resultado.provisiones.vacaciones) }}</span></div>
+                        <div class="detail-item total"><span>Total provisiones</span><span>{{ formatearValor(resultado.provisiones.totalProvisiones) }}</span></div>
+                    </div>
+                </div>
+
+                <div class="col-md-6" *ngIf="resultado.liquidacion">
+                    <div class="detail-card liquidation">
+                        <div class="detail-title"><i class="fa fa-file-contract icon-liquidation"></i> Liquidación / Indemnización</div>
+                        <div class="detail-item"><span>Indemnización</span><span>{{ formatearValor(resultado.liquidacion.indemnizacion) }}</span></div>
+                        <div class="detail-item"><span>Vacaciones pendientes</span><span>{{ formatearValor(resultado.liquidacion.vacacionesPendientes) }}</span></div>
+                        <div class="detail-item"><span>Prima pendiente</span><span>{{ formatearValor(resultado.liquidacion.primaPendiente) }}</span></div>
+                        <div class="detail-item"><span>Cesantías pendientes</span><span>{{ formatearValor(resultado.liquidacion.cesantiasPendientes) }}</span></div>
+                        <div class="detail-item"><span>Intereses pendientes</span><span>{{ formatearValor(resultado.liquidacion.interesesPendientes) }}</span></div>
+                        <div class="detail-item total"><span>Total liquidación</span><span>{{ formatearValor(resultado.liquidacion.totalLiquidacion) }}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

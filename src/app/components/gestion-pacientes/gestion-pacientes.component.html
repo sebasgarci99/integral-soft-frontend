@@ -714,10 +714,6 @@
                 <p-dialog header="Histórico de consentimientos" [(visible)]="dialogHistorico" [modal]="true"
                     [style]="{ width: '70vw' }" [draggable]="false">
                     <div class="position-relative">
-                        <div class="loading-overlay" *ngIf="cargandoReenvio || cargandoPdf">
-                            <p-progressSpinner strokeWidth="4" fill="transparent"></p-progressSpinner>
-                            <span class="mt-2 fw-bold">{{ cargandoPdf ? 'Generando PDF...' : 'Enviando correo, por favor espere...' }}</span>
-                        </div>
                         <p-table [value]="consentimientos" responsiveLayout="scroll" [paginator]="true" [rows]="10" stripedRows>
                             <ng-template pTemplate="header">
                                 <tr>
@@ -735,10 +731,10 @@
                                     <td>{{ c.nombre_paciente }}</td>
                                     <td>
                                         <p-button icon="fa fa-download" class="p-button-text p-button-sm" severity="info"
-                                            (onClick)="descargarConsentimientoPdf(c)" [loading]="cargandoPdf" [disabled]="cargandoReenvio"></p-button>
+                                            (onClick)="descargarConsentimientoPdf(c)" [loading]="cargandoPdf"></p-button>
                                     </td>
                                     <td>
-                                        <p-button icon="fa fa-envelope" class="p-button-text p-button-sm" (onClick)="reenviarConsentimiento(c)"></p-button>
+                                        <p-button icon="fa fa-envelope" class="p-button-text p-button-sm" (onClick)="reenviarConsentimiento(c)" [loading]="cargandoReenvio"></p-button>
                                     </td>
                                 </tr>
                             </ng-template>

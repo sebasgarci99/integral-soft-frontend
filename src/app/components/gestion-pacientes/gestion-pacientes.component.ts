@@ -2,6 +2,7 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import SignaturePad from 'signature_pad';
+import { forkJoin } from 'rxjs';
 
 import { GestionPacientesService } from '../../services/gestion-pacientes/gestion-pacientes.service';
 import { GestionPaciente, GestionPacienteConsentimiento, GestionPacienteHistorico, TipoConsentimientoOption, ProcedimientoRiesgo } from '../../interfaces/gestion-pacientes';
@@ -23,7 +24,6 @@ import { CalendarModule } from 'primeng/calendar';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 import { AccordionModule } from 'primeng/accordion';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TooltipModule } from 'primeng/tooltip';
 import { normalizarTelefono } from '../../utils/telefono.util';
@@ -51,7 +51,6 @@ import { normalizarTelefono } from '../../utils/telefono.util';
         CheckboxModule,
         TagModule,
         AccordionModule,
-        ProgressSpinnerModule,
         MultiSelectModule,
         TooltipModule
     ],
@@ -226,10 +225,27 @@ export class GestionPacientesComponent implements OnInit {
         private confirmService: ConfirmationService
     ) { }
 
-    ngOnInit(): void {
+    async ngOnInit(): Promise<void> {
         this.activeItem = this.tabs[0];
-        this.cargarPacientes();
-        this.cargarTiposConsentimiento();
+        await this.cargarCatalogos();
+    }
+
+    private async cargarCatalogos(): Promise<void> {
+        const [obsPacientes, obsTipos] = await Promise.all([
+            this.gestionPacientesService.obtenerPacientes(),
+            this.gestionPacientesService.obtenerTiposConsentimiento()
+        ]);
+        forkJoin([obsPacientes, obsTipos]).subscribe({
+            next: ([pacientes, tipos]) => {
+                this.pacientes = pacientes;
+                this.tiposConsentimiento = tipos;
+                this.tiposConsentimientoBorrador = tipos.filter(t => t.key.includes('_borrador'));
+                this.tiposConsentimientoOficial = tipos.filter(t => !t.key.includes('_borrador'));
+            },
+            error: () => {
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar catálogos iniciales.' });
+            }
+        });
     }
 
     async cargarPacientes(): Promise<void> {

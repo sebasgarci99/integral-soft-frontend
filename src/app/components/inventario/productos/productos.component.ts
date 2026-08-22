@@ -13,6 +13,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { AccordionModule } from 'primeng/accordion';
 import { BadgeModule } from 'primeng/badge';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { forkJoin } from 'rxjs';
 import { InventarioService } from '../../../services/inventario/inventario.service';
 import { Producto, Grupo, Categoria, UnidadMedida } from '../../../interfaces/inventario';
 import { parseDateSinTimezone, formatDateLocal } from '../../../utils/fecha.util';
@@ -41,7 +42,6 @@ export class ProductosComponent implements OnInit {
     selectedGrupo: Grupo | null = null;
     selectedCategoria: Categoria | null = null;
 
-    loadingProductos: boolean = false;
     loadingGuardar: boolean = false;
     loadingEliminar: boolean = false;
 
@@ -65,9 +65,34 @@ export class ProductosComponent implements OnInit {
     }
 
     async cargarDatosIniciales() {
-        await this.cargarGrupos();
-        await this.cargarCategorias();
-        await this.cargarUnidades();
+        try {
+            const [grupos$, categorias$, unidades$] = await Promise.all([
+                this.inventarioService.getGrupos(),
+                this.inventarioService.getCategorias(),
+                this.inventarioService.getUnidadesMedida()
+            ]);
+
+            forkJoin([grupos$, categorias$, unidades$]).subscribe({
+                next: ([resGrupos, resCategorias, resUnidades]) => {
+                    if (resGrupos.state === 'OK') {
+                        this.grupos = resGrupos.body || [];
+                    }
+
+                    if (resCategorias.state === 'OK') {
+                        this.categorias = resCategorias.body || [];
+                    }
+
+                    if (resUnidades.state === 'OK') {
+                        this.unidades = resUnidades.body || [];
+                    }
+                },
+                error: () => {
+                    this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
+                }
+            });
+        } catch (error) {
+            this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
+        }
     }
 
     aplicarFiltroGlobal(event: Event) {
@@ -78,14 +103,12 @@ export class ProductosComponent implements OnInit {
     }
 
     async cargarProductos() {
-        this.loadingProductos = true;
         const filtros: Record<string, unknown> = {};
         if (this.selectedGrupo) filtros['id_grupo'] = this.selectedGrupo.id_grupo_producto;
         if (this.selectedCategoria) filtros['id_categoria'] = this.selectedCategoria.id_categoria_producto;
 
         (await this.inventarioService.getProductos(filtros)).subscribe({
             next: (res) => {
-                this.loadingProductos = false;
                 if (res.state === 'OK') {
                     this.productos = res.body || [];
                 } else {
@@ -93,7 +116,6 @@ export class ProductosComponent implements OnInit {
                 }
             },
             error: () => {
-                this.loadingProductos = false;
                 this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
             }
         });

@@ -36,8 +36,6 @@ export class ReporteProductosComponent implements OnInit {
     productosStockBajo: number = 0;
     productosProximosVencer: number = 0;
 
-    loadingGrupos: boolean = false;
-    loadingCategorias: boolean = false;
     loadingReporte: boolean = false;
 
     opcionesEstado = [
@@ -62,10 +60,8 @@ export class ReporteProductosComponent implements OnInit {
     }
 
     async cargarGrupos() {
-        this.loadingGrupos = true;
         (await this.inventarioService.getGrupos()).subscribe({
             next: (res: ApiResponse<Grupo[]>) => {
-                this.loadingGrupos = false;
                 if (res.state === 'OK') {
                     this.grupos = (res.body || []).filter(g => g.estado === 'A');
                 } else {
@@ -73,7 +69,6 @@ export class ReporteProductosComponent implements OnInit {
                 }
             },
             error: () => {
-                this.loadingGrupos = false;
                 this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
             }
         });
@@ -83,10 +78,8 @@ export class ReporteProductosComponent implements OnInit {
         this.selectedCategoria = null;
         this.categorias = [];
         if (this.selectedGrupo) {
-            this.loadingCategorias = true;
             (await this.inventarioService.getCategorias(this.selectedGrupo.id_grupo_producto)).subscribe({
                 next: (res: ApiResponse<Categoria[]>) => {
-                    this.loadingCategorias = false;
                     if (res.state === 'OK') {
                         this.categorias = (res.body || []).filter(c => c.estado === 'A');
                     } else {
@@ -94,7 +87,6 @@ export class ReporteProductosComponent implements OnInit {
                     }
                 },
                 error: () => {
-                    this.loadingCategorias = false;
                     this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
                 }
             });

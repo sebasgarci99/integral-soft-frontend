@@ -43,7 +43,7 @@ export class ReportesPqrsComponent implements OnInit {
     ];
 
     resultados: any[] = [];
-    cargando = false;
+    generando = false;
 
     constructor(
         private propiedadesService: PqrsPropiedadesService,
@@ -76,7 +76,7 @@ export class ReportesPqrsComponent implements OnInit {
             return;
         }
 
-        this.cargando = true;
+        this.generando = true;
         (await this.reportesService.generarReporte(
             this.propiedadSeleccionada?.id_propiedad_horizontal || null,
             this.filtros.fecha_inicio,
@@ -84,7 +84,7 @@ export class ReportesPqrsComponent implements OnInit {
             this.filtros.estado || undefined
         )).subscribe({
             next: (res) => {
-                this.cargando = false;
+                this.generando = false;
                 if (res.state === 'OK') {
                     this.resultados = res.body || [];
                 } else {
@@ -92,7 +92,7 @@ export class ReportesPqrsComponent implements OnInit {
                 }
             },
             error: () => {
-                this.cargando = false;
+                this.generando = false;
                 this.messageService.add({ severity: 'error', summary: 'Error de conexión.' });
             }
         });

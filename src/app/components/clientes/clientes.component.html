@@ -140,6 +140,22 @@
                                     class="w-100"></textarea>
                                 <label>Comentarios / Observaciones</label>
                             </p-floatlabel>
+
+                            <div class="col-12 mt-3">
+                                <label class="form-label fw-semibold">Logo del cliente</label>
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+                                    <input #logoInput type="file" accept="image/*" style="display: none;"
+                                        (change)="onFileSelected($event)" />
+                                    <button pButton type="button" icon="fa fa-upload" label="Seleccionar logo"
+                                        severity="secondary" (click)="logoInput.click()"></button>
+                                    <button *ngIf="logoPreview" pButton type="button" icon="fa fa-trash"
+                                        label="Eliminar logo" severity="danger" (click)="eliminarLogo()"></button>
+                                </div>
+                                <div *ngIf="logoPreview" class="mt-2">
+                                    <img [src]="logoPreview" alt="Preview logo"
+                                        style="max-height: 120px; max-width: 100%; border: 1px solid #dee2e6; border-radius: 4px; padding: 4px;" />
+                                </div>
+                            </div>
                         </div>
                     </form>
 

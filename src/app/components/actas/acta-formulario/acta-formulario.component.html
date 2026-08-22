@@ -1,0 +1,311 @@
+<div class="container-fluid py-3">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <h3 class="m-0"><i class="fa fa-file-alt me-2 text-primary"></i>{{ acta.id_acta ? 'Editar acta' : 'Nueva acta' }}</h3>
+                <button pButton type="button" label="Volver" icon="fa fa-arrow-left" class="p-button-secondary" (click)="volver()"></button>
+            </div>
+
+            <p-fieldset legend="Información general" styleClass="mb-3" [toggleable]="false">
+                <div class="row g-3 mb-3">
+                    <div class="col-12">
+                        <h6 class="section-title"><i class="fa fa-file-contract me-2"></i>Formato de calidad del documento</h6>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Versión del acta</label>
+                            <input pInputText [(ngModel)]="acta.version_documento" class="w-100" placeholder="Ej: 03-2023" />
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Estándar</label>
+                            <input pInputText [(ngModel)]="acta.estandar" class="w-100" placeholder="Ej: Gestión de Recursos" />
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Código</label>
+                            <input pInputText [(ngModel)]="acta.codigo" class="w-100" placeholder="Ej: 1-1-2" />
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-3 text-secondary opacity-25">
+
+                <div class="row g-3 mb-3">
+                    <div class="col-12">
+                        <h6 class="section-title"><i class="fa fa-building me-2"></i>Datos de la empresa</h6>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Cliente</label>
+                            <input pInputText [value]="clienteSeleccionado?.nombre_razon_social || 'No seleccionado'" class="w-100" disabled />
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Empresa / Cliente</label>
+                            <input pInputText [(ngModel)]="acta.empresa_nombre" class="w-100" placeholder="Nombre de la empresa" />
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">NIT</label>
+                            <input pInputText [(ngModel)]="acta.empresa_nit" class="w-100" placeholder="NIT" />
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">ARL de la empresa</label>
+                            <input pInputText [(ngModel)]="acta.empresa_arl" class="w-100" placeholder="ARL" />
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Clasificación riesgo</label>
+                            <input pInputText [(ngModel)]="acta.clasificacion_riesgo" class="w-100" placeholder="Riesgo" />
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-3 text-secondary opacity-25">
+
+                <div class="row g-3 mb-3">
+                    <div class="col-12">
+                        <h6 class="section-title"><i class="fa fa-users me-2"></i>Personal y periodo</h6>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Orientadores</label>
+                            <p-inputNumber [(ngModel)]="acta.numero_personal_orientadores" class="w-100 full-width" [min]="0"></p-inputNumber>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Mantenimiento</label>
+                            <p-inputNumber [(ngModel)]="acta.numero_personal_mantenimiento" class="w-100 full-width" [min]="0"></p-inputNumber>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Mes del acta</label>
+                            <input pInputText [(ngModel)]="acta.mes" class="w-100" placeholder="MM/YYYY" />
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Fecha del acta</label>
+                            <p-calendar [(ngModel)]="fechaActa" dateFormat="yy-mm-dd" class="w-100 full-width" appendTo="body"></p-calendar>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Responsable SG-SST</label>
+                            <p-dropdown [options]="responsables" [(ngModel)]="responsableSeleccionado" optionLabel="nombre" placeholder="Seleccione responsable" (onChange)="cambiarResponsable()" class="w-100 full-width" appendTo="body"></p-dropdown>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-3 text-secondary opacity-25">
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <h6 class="section-title"><i class="fa fa-user-tie me-2"></i>Datos del responsable SG-SST</h6>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Nombre</label>
+                            <input pInputText [(ngModel)]="acta.responsable_nombre" class="w-100" />
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Cédula</label>
+                            <input pInputText [(ngModel)]="acta.responsable_cedula" class="w-100" />
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Profesión</label>
+                            <input pInputText [(ngModel)]="acta.responsable_profesion" class="w-100" />
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">Licencia</label>
+                            <input pInputText [(ngModel)]="acta.responsable_licencia" class="w-100" />
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="d-flex flex-column">
+                            <label class="form-label fw-semibold">ARL</label>
+                            <input pInputText [(ngModel)]="acta.responsable_arl" class="w-100" />
+                        </div>
+                    </div>
+                </div>
+            </p-fieldset>
+
+            <p-fieldset legend="Fundamento legal" styleClass="mb-3" [toggleable]="false">
+                <textarea pInputTextarea [(ngModel)]="acta.fundamento_legal" rows="4" class="w-100" style="resize: vertical;"></textarea>
+            </p-fieldset>
+
+            <p-fieldset legend="Objetivos" styleClass="mb-3" [toggleable]="false">
+                <textarea pInputTextarea [(ngModel)]="acta.objetivos" rows="2" class="w-100" style="resize: vertical;"></textarea>
+            </p-fieldset>
+
+            <p-fieldset legend="Indicadores del SG-SST" styleClass="mb-3" [toggleable]="false">
+                <div *ngFor="let grupo of gruposIndicadores" class="mb-4">
+                    <div class="section-title">{{ grupo.nombre }}</div>
+                    <p-table [value]="grupo.items" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th class="text-center" style="width: 60px;">Pos</th>
+                                <th class="text-center">Numerador</th>
+                                <th class="text-center">Denominador</th>
+                                <th class="text-center">Porcentaje</th>
+                                <th>Observaciones</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-item>
+                            <tr>
+                                <td class="text-center">{{ item.posicion }}</td>
+                                <td class="text-center"><p-inputNumber [(ngModel)]="item.numerador" [min]="0" class="w-100 full-width"></p-inputNumber></td>
+                                <td class="text-center"><p-inputNumber [(ngModel)]="item.denominador" [min]="0" class="w-100 full-width"></p-inputNumber></td>
+                                <td class="text-center"><input pInputText [(ngModel)]="item.porcentaje" class="w-100 text-center" /></td>
+                                <td><input pInputText [(ngModel)]="item.observaciones" class="w-100" /></td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </p-fieldset>
+
+            <p-fieldset legend="Revisión de pendientes {{ (acta.mes || '').split('/')[1] || '' }}" styleClass="mb-3" [toggleable]="false">
+                <p-table [value]="acta.pendientes || []" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th style="width: 20%;">Categoría</th>
+                            <th style="width: 35%;">Descripción</th>
+                            <th style="width: 15%;">Prioridad</th>
+                            <th style="width: 25%;">Observaciones</th>
+                            <th class="text-center" style="width: 60px;"></th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-p let-i="rowIndex">
+                        <tr>
+                            <td><input pInputText [(ngModel)]="p.categoria" class="w-100" /></td>
+                            <td><textarea pInputTextarea [(ngModel)]="p.descripcion" rows="2" class="w-100" style="resize: vertical;"></textarea></td>
+                            <td><p-dropdown [options]="prioridades" [(ngModel)]="p.prioridad" appendTo="body" class="w-100 full-width" placeholder="Prioridad"></p-dropdown></td>
+                            <td><input pInputText [(ngModel)]="p.observaciones" class="w-100" /></td>
+                            <td class="text-center"><button pButton type="button" icon="fa fa-trash" class="p-button-text p-button-danger" (click)="eliminarPendiente(i)"></button></td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr><td colspan="5" class="text-center text-muted py-3">No hay pendientes registrados</td></tr>
+                    </ng-template>
+                </p-table>
+                <div class="mt-2">
+                    <button pButton type="button" label="Agregar pendiente" icon="fa fa-plus" (click)="agregarPendiente()"></button>
+                </div>
+            </p-fieldset>
+
+            <p-fieldset legend="Actividades realizadas" styleClass="mb-3" [toggleable]="false">
+                <div class="d-flex flex-wrap align-items-end gap-2 mb-3 p-3 bg-light border rounded">
+                    <div>
+                        <label class="form-label fw-semibold">Desde</label>
+                        <p-calendar [(ngModel)]="fechaInicio" dateFormat="yy-mm-dd" class="w-100 full-width" appendTo="body"></p-calendar>
+                    </div>
+                    <div>
+                        <label class="form-label fw-semibold">Hasta</label>
+                        <p-calendar [(ngModel)]="fechaFin" dateFormat="yy-mm-dd" class="w-100 full-width" appendTo="body"></p-calendar>
+                    </div>
+                    <button pButton type="button" label="Buscar actividades del programador" icon="fa fa-search" (click)="buscarInstancias()"></button>
+                </div>
+
+                <p-table [value]="acta.actividades_realizadas || []" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th style="width: 22%;">Sistema</th>
+                            <th style="width: 25%;">Actividad</th>
+                            <th style="width: 45%;">Descripción</th>
+                            <th class="text-center" style="width: 60px;"></th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-a let-i="rowIndex">
+                        <tr>
+                            <td><p-dropdown [options]="sistemas" [(ngModel)]="a.sistema" appendTo="body" class="w-100 full-width"></p-dropdown></td>
+                            <td><input pInputText [(ngModel)]="a.titulo_actividad" class="w-100" /></td>
+                            <td><input pInputText [(ngModel)]="a.descripcion" class="w-100" /></td>
+                            <td class="text-center"><button pButton type="button" icon="fa fa-trash" class="p-button-text p-button-danger" (click)="eliminarActividad(i)"></button></td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr><td colspan="4" class="text-center text-muted py-3">No hay actividades registradas</td></tr>
+                    </ng-template>
+                </p-table>
+                <div class="mt-2">
+                    <button pButton type="button" label="Agregar actividad manual" icon="fa fa-plus" class="p-button-secondary" (click)="agregarActividadManual()"></button>
+                </div>
+            </p-fieldset>
+
+            <p-fieldset legend="Priorización de actividades" styleClass="mb-3" [toggleable]="false">
+                <p-table [value]="acta.priorizaciones || []" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th style="width: 30%;">Categoría</th>
+                            <th style="width: 60%;">Descripción</th>
+                            <th class="text-center" style="width: 60px;"></th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-p let-i="rowIndex">
+                        <tr>
+                            <td><input pInputText [(ngModel)]="p.categoria" class="w-100" /></td>
+                            <td><input pInputText [(ngModel)]="p.descripcion" class="w-100" /></td>
+                            <td class="text-center"><button pButton type="button" icon="fa fa-trash" class="p-button-text p-button-danger" (click)="eliminarPriorizacion(i)"></button></td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr><td colspan="3" class="text-center text-muted py-3">No hay priorizaciones registradas</td></tr>
+                    </ng-template>
+                </p-table>
+                <div class="mt-2">
+                    <button pButton type="button" label="Agregar priorización" icon="fa fa-plus" (click)="agregarPriorizacion()"></button>
+                </div>
+            </p-fieldset>
+
+            <div class="d-flex flex-wrap gap-2 mt-4">
+                <button pButton type="button" label="Guardar borrador" icon="fa fa-save" class="p-button-primary" (click)="guardar()"></button>
+                <button pButton type="button" label="Cerrar acta" icon="fa fa-check" class="p-button-success" (click)="cerrar()" [disabled]="!acta.id_acta"></button>
+                <button pButton type="button" label="Descargar DOCX" icon="fa fa-file-word" class="p-button-info" (click)="descargarDocx()" [disabled]="!acta.id_acta"></button>
+                <button pButton type="button" label="Descargar PDF" icon="fa fa-file-pdf" class="p-button-danger" (click)="descargarPdf()" [disabled]="!acta.id_acta"></button>
+                <button pButton type="button" label="Enviar por correo" icon="fa fa-envelope" class="p-button-help" (click)="enviar()" [disabled]="!acta.id_acta"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-dialog header="Seleccionar actividad del programador" [(visible)]="mostrarDialogoActividades" [modal]="true" [style]="{ width: '80vw' }" appendTo="body">
+    <p-table [value]="instanciasDisponibles" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Actividad</th>
+                <th class="text-center"></th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-ins>
+            <tr>
+                <td>{{ ins.fecha }}</td>
+                <td>{{ ins.hora_inicio }} - {{ ins.hora_fin }}</td>
+                <td>{{ ins.actividad?.titulo }}</td>
+                <td class="text-center"><button pButton type="button" icon="fa fa-plus" label="Agregar" (click)="agregarActividadDesdeInstancia(ins)"></button></td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr><td colspan="4" class="text-center text-muted py-3">No se encontraron actividades en el rango seleccionado</td></tr>
+        </ng-template>
+    </p-table>
+</p-dialog>
+
+<p-toast></p-toast>

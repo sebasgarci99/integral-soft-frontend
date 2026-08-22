@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -40,8 +41,6 @@ export class SeguimientoPqrsComponent implements OnInit {
     solicitudes: SolicitudConBandera[] = [];
     solicitudSeleccionada: SolicitudConBandera | null = null;
 
-    cargandoPropiedades = false;
-    cargandoSolicitudes = false;
     displayDetalle = false;
     vistaDetalle: 'detalle' | 'categoria' | 'avance' | 'finalizar' = 'detalle';
 
@@ -80,10 +79,8 @@ export class SeguimientoPqrsComponent implements OnInit {
     }
 
     async cargarPropiedades() {
-        this.cargandoPropiedades = true;
         (await this.propiedadesService.getPropiedadesHorizontales()).subscribe({
             next: (res) => {
-                this.cargandoPropiedades = false;
                 if (res.state === 'OK') {
                     this.propiedades = res.body || [];
                 } else {
@@ -91,7 +88,6 @@ export class SeguimientoPqrsComponent implements OnInit {
                 }
             },
             error: () => {
-                this.cargandoPropiedades = false;
                 this.messageService.add({ severity: 'error', summary: 'Error de conexión.' });
             }
         });
@@ -100,29 +96,39 @@ export class SeguimientoPqrsComponent implements OnInit {
     async onPropiedadChange() {
         if (!this.propiedadSeleccionada) {
             this.solicitudes = [];
+            this.categorias = [];
             return;
         }
-        await this.cargarCategorias();
-        await this.cargarSolicitudes();
+        await this.cargarCatalogosPorPropiedad();
     }
 
-    async cargarCategorias() {
+    private async cargarCatalogosPorPropiedad(): Promise<void> {
         if (!this.propiedadSeleccionada) return;
-        (await this.propiedadesService.getCategoriasPorPropiedad(this.propiedadSeleccionada.id_propiedad_horizontal)).subscribe({
-            next: (res) => {
-                if (res.state === 'OK') {
-                    this.categorias = res.body || [];
+        const [obsCategorias, obsSolicitudes] = await Promise.all([
+            this.propiedadesService.getCategoriasPorPropiedad(this.propiedadSeleccionada.id_propiedad_horizontal),
+            this.solicitudesService.listarSolicitudesPorPropiedad(this.propiedadSeleccionada.id_propiedad_horizontal)
+        ]);
+        forkJoin([obsCategorias, obsSolicitudes]).subscribe({
+            next: ([resCategorias, resSolicitudes]) => {
+                if (resCategorias.state === 'OK') {
+                    this.categorias = resCategorias.body || [];
                 }
+                if (resSolicitudes.state === 'OK') {
+                    this.solicitudes = resSolicitudes.body || [];
+                } else {
+                    this.messageService.add({ severity: 'error', summary: resSolicitudes.msg || 'Error al cargar solicitudes.' });
+                }
+            },
+            error: () => {
+                this.messageService.add({ severity: 'error', summary: 'Error de conexión.' });
             }
         });
     }
 
     async cargarSolicitudes() {
         if (!this.propiedadSeleccionada) return;
-        this.cargandoSolicitudes = true;
         (await this.solicitudesService.listarSolicitudesPorPropiedad(this.propiedadSeleccionada.id_propiedad_horizontal)).subscribe({
             next: (res) => {
-                this.cargandoSolicitudes = false;
                 if (res.state === 'OK') {
                     this.solicitudes = res.body || [];
                 } else {
@@ -130,7 +136,6 @@ export class SeguimientoPqrsComponent implements OnInit {
                 }
             },
             error: () => {
-                this.cargandoSolicitudes = false;
                 this.messageService.add({ severity: 'error', summary: 'Error de conexión.' });
             }
         });

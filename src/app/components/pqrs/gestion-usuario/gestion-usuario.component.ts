@@ -34,7 +34,6 @@ export class GestionUsuarioComponent implements OnInit {
 
     codigoAcceso = '';
     propiedad: Partial<PropiedadHorizontal> | null = null;
-    cargando = true;
     codigoValido = false;
     codigoInvalido = false;
 
@@ -88,7 +87,6 @@ export class GestionUsuarioComponent implements OnInit {
             if (this.codigoAcceso) {
                 this.validarCodigo();
             } else {
-                this.cargando = false;
                 this.codigoInvalido = true;
             }
         });
@@ -97,7 +95,6 @@ export class GestionUsuarioComponent implements OnInit {
     validarCodigo() {
         this.pqrsPublicoService.validarCodigo(this.codigoAcceso).subscribe({
             next: (res) => {
-                this.cargando = false;
                 if (res.state === 'OK') {
                     this.propiedad = res.body;
                     this.codigoValido = true;
@@ -106,7 +103,6 @@ export class GestionUsuarioComponent implements OnInit {
                 }
             },
             error: () => {
-                this.cargando = false;
                 this.codigoInvalido = true;
             }
         });

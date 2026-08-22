@@ -1,6 +1,6 @@
 <router-outlet></router-outlet>
 
-<div class="uiverse-loader-overlay-fullscreen" *ngIf="mostrarLoader">
+<div class="uiverse-loader-overlay-fullscreen" *ngIf="loading$ | async">
     <div class="uiverse-loader-wrapper">
         <div class="uiverse-loader">
             <span></span>

@@ -37,7 +37,7 @@ import { SecureStorageService } from '../../services/secure-storage.service';
 })
 export class InfoUsuarioComponent implements OnInit {
 
-    loader = false;
+    guardando = false;
     idRol: number = 0;
     activeTab: number = 0;
 
@@ -75,7 +75,6 @@ export class InfoUsuarioComponent implements OnInit {
     }
 
     async cargarDatos() {
-        this.loader = true;
         (await this.infoUsuarioService.getFullUserInfo()).subscribe({
             next: (data) => {
                 this.datosUsuario = data.usuario || {};
@@ -96,8 +95,7 @@ export class InfoUsuarioComponent implements OnInit {
             },
             error: () => {
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar la informaci\u00f3n del usuario.' });
-            },
-            complete: () => { this.loader = false; }
+            }
         });
     }
 
@@ -135,7 +133,7 @@ export class InfoUsuarioComponent implements OnInit {
         } else {
             this.firmaPreview = null;
         }
-        this.loader = true;
+        this.guardando = true;
         (await this.infoUsuarioService.updateUserInfo({
             nombre: this.datosUsuario.nombre,
             apellido: this.datosUsuario.apellido,
@@ -152,12 +150,12 @@ export class InfoUsuarioComponent implements OnInit {
             error: () => {
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al guardar informaci\u00f3n b\u00e1sica.' });
             },
-            complete: () => { this.loader = false; }
+            complete: () => { this.guardando = false; }
         });
     }
 
     async guardarInfoAdicional() {
-        this.loader = true;
+        this.guardando = true;
         (await this.infoUsuarioService.updateInfoAdicional({
             nombre_completo: this.infoAdicional.nombre_completo,
             numero_documento: this.infoAdicional.numero_documento,
@@ -175,12 +173,12 @@ export class InfoUsuarioComponent implements OnInit {
             error: () => {
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al guardar informaci\u00f3n adicional.' });
             },
-            complete: () => { this.loader = false; }
+            complete: () => { this.guardando = false; }
         });
     }
 
     async guardarConfigCorreo() {
-        this.loader = true;
+        this.guardando = true;
         (await this.infoUsuarioService.updateCorreoSmtp({
             correo_electronico: this.configCorreo.correo_electronico,
             password: this.configCorreo.password,
@@ -198,7 +196,7 @@ export class InfoUsuarioComponent implements OnInit {
             error: () => {
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al guardar configuraci\u00f3n de correo.' });
             },
-            complete: () => { this.loader = false; }
+            complete: () => { this.guardando = false; }
         });
     }
 }

@@ -27,8 +27,6 @@ export class StockComponent implements OnInit {
     selectedSede: Sede | null = null;
     vistaConsolidada: boolean = false;
 
-    loadingStock: boolean = false;
-
     constructor(
         private inventarioService: InventarioService,
         private messageService: MessageService
@@ -46,13 +44,11 @@ export class StockComponent implements OnInit {
     }
 
     async cargarStock() {
-        this.loadingStock = true;
         const filtros: Record<string, unknown> = {};
         if (this.selectedSede) filtros['id_sede'] = this.selectedSede.id_sede;
 
         (await this.inventarioService.getStockPorSede(filtros)).subscribe({
             next: (res) => {
-                this.loadingStock = false;
                 if (res.state === 'OK') {
                     this.stocks = res.body || [];
                 } else {
@@ -60,7 +56,6 @@ export class StockComponent implements OnInit {
                 }
             },
             error: () => {
-                this.loadingStock = false;
                 this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
             }
         });

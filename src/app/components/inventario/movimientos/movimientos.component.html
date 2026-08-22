@@ -18,22 +18,11 @@
                         placeholder="Fecha hasta" styleClass="w-100" appendTo="body" />
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
-                    <p-button label="Filtrar" icon="fa fa-search" severity="info" (onClick)="filtrarPorFechas()" [loading]="loadingMovimientos" />
+                    <p-button label="Filtrar" icon="fa fa-search" severity="info" (onClick)="filtrarPorFechas()" />
                 </div>
             </div>
 
             <div class="position-relative">
-                <div *ngIf="loadingMovimientos" class="uiverse-loader-overlay">
-                    <div class="uiverse-loader-wrapper">
-                        <div class="uiverse-loader">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </div>
-                </div>
-
                 <p-table [value]="movimientos" [paginator]="true" [rows]="10" responsiveLayout="scroll" stripedRows>
                     <ng-template pTemplate="header">
                         <tr>

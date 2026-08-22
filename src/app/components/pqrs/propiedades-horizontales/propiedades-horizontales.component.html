@@ -11,14 +11,6 @@
             </div>
 
             <div class="position-relative">
-                <div *ngIf="loadingPropiedades" class="uiverse-loader-overlay">
-                    <div class="uiverse-loader-wrapper">
-                        <div class="uiverse-loader">
-                            <span></span><span></span><span></span><span></span>
-                        </div>
-                    </div>
-                </div>
-
                 <p-table #tablaPropiedades [value]="propiedades" [paginator]="true" [rows]="10" responsiveLayout="scroll"
                     [globalFilterFields]="['nombre', 'nit', 'direccion', 'administrador_actual', 'email_pqrs']" stripedRows>
                     <ng-template pTemplate="header">
@@ -50,8 +42,8 @@
                                 <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editarPropiedad(row)" pTooltip="Editar" />
                                 <p-button icon="fa fa-qrcode" class="p-button-text p-button-sm" severity="info" (onClick)="mostrarQr(row)" pTooltip="Ver QR" />
                                 <p-button icon="fa fa-tags" class="p-button-text p-button-sm" severity="secondary" (onClick)="abrirCategorias(row)" pTooltip="Categorías" />
-                                <p-button icon="fa fa-sync" class="p-button-text p-button-sm" severity="help" (onClick)="renovarCodigo(row)" pTooltip="Renovar código QR" />
-                                <p-button icon="fa fa-power-off" class="p-button-text p-button-sm" [severity]="row.estado === 'A' ? 'danger' : 'success'" (onClick)="inactivarPropiedad(row)" pTooltip="Cambiar estado" />
+                                <p-button icon="fa fa-sync" class="p-button-text p-button-sm" severity="help" (onClick)="renovarCodigo(row)" pTooltip="Renovar código QR" [loading]="renovandoCodigo" />
+                                <p-button icon="fa fa-power-off" class="p-button-text p-button-sm" [severity]="row.estado === 'A' ? 'danger' : 'success'" (onClick)="inactivarPropiedad(row)" pTooltip="Cambiar estado" [loading]="loadingEliminar" />
                             </td>
                         </tr>
                     </ng-template>
@@ -167,7 +159,7 @@
                             <input pInputText [(ngModel)]="categoriaForm.orden" type="number" class="w-100" placeholder="0" />
                         </div>
                         <div class="col-lg-1 col-md-12 mt-2">
-                            <p-button icon="fa fa-check" severity="info" (onClick)="guardarCategoria()" pTooltip="Guardar" />
+                            <p-button icon="fa fa-check" severity="info" (onClick)="guardarCategoria()" pTooltip="Guardar" [loading]="guardandoCategoria" />
                         </div>
                     </div>
                 </div>
@@ -192,7 +184,7 @@
                             </td>
                             <td>
                                 <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editarCategoria(row)" />
-                                <p-button icon="fa fa-power-off" class="p-button-text p-button-sm" [severity]="row.estado === 'A' ? 'danger' : 'success'" (onClick)="inactivarCategoria(row)" />
+                                <p-button icon="fa fa-power-off" class="p-button-text p-button-sm" [severity]="row.estado === 'A' ? 'danger' : 'success'" (onClick)="inactivarCategoria(row)" [loading]="inactivandoCategoria" />
                             </td>
                         </tr>
                     </ng-template>

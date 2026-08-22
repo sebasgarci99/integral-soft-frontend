@@ -59,6 +59,7 @@ export class ClienteService {
             correo_electronico: data.correo_electronico,
             nombre_contacto: data.nombre_contacto,
             comentarios_observaciones: data.comentarios_observaciones,
+            logo_base64: data.logo_base64,
             estado: 'A',
             id_usuario: idUser,
             id_empresa: idEmpresa
@@ -94,6 +95,7 @@ export class ClienteService {
             correo_electronico: data.correo_electronico,
             nombre_contacto: data.nombre_contacto,
             comentarios_observaciones: data.comentarios_observaciones,
+            logo_base64: data.logo_base64,
             estado: data.estado || 'A',
             id_usuario: idUser,
             id_empresa: idEmpresa

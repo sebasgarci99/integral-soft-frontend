@@ -6,11 +6,6 @@
         </div>
 
         <div class="landing-body">
-            <div *ngIf="cargando" class="text-center p-4">
-                <div class="spinner-border text-info" role="status"></div>
-                <p class="mt-2 text-muted">Validando acceso...</p>
-            </div>
-
             <div *ngIf="codigoInvalido" class="alert alert-danger">
                 <i class="fa fa-exclamation-circle"></i> El enlace no es válido o ha expirado. Por favor escanee nuevamente el código QR.
             </div>
@@ -51,10 +46,7 @@
                     <label class="form-label">Número de documento *</label>
                     <div class="input-group">
                         <input pInputText type="text" [(ngModel)]="documentoInicial" class="form-control" placeholder="Ingrese su número de cédula" />
-                        <button class="btn btn-info text-white" (click)="validarLimite()" [disabled]="validandoLimite">
-                            <span *ngIf="validandoLimite" class="spinner-border spinner-border-sm"></span>
-                            <span *ngIf="!validandoLimite">Continuar</span>
-                        </button>
+                        <p-button label="Continuar" styleClass="btn btn-info text-white" (onClick)="validarLimite()" [loading]="validandoLimite" />
                     </div>
                     <div class="form-text">Ingrese su documento para validar que puede crear nuevas solicitudes.</div>
                 </div>
@@ -118,10 +110,7 @@
 
                     <div class="d-flex justify-content-between">
                         <button class="btn btn-outline-secondary" (click)="volverInicio()">Volver</button>
-                        <button class="btn btn-info text-white" (click)="enviarSolicitud()" [disabled]="enviando">
-                            <span *ngIf="enviando" class="spinner-border spinner-border-sm"></span>
-                            <span *ngIf="!enviando">Guardar y enviar</span>
-                        </button>
+                        <p-button label="Guardar y enviar" styleClass="btn btn-info text-white" icon="fa fa-save" (onClick)="enviarSolicitud()" [loading]="enviando" />
                     </div>
                 </div>
             </ng-container>
@@ -153,10 +142,7 @@
 
                 <div class="d-flex justify-content-between mb-4">
                     <button class="btn btn-outline-secondary" (click)="volverInicio()">Volver</button>
-                    <button class="btn btn-info text-white" (click)="consultar()" [disabled]="consultando">
-                        <span *ngIf="consultando" class="spinner-border spinner-border-sm"></span>
-                        <span *ngIf="!consultando">Consultar</span>
-                    </button>
+                    <p-button label="Consultar" styleClass="btn btn-info text-white" icon="fa fa-search" (onClick)="consultar()" [loading]="consultando" />
                 </div>
 
                 <div *ngIf="resultados.length === 0 && !consultando" class="alert alert-light text-center">

@@ -16,6 +16,9 @@ import { CuentasCobroComponent } from './components/cuentas-cobro/cuentas-cobro.
 import { ActividadesComponent } from './components/actividades/actividades.component';
 import { ArchivosCobroComponent } from './components/archivos-cobro/archivos-cobro.component';
 import { InfoUsuarioComponent } from './components/info-usuario/info-usuario.component';
+import { ActasComponent } from './components/actas/actas.component';
+import { ActaFormularioComponent } from './components/actas/acta-formulario/acta-formulario.component';
+import { ResponsablesSstComponent } from './components/actas/responsables-sst/responsables-sst.component';
 import { GestionPacientesComponent } from './components/gestion-pacientes/gestion-pacientes.component';
 import { EquiposComponent } from './components/equipos/equipos.component';
 import { InventarioComponent } from './components/inventario/inventario.component';
@@ -30,6 +33,7 @@ import { PropiedadesHorizontalesComponent } from './components/pqrs/propiedades-
 import { SeguimientoPqrsComponent } from './components/pqrs/seguimiento-pqrs/seguimiento-pqrs.component';
 import { AlertasPqrsComponent } from './components/pqrs/alertas-pqrs/alertas-pqrs.component';
 import { ReportesPqrsComponent } from './components/pqrs/reportes-pqrs/reportes-pqrs.component';
+import { CalculoEmpleadoComponent } from './components/calculo-empleado/calculo-empleado.component';
 
 export const routes: Routes = [
     { path: 'login', loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent) },
@@ -53,6 +57,10 @@ export const routes: Routes = [
             { path: 'cuentas_cobro', component: CuentasCobroComponent },
             { path: 'actividades', component: ActividadesComponent },
             { path: 'archivos_cobro', component: ArchivosCobroComponent },
+            { path: 'actas', component: ActasComponent },
+            { path: 'actas/nueva', component: ActaFormularioComponent },
+            { path: 'actas/editar/:id', component: ActaFormularioComponent },
+            { path: 'actas/responsables', component: ResponsablesSstComponent },
             { path: 'info-usuario', component: InfoUsuarioComponent },
             { path: 'gestion_pacientes', component: GestionPacientesComponent },
             { path: 'equipos', component: EquiposComponent },
@@ -68,6 +76,7 @@ export const routes: Routes = [
             { path: 'pqrs/seguimiento', component: SeguimientoPqrsComponent },
             { path: 'pqrs/alertas', component: AlertasPqrsComponent },
             { path: 'pqrs/reportes', component: ReportesPqrsComponent },
+            { path: 'calculo_empleado', component: CalculoEmpleadoComponent },
         ]
     }
 ];

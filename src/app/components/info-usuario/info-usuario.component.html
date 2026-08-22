@@ -79,7 +79,7 @@
                                     </div>
 
                                     <div class="text-end">
-                                        <button pButton type="button" label="Guardar cambios" icon="fa fa-save" (click)="guardarInfoBasica()"></button>
+                                        <button pButton type="button" label="Guardar cambios" icon="fa fa-save" (click)="guardarInfoBasica()" [loading]="guardando"></button>
                                     </div>
                                 </div>
                             </div>
@@ -113,7 +113,7 @@
                             </div>
 
                             <div class="text-end">
-                                <button pButton type="button" label="Guardar cambios" icon="fa fa-save" (click)="guardarInfoAdicional()"></button>
+                                <button pButton type="button" label="Guardar cambios" icon="fa fa-save" (click)="guardarInfoAdicional()" [loading]="guardando"></button>
                             </div>
                         </p-tabpanel>
 
@@ -145,23 +145,12 @@
                             </div>
 
                             <div class="text-end">
-                                <button pButton type="button" label="Guardar cambios" icon="fa fa-save" (click)="guardarConfigCorreo()"></button>
+                                <button pButton type="button" label="Guardar cambios" icon="fa fa-save" (click)="guardarConfigCorreo()" [loading]="guardando"></button>
                             </div>
                         </p-tabpanel>
                     </p-tabpanels>
                 </p-tabs>
             </div>
         </div>
-<div class="uiverse-loader-overlay-fullscreen" *ngIf="loader">
-    <div class="uiverse-loader-wrapper">
-        <div class="uiverse-loader">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-    </div>
-    <div class="uiverse-loader-text">Cargando...</div>
-</div>
 
 <p-toast></p-toast>

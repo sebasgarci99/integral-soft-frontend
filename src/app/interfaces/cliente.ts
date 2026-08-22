@@ -11,6 +11,7 @@ export interface Cliente {
     correo_electronico: string;
     nombre_contacto: string;
     comentarios_observaciones: string;
+    logo_base64?: string;
     estado: string;
     id_usuario?: number;
     id_empresa?: number;

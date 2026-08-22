@@ -32,7 +32,6 @@ export class KardexComponent implements OnInit {
     kardexData: KardexResponse | null = null;
     movimientos: KardexRow[] = [];
 
-    loadingProductos: boolean = false;
     loadingKardex: boolean = false;
 
     constructor(
@@ -45,10 +44,8 @@ export class KardexComponent implements OnInit {
     }
 
     async cargarProductos() {
-        this.loadingProductos = true;
         (await this.inventarioService.getProductos()).subscribe({
             next: (res) => {
-                this.loadingProductos = false;
                 if (res.state === 'OK') {
                     this.productos = res.body || [];
                 } else {
@@ -56,7 +53,6 @@ export class KardexComponent implements OnInit {
                 }
             },
             error: () => {
-                this.loadingProductos = false;
                 this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
             }
         });

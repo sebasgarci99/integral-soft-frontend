@@ -18,12 +18,6 @@
             </div>
 
             <div class="position-relative" *ngIf="propiedadSeleccionada">
-                <div *ngIf="cargandoSolicitudes" class="uiverse-loader-overlay">
-                    <div class="uiverse-loader-wrapper">
-                        <div class="uiverse-loader"><span></span><span></span><span></span><span></span></div>
-                    </div>
-                </div>
-
                 <p-table [value]="solicitudes" [paginator]="true" [rows]="10" responsiveLayout="scroll" stripedRows>
                     <ng-template pTemplate="header">
                         <tr>

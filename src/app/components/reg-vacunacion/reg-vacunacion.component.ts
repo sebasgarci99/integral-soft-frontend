@@ -21,7 +21,7 @@ import { MultiSelect } from 'primeng/multiselect';
 import { RadioButton } from 'primeng/radiobutton';
 import { CheckboxModule } from 'primeng/checkbox';
 import { AccordionModule } from 'primeng/accordion';
-import { ProgressSpinner } from 'primeng/progressspinner';
+import { BlockUIModule } from 'primeng/blockui';
 
 import { of } from 'rxjs';
 import { jsPDF } from "jspdf";
@@ -57,7 +57,7 @@ import { VacunaService } from '../../services/vacunas/vacuna.service';
         RadioButton,
         CheckboxModule,
         AccordionModule,
-        ProgressSpinner
+        BlockUIModule
     ],
     templateUrl: './reg-vacunacion.component.html',
     styleUrl: './reg-vacunacion.component.css',
@@ -81,12 +81,14 @@ export class RegVacunacionComponent implements OnInit {
 
     dialogVacunas: boolean = false;
     dialogConsentimientos: boolean = false;
-    loader: boolean = false;
 
     dialogCrearVacuna: boolean = false;
     selectedPaciente: any = null;
     listaVacunas: any[] = [];
     vacunasSeleccionadas: any[] = [];
+
+    guardando: boolean = false;
+    generandoPdf: boolean = false;
 
     formSubmitted = false;
     firmaOK = false;
@@ -269,7 +271,7 @@ export class RegVacunacionComponent implements OnInit {
     }
 
     async generarPDF(consent: any) {
-        this.loader = true;
+        this.generandoPdf = true;
 
         let html$: any;
         if (consent.f_procesar_datos_consentimiento) {
@@ -300,13 +302,13 @@ export class RegVacunacionComponent implements OnInit {
                     callback: (doc: any) => {
                         doc.save(`ConsentimientoInformado_${consent.id_consentimiento}.pdf`);
                         document.body.removeChild(div);
-                        this.loader = false;
+                        this.generandoPdf = false;
                     }
                 });
             },
             error: () => {
                 this.messageService.add({ severity: "error", summary: "Error", detail: "Error al generar el PDF" });
-                this.loader = false;
+                this.generandoPdf = false;
             }
         });
     }
@@ -385,19 +387,19 @@ export class RegVacunacionComponent implements OnInit {
     }
 
     private async inactivarRegistro() {
-        this.loader = true;
+        this.guardando = true;
         (await this.regVacunacionService.inactivarRegVacunacion(this.idVacunacionEditando!)).subscribe({
             next: () => {
                 this.messageService.add({ severity: 'success', summary: 'OK', detail: 'Registro de vacunación inactivado correctamente' });
                 this.dialogCrearVacuna = false;
                 this.dialogConsentimientos = false;
                 this.dialogVacunas = false;
-                this.loader = false;
+                this.guardando = false;
                 this.cargarPacientes();
             },
             error: () => {
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al inactivar el registro' });
-                this.loader = false;
+                this.guardando = false;
             }
         });
     }
@@ -425,7 +427,7 @@ export class RegVacunacionComponent implements OnInit {
             payload['firma_usuario_acudiente'] = this.formData.firma;
         }
 
-        this.loader = true;
+        this.guardando = true;
         (await this.regVacunacionService.crearActualizarRegVacunacion(payload)).subscribe({
             next: (e: any) => {
                 this.messageService.add({ severity: "success", summary: "OK", detail: "Registro de vacunación guardado correctamente" });
@@ -435,13 +437,13 @@ export class RegVacunacionComponent implements OnInit {
                 this.dialogCrearVacuna = false;
                 this.dialogConsentimientos = false;
                 this.dialogVacunas = false;
-                this.loader = false;
+                this.guardando = false;
                 this.cargarPacientes();
             },
             error: (e: any) => {
                 console.log(e);
                 this.messageService.add({ severity: "error", summary: "Error", detail: "Error al guardar" });
-                this.loader = false;
+                this.guardando = false;
             }
         });
     }

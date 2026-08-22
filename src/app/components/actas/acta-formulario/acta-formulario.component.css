@@ -1,0 +1,61 @@
+p-fieldset ::ng-deep .p-fieldset-legend {
+    font-weight: 700;
+    font-size: 1.15rem;
+    background-color: #e8f4f8;
+    color: #0c5460;
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    border: 1px solid #bee5eb;
+}
+
+p-fieldset ::ng-deep .p-fieldset-legend a {
+    color: #0c5460;
+    text-decoration: none;
+}
+
+p-fieldset ::ng-deep .p-fieldset-content {
+    padding: 1rem;
+}
+
+p-table ::ng-deep .p-datatable-tbody > tr > td {
+    padding: 0.5rem;
+}
+
+p-table ::ng-deep .p-datatable-thead > tr > th {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    background-color: #f8f9fa;
+}
+
+.section-title {
+    background-color: #e8f4f8;
+    color: #0c5460;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #bee5eb;
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.full-width ::ng-deep .p-calendar,
+.full-width ::ng-deep .p-dropdown,
+.full-width ::ng-deep .p-inputnumber {
+    width: 100%;
+}
+
+.full-width ::ng-deep .p-calendar .p-inputtext,
+.full-width ::ng-deep .p-dropdown .p-dropdown-label,
+.full-width ::ng-deep .p-inputnumber .p-inputnumber-input {
+    width: 100%;
+}
+
+.d-flex.flex-column > p-calendar,
+.d-flex.flex-column > p-dropdown,
+.d-flex.flex-column > p-inputNumber,
+.d-flex.flex-column > input {
+    width: 100%;
+}

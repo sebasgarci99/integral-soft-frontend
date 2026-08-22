@@ -11,6 +11,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { forkJoin } from 'rxjs';
 import { InventarioService } from '../../../services/inventario/inventario.service';
 import { Grupo, Categoria, UnidadMedida, TipoMovimiento, Semaforo } from '../../../interfaces/inventario';
 import { parseDateSinTimezone, formatDateLocal } from '../../../utils/fecha.util';
@@ -40,11 +41,6 @@ export class ConfiguracionComponent implements OnInit {
     tiposMovimiento: TipoMovimiento[] = [];
     semaforos: Semaforo[] = [];
 
-    loadingGrupos: boolean = false;
-    loadingCategorias: boolean = false;
-    loadingUnidades: boolean = false;
-    loadingTiposMovimiento: boolean = false;
-    loadingSemaforos: boolean = false;
     loadingGuardar: boolean = false;
     loadingEliminar: boolean = false;
 
@@ -108,103 +104,54 @@ export class ConfiguracionComponent implements OnInit {
     }
 
     async cargarTodos() {
-        await Promise.all([
-            this.cargarGrupos(),
-            this.cargarCategorias(),
-            this.cargarUnidades(),
-            this.cargarTiposMovimiento(),
-            this.cargarSemaforos()
-        ]);
-    }
+        try {
+            const [grupos$, categorias$, unidades$, tiposMovimiento$, semaforos$] = await Promise.all([
+                this.inventarioService.getGrupos(),
+                this.inventarioService.getCategorias(),
+                this.inventarioService.getUnidadesMedida(),
+                this.inventarioService.getTiposMovimiento(),
+                this.inventarioService.getSemaforos()
+            ]);
 
-    async cargarGrupos() {
-        this.loadingGrupos = true;
-        (await this.inventarioService.getGrupos()).subscribe({
-            next: (res) => {
-                this.loadingGrupos = false;
-                if (res.state === 'OK') {
-                    this.grupos = res.body || [];
-                } else {
-                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar los grupos.' });
-                }
-            },
-            error: () => {
-                this.loadingGrupos = false;
-                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
-            }
-        });
-    }
+            forkJoin([grupos$, categorias$, unidades$, tiposMovimiento$, semaforos$]).subscribe({
+                next: ([resGrupos, resCategorias, resUnidades, resTipos, resSemaforos]) => {
+                    if (resGrupos.state === 'OK') {
+                        this.grupos = resGrupos.body || [];
+                    } else {
+                        this.messageService.add({ severity: 'error', summary: resGrupos.msg || 'Error al cargar los grupos.' });
+                    }
 
-    async cargarCategorias() {
-        this.loadingCategorias = true;
-        (await this.inventarioService.getCategorias()).subscribe({
-            next: (res) => {
-                this.loadingCategorias = false;
-                if (res.state === 'OK') {
-                    this.categorias = res.body || [];
-                } else {
-                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar las categorías.' });
-                }
-            },
-            error: () => {
-                this.loadingCategorias = false;
-                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
-            }
-        });
-    }
+                    if (resCategorias.state === 'OK') {
+                        this.categorias = resCategorias.body || [];
+                    } else {
+                        this.messageService.add({ severity: 'error', summary: resCategorias.msg || 'Error al cargar las categorías.' });
+                    }
 
-    async cargarUnidades() {
-        this.loadingUnidades = true;
-        (await this.inventarioService.getUnidadesMedida()).subscribe({
-            next: (res) => {
-                this.loadingUnidades = false;
-                if (res.state === 'OK') {
-                    this.unidades = res.body || [];
-                } else {
-                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar las unidades de medida.' });
-                }
-            },
-            error: () => {
-                this.loadingUnidades = false;
-                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
-            }
-        });
-    }
+                    if (resUnidades.state === 'OK') {
+                        this.unidades = resUnidades.body || [];
+                    } else {
+                        this.messageService.add({ severity: 'error', summary: resUnidades.msg || 'Error al cargar las unidades de medida.' });
+                    }
 
-    async cargarTiposMovimiento() {
-        this.loadingTiposMovimiento = true;
-        (await this.inventarioService.getTiposMovimiento()).subscribe({
-            next: (res) => {
-                this.loadingTiposMovimiento = false;
-                if (res.state === 'OK') {
-                    this.tiposMovimiento = res.body || [];
-                } else {
-                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar los tipos de movimiento.' });
-                }
-            },
-            error: () => {
-                this.loadingTiposMovimiento = false;
-                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
-            }
-        });
-    }
+                    if (resTipos.state === 'OK') {
+                        this.tiposMovimiento = resTipos.body || [];
+                    } else {
+                        this.messageService.add({ severity: 'error', summary: resTipos.msg || 'Error al cargar los tipos de movimiento.' });
+                    }
 
-    async cargarSemaforos() {
-        this.loadingSemaforos = true;
-        (await this.inventarioService.getSemaforos()).subscribe({
-            next: (res) => {
-                this.loadingSemaforos = false;
-                if (res.state === 'OK') {
-                    this.semaforos = res.body || [];
-                } else {
-                    this.messageService.add({ severity: 'error', summary: res.msg || 'Error al cargar las configuraciones de semáforo.' });
+                    if (resSemaforos.state === 'OK') {
+                        this.semaforos = resSemaforos.body || [];
+                    } else {
+                        this.messageService.add({ severity: 'error', summary: resSemaforos.msg || 'Error al cargar las configuraciones de semáforo.' });
+                    }
+                },
+                error: () => {
+                    this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
                 }
-            },
-            error: () => {
-                this.loadingSemaforos = false;
-                this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
-            }
-        });
+            });
+        } catch (error) {
+            this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
+        }
     }
 
     abrirDialog(type: string) {

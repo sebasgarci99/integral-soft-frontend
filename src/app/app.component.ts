@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { LoadingService } from './services/loading.service';
@@ -12,14 +12,6 @@ import { LoadingService } from './services/loading.service';
 })
 export class AppComponent {
   title = 'Integral-soft';
-
-  constructor(private loadingService: LoadingService) {}
-
-  get mostrarLoader(): boolean {
-    if (!this.loadingService.isLoading()) return false;
-    const tieneLoaderLocal = !!document.querySelector(
-      '.uiverse-loader-overlay, .uiverse-loader-overlay-fullscreen, .loading-overlay, .overlay'
-    );
-    return !tieneLoaderLocal;
-  }
+  private loadingService = inject(LoadingService);
+  loading$ = this.loadingService.loading$;
 }
