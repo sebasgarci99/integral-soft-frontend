@@ -120,6 +120,7 @@ export class RegTemperaturaComponent implements OnInit {
     onChangeEquipo(equipoId: number) {
         const encontrado = this.equipos.find(e => e.id_equipo === equipoId);
         this.equipoSeleccionado = encontrado || null;
+        this.formData.id_area = this.equipoSeleccionado?.id_area ?? null;
 
         if (this.equipoSeleccionado && this.sedeSeleccionada) {
             this.cargarAreasPorSede();
@@ -219,7 +220,14 @@ export class RegTemperaturaComponent implements OnInit {
         ];
     }
 
-    resetForm() {
+    resetForm(): {
+        id_area: number | null;
+        horario: string;
+        temperatura: number | null;
+        humedad: number | null;
+        tipo_medida: string;
+        fecha: Date;
+    } {
         return {
             id_area: null,
             horario: '',
@@ -253,6 +261,7 @@ export class RegTemperaturaComponent implements OnInit {
         this.modoEdicion = false;
         this.registroEditando = null;
         this.formData = this.resetForm();
+        this.formData.id_area = this.equipoSeleccionado?.id_area ?? null;
 
         let ahora = new Date();
         this.formData.fecha = ahora;

@@ -101,33 +101,10 @@
 
                         <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
 
-                            <!-- Sede (bloqueada) -->
-                            <p-floatlabel variant="on" class="col-12 mt-3">
-                                <p-dropdown class="w-100"
-                                    [options]="sedes" [ngModel]="sedeSeleccionada?.id_sede"
-                                    optionLabel="nombre" optionValue="id_sede"
-                                    [disabled]="true" appendTo="body">
-                                </p-dropdown>
-                                <label>Sede</label>
-                            </p-floatlabel>
-
                             <!-- Equipo (bloqueado) -->
                             <p-floatlabel variant="on" class="col-12 mt-3">
-                                <p-dropdown class="w-100"
-                                    [options]="equipos" [ngModel]="equipoSeleccionado?.id_equipo"
-                                    optionLabel="nombre" optionValue="id_equipo"
-                                    [disabled]="true" appendTo="body">
-                                </p-dropdown>
+                                <input pInputText type="text" [value]="equipoSeleccionado?.nombre || ''" disabled />
                                 <label>Equipo</label>
-                            </p-floatlabel>
-
-                            <!-- Área -->
-                            <p-floatlabel variant="on" class="col-12 mt-3">
-                                <p-dropdown id="id_area" class="w-100" name="id_area"
-                                    [(ngModel)]="formData.id_area" #id_area="ngModel"
-                                    [options]="areas" optionLabel="nombre" optionValue="id_area"
-                                    placeholder="Seleccionar área" appendTo="body" required>
-                                </p-dropdown>
                             </p-floatlabel>
 
                             <!-- Fecha / Horario -->
@@ -157,8 +134,7 @@
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on" class="col-lg-6 md:col-12 mt-3 me-2">
-                                    <input type="number" pInputText name="humedad" [(ngModel)]="formData.humedad"
-                                        required />
+                                    <input type="number" pInputText name="humedad" [(ngModel)]="formData.humedad" />
                                     <label>Humedad (%)</label>
                                 </p-floatlabel>
                             </div>
