@@ -19,7 +19,7 @@ import { MessageService } from 'primeng/api';
 import { ClienteService } from '../../../services/cliente/cliente.service';
 import { ActasService } from '../../../services/actas/actas.service';
 import { Cliente } from '../../../interfaces/cliente';
-import { Acta, ActaIndicador, ActaPendiente, ActaActividadRealizada, ActaPriorizacion, ResponsableSST, InstanciaParaActa, CatalogoIndicador } from '../../../interfaces/acta';
+import { Acta, ActaIndicador, ActaPendiente, ActaActividadRealizada, ActaActividadArchivo, ActaPriorizacion, ResponsableSST, InstanciaParaActa, CatalogoIndicador } from '../../../interfaces/acta';
 
 const FUNDAMENTO_DEFAULT = `Cumplimiento a requerimiento Normativo: Fundamento DUR 1072/2015 CAPÍTULO 6 SISTEMA DE GESTIÓN DE LA SEGURIDAD Y SALUD EN EL TRABAJO Artículo 2.2.4.6.1. Objeto y campo de aplicación. El presente capítulo tiene por objeto definir las directrices de obligatorio cumplimiento para implementar el Sistema de Gestión de la Seguridad y Salud en el Trabajo (SG-SST), que deben ser aplicadas por todos los empleadores públicos y privados, los contratantes de personal bajo modalidad de contrato civil, comercial o administrativo, las organizaciones de economía solidaria y del sector cooperativo, las empresas de servicios temporales y tener cobertura sobre los trabajadores dependientes, contratistas, trabajadores cooperados y los trabajadores en misión.`;
 
@@ -257,6 +257,15 @@ export class ActaFormularioComponent implements OnInit {
 
     agregarActividadDesdeInstancia(ins: InstanciaParaActa): void {
         this.acta.actividades_realizadas = this.acta.actividades_realizadas || [];
+        const archivosDesdeEvidencia: ActaActividadArchivo[] = (ins.evidencia || [])
+            .filter((ev: any) => ev && ev.base64)
+            .map((ev: any, idx: number) => ({
+                nombre_original: ev.url || `archivo_${idx + 1}`,
+                mime_type: ev.tipo || 'application/octet-stream',
+                archivo_base64: ev.base64,
+                es_imagen: (ev.tipo || '').startsWith('image/'),
+                orden: idx + 1
+            }));
         this.acta.actividades_realizadas.push({
             id_instancia: ins.id_instancia,
             sistema: 'SG-SST',
@@ -264,7 +273,8 @@ export class ActaFormularioComponent implements OnInit {
             descripcion: `${ins.actividad?.titulo || ''}. ${ins.observaciones_ejecucion || ''}`,
             observaciones_ejecucion: ins.observaciones_ejecucion || '',
             fecha_actividad: ins.fecha,
-            orden: this.acta.actividades_realizadas.length + 1
+            orden: this.acta.actividades_realizadas.length + 1,
+            archivos: archivosDesdeEvidencia
         });
     }
 
@@ -336,7 +346,8 @@ export class ActaFormularioComponent implements OnInit {
         if (!this.acta.id_acta) return;
         try {
             const blob = await lastValueFrom(await this.actasService.descargarDocx(this.acta.id_acta));
-            this.descargarBlob(blob, `acta_${this.acta.id_acta}.docx`);
+            const extension = blob.type === 'application/zip' ? '.zip' : '.docx';
+            this.descargarBlob(blob, `acta_${this.acta.id_acta}${extension}`);
         } catch (error: unknown) {
             console.error('Error descargando DOCX:', error);
             this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo descargar el DOCX' });
@@ -347,7 +358,8 @@ export class ActaFormularioComponent implements OnInit {
         if (!this.acta.id_acta) return;
         try {
             const blob = await lastValueFrom(await this.actasService.descargarPdf(this.acta.id_acta));
-            this.descargarBlob(blob, `acta_${this.acta.id_acta}.pdf`);
+            const extension = blob.type === 'application/zip' ? '.zip' : '.pdf';
+            this.descargarBlob(blob, `acta_${this.acta.id_acta}${extension}`);
         } catch (error: unknown) {
             console.error('Error descargando PDF:', error);
             this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo descargar el PDF' });
@@ -363,6 +375,52 @@ export class ActaFormularioComponent implements OnInit {
             console.error('Error enviando acta:', error);
             this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo enviar el acta' });
         }
+    }
+
+    private esImagen(mimeType: string | undefined): boolean {
+        return !!mimeType && mimeType.startsWith('image/');
+    }
+
+    private getPreviewUrl(arch: ActaActividadArchivo): string {
+        return `data:${arch.mime_type || 'application/octet-stream'};base64,${arch.archivo_base64}`;
+    }
+
+    public onSeleccionarAdjunto(event: Event, actIdx: number): void {
+        // @ts-ignore
+        const input = event.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) return;
+        const file = input.files![0];
+        const reader = new FileReader();
+        // @ts-ignore
+        const act = this.acta.actividades_realizadas[actIdx];
+        reader.onload = (e: any) => {
+            const result = e.target?.result;
+            if (!result) return;
+            const base64 = result.split(',')[1];
+            const mimeType = file?.type || 'application/octet-stream';
+            const nuevaArchivo: ActaActividadArchivo = {
+                nombre_original: file?.name || 'archivo',
+                mime_type: mimeType,
+                archivo_base64: base64,
+                es_imagen: this.esImagen(mimeType),
+                orden: (act!.archivos || []).length + 1
+            };
+            act!.archivos = act!.archivos || [];
+            act!.archivos.push(nuevaArchivo);
+            // @ts-ignore
+            this.acta.actividades_realizadas[actIdx] = act!;
+        };
+        reader.readAsDataURL(file!);
+        input.value = ''; // resetear para permitir mismo archivo de nuevo
+    }
+
+    public eliminarAdjuntoActividad(actIdx: number, archIdx: number): void {
+        // @ts-ignore
+        const act = this.acta.actividades_realizadas[actIdx];
+        if (!act || !act.archivos) return;
+        act.archivos.splice(archIdx, 1);
+        // @ts-ignore
+        this.acta.actividades_realizadas[actIdx] = act;
     }
 
     volver(): void {

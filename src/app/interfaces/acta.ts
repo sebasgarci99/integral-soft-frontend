@@ -1,3 +1,5 @@
+import { EvidenciaItem } from './actividad';
+
 export interface ResponsableSST {
     id_responsable?: number;
     id_empresa?: number;
@@ -124,4 +126,5 @@ export interface InstanciaParaActa {
         descripcion?: string;
     };
     observaciones_ejecucion?: string;
+    evidencia?: EvidenciaItem[];
 }
