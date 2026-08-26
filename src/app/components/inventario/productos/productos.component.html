@@ -129,7 +129,7 @@
                                 </div>
                                 <div class="col-lg-6 col-md-12 mt-2">
                                     <label class="form-label">Perfil normativo</label>
-                                    <p-dropdown [(ngModel)]="formData.perfil_normativo" [options]="perfilesNormativos" optionLabel="label" optionValue="value" class="w-100" appendTo="body" placeholder="Seleccionar perfil"></p-dropdown>
+                                    <p-dropdown [(ngModel)]="formData.perfil_normativo" [options]="perfilesNormativos" optionLabel="label" optionValue="value" class="w-100" appendTo="body" placeholder="Seleccionar perfil" (onChange)="onPerfilNormativoChange()"></p-dropdown>
                                 </div>
                             </div>
 
@@ -157,71 +157,115 @@
 
                             <div class="col-12 mt-3 d-md-flex">
                                 <div class="me-4">
-                                    <p-checkbox [(ngModel)]="formData.maneja_lote" [binary]="true" inputId="maneja_lote" />
+                                    <p-checkbox [(ngModel)]="formData.maneja_lote" [binary]="true" inputId="maneja_lote" [disabled]="esPerfilNormativo()" />
                                     <label for="maneja_lote" class="ms-2">Maneja Lote/Serie</label>
                                 </div>
                                 <div>
-                                    <p-checkbox [(ngModel)]="formData.maneja_vencimiento" [binary]="true" inputId="maneja_venc" />
+                                    <p-checkbox [(ngModel)]="formData.maneja_vencimiento" [binary]="true" inputId="maneja_venc" [disabled]="esPerfilNormativo()" />
                                     <label for="maneja_venc" class="ms-2">Maneja Vencimiento</label>
                                 </div>
                             </div>
                         </div>
                     </p-accordionTab>
 
-                    <p-accordionTab header="Información regulatoria" leftIcon="fa fa-file-medical" *ngIf="esPerfilNormativo()">
+                    <p-accordionTab header="Información regulatoria de los medicamentos" leftIcon="fa fa-pills" *ngIf="esPerfilMedicamento()">
                         <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
                             <div class="col-12 d-md-flex d-sm-grid">
                                 <div class="col-lg-6 col-md-12 mt-2 me-2">
-                                    <label class="form-label">Registro sanitario Invima</label>
-                                    <input pInputText [(ngModel)]="formData.registro_sanitario_invima" class="w-100" maxlength="100" placeholder="Ej: INVIMA 2023M-0012345" />
-                                    <div class="form-text text-muted">Registro vigente o permiso de comercialización expedido por el Invima.</div>
+                                    <label class="form-label">Principio activo *</label>
+                                    <input pInputText [(ngModel)]="formData.principio_activo" class="w-100" maxlength="250" placeholder="Ej: Acetaminofén" />
                                 </div>
                                 <div class="col-lg-6 col-md-12 mt-2">
-                                    <label class="form-label">Marca</label>
-                                    <input pInputText [(ngModel)]="formData.marca" class="w-100" maxlength="150" placeholder="Marca del producto" />
+                                    <label class="form-label">Forma farmacéutica *</label>
+                                    <input pInputText [(ngModel)]="formData.forma_farmaceutica" class="w-100" maxlength="150" placeholder="Ej: Tableta" />
                                 </div>
                             </div>
 
                             <div class="col-12 d-md-flex d-sm-grid">
                                 <div class="col-lg-6 col-md-12 mt-2 me-2">
-                                    <label class="form-label">Clasificación de riesgo</label>
-                                    <input pInputText [(ngModel)]="formData.clasificacion_riesgo" class="w-100" maxlength="50" placeholder="Ej: Clase I, II, III" />
+                                    <label class="form-label">Concentración *</label>
+                                    <input pInputText [(ngModel)]="formData.concentracion" class="w-100" maxlength="100" placeholder="Ej: 500 mg" />
                                 </div>
                                 <div class="col-lg-6 col-md-12 mt-2">
-                                    <label class="form-label">Presentación comercial</label>
+                                    <label class="form-label">Presentación comercial *</label>
                                     <input pInputText [(ngModel)]="formData.presentacion_comercial" class="w-100" maxlength="200" placeholder="Ej: Caja x 10 unidades" />
                                 </div>
                             </div>
 
                             <div class="col-12 d-md-flex d-sm-grid">
                                 <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Registro sanitario vigente o permiso expedido por el Invima *</label>
+                                    <input pInputText [(ngModel)]="formData.registro_sanitario_invima" class="w-100" maxlength="100" placeholder="Ej: INVIMA 2023M-0012345" />
+                                </div>
+                            </div>
+                        </div>
+                    </p-accordionTab>
+
+                    <p-accordionTab header="Información regulatoria de los dispositivos médicos" leftIcon="fa fa-heart-pulse" *ngIf="esPerfilDispositivo()">
+                        <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Marca del dispositivo *</label>
+                                    <input pInputText [(ngModel)]="formData.marca" class="w-100" maxlength="150" placeholder="Marca del dispositivo" />
+                                </div>
+                                <div class="col-lg-6 col-md-12 mt-2">
                                     <label class="form-label">Serie (cuando aplique)</label>
                                     <input pInputText [(ngModel)]="formData.serie" class="w-100" maxlength="100" placeholder="Número de serie" />
                                 </div>
+                            </div>
+
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Presentación comercial *</label>
+                                    <input pInputText [(ngModel)]="formData.presentacion_comercial" class="w-100" maxlength="200" placeholder="Ej: Caja x 10 unidades" />
+                                </div>
                                 <div class="col-lg-6 col-md-12 mt-2">
-                                    <label class="form-label">Vida útil (meses)</label>
+                                    <label class="form-label">Registro sanitario vigente o permiso de comercialización expedido por el Invima *</label>
+                                    <input pInputText [(ngModel)]="formData.registro_sanitario_invima" class="w-100" maxlength="100" placeholder="Ej: INVIMA 2023M-0012345" />
+                                </div>
+                            </div>
+
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Clasificación por riesgo *</label>
+                                    <input pInputText [(ngModel)]="formData.clasificacion_riesgo" class="w-100" maxlength="50" placeholder="Ej: Clase I, II, III" />
+                                </div>
+                                <div class="col-lg-6 col-md-12 mt-2">
+                                    <label class="form-label">Vida útil, cuando aplique</label>
                                     <input pInputText [(ngModel)]="formData.vida_util_meses" type="number" class="w-100" placeholder="Ej: 24" />
                                 </div>
                             </div>
                         </div>
                     </p-accordionTab>
 
-                    <p-accordionTab header="Información farmacéutica" leftIcon="fa fa-pills" *ngIf="esPerfilMedicamento()">
+                    <p-accordionTab header="Información regulatoria de los reactivos de diagnóstico in vitro" leftIcon="fa fa-flask" *ngIf="esPerfilReactivo()">
                         <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
                             <div class="col-12 d-md-flex d-sm-grid">
                                 <div class="col-lg-6 col-md-12 mt-2 me-2">
-                                    <label class="form-label">Principio activo</label>
-                                    <input pInputText [(ngModel)]="formData.principio_activo" class="w-100" maxlength="250" placeholder="Ej: Acetaminofén" />
+                                    <label class="form-label">Marca *</label>
+                                    <input pInputText [(ngModel)]="formData.marca" class="w-100" maxlength="150" placeholder="Marca del reactivo" />
                                 </div>
                                 <div class="col-lg-6 col-md-12 mt-2">
-                                    <label class="form-label">Forma farmacéutica</label>
-                                    <input pInputText [(ngModel)]="formData.forma_farmaceutica" class="w-100" maxlength="150" placeholder="Ej: Tableta" />
+                                    <label class="form-label">Presentación comercial *</label>
+                                    <input pInputText [(ngModel)]="formData.presentacion_comercial" class="w-100" maxlength="200" placeholder="Ej: Caja x 10 unidades" />
                                 </div>
                             </div>
+
                             <div class="col-12 d-md-flex d-sm-grid">
                                 <div class="col-lg-6 col-md-12 mt-2 me-2">
-                                    <label class="form-label">Concentración</label>
-                                    <input pInputText [(ngModel)]="formData.concentracion" class="w-100" maxlength="100" placeholder="Ej: 500 mg" />
+                                    <label class="form-label">Registro sanitario vigente o permiso de comercialización expedido por el Invima *</label>
+                                    <input pInputText [(ngModel)]="formData.registro_sanitario_invima" class="w-100" maxlength="100" placeholder="Ej: INVIMA 2023M-0012345" />
+                                </div>
+                                <div class="col-lg-6 col-md-12 mt-2">
+                                    <label class="form-label">Clasificación del riesgo sanitario *</label>
+                                    <input pInputText [(ngModel)]="formData.clasificacion_riesgo" class="w-100" maxlength="50" placeholder="Ej: Clase I, II, III" />
+                                </div>
+                            </div>
+
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Vida útil, cuando aplique</label>
+                                    <input pInputText [(ngModel)]="formData.vida_util_meses" type="number" class="w-100" placeholder="Ej: 24" />
                                 </div>
                             </div>
                         </div>

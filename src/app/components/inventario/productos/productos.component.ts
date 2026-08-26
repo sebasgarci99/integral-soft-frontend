@@ -201,6 +201,7 @@ export class ProductosComponent implements OnInit {
             id_grupo_producto: producto.Categoria?.Grupo?.id_grupo_producto
         };
         await this.cargarCategorias(producto.Categoria?.Grupo?.id_grupo_producto);
+        this.onPerfilNormativoChange();
         this.displayDialog = true;
     }
 
@@ -244,19 +245,6 @@ export class ProductosComponent implements OnInit {
             return;
         }
 
-        const sinRegistroInvima = !this.formData.registro_sanitario_invima || String(this.formData.registro_sanitario_invima).trim() === '';
-        if (sinRegistroInvima) {
-            this.confirmService.confirm({
-                icon: 'fa fa-exclamation-triangle',
-                header: 'Registro sanitario Invima no registrado',
-                message: 'No registraste el registro sanitario Invima. ¿Estás seguro de crear el producto?',
-                acceptLabel: 'Sí, continuar',
-                rejectLabel: 'No, registrar',
-                accept: () => this.guardarDefinitivo()
-            });
-            return;
-        }
-
         await this.guardarDefinitivo();
     }
 
@@ -270,12 +258,18 @@ export class ProductosComponent implements OnInit {
             if (!this.formData.principio_activo?.trim()) camposVacios.push('principio activo');
             if (!this.formData.forma_farmaceutica?.trim()) camposVacios.push('forma farmacéutica');
             if (!this.formData.concentracion?.trim()) camposVacios.push('concentración');
+            if (!this.formData.presentacion_comercial?.trim()) camposVacios.push('presentación comercial');
+            if (!this.formData.registro_sanitario_invima?.trim()) camposVacios.push('registro sanitario vigente o permiso expedido por el Invima');
         } else if (perfil === 'DISPOSITIVO_MEDICO') {
-            if (!this.formData.marca?.trim()) camposVacios.push('marca');
-            if (!this.formData.clasificacion_riesgo?.trim()) camposVacios.push('clasificación de riesgo');
+            if (!this.formData.marca?.trim()) camposVacios.push('marca del dispositivo');
+            if (!this.formData.presentacion_comercial?.trim()) camposVacios.push('presentación comercial');
+            if (!this.formData.registro_sanitario_invima?.trim()) camposVacios.push('registro sanitario vigente o permiso de comercialización expedido por el Invima');
+            if (!this.formData.clasificacion_riesgo?.trim()) camposVacios.push('clasificación por riesgo');
         } else if (perfil === 'REACTIVO') {
             if (!this.formData.marca?.trim()) camposVacios.push('marca');
-            if (!this.formData.clasificacion_riesgo?.trim()) camposVacios.push('clasificación de riesgo');
+            if (!this.formData.presentacion_comercial?.trim()) camposVacios.push('presentación comercial');
+            if (!this.formData.registro_sanitario_invima?.trim()) camposVacios.push('registro sanitario vigente o permiso de comercialización expedido por el Invima');
+            if (!this.formData.clasificacion_riesgo?.trim()) camposVacios.push('clasificación del riesgo sanitario');
         }
 
         if (camposVacios.length > 0) {
@@ -343,5 +337,15 @@ export class ProductosComponent implements OnInit {
     obtenerEtiquetaPerfil(perfil: string): string {
         const p = this.perfilesNormativos.find(x => x.value === perfil);
         return p ? p.label : 'Otro / No aplica';
+    }
+
+    onPerfilNormativoChange(): void {
+        if (this.esPerfilNormativo()) {
+            this.formData.maneja_lote = true;
+            this.formData.maneja_vencimiento = true;
+        } else {
+            this.formData.maneja_lote = false;
+            this.formData.maneja_vencimiento = false;
+        }
     }
 }
