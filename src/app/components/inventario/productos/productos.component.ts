@@ -293,9 +293,10 @@ export class ProductosComponent implements OnInit {
                         this.messageService.add({ severity: 'error', summary: res.msg || 'Error al actualizar el producto.' });
                     }
                 },
-                error: () => {
+                error: (err) => {
                     this.loadingGuardar = false;
-                    this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
+                    const msg = err.error?.msg || err.error?.message || 'Error de conexión. Intente nuevamente.';
+                    this.messageService.add({ severity: 'error', summary: msg });
                 }
             });
         } else {
@@ -310,9 +311,10 @@ export class ProductosComponent implements OnInit {
                         this.messageService.add({ severity: 'error', summary: res.msg || 'Error al crear el producto.' });
                     }
                 },
-                error: () => {
+                error: (err) => {
                     this.loadingGuardar = false;
-                    this.messageService.add({ severity: 'error', summary: 'Error de conexión. Intente nuevamente.' });
+                    const msg = err.error?.msg || err.error?.message || 'Error de conexión. Intente nuevamente.';
+                    this.messageService.add({ severity: 'error', summary: msg });
                 }
             });
         }

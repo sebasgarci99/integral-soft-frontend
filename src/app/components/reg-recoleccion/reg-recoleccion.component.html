@@ -16,9 +16,14 @@
                     #tabla
                     [value]="recolecciones" 
                     [paginator]="true" 
-                    [rows]="10" 
+                    [rows]="limite" 
+                    [totalRecords]="totalRecords"
+                    [rowsPerPageOptions]="[10, 25, 50]"
                     [globalFilterFields]="['consultorio', 'fecha_registro']"
                     responsiveLayout="scroll"
+                    [lazy]="true"
+                    [lazyLoadOnInit]="false"
+                    (onLazyLoad)="onLazyLoad($event)"
                     stripedRows>
                     <ng-template pTemplate="header">
                         <tr>

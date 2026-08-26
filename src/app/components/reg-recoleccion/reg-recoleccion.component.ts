@@ -9,7 +9,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
 import { StepsModule } from 'primeng/steps';
 import { CalendarModule } from 'primeng/calendar';
@@ -65,6 +65,7 @@ import { SignatureCanvasComponent } from '../../utils/signature-canvas.component
 export class RegRecoleccionComponent implements OnInit{
 
     @ViewChild('firmaPad') firmaPad!: SignatureCanvasComponent;
+    @ViewChild('tabla') tabla!: Table;
 
     // Variable local de traducción del lenguaje de los calendar
     local_espaniol:any = null;
@@ -88,6 +89,10 @@ export class RegRecoleccionComponent implements OnInit{
 
     // Tabla
     recolecciones: Recoleccion[] = [];
+    totalRecords = 0;
+    pagina = 1;
+    limite = 25;
+    busquedaGlobal = '';
     // registroDiaHoy: number | null = null; // esto va en tu componente
     registroDiaHoy: number[] = [];
 
@@ -187,31 +192,49 @@ export class RegRecoleccionComponent implements OnInit{
     }
 
     // Permite habilitar el formulario para edición y cargar los datos.
-    editarRecoleccion(row: any): void {
-        //this.formData = { ...row};
+    async editarRecoleccion(row: any): Promise<void> {
+        try {
+            const obs = await this.RecoleccionService.obtenerRegistroRecoleccionPorId(row.id_registropeso);
+            obs.subscribe({
+                next: (reg: any) => {
+                    this.formData = this.mapearRegistroAFormulario(reg);
+                    this.isEdit = true;
+                    this.blobFirmaEdit = reg.blob_firma || '';
+                    this.current = 0;
+                    this.displayDialog = true;
+                },
+                error: (err: any) => {
+                    console.error(err);
+                    this.messageService.add({ severity: 'error', summary: 'Error al cargar el registro' });
+                }
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    }
 
-        // Mapeo de campos entre la respuesta API y el formulario
-        this.formData = {
+    private mapearRegistroAFormulario(row: any): Recoleccion {
+        return {
             id_registropeso: row.id_registropeso,
             fecha: new Date(row.fecha_registro),
-            consultorio: this.consultoriosOpts.find(e => e.label === row.consultorio)?.value || null,
+            consultorio: this.consultoriosOpts.find(e => e.value === row.id_consultorio)?.value || null,
             aprovechablesBlanco: parseFloat(row.aprovechables) || 0,
-            noAprovechablesNegra: parseFloat(row.no_aprovechables),
-            biosanitariosRoja: parseFloat(row.biosanitarios),
-            cortopunzantesNG: parseFloat(row.cortopunzantes_ng),
-            cortopunzantesK: parseFloat(row.cortopunzantes_k),
-            anatomopatologicos: parseFloat(row.anatomopatologicos),
-            farmacos: parseFloat(row.farmacos),
-            chatarraElectronica: parseFloat(row.chatarra_electronica),
-            pilas: parseFloat(row.pilas),
-            quimicos: parseFloat(row.quimicos),
-            iluminarias: parseFloat(row.iluminarias),
-            aceitesUsados: parseFloat(row.aceites_usados),
+            noAprovechablesNegra: parseFloat(row.no_aprovechables) || 0,
+            biosanitariosRoja: parseFloat(row.biosanitarios) || 0,
+            cortopunzantesNG: parseFloat(row.cortopunzantes_ng) || 0,
+            cortopunzantesK: parseFloat(row.cortopunzantes_k) || 0,
+            anatomopatologicos: parseFloat(row.anatomopatologicos) || 0,
+            farmacos: parseFloat(row.farmacos) || 0,
+            chatarraElectronica: parseFloat(row.chatarra_electronica) || 0,
+            pilas: parseFloat(row.pilas) || 0,
+            quimicos: parseFloat(row.quimicos) || 0,
+            iluminarias: parseFloat(row.iluminarias) || 0,
+            aceitesUsados: parseFloat(row.aceites_usados) || 0,
             bolsasGuardianes: row.bolsas_g ? parseInt(row.bolsas_g) : 0,
             bolsasBlanco: row.bolsas_b ? parseInt(row.bolsas_b) : 0,
             bolsasNegra: row.bolsas_n ? parseInt(row.bolsas_n) : 0,
             bolsasRoja: row.bolsas_r ? parseInt(row.bolsas_r) : 0,
-            pretratamiento: this.pretUsadoOpts.find(e => e.label === row.pretratamiento)?.value || null,
+            pretratamiento: this.pretUsadoOpts.find(e => e.label === row.pret_usado)?.value || null,
             almacenamientoDias: row.dias_almacenamiento,
             tratamiento: this.tratamientoOpts.find(e => e.label === row.tratamiento)?.value || null,
             horaRoja: row.hora_roja ? this.stringToTime(row.hora_roja) : null,
@@ -220,11 +243,6 @@ export class RegRecoleccionComponent implements OnInit{
             dotacionPseg: this.siNoOpts.find(e => e.label === row.dotacion_pers_pseg_adecuada)?.value || null,
             firma: row.blob_firma
         };
-        
-        this.isEdit = true;
-        this.blobFirmaEdit = row.blob_firma;
-        this.current = 0;
-        this.displayDialog = true;
     }
 
     // Función que lanza la inactivación del registro de recolección.
@@ -297,31 +315,34 @@ export class RegRecoleccionComponent implements OnInit{
         
     }
 
-    async cargarRegistrosRecoleccion() {
+    async cargarRegistrosRecoleccion(): Promise<void> {
         try {
-            (await this.RecoleccionService.obtenerRegistrosRecoleccion()).subscribe((data) => {  
-                const registros = data.map((reg:any) => ({
-                        ...reg,
-                        pretratamiento : reg.pret_usado,
-                        firma : reg.blob_firma,
-                        consultorio: this.consultoriosOpts.find(e => e.value === reg.id_consultorio)?.label
-                    })
-                ).filter(e => e.estado == 'A');
+            const obs = await this.RecoleccionService.obtenerRegistrosRecoleccion(this.pagina, this.limite, this.busquedaGlobal);
+            obs.subscribe((data) => {
+                const registros = (Array.isArray(data) ? data : (data.rows || [])).map((reg: any) => ({
+                    ...reg,
+                    pretratamiento: reg.pret_usado,
+                    firma: reg.blob_firma,
+                    consultorio: this.consultoriosOpts.find(e => e.value === reg.id_consultorio)?.label
+                }));
 
                 this.recolecciones = registros;
+                this.totalRecords = Array.isArray(data) ? registros.length : (data.total || 0);
 
-                // Busca los registros del día de hoy y lo pinta sobre el grid
-                let auxiliarValidacion = this.registroDiaHoy = registros
-                    .filter(r => this.validarFechaEsHoy(r.fecha_registro))
-                    .map(r => r.id_registropeso);
-
-                console.log(this.recolecciones)
+                this.registroDiaHoy = registros
+                    .filter((r: any) => this.validarFechaEsHoy(r.fecha_registro))
+                    .map((r: any) => r.id_registropeso);
             });
-            
-        } catch(e) {
-            console.log(e)
+        } catch (e) {
+            console.error(e);
         }
-        
+    }
+
+    onLazyLoad(event: any): void {
+        this.pagina = Math.floor((event.first || 0) / (event.rows || this.limite)) + 1;
+        this.limite = event.rows || this.limite;
+        this.busquedaGlobal = event.globalFilter || '';
+        this.cargarRegistrosRecoleccion();
     }
 
     // Función que lanza el WS de creación o actualización del registro de recolección.

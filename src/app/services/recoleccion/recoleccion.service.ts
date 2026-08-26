@@ -22,16 +22,35 @@ export class RecoleccionService {
         LISTAR (GET) ─ getRegistrosRecoleccion
         Devuelve todos los registros de recolección del usuario
     ───────────────────────────────────────────── */
-    async obtenerRegistrosRecoleccion(): Promise<Observable<Recoleccion[]>> {
+    async obtenerRegistrosRecoleccion(pagina: number = 1, limite: number = 25, busqueda: string = ''): Promise<Observable<{ rows: any[]; total: number }>> {
 
         const token   = await this.secureStorage.getItem('token');
         const idUser  = await this.secureStorage.getItem('idUser');
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
-        const body    = { id_usuario: Number(idUser) };
+        const body    = { id_usuario: Number(idUser), pagina, limite, busqueda };
 
         return this.http.post<any>(
             `${this.urlApp}${this.urlAppAPI}getRegistrosRecoleccion`,
+            body,
+            { headers }
+        ).pipe(
+            map(resp => resp.body)
+        );
+    }
+
+    /* ─────────────────────────────────────────────
+        OBTENER POR ID (incluye blob_firma)
+    ───────────────────────────────────────────── */
+    async obtenerRegistroRecoleccionPorId(id: number): Promise<Observable<any>> {
+
+        const token   = await this.secureStorage.getItem('token');
+
+        const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        const body    = { id_registropeso: id };
+
+        return this.http.post<any>(
+            `${this.urlApp}${this.urlAppAPI}getRegistroRecoleccionById`,
             body,
             { headers }
         ).pipe(
