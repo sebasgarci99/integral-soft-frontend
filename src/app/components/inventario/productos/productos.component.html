@@ -52,13 +52,11 @@
                             <th>Nombre</th>
                             <th>Grupo</th>
                             <th>Categoría</th>
-                            <th>Unidad</th>
                             <th>Stock Mín.</th>
                             <th>Stock Máx.</th>
                             <th>Lote</th>
                             <th>Vencimiento</th>
                             <th>Reg. Invima</th>
-                            <th>Perfil</th>
                             <th>Acciones</th>
                         </tr>
                     </ng-template>
@@ -68,23 +66,11 @@
                             <td>{{ row.nombre }}</td>
                             <td>{{ row.Categoria?.Grupo?.nombre }}</td>
                             <td>{{ row.Categoria?.nombre }}</td>
-                            <td>{{ row.UnidadMedida?.abreviatura }}</td>
                             <td>{{ row.stock_minimo }}</td>
                             <td>{{ row.stock_maximo }}</td>
                             <td><i class="fa" [ngClass]="row.maneja_lote ? 'fa-check text-success' : 'fa-times text-muted'"></i></td>
                             <td><i class="fa" [ngClass]="row.maneja_vencimiento ? 'fa-check text-success' : 'fa-times text-muted'"></i></td>
-                            <td>
-                                <span *ngIf="row.registro_sanitario_invima" class="badge badge-active">{{ row.registro_sanitario_invima }}</span>
-                                <span *ngIf="!row.registro_sanitario_invima" class="badge badge-inactive">Sin registro</span>
-                            </td>
-                            <td>
-                                <span *ngIf="row.perfil_normativo !== 'OTRO'" class="badge" [ngClass]="{
-                                    'badge-medicamento': row.perfil_normativo === 'MEDICAMENTO',
-                                    'badge-dispositivo': row.perfil_normativo === 'DISPOSITIVO_MEDICO',
-                                    'badge-reactivo': row.perfil_normativo === 'REACTIVO'
-                                }">{{ obtenerEtiquetaPerfil(row.perfil_normativo) }}</span>
-                                <span *ngIf="row.perfil_normativo === 'OTRO'">—</span>
-                            </td>
+                            <td>{{ row.registro_sanitario_invima || 'Sin registro' }}</td>
                             <td>
                                 <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editarProducto(row)" />
                                 <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="borrarProducto(row)" [loading]="loadingEliminar" />
@@ -93,7 +79,7 @@
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                         <tr>
-                            <td colspan="12" class="text-center text-muted p-4">
+                            <td colspan="10" class="text-center text-muted p-4">
                                 <i class="fa fa-inbox me-2"></i> No se encontraron productos
                             </td>
                         </tr>
