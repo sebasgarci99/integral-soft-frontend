@@ -1,7 +1,8 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
+import { SyncRecoleccionService } from './services/offline/sync-recoleccion.service';
 
 // Libreria de PRIME NG
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -32,6 +33,9 @@ export const appConfig: ApplicationConfig = {
                 }
             }
         }),
-        provideHttpClient(withInterceptors([authInterceptor, loadingInterceptor]))
+        provideHttpClient(withInterceptors([authInterceptor, loadingInterceptor])),
+        provideAppInitializer(() => {
+            inject(SyncRecoleccionService).iniciar();
+        })
     ]
 };

@@ -8,9 +8,48 @@
 
         <ng-template #end>
             <div class="topbar-actions">
-                <button class="topbar-action-btn" type="button" aria-label="Notificaciones">
-                    <i class="fa fa-bell"></i>
-                </button>
+                <div class="topbar-notif-wrapper">
+                    <button class="topbar-action-btn" type="button" [class.activo]="panelAbierto"
+                        (click)="togglePanel($event)" aria-label="Notificaciones y sincronización">
+                        <i class="fa fa-bell"></i>
+                        <span class="topbar-badge" *ngIf="totalBadge > 0">{{ totalBadge > 99 ? '99+' : totalBadge }}</span>
+                    </button>
+
+                    <div class="topbar-panel" *ngIf="panelAbierto" (click)="$event.stopPropagation()">
+                        <div class="topbar-panel-header">
+                            <span><i class="fa fa-bell me-2"></i>Notificaciones</span>
+                            <button class="topbar-panel-close" type="button" (click)="cerrarPanel()" aria-label="Cerrar">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+
+                        <!-- Sincronización offline -->
+                        <div class="topbar-panel-section">
+                            <div class="topbar-panel-item">
+                                <i class="fa fa-cloud-upload-alt topbar-panel-icon"
+                                    [class.icon-ok]="pendientesCount === 0"></i>
+                                <div class="topbar-panel-info">
+                                    <span class="titulo">Sincronización</span>
+                                    <span class="detalle" [class.detalle-ok]="pendientesCount === 0">
+                                        {{ pendientesCount === 0 ? 'Todo sincronizado' : pendientesCount + ' registro(s) pendiente(s)' }}
+                                    </span>
+                                </div>
+                                <p-button *ngIf="pendientesCount > 0" label="Enviar todo" icon="fa fa-sync"
+                                    severity="success" [loading]="sincronizando"
+                                    (onClick)="sincronizarTodo()"></p-button>
+                            </div>
+                        </div>
+
+                        <!-- Notificaciones -->
+                        <div class="topbar-panel-section">
+                            <div class="topbar-panel-empty" *ngIf="notificacionesCount === 0">
+                                <i class="fa fa-bell-slash"></i>
+                                <span>Sin notificaciones</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <button class="topbar-action-btn" type="button" routerLink="/info-usuario" aria-label="Ajustes">
                     <i class="fa fa-cog"></i>
                 </button>

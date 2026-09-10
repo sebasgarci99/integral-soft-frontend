@@ -7,7 +7,9 @@ export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
     const loadingService = inject(LoadingService);
     const url = req.url.toLowerCase();
 
-    const excluirDeLoader = url.includes('api/usuario/login') || url.includes('api/usuario/getinfouser');
+    const excluirDeLoader = url.includes('api/usuario/login')
+        || url.includes('api/usuario/getinfouser')
+        || req.headers.has('x-offline-sync');
 
     if (excluirDeLoader) {
         return next(req);

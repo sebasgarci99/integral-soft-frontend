@@ -36,6 +36,7 @@
                         <th>Res. Cortopunzantes K</th>
                         <th>Anatomopatologicos</th>
                         <th>Farmacos</th>
+                        <th>Estado</th>
                         <th>Acciones</th>
                         </tr>
                     </ng-template>
@@ -52,14 +53,18 @@
                             <td>{{ row.anatomopatologicos }}</td>
                             <td>{{ row.farmacos }}</td>
                             <td>
-                                <!-- Se muestran las opciones si es ADMIN -->
+                                <p-tag *ngIf="row.pendiente" severity="warn" value="Pendiente"></p-tag>
+                                <p-tag *ngIf="!row.pendiente" severity="success" value="Sincronizado"></p-tag>
+                            </td>
+                            <td>
+                                <!-- Se muestran las opciones si es ADMIN y el registro ya está sincronizado -->
                                 <p-button 
-                                    *ngIf="datosUsuario.idRol == '1'"
+                                    *ngIf="datosUsuario.idRol == '1' && !row.pendiente"
                                     icon="fa fa-pencil" 
                                     class="p-button-text p-button-sm"
                                     (onClick)="editarRecoleccion(row)"></p-button>
                                 <p-button 
-                                    *ngIf="datosUsuario.idRol == '1'" 
+                                    *ngIf="datosUsuario.idRol == '1' && !row.pendiente" 
                                     icon="fa fa-trash" 
                                     class="p-button-text p-button-sm"
                                     (onClick)="borrarRecoleccion(row.id_registropeso)" ></p-button>
@@ -378,6 +383,7 @@
                                     <p-tag severity="info" *ngIf="mostrarMensajeOK" value="Firma registrada correctamente." />
                                     
                                     <div class="mt-2 flex gap-2">
+                                        <p-button label="Maximizar" severity="danger" icon="fa fa-expand" (onClick)="openFullscreen()"></p-button>
                                         <p-button label="Limpiar firma" icon="fa fa-trash" (onClick)="firmaPad.clear()"></p-button>
                                         <p-button label="Guardar firma" icon="fa fa-check" (onClick)="guardarFirma()"></p-button>
                                     </div>
@@ -426,7 +432,8 @@
                                 label="Guardar" 
                                 icon="fa fa-check"
                                 class="m-1" 
-                                [disabled]="validacionesPasos()"
+                                [disabled]="validacionesPasos() || guardando"
+                                [loading]="guardando"
                                 (onClick)="crearActualizarRecoleccion()">
                             </p-button>
                         </div>
@@ -434,6 +441,22 @@
                 </p-dialog>
             </div>
         </div>
+
+<div class="fullscreen-overlay" *ngIf="fullscreen">
+    <div class="fullscreen-card">
+        <div class="fullscreen-header">
+            <p-button label="Cerrar" severity="danger" (onClick)="closeFullscreen()"></p-button>
+            <div class="flex gap-2">
+                <p-button label="Limpiar firma" icon="fa fa-trash" (onClick)="firmaPadFull.clear()" severity="secondary"></p-button>
+                <p-button label="Guardar firma" icon="fa fa-check" (onClick)="guardarFirmaFull()" severity="info"></p-button>
+            </div>
+        </div>
+
+        <div class="signature-wrapper">
+            <app-signature-canvas #firmaPadFull></app-signature-canvas>
+        </div>
+    </div>
+</div>
 
 <p-toast></p-toast>
 <p-confirmDialog></p-confirmDialog>

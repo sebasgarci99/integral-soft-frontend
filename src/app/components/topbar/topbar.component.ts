@@ -1,17 +1,19 @@
-import { Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, HostListener, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ToolbarModule } from 'primeng/toolbar';
 import { Menu, MenuModule } from 'primeng/menu';
+import { ButtonModule } from 'primeng/button';
 import { MenuItem } from 'primeng/api';
 import { Subscription } from 'rxjs';
 import { MenuService } from '../../services/menu/menu.service';
 import { SecureStorageService } from '../../services/secure-storage.service';
+import { SyncRecoleccionService } from '../../services/offline/sync-recoleccion.service';
 
 @Component({
     selector: 'app-topbar',
     standalone: true,
-    imports: [CommonModule, RouterModule, ToolbarModule, MenuModule],
+    imports: [CommonModule, RouterModule, ToolbarModule, MenuModule, ButtonModule],
     templateUrl: './topbar.component.html',
     styleUrl: './topbar.component.css'
 })
@@ -26,13 +28,24 @@ export class TopbarComponent implements OnInit, OnDestroy {
     rolUsuario: string = 'Usuario';
     items: MenuItem[] = [];
 
+    // Panel de notificaciones + sincronización
+    panelAbierto = false;
+    pendientesCount = 0;
+    notificacionesCount = 0;
+    sincronizando = false;
+
     private subs: Subscription[] = [];
 
     constructor(
         private router: Router,
         private menuService: MenuService,
-        private secureStorage: SecureStorageService
+        private secureStorage: SecureStorageService,
+        private syncRecoleccion: SyncRecoleccionService
     ) {}
+
+    get totalBadge(): number {
+        return this.pendientesCount + this.notificacionesCount;
+    }
 
     ngOnInit(): void {
         this.subs.push(
@@ -66,6 +79,14 @@ export class TopbarComponent implements OnInit, OnDestroy {
                 this.construirMenu();
             })
         );
+
+        this.subs.push(
+            this.syncRecoleccion.pendientes$.subscribe(total => {
+                this.pendientesCount = total;
+            })
+        );
+
+        this.syncRecoleccion.actualizarContador();
     }
 
     ngOnDestroy(): void {
@@ -74,6 +95,42 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
     onAbrirSidebar(): void {
         this.abrirSidebar.emit();
+    }
+
+    togglePanel(event: Event): void {
+        event.stopPropagation();
+        this.panelAbierto = !this.panelAbierto;
+
+        if (this.panelAbierto) {
+            this.syncRecoleccion.actualizarContador();
+        }
+    }
+
+    cerrarPanel(): void {
+        this.panelAbierto = false;
+    }
+
+    // Cierra el panel al hacer clic fuera de él
+    @HostListener('document:click')
+    onDocumentClick(): void {
+        if (this.panelAbierto) { this.panelAbierto = false; }
+    }
+
+    @HostListener('document:keydown.escape')
+    onEscape(): void {
+        this.panelAbierto = false;
+    }
+
+    async sincronizarTodo(): Promise<void> {
+        if (this.sincronizando) { return; }
+        this.sincronizando = true;
+
+        try {
+            await this.syncRecoleccion.sincronizarPendientes();
+            await this.syncRecoleccion.actualizarContador();
+        } finally {
+            this.sincronizando = false;
+        }
     }
 
     cerrarSesion(): void {

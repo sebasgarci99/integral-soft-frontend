@@ -6,6 +6,14 @@ import { map, Observable } from 'rxjs';
 import { enviroment } from '../../../enviroments/enviroment';   // ↔ tu misma ruta
 import { Recoleccion } from '../../interfaces/recoleccion';
 import { SecureStorageService } from '../secure-storage.service';
+import { OfflineDbService } from '../offline/offline-db.service';
+import { NetworkService } from '../offline/network.service';
+import { SyncRecoleccionService } from '../offline/sync-recoleccion.service';
+
+export interface ResultadoCreacionRecoleccion {
+    estado: 'SINCRONIZADO' | 'ENCOLADO';
+    id_local: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class RecoleccionService {
@@ -13,7 +21,13 @@ export class RecoleccionService {
     private urlApp: string;
     private urlAppAPI: string;
 
-    constructor(private http: HttpClient, private secureStorage: SecureStorageService) {
+    constructor(
+        private http: HttpClient,
+        private secureStorage: SecureStorageService,
+        private offlineDb: OfflineDbService,
+        private network: NetworkService,
+        private sync: SyncRecoleccionService
+    ) {
         this.urlApp     = enviroment.endpoint;              // ej. 'http://localhost:3000/'
         this.urlAppAPI  = 'api/reg_recoleccion/';           // se concatena después
     }
@@ -60,64 +74,44 @@ export class RecoleccionService {
 
     /* ─────────────────────────────────────────────
         CREAR  ─ crear_actualizar_reg_recoleccion
+        Local-first: mide la red; si es apta intenta enviar de una,
+        si no (o si falla), encola el registro hasta que se recupere la red.
     ───────────────────────────────────────────── */
-    async crearRecoleccion(data: Recoleccion): Promise<Observable<Recoleccion>> {
+    async crearRecoleccion(data: Recoleccion): Promise<ResultadoCreacionRecoleccion> {
 
-        const token   = await this.secureStorage.getItem('token');
-        const idUser  = await this.secureStorage.getItem('idUser');
-        const idEmpresa  = await this.secureStorage.getItem('idEmpresa');
+        const idUser    = Number(await this.secureStorage.getItem('idUser'));
+        const idEmpresa = Number(await this.secureStorage.getItem('idEmpresa'));
 
-        const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        const idLocal = this.generarIdLocal();
+        const body    = this.construirPayload(data, idUser, idEmpresa, idLocal);
 
-        const body = {
-            /* ───────── id + fecha ───────── */
-            id_registropeso      : data.id_registropeso ?? null,
-            fecha_registro       : toIsoLocal(data.fecha),
+        const calidad = await this.network.medirCalidadRed();
 
-            /* ───────── claves foráneas ───────── */
-            id_consultorio       : (data.consultorio as any) ?? null,
+        if (calidad !== 'MALA') {
+            const enviado = await this.sync.enviarPayload(body);
 
-            /* ───────── Paso 1 ────────────────── */
-            aprovechables        : data.aprovechablesBlanco       ?? 0,
-            no_aprovechables     : data.noAprovechablesNegra      ?? 0,
-            biosanitarios        : data.biosanitariosRoja         ?? 0,
-            cortopunzantes_ng    : data.cortopunzantesNG          ?? 0,   
-            cortopunzantes_k     : data.cortopunzantesK           ?? 0,
-            anatomopatologicos   : data.anatomopatologicos        ?? 0,
-            farmacos             : data.farmacos                  ?? 0,
-            chatarra_electronica : data.chatarraElectronica       ?? 0,
-            pilas                : data.pilas                     ?? 0,
-            quimicos             : data.quimicos                  ?? 0,
-            iluminarias          : data.iluminarias               ?? 0,
-            aceites_usados       : data.aceitesUsados             ?? 0,
+            if (enviado) {
+                this.sync.sincronizarPendientes();
+                return { estado: 'SINCRONIZADO', id_local: idLocal };
+            }
+        }
 
-            /* ───────── Paso 2 ────────────────── */
-            bolsas_g             : data.bolsasGuardianes          ?? 0,
-            bolsas_v             : data.bolsasBlanco              ?? 0,
-            bolsas_r             : data.bolsasRoja                ?? 0,
-            pret_usado           : (data.pretratamiento  as any)?.value ?? data.pretratamiento,
-            dias_almacenamiento  : data.almacenamientoDias        ?? 0,
-            tratamiento          : (data.tratamiento     as any)?.value ?? data.tratamiento,
-            hora_roja            : data.horaRoja != null ? toIsoLocal(data.horaRoja).substring(11, 19) : null,
-            hora_negra           : data.horaNegra != null ? toIsoLocal(data.horaNegra).substring(11, 19) : null,
+        await this.offlineDb.agregarAlOutbox({
+            id_local: idLocal,
+            uuid_cliente: idLocal,
+            payload: body,
+            estado: 'PENDIENTE',
+            intentos: 0,
+            ultimo_error: null,
+            id_usuario: idUser,
+            id_empresa: idEmpresa,
+            creado_en: new Date().toISOString()
+        });
 
-            /* ───────── Paso 3 ────────────────── */
-            dotacion_perso_adecuada      : (data.dotacionGenerador as any)?.value ?? data.dotacionGenerador,
-            dotacion_pers_pseg_adecuada  : (data.dotacionPseg      as any)?.value ?? data.dotacionPseg,
-            blob_firma                   : data.firma ?? '',
+        await this.sync.actualizarContador();
+        this.sync.sincronizarPendientes();
 
-            /* ───────── Auditoría ─────────────── */
-            id_usuario          : idUser,
-            id_empresa          : idEmpresa
-        };
-
-        console.log(body);
-
-        return this.http.post<Recoleccion>(
-            `${this.urlApp}${this.urlAppAPI}crear_actualizar_reg_recoleccion`,
-            body,
-            { headers }
-        );
+        return { estado: 'ENCOLADO', id_local: idLocal };
     }
 
     /* ─────────────────────────────────────────────
@@ -127,55 +121,15 @@ export class RecoleccionService {
     async actualizarRecoleccion(id: number, data: Partial<Recoleccion>): Promise<Observable<Recoleccion>> {
 
         const token   = await this.secureStorage.getItem('token');
-        const idUser  = await this.secureStorage.getItem('idUser');
-        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
+        const idUser  = Number(await this.secureStorage.getItem('idUser'));
+        const idEmpresa = Number(await this.secureStorage.getItem('idEmpresa'));
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
 
         const body = {
-            /* ───────── id + fecha ───────── */
-            id_registropeso      : id ?? null,
-            fecha_registro       : toIsoLocal(data.fecha),
-
-            /* ───────── claves foráneas ───────── */
-            id_consultorio       : (data.consultorio as any) ?? null,
-
-            /* ───────── Paso 1 ────────────────── */
-            aprovechables        : data.aprovechablesBlanco       ?? 0,
-            no_aprovechables     : data.noAprovechablesNegra      ?? 0,
-            biosanitarios        : data.biosanitariosRoja         ?? 0,
-            cortopunzantes_ng    : data.cortopunzantesNG          ?? 0,   
-            cortopunzantes_k     : data.cortopunzantesK           ?? 0,
-            anatomopatologicos   : data.anatomopatologicos        ?? 0,
-            farmacos             : data.farmacos                  ?? 0,
-            chatarra_electronica : data.chatarraElectronica       ?? 0,
-            pilas                : data.pilas                     ?? 0,
-            quimicos             : data.quimicos                  ?? 0,
-            iluminarias          : data.iluminarias               ?? 0,
-            aceites_usados       : data.aceitesUsados             ?? 0,
-
-            /* ───────── Paso 2 ────────────────── */
-            bolsas_g             : data.bolsasGuardianes          ?? 0,
-            bolsas_b             : data.bolsasBlanco              ?? 0,
-            bolsas_n             : data.bolsasNegra               ?? 0,
-            bolsas_r             : data.bolsasRoja                ?? 0,
-            pret_usado           : (data.pretratamiento  as any) ?? data.pretratamiento,
-            dias_almacenamiento  : data.almacenamientoDias        ?? 0,
-            tratamiento          : (data.tratamiento     as any) ?? data.tratamiento,
-            hora_roja            : data.horaRoja != null ? toIsoLocal(data.horaRoja).substring(11, 19) : null,
-            hora_negra           : data.horaNegra != null ? toIsoLocal(data.horaNegra).substring(11, 19) : null,
-
-            /* ───────── Paso 3 ────────────────── */
-            dotacion_perso_adecuada      : (data.dotacionGenerador as any)?.value ?? data.dotacionGenerador,
-            dotacion_pers_pseg_adecuada  : (data.dotacionPseg      as any)?.value ?? data.dotacionPseg,
-            blob_firma                   : data.firma ?? '',
-
-            /* ───────── Auditoría ─────────────── */
-            id_usuario          : idUser,
-            id_empresa          : idEmpresa
+            id_registropeso: id ?? null,
+            ...this.construirPayload(data as Recoleccion, idUser, idEmpresa, null)
         };
-
-        console.log(body);
 
         return this.http.post<Recoleccion>(
             `${this.urlApp}${this.urlAppAPI}crear_actualizar_reg_recoleccion`,
@@ -200,6 +154,67 @@ export class RecoleccionService {
             { headers }
         );
     }
+
+    /* ─────────────────────────────────────────────
+        Utilidades internas
+    ───────────────────────────────────────────── */
+
+    private construirPayload(data: Recoleccion, idUser: number, idEmpresa: number, uuidCliente: string | null): Record<string, unknown> {
+        return {
+            /* ───────── id + fecha ───────── */
+            fecha_registro       : toIsoLocal(data.fecha),
+
+            /* ───────── claves foráneas ───────── */
+            id_consultorio       : (data.consultorio as any) ?? null,
+
+            /* ───────── Paso 1 ────────────────── */
+            aprovechables        : data.aprovechablesBlanco       ?? 0,
+            no_aprovechables     : data.noAprovechablesNegra      ?? 0,
+            biosanitarios        : data.biosanitariosRoja         ?? 0,
+            cortopunzantes_ng    : data.cortopunzantesNG          ?? 0,
+            cortopunzantes_k     : data.cortopunzantesK           ?? 0,
+            anatomopatologicos   : data.anatomopatologicos        ?? 0,
+            farmacos             : data.farmacos                  ?? 0,
+            chatarra_electronica : data.chatarraElectronica       ?? 0,
+            pilas                : data.pilas                     ?? 0,
+            quimicos             : data.quimicos                  ?? 0,
+            iluminarias          : data.iluminarias               ?? 0,
+            aceites_usados       : data.aceitesUsados             ?? 0,
+
+            /* ───────── Paso 2 ────────────────── */
+            bolsas_g             : data.bolsasGuardianes          ?? 0,
+            bolsas_b             : data.bolsasBlanco              ?? 0,
+            bolsas_n             : data.bolsasNegra               ?? 0,
+            bolsas_r             : data.bolsasRoja                ?? 0,
+            pret_usado           : (data.pretratamiento  as any)?.value ?? data.pretratamiento,
+            dias_almacenamiento  : data.almacenamientoDias        ?? 0,
+            tratamiento          : (data.tratamiento     as any)?.value ?? data.tratamiento,
+            hora_roja            : data.horaRoja != null ? toIsoLocal(data.horaRoja).substring(11, 19) : null,
+            hora_negra           : data.horaNegra != null ? toIsoLocal(data.horaNegra).substring(11, 19) : null,
+
+            /* ───────── Paso 3 ────────────────── */
+            dotacion_perso_adecuada      : (data.dotacionGenerador as any)?.value ?? data.dotacionGenerador,
+            dotacion_pers_pseg_adecuada  : (data.dotacionPseg      as any)?.value ?? data.dotacionPseg,
+            blob_firma                   : data.firma ?? '',
+
+            /* ───────── Auditoría ─────────────── */
+            id_usuario          : idUser,
+            id_empresa          : idEmpresa,
+            uuid_cliente        : uuidCliente
+        };
+    }
+
+    private generarIdLocal(): string {
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            return crypto.randomUUID();
+        }
+
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
 }
 
 /**
@@ -209,15 +224,15 @@ export class RecoleccionService {
  */
 function toIsoLocal<T extends Date | null | undefined>(date: T): T extends Date ? string : null {
     if (!date) return null as any;
-    
+
     const pad = (num: number) => num.toString().padStart(2, '0');
-    
+
     const year = date.getFullYear();
     const month = pad(date.getMonth() + 1);
     const day = pad(date.getDate());
     const hours = pad(date.getHours());
     const minutes = pad(date.getMinutes());
     const seconds = pad(date.getSeconds());
-    
+
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}` as any;
 }

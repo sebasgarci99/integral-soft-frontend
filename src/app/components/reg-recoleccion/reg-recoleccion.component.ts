@@ -2,9 +2,12 @@ import { Component  } from '@angular/core';
 import { OnInit } from '@angular/core';
 import { ViewChild } from '@angular/core';
 
-import { RecoleccionService } from '../../services/recoleccion/recoleccion.service';
+import { RecoleccionService, ResultadoCreacionRecoleccion } from '../../services/recoleccion/recoleccion.service';
 import { ConsultorioService } from '../../services/consultorio/consultorio.service';
 import { SecureStorageService } from '../../services/secure-storage.service';
+import { OfflineDbService, OutboxRecoleccion } from '../../services/offline/offline-db.service';
+import { SyncRecoleccionService } from '../../services/offline/sync-recoleccion.service';
+import { NetworkService } from '../../services/offline/network.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { CommonModule } from '@angular/common';
@@ -65,7 +68,11 @@ import { SignatureCanvasComponent } from '../../utils/signature-canvas.component
 export class RegRecoleccionComponent implements OnInit{
 
     @ViewChild('firmaPad') firmaPad!: SignatureCanvasComponent;
+    @ViewChild('firmaPadFull') firmaPadFull!: SignatureCanvasComponent;
     @ViewChild('tabla') tabla!: Table;
+
+    // Modo maximizado de la firma
+    fullscreen = false;
 
     // Variable local de traducción del lenguaje de los calendar
     local_espaniol:any = null;
@@ -100,6 +107,10 @@ export class RegRecoleccionComponent implements OnInit{
     displayDialog = false;
     isEdit = false;
     blobFirmaEdit:string = '';
+
+    // Sincronización offline
+    pendientesCount = 0;
+    guardando = false;
 
     // Mensaje para firma
     mostrarMensajeOK:boolean = false;
@@ -162,7 +173,10 @@ export class RegRecoleccionComponent implements OnInit{
         private consultorioService: ConsultorioService,
         private messageService: MessageService,
         private confirmService: ConfirmationService,
-        private secureStorage: SecureStorageService
+        private secureStorage: SecureStorageService,
+        private offlineDb: OfflineDbService,
+        private syncRecoleccion: SyncRecoleccionService,
+        private network: NetworkService
     ) {}
 
     ngOnInit(): void { 
@@ -303,20 +317,49 @@ export class RegRecoleccionComponent implements OnInit{
 
     async cargarConsultorios() {
         try {
-            (await this.consultorioService.obtenerDatosConsultorios()).subscribe((data) => {
-                this.consultoriosOpts = data.filter(e => e.estado == 'A').map((item: any) => ({
-                    label: item.codigo+'-'+item.descripcion,
-                    value: item.id
-                }));
+            (await this.consultorioService.obtenerDatosConsultorios()).subscribe({
+                next: async (data) => {
+                    this.consultoriosOpts = data.filter(e => e.estado == 'A').map((item: any) => ({
+                        label: item.codigo+'-'+item.descripcion,
+                        value: item.id
+                    }));
+                    await this.offlineDb.guardarCache('consultorios', this.consultoriosOpts);
+                },
+                error: async () => {
+                    const cache = await this.offlineDb.obtenerCache<SelectItem[]>('consultorios');
+                    if (cache) { this.consultoriosOpts = cache; }
+                }
             });
         } catch(e) {
             console.error(e)
+            const cache = await this.offlineDb.obtenerCache<SelectItem[]>('consultorios');
+            if (cache) { this.consultoriosOpts = cache; }
         }
-        
+
     }
 
     async cargarRegistrosRecoleccion(): Promise<void> {
         try {
+            let pendientes = await this.offlineDb.obtenerPendientes();
+            const calidad = await this.network.medirCalidadRed();
+
+            // Con pendientes y sin buena red no se consulta el backend: se muestran solo los encolados.
+            if (pendientes.length > 0 && calidad === 'MALA') {
+                this.pendientesCount = pendientes.length;
+                this.recolecciones = pendientes.map(p => this.mapearPendienteAFila(p));
+                this.totalRecords = this.recolecciones.length;
+                return;
+            }
+
+            // Si hay buena red, primero se intenta sincronizar y luego se recarga del servidor.
+            if (pendientes.length > 0) {
+                await this.syncRecoleccion.sincronizarPendientes();
+                pendientes = await this.offlineDb.obtenerPendientes();
+            }
+
+            this.pendientesCount = pendientes.length;
+            const filasPendientes = pendientes.map(p => this.mapearPendienteAFila(p));
+
             const obs = await this.RecoleccionService.obtenerRegistrosRecoleccion(this.pagina, this.limite, this.busquedaGlobal);
             obs.subscribe((data) => {
                 const registros = (Array.isArray(data) ? data : (data.rows || [])).map((reg: any) => ({
@@ -326,8 +369,10 @@ export class RegRecoleccionComponent implements OnInit{
                     consultorio: this.consultoriosOpts.find(e => e.value === reg.id_consultorio)?.label
                 }));
 
-                this.recolecciones = registros;
-                this.totalRecords = Array.isArray(data) ? registros.length : (data.total || 0);
+                const totalServidor = Array.isArray(data) ? registros.length : (data.total || 0);
+
+                this.recolecciones = this.pagina === 1 ? [...filasPendientes, ...registros] : registros;
+                this.totalRecords = totalServidor + pendientes.length;
 
                 this.registroDiaHoy = registros
                     .filter((r: any) => this.validarFechaEsHoy(r.fecha_registro))
@@ -335,7 +380,31 @@ export class RegRecoleccionComponent implements OnInit{
             });
         } catch (e) {
             console.error(e);
+
+            // Sin respuesta del servidor: al menos se muestran los registros en cola.
+            const pendientes = await this.offlineDb.obtenerPendientes();
+            this.pendientesCount = pendientes.length;
+            this.recolecciones = pendientes.map(p => this.mapearPendienteAFila(p));
+            this.totalRecords = this.recolecciones.length;
         }
+    }
+
+    private mapearPendienteAFila(item: OutboxRecoleccion): any {
+        const payload: any = item.payload;
+        return {
+            id_registropeso: null,
+            id_local: item.id_local,
+            pendiente: true,
+            fecha_registro: payload.fecha_registro,
+            consultorio: this.consultoriosOpts.find(e => e.value === payload.id_consultorio)?.label,
+            aprovechables: payload.aprovechables,
+            no_aprovechables: payload.no_aprovechables,
+            biosanitarios: payload.biosanitarios,
+            cortopunzantes_ng: payload.cortopunzantes_ng,
+            cortopunzantes_k: payload.cortopunzantes_k,
+            anatomopatologicos: payload.anatomopatologicos,
+            farmacos: payload.farmacos
+        };
     }
 
     onLazyLoad(event: any): void {
@@ -358,18 +427,34 @@ export class RegRecoleccionComponent implements OnInit{
             // Si se esta editando
             (await this.RecoleccionService.actualizarRecoleccion(Number(this.formData.id_registropeso), this.formData)).subscribe(() => {
                 this.cargarRegistrosRecoleccion();
-                this.displayDialog = false;
                 this.messageService.add({ severity: 'success', summary: 'Registro de peso actualizado correctamente.' });
+                this.cerrar();
             });
         } else {
-            // Si se va a crear el registro
-            (await this.RecoleccionService.crearRecoleccion(this.formData)).subscribe(() => {
-                this.cargarRegistrosRecoleccion();
-                this.displayDialog = false;
-                this.messageService.add({ severity: 'success', summary: 'Registro de peso creado correctamente.' });
-            });
+            // Si se va a crear el registro: local-first (medir red -> enviar o encolar)
+            this.guardando = true;
+            try {
+                const resultado: ResultadoCreacionRecoleccion = await this.RecoleccionService.crearRecoleccion(this.formData);
+
+                if (resultado.estado === 'SINCRONIZADO') {
+                    this.messageService.add({ severity: 'success', summary: 'Registro de peso creado correctamente.' });
+                } else {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Guardado localmente',
+                        detail: 'No hay conexión estable. Se sincronizará automáticamente.'
+                    });
+                }
+
+                await this.cargarRegistrosRecoleccion();
+                this.cerrar();
+            } catch (e) {
+                console.error(e);
+                this.messageService.add({ severity: 'error', summary: 'No se pudo guardar el registro.' });
+            } finally {
+                this.guardando = false;
+            }
         }
-        this.cerrar();
     }
 
     /* Limpia el formulario */
@@ -420,6 +505,41 @@ export class RegRecoleccionComponent implements OnInit{
             // Si necesitas reconstruir el dataURL completo después:
             const fullDataUrl = `data:image/png;base64,${this.formData.firma}`;
             this.mostrarMensajeOK = true;
+        }
+    }
+
+    // Abre la firma en modo maximizado (pantalla completa)
+    openFullscreen(): void {
+        this.fullscreen = true;
+
+        setTimeout(() => {
+            if (this.firmaPadFull) {
+                this.firmaPadFull.fromDataBase64(this.firmaPad?.toDataBase64() || '');
+                this.firmaPadFull.refresh();
+            }
+        }, 150);
+    }
+
+    // Cierra el modo maximizado y restaura el canvas original
+    closeFullscreen(): void {
+        this.fullscreen = false;
+        setTimeout(() => {
+            if (this.firmaPad) {
+                this.firmaPad.reinitPad();
+                if (this.formData.firma) {
+                    this.firmaPad.fromDataBase64(this.formData.firma);
+                }
+            }
+        });
+    }
+
+    // Guarda la firma dibujada en modo maximizado
+    guardarFirmaFull(): void {
+        if (this.firmaPadFull && !this.firmaPadFull.isEmpty()) {
+            this.formData.firma = this.firmaPadFull.toDataBase64();
+            this.firmaPad.fromDataBase64(this.formData.firma);
+            this.mostrarMensajeOK = true;
+            this.fullscreen = false;
         }
     }
 
@@ -507,6 +627,7 @@ export class RegRecoleccionComponent implements OnInit{
 
     // Procedimiento dinamico para asignar una clase y pintar el o los registros del dia
     rowClass(row: any): any {
+        if (row.pendiente) { return 'fila-pendiente'; }
         return this.registroDiaHoy.includes(row.id_registropeso) ? 'fila-hoy' : '';
     }
 
