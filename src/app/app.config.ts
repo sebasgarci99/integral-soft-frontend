@@ -31,6 +31,12 @@ export const appConfig: ApplicationConfig = {
                 options: {
                     darkModeSelector: false || 'none'
                 }
+            },
+            zIndex: {
+                modal: 1400,
+                overlay: 1200,
+                menu: 1200,
+                tooltip: 1300
             }
         }),
         provideHttpClient(withInterceptors([authInterceptor, loadingInterceptor])),

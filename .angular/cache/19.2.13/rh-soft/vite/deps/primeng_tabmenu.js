@@ -1,34 +1,35 @@
 import {
   Tooltip,
   TooltipModule
-} from "./chunk-G6HXHXT4.js";
+} from "./chunk-J72IAUK7.js";
 import {
   ActivatedRoute,
   Router,
   RouterLink,
   RouterLinkActive,
   RouterModule
-} from "./chunk-YBMSZOR4.js";
-import "./chunk-GL4OBHJR.js";
+} from "./chunk-3FX3JB4U.js";
 import {
   Badge,
   BadgeModule
-} from "./chunk-JFGEDVNW.js";
+} from "./chunk-7TD2LK4C.js";
 import "./chunk-5G7WYC4N.js";
+import "./chunk-4F6UCNBM.js";
 import {
   Ripple
-} from "./chunk-M7ALPQAO.js";
+} from "./chunk-5LW2DHMZ.js";
 import {
   ChevronLeftIcon,
   ChevronRightIcon
-} from "./chunk-Z3I53DNE.js";
+} from "./chunk-N7O2TABV.js";
 import {
   BaseComponent
-} from "./chunk-LHZNQOJ6.js";
-import "./chunk-AEP6HPAQ.js";
+} from "./chunk-QV7D5QSY.js";
+import "./chunk-VHLRMCMK.js";
 import {
   BaseStyle
-} from "./chunk-Q7JKW5OY.js";
+} from "./chunk-42VOXZWI.js";
+import "./chunk-CWYBPNCF.js";
 import {
   PrimeTemplate,
   SharedModule,
@@ -37,14 +38,13 @@ import {
   getAttribute,
   getOffset,
   getWidth
-} from "./chunk-3YZPS7GS.js";
-import "./chunk-TZIJKBMI.js";
+} from "./chunk-TH5XFXWA.js";
 import {
   resolve
-} from "./chunk-YAPJLE7E.js";
-import "./chunk-BCWLQDQK.js";
-import "./chunk-KQXO3426.js";
-import "./chunk-CWOFEVZW.js";
+} from "./chunk-NJ25EVEJ.js";
+import "./chunk-OBMPZ2GU.js";
+import "./chunk-4NAQULYQ.js";
+import "./chunk-ZLQL6QPB.js";
 import {
   CommonModule,
   NgClass,
@@ -52,10 +52,10 @@ import {
   NgIf,
   NgStyle,
   NgTemplateOutlet
-} from "./chunk-RAKILYOY.js";
+} from "./chunk-BBDE3VR3.js";
 import {
   isPlatformBrowser
-} from "./chunk-KVYPHX3Z.js";
+} from "./chunk-T5LJU33O.js";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -110,11 +110,11 @@ import {
   ɵɵtext,
   ɵɵtextInterpolate,
   ɵɵviewQuery
-} from "./chunk-GG4VMHUD.js";
+} from "./chunk-TL5UGNLP.js";
 import "./chunk-PEBH6BBU.js";
 import "./chunk-WPM5VTLQ.js";
 import "./chunk-4S3KYZTJ.js";
-import "./chunk-TXDUYLVM.js";
+import "./chunk-KBUIKKCC.js";
 
 // node_modules/primeng/fesm2022/primeng-tabmenu.mjs
 var _c0 = ["item"];

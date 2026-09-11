@@ -1,7 +1,7 @@
 export interface Recoleccion {
     id_registropeso: number | null;
     fecha: Date | null;
-    consultorio: string | null;
+    consultorio: number | null;
 
     // Paso 1 – Residuos
     aprovechablesBlanco: number | null;
@@ -16,6 +16,16 @@ export interface Recoleccion {
     quimicos: number | null;
     iluminarias: number | null;
     aceitesUsados: number | null;
+
+    // Paso 1 – Categorías RESPEL adicionales
+    aprovechablesOrganicos: number | null;
+    deAnimales: number | null;
+    corrosivos: number | null;
+    explosivos: number | null;
+    reactivos: number | null;
+    toxicos: number | null;
+    inflamables: number | null;
+    radioactivos: number | null;
 
     // Paso 2 – Bolsas + horarios
     bolsasGuardianes: number | null;

@@ -23,6 +23,20 @@ export class ReportesService {
         this.urlAppAPI_enviarMail = 'api/enviarmail/';
     }
 
+    /**
+     * Convierte una fecha a "YYYY-MM-DD" en hora LOCAL (no UTC).
+     * Evita el desfase de un día al usar toISOString() en zonas como America/Bogota.
+     */
+    private formatearFechaLocal(fecha: Date | string | null | undefined): string | null {
+        if (!fecha) { return null; }
+
+        const d = new Date(fecha);
+        if (isNaN(d.getTime())) { return null; }
+
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
     /* ─────────────────────────────────────────────
        LISTAR (GET) ─ getReportTotalizado
    ───────────────────────────────────────────── */
@@ -38,8 +52,8 @@ export class ReportesService {
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = {
             id_usuario: Number(idUser),
-            fecha_inicio: fechaInicio,
-            fecha_fin: fechaFin,
+            fecha_inicio: this.formatearFechaLocal(fechaInicio),
+            fecha_fin: this.formatearFechaLocal(fechaFin),
             consultorio: consultorio
         };
 
@@ -67,13 +81,42 @@ export class ReportesService {
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = {
             id_usuario: Number(idUser),
-            fecha_inicio: fechaInicio,
-            fecha_fin: fechaFin,
+            fecha_inicio: this.formatearFechaLocal(fechaInicio),
+            fecha_fin: this.formatearFechaLocal(fechaFin),
             consultorio: consultorio
         };
 
         return this.http.post<any>(
             `${this.urlApp}${this.urlAppAPI}getReportDetallado`,
+            body,
+            { headers }
+        ).pipe(
+            map(resp => resp.body)
+        );
+    }
+
+    /* ─────────────────────────────────────────────
+       LISTAR (GET) ─ getReporteConsolidadoDia
+   ───────────────────────────────────────────── */
+    async obtenerReporteConsolidadoDia(
+        fechaInicio: Date,
+        fechaFin: Date,
+        consultorio: number | null
+    ): Promise<Observable<any[]>> {
+
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+
+        const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        const body = {
+            id_usuario: Number(idUser),
+            fecha_inicio: this.formatearFechaLocal(fechaInicio),
+            fecha_fin: this.formatearFechaLocal(fechaFin),
+            consultorio: consultorio
+        };
+
+        return this.http.post<any>(
+            `${this.urlApp}${this.urlAppAPI}getReporteConsolidadoDia`,
             body,
             { headers }
         ).pipe(
@@ -157,8 +200,8 @@ export class ReportesService {
 
         const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
         const body = {
-            fecha_inicio: fechaInicio,
-            fecha_fin: fechaFin,
+            fecha_inicio: this.formatearFechaLocal(fechaInicio),
+            fecha_fin: this.formatearFechaLocal(fechaFin),
             consultorio: consultorio,
             tipo_reporte: tipoReporte
         };

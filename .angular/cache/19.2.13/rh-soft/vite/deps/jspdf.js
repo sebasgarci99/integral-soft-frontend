@@ -1,4 +1,4 @@
-import "./chunk-TXDUYLVM.js";
+import "./chunk-KBUIKKCC.js";
 
 // node_modules/jspdf/node_modules/@babel/runtime/helpers/esm/typeof.js
 function _typeof(o2) {
@@ -14872,14 +14872,14 @@ function(t2) {
   }, t2.loadImageFile = t2.loadFile;
 }(E.API), function(e) {
   function n() {
-    return (i.html2canvas ? Promise.resolve(i.html2canvas) : import("./html2canvas.esm-ZNF64ISW.js")).catch(function(t2) {
+    return (i.html2canvas ? Promise.resolve(i.html2canvas) : import("./html2canvas.esm-NGJ4QOEC.js")).catch(function(t2) {
       return Promise.reject(new Error("Could not load html2canvas: " + t2));
     }).then(function(t2) {
       return t2.default ? t2.default : t2;
     });
   }
   function r() {
-    return (i.DOMPurify ? Promise.resolve(i.DOMPurify) : import("./purify.es-R7C2DGOH.js")).catch(function(t2) {
+    return (i.DOMPurify ? Promise.resolve(i.DOMPurify) : import("./purify.es-F3HLVKD3.js")).catch(function(t2) {
       return Promise.reject(new Error("Could not load dompurify: " + t2));
     }).then(function(t2) {
       return t2.default ? t2.default : t2;
@@ -16053,7 +16053,7 @@ function(t2) {
     ignoreAnimation: true,
     ignoreDimensions: true
   }, d2 = this;
-  return (i.canvg ? Promise.resolve(i.canvg) : import("./index.es-TLIIYL3H.js")).catch(function(t3) {
+  return (i.canvg ? Promise.resolve(i.canvg) : import("./index.es-2NKYXVZQ.js")).catch(function(t3) {
     return Promise.reject(new Error("Could not load canvg: " + t3));
   }).then(function(t3) {
     return t3.default ? t3.default : t3;

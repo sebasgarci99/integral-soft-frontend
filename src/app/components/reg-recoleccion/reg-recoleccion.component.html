@@ -53,7 +53,11 @@
                             <td>{{ row.anatomopatologicos }}</td>
                             <td>{{ row.farmacos }}</td>
                             <td>
-                                <p-tag *ngIf="row.pendiente" severity="warn" value="Pendiente"></p-tag>
+                                <p-tag *ngIf="row.pendiente" severity="warn" value="Pendiente"
+                                    [pTooltip]="row.ultimo_error || 'En cola, esperando sincronización'"></p-tag>
+                                <small class="text-error-small" *ngIf="row.pendiente && row.ultimo_error">
+                                    {{ row.ultimo_error }}
+                                </small>
                                 <p-tag *ngIf="!row.pendiente" severity="success" value="Sincronizado"></p-tag>
                             </td>
                             <td>
@@ -81,10 +85,9 @@
                     [modal]="true" 
                     [style]="{
                         width: '40rem',           
-                        'max-height': '80vh',
-                        height: '70%'
+                        'max-height': '92vh',
+                        height: '90%'
                     }"
-                    [ngClass]="['dialog-responsive']"
                     [contentStyle]="{
                         'overflow-x': 'visible',   
                         'overflow-y': 'auto'  
@@ -144,176 +147,191 @@
                             </div>
                         </ng-container>
 
-                        <!-- Paso 1: Residuos -->
+                        <!-- Paso 1: Residuos (agrupados RESPEL) -->
                         <ng-container *ngSwitchCase="1">
-                            <div class="p-fluid grid p-formgrid">
-                                <ng-container *ngFor="let r of residuosFirstLine">
-                                    <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
-                                        <span class="p-input-icon-left w-100">
-                                            <p-inputNumber 
-                                                [(ngModel)]="$any(formData)[r.prop]"
-                                                inputId="{{r.prop}}"
-                                                class="w-100"
-                                                [min]="0"
-                                                [max]="999.9"
-                                                [step]="0.1"
-                                                mode="decimal"
-                                                value="0.01"
-                                                [minFractionDigits]="0.01"
-                                                [maxFractionDigits]="2"
-                                                [showButtons]="true" 
-                                                [useGrouping]="false"
-                                                #control="ngModel"
-                                                [attr.inputmode]="'decimal'"
-                                                required>>
-                                            </p-inputNumber>
-                                            <label [for]="r.prop">
-                                                {{ r.label }} 
-                                                <i *ngIf="r.icon" [ngClass]="r.icon"></i>
-                                            </label>
+                            <div class="p-fluid">
+                                <div *ngFor="let grupo of residuosGrupos" class="grupo-residuos mb-3">
+                                    <div class="grupo-header">
+                                        <span class="grupo-titulo">{{ grupo.titulo }}</span>
+                                        <span class="grupo-subtotal">
+                                            Subtotal: {{ subtotalGrupo(grupo) | number:'1.2-2' }} kg
                                         </span>
-                                    </p-floatlabel>
-                                    <small class="p-error text-error-small" *ngIf="control.invalid && (control.touched)">
-                                        El campo: {{r.label}} es obligatorio.
-                                    </small>
-                                </ng-container>
+                                    </div>
+
+                                    <p class="grupo-nota" *ngIf="grupo.nota">{{ grupo.nota }}</p>
+
+                                    <div class="grid p-formgrid">
+                                        <ng-container *ngFor="let r of grupo.campos">
+                                            <p-floatlabel variant="on"
+                                                [ngClass]="grupo.campos.length >= 6 ? 'col-12 md:col-6 lg:col-4 mt-3' : 'col-12 md:col-6 mt-3'">
+                                                <p-inputNumber
+                                                    [(ngModel)]="$any(formData)[r.prop]"
+                                                    inputId="{{r.prop}}"
+                                                    class="w-100"
+                                                    [min]="0"
+                                                    [max]="999.9"
+                                                    [step]="0.1"
+                                                    mode="decimal"
+                                                    value="0.01"
+                                                    [minFractionDigits]="0.01"
+                                                    [maxFractionDigits]="2"
+                                                    [showButtons]="true"
+                                                    [useGrouping]="false"
+                                                    [attr.inputmode]="'decimal'"
+                                                    required>
+                                                </p-inputNumber>
+                                                <label [for]="r.prop">
+                                                    {{ r.label }}
+                                                    <i *ngIf="r.icon" [ngClass]="r.icon"></i>
+                                                </label>
+                                            </p-floatlabel>
+                                        </ng-container>
+                                    </div>
+                                </div>
+
+                                <div class="total-general-residuos">
+                                    <span><i class="fa fa-calculator"></i> Total general de residuos:</span>
+                                    <strong>{{ totalGeneralResiduos | number:'1.2-2' }} kg</strong>
+                                </div>
                             </div>
                         </ng-container>
 
-                        <!-- Paso 2: Bolsas -->
+                        <!-- Paso 2: Bolsas -->
                         <ng-container *ngSwitchCase="2">
-                            <div class="p-fluid grid p-formgrid">
-                                <p-floatlabel variant="on" class="col-12 md:col-3 mt-2">
-                                    <p-inputNumber 
-                                        [(ngModel)]="formData.bolsasGuardianes" 
-                                        [min]="0" 
-                                        max="999"
-                                        inputId="bolsasGuardianes"
-                                        class="w-100"
-                                        [showButtons]="true">
-                                    </p-inputNumber>
-                                    <label for="bolsasGuardianes">Guardianes</label>
-                                </p-floatlabel>
+                            <div class="p-fluid">
+                                <!-- Grupo: Bolsas utilizadas -->
+                                <div class="grupo-residuos mb-3">
+                                    <div class="grupo-header">
+                                        <span class="grupo-titulo">Bolsas utilizadas</span>
+                                    </div>
+                                    <div class="grid p-formgrid">
+                                        <p-floatlabel variant="on" class="col-12 md:col-6 lg:col-3 mt-3">
+                                            <p-inputNumber
+                                                [(ngModel)]="formData.bolsasGuardianes"
+                                                [min]="0"
+                                                [max]="999"
+                                                inputId="bolsasGuardianes"
+                                                class="w-100"
+                                                [showButtons]="true">
+                                            </p-inputNumber>
+                                            <label for="bolsasGuardianes">Guardianes</label>
+                                        </p-floatlabel>
 
-                                <p-floatlabel variant="on" class="col-12 md:col-3 mt-2">
-                                    <p-inputNumber 
-                                        [(ngModel)]="formData.bolsasBlanco" 
-                                        [min]="0" 
-                                        max="999"
-                                        inputId="bolsasBlanco"
-                                        class="w-100"
-                                        [showButtons]="true">
-                                    </p-inputNumber>
-                                    <label for="bolsasBlanco">Blanco</label>
-                                </p-floatlabel>
+                                        <p-floatlabel variant="on" class="col-12 md:col-6 lg:col-3 mt-3">
+                                            <p-inputNumber
+                                                [(ngModel)]="formData.bolsasBlanco"
+                                                [min]="0"
+                                                [max]="999"
+                                                inputId="bolsasBlanco"
+                                                class="w-100"
+                                                [showButtons]="true">
+                                            </p-inputNumber>
+                                            <label for="bolsasBlanco">Blanco</label>
+                                        </p-floatlabel>
 
-                                <p-floatlabel variant="on" class="col-12 md:col-3 mt-2">
-                                    <p-inputNumber 
-                                        [(ngModel)]="formData.bolsasNegra" 
-                                        [min]="0" 
-                                        max="999"
-                                        inputId="bolsasNegra"   
-                                        class="w-100"
-                                        [showButtons]="true">
-                                    </p-inputNumber>
-                                    <label for="bolsasNegra">Negra</label>
-                                </p-floatlabel>
+                                        <p-floatlabel variant="on" class="col-12 md:col-6 lg:col-3 mt-3">
+                                            <p-inputNumber
+                                                [(ngModel)]="formData.bolsasNegra"
+                                                [min]="0"
+                                                [max]="999"
+                                                inputId="bolsasNegra"
+                                                class="w-100"
+                                                [showButtons]="true">
+                                            </p-inputNumber>
+                                            <label for="bolsasNegra">Negra</label>
+                                        </p-floatlabel>
 
-                                <p-floatlabel variant="on" class="col-12 md:col-3 mt-2">
-                                    <p-inputNumber 
-                                        [(ngModel)]="formData.bolsasRoja" 
-                                        [min]="0" 
-                                        max="999"
-                                        inputId="bolsasRoja"
-                                        class="w-100"
-                                        [showButtons]="true">
-                                    </p-inputNumber>
-                                    <label for="bolsasRoja">Roja</label>
-                                </p-floatlabel>
-
-                                <hr>
-                                <h6>Información del proceso: </h6>
-
-                                <p-floatlabel variant="on" class="col-12 md:col-4 mt-3">
-                                    <p-dropdown 
-                                        id="pretratamiento" 
-                                        [options]="pretUsadoOpts" 
-                                        [(ngModel)]="formData.pretratamiento"
-                                        #pretratamiento="ngModel"
-                                        [ngClass]="{
-                                            'p-inputwrapper-filled': formData.pretratamiento
-                                        }"
-                                        inputId="pretratamiento" 
-                                        [checkmark]="true" 
-                                        optionLabel="label" 
-                                        optionValue="value"
-                                        [showClear]="true" 
-                                        class="w-100"
-                                        appendTo="body">
-                                    </p-dropdown>
-                                    <label for="pretratamiento">Pret. usado</label>
-                                </p-floatlabel>
-
-                                <p-floatlabel variant="on" class="col-12 md:col-4 mt-3">
-                                    <p-inputNumber 
-                                        [(ngModel)]="formData.almacenamientoDias" 
-                                        [min]="0" 
-                                        max="999"
-                                        inputId="almacenamientoDias"
-                                        class="w-100"
-                                        [showButtons]="true">
-                                    </p-inputNumber>
-                                    <label for="almacenamientoDias">Alm. días</label>
-                                </p-floatlabel>
-
-                                <p-floatlabel variant="on" class="col-12 md:col-4 mt-3">
-                                    <p-dropdown 
-                                        id="tratamiento" 
-                                        [options]="tratamientoOpts" 
-                                        [(ngModel)]="formData.tratamiento"
-                                        #tratamiento="ngModel"
-                                        [ngClass]="{
-                                            'p-inputwrapper-filled': formData.tratamiento
-                                        }"
-                                        inputId="tratamiento" 
-                                        [checkmark]="true" 
-                                        optionLabel="label" 
-                                        optionValue="value"
-                                        [showClear]="true" 
-                                        class="w-100"
-                                        appendTo="body">
-                                    </p-dropdown>
-                                    <label for="tratamiento">Tratamiento</label>
-                                </p-floatlabel>
-
-                                <div class="col-12 d-flex">
-                                    <p-floatlabel variant="on" class="col-6 mt-3 w-50">
-                                        <p-calendar
-                                            [(ngModel)]="formData.horaRoja"
-                                            inputId="horaRoja"
-                                            [timeOnly]="true"
-                                            [locale]="local_espaniol"
-                                            hourFormat="12"
-                                            class="w-100"
-                                            appendTo="body">
-                                        </p-calendar>
-                                        <label for="horaRoja">Hora Roja</label>
-                                    </p-floatlabel>
-
-                                    <p-floatlabel variant="on" class="col-6 mt-3 w-50">
-                                        <p-calendar
-                                            [(ngModel)]="formData.horaNegra"
-                                            inputId="horaNegra"
-                                            [timeOnly]="true"
-                                            [locale]="local_espaniol"
-                                            hourFormat="12"
-                                            class="w-100"
-                                            appendTo="body">
-                                        </p-calendar>
-                                        <label for="horaNegra">Hora Negra</label>
-                                    </p-floatlabel>
+                                        <p-floatlabel variant="on" class="col-12 md:col-6 lg:col-3 mt-3">
+                                            <p-inputNumber
+                                                [(ngModel)]="formData.bolsasRoja"
+                                                [min]="0"
+                                                [max]="999"
+                                                inputId="bolsasRoja"
+                                                class="w-100"
+                                                [showButtons]="true">
+                                            </p-inputNumber>
+                                            <label for="bolsasRoja">Roja</label>
+                                        </p-floatlabel>
+                                    </div>
                                 </div>
-                               
+
+                                <!-- Grupo: Información del proceso -->
+                                <div class="grupo-residuos mb-3">
+                                    <div class="grupo-header">
+                                        <span class="grupo-titulo">Información del proceso</span>
+                                    </div>
+                                    <div class="grid p-formgrid">
+                                        <p-floatlabel variant="on" class="col-12 md:col-6 lg:col-4 mt-3">
+                                            <p-dropdown
+                                                id="pretratamiento"
+                                                [options]="pretUsadoOpts"
+                                                [(ngModel)]="formData.pretratamiento"
+                                                inputId="pretratamiento"
+                                                [checkmark]="true"
+                                                optionLabel="label"
+                                                optionValue="value"
+                                                [showClear]="true"
+                                                class="w-100"
+                                                appendTo="body">
+                                            </p-dropdown>
+                                            <label for="pretratamiento">Pretratamiento usado</label>
+                                        </p-floatlabel>
+
+                                        <p-floatlabel variant="on" class="col-12 md:col-6 lg:col-4 mt-3">
+                                            <p-inputNumber
+                                                [(ngModel)]="formData.almacenamientoDias"
+                                                [min]="0"
+                                                [max]="999"
+                                                inputId="almacenamientoDias"
+                                                class="w-100"
+                                                [showButtons]="true">
+                                            </p-inputNumber>
+                                            <label for="almacenamientoDias">Días de almacenamiento</label>
+                                        </p-floatlabel>
+
+                                        <p-floatlabel variant="on" class="col-12 md:col-6 lg:col-4 mt-3">
+                                            <p-dropdown
+                                                id="tratamiento"
+                                                [options]="tratamientoOpts"
+                                                [(ngModel)]="formData.tratamiento"
+                                                inputId="tratamiento"
+                                                [checkmark]="true"
+                                                optionLabel="label"
+                                                optionValue="value"
+                                                [showClear]="true"
+                                                class="w-100"
+                                                appendTo="body">
+                                            </p-dropdown>
+                                            <label for="tratamiento">Tratamiento</label>
+                                        </p-floatlabel>
+
+                                        <p-floatlabel variant="on" class="col-12 md:col-6 lg:col-4 mt-3">
+                                            <p-calendar
+                                                [(ngModel)]="formData.horaRoja"
+                                                inputId="horaRoja"
+                                                [timeOnly]="true"
+                                                [locale]="local_espaniol"
+                                                hourFormat="12"
+                                                class="w-100"
+                                                appendTo="body">
+                                            </p-calendar>
+                                            <label for="horaRoja">Hora Roja</label>
+                                        </p-floatlabel>
+
+                                        <p-floatlabel variant="on" class="col-12 md:col-6 lg:col-4 mt-3">
+                                            <p-calendar
+                                                [(ngModel)]="formData.horaNegra"
+                                                inputId="horaNegra"
+                                                [timeOnly]="true"
+                                                [locale]="local_espaniol"
+                                                hourFormat="12"
+                                                class="w-100"
+                                                appendTo="body">
+                                            </p-calendar>
+                                            <label for="horaNegra">Hora Negra</label>
+                                        </p-floatlabel>
+                                    </div>
+                                </div>
                             </div>
                         </ng-container>
 

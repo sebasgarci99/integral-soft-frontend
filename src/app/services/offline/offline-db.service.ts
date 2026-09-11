@@ -86,11 +86,13 @@ export class OfflineDbService {
         return items || [];
     }
 
-    async obtenerPendientes(): Promise<OutboxRecoleccion[]> {
+    async obtenerPendientes(orden: 'asc' | 'desc' = 'desc'): Promise<OutboxRecoleccion[]> {
         const items = await this.obtenerTodos();
         return items
             .filter((i) => i.estado === 'PENDIENTE')
-            .sort((a, b) => a.creado_en.localeCompare(b.creado_en));
+            .sort((a, b) => orden === 'asc'
+                ? a.creado_en.localeCompare(b.creado_en)
+                : b.creado_en.localeCompare(a.creado_en));
     }
 
     async contarPendientes(): Promise<number> {

@@ -4,16 +4,20 @@ import { Router, RouterModule } from '@angular/router';
 import { ToolbarModule } from 'primeng/toolbar';
 import { Menu, MenuModule } from 'primeng/menu';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
 import { MenuItem } from 'primeng/api';
 import { Subscription } from 'rxjs';
+import Swal from 'sweetalert2';
 import { MenuService } from '../../services/menu/menu.service';
 import { SecureStorageService } from '../../services/secure-storage.service';
-import { SyncRecoleccionService } from '../../services/offline/sync-recoleccion.service';
+import { ConsultorioService } from '../../services/consultorio/consultorio.service';
+import { EstadoSync, SyncRecoleccionService } from '../../services/offline/sync-recoleccion.service';
 
 @Component({
     selector: 'app-topbar',
     standalone: true,
-    imports: [CommonModule, RouterModule, ToolbarModule, MenuModule, ButtonModule],
+    imports: [CommonModule, RouterModule, ToolbarModule, MenuModule, ButtonModule, DialogModule],
     templateUrl: './topbar.component.html',
     styleUrl: './topbar.component.css'
 })
@@ -34,17 +38,33 @@ export class TopbarComponent implements OnInit, OnDestroy {
     notificacionesCount = 0;
     sincronizando = false;
 
+    // Diálogo de estado de sincronización
+    mostrarDialogoSync = false;
+    estadoSync: EstadoSync = { fase: 'inactivo', mensaje: '', enviados: 0, total: 0, error: null };
+
     private subs: Subscription[] = [];
 
     constructor(
         private router: Router,
         private menuService: MenuService,
         private secureStorage: SecureStorageService,
-        private syncRecoleccion: SyncRecoleccionService
+        private syncRecoleccion: SyncRecoleccionService,
+        private consultorioService: ConsultorioService
     ) {}
 
     get totalBadge(): number {
         return this.pendientesCount + this.notificacionesCount;
+    }
+
+    get syncEnProgreso(): boolean {
+        return this.estadoSync.fase === 'internet'
+            || this.estadoSync.fase === 'servidor'
+            || this.estadoSync.fase === 'enviando';
+    }
+
+    get syncProgreso(): number {
+        if (!this.estadoSync.total) { return 0; }
+        return Math.round((this.estadoSync.enviados / this.estadoSync.total) * 100);
     }
 
     ngOnInit(): void {
@@ -86,7 +106,16 @@ export class TopbarComponent implements OnInit, OnDestroy {
             })
         );
 
+        this.subs.push(
+            this.syncRecoleccion.estadoSync$.subscribe(estado => {
+                this.estadoSync = estado;
+            })
+        );
+
         this.syncRecoleccion.actualizarContador();
+
+        // Precarga la lista de consultorios para poder registrar recolecciones sin internet.
+        this.consultorioService.precachearConsultorios();
     }
 
     ngOnDestroy(): void {
@@ -123,6 +152,9 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
     async sincronizarTodo(): Promise<void> {
         if (this.sincronizando) { return; }
+
+        this.panelAbierto = false;
+        this.mostrarDialogoSync = true;
         this.sincronizando = true;
 
         try {
@@ -133,7 +165,58 @@ export class TopbarComponent implements OnInit, OnDestroy {
         }
     }
 
-    cerrarSesion(): void {
+    async descargarJson(): Promise<void> {
+        await this.syncRecoleccion.descargarPendientesJson();
+    }
+
+    async cerrarSesion(): Promise<void> {
+        await this.syncRecoleccion.actualizarContador();
+
+        if (this.pendientesCount > 0) {
+            const resultado = await Swal.fire({
+                icon: 'warning',
+                title: '¿Cerrar sesión?',
+                html: `Hay <b>${this.pendientesCount}</b> registro(s) pendiente(s) de sincronizar.`,
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Sincronizar y cerrar',
+                denyButtonText: 'Cerrar de todas formas',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#3da1b8',
+                denyButtonColor: '#dc3545'
+            });
+
+            if (resultado.isDismissed) { return; }
+
+            if (resultado.isConfirmed) {
+                this.sincronizando = true;
+                try {
+                    await this.syncRecoleccion.sincronizarPendientes();
+                    await this.syncRecoleccion.actualizarContador();
+                } finally {
+                    this.sincronizando = false;
+                }
+
+                if (this.pendientesCount > 0) {
+                    const forzar = await Swal.fire({
+                        icon: 'error',
+                        title: 'Sincronización incompleta',
+                        html: `Quedan <b>${this.pendientesCount}</b> registro(s) pendiente(s). ¿Cerrar sesión de todas formas?`,
+                        showCancelButton: true,
+                        confirmButtonText: 'Cerrar de todas formas',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#dc3545'
+                    });
+
+                    if (!forzar.isConfirmed) { return; }
+                }
+            }
+        }
+
+        this.ejecutarCierreSesion();
+    }
+
+    private ejecutarCierreSesion(): void {
         this.secureStorage.removeItem('token');
         this.secureStorage.removeItem('idUser');
         this.secureStorage.removeItem('idEmpresa');

@@ -41,6 +41,7 @@
     "tslib": "^2.3.0",
     "tsparticles": "^4.3.2",
     "xlsx": "^0.18.5",
+    "xlsx-js-style": "^1.2.0",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {

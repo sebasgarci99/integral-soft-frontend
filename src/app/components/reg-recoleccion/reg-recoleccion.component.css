@@ -8,6 +8,81 @@
   font-style: italic;
 }
 
+/* --- RESIDUOS: AGRUPACIÓN RESPEL --- */
+.grupo-residuos {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem 0.75rem;
+  background: #fbfdfe;
+}
+
+.grupo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed #d7e3ea;
+  flex-wrap: wrap;
+}
+
+.grupo-titulo {
+  font-weight: 700;
+  color: #0d8aa6;
+  font-size: 0.9rem;
+}
+
+.grupo-subtotal {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+  background: #e6f4f7;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.grupo-nota {
+  margin: 0.5rem 0 0;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.8rem;
+  line-height: 1.25;
+  color: #64748b;
+  background: #f8fafc;
+  border-left: 3px solid #3da1b8;
+  border-radius: 0 6px 6px 0;
+}
+
+/* --- Consistencia tipográfica del formulario (solo este diálogo) --- */
+::ng-deep #dialog_registro .p-dialog-content {
+  font-size: 1rem;
+}
+
+::ng-deep #dialog_registro .p-floatlabel label {
+  font-size: 0.95rem;
+}
+
+::ng-deep #dialog_registro .p-inputtext,
+::ng-deep #dialog_registro .p-inputnumber-input,
+::ng-deep #dialog_registro .p-dropdown-label {
+  font-size: 0.95rem;
+}
+
+.total-general-residuos {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  padding: 0.65rem 0.9rem;
+  background: #0d8aa6;
+  color: #ffffff;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+
+.total-general-residuos strong {
+  font-size: 1.1rem;
+}
+
 /* --- FIRMA: MODO FULLSCREEN (MAXIMIZADO) --- */
 .fullscreen-overlay {
   position: fixed;
@@ -184,24 +259,23 @@ fieldset:first-of-type {
 
 @media (max-width: 991.98px) {
 
-    #dialog_registro {
-      width: 25rem;
+    ::ng-deep #dialog_registro {
+      width: min(25rem, 94vw) !important;
+      max-width: 94vw !important;
     }
 }
 
-/* @media (max-width: 991.98px) {
-    ::ng-deep .p-dialog {
-        width: 90vw !important;  /* O el porcentaje que quieras 
-        max-width: 90vw !important;
-        height: 60% !important;
-    }
-} */
-
 @media (max-width: 568px) {
-    ::ng-deep .p-dialog {
-        width: 24rem !important;
-        max-width: 24rem !important;
-        height: 88% !important;
+    ::ng-deep #dialog_registro {
+        width: min(24rem, 94vw) !important;
+        max-width: 94vw !important;
+        height: 95% !important;
+        max-height: 95vh !important;
+    }
+
+    ::ng-deep #dialog_registro .p-dialog-content {
+        padding-left: 1rem;
+        padding-right: 1rem;
     }
 }
 

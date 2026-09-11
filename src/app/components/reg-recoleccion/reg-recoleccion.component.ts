@@ -24,10 +24,12 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { Tag } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { localeEs } from '../../utils/locale-es';
  
 import { MenuItem, SelectItem } from 'primeng/api';
+import { firstValueFrom, timeout } from 'rxjs';
 
 /* Firma */
 // import { SignaturePadModule } from 'ngx-signaturepad';
@@ -59,7 +61,8 @@ import { SignatureCanvasComponent } from '../../utils/signature-canvas.component
         ToastModule,
         ConfirmDialogModule,
         SignatureCanvasComponent,
-        Tag
+        Tag,
+        TooltipModule
     ],
     templateUrl: './reg-recoleccion.component.html',
     styleUrl: './reg-recoleccion.component.css',
@@ -148,19 +151,58 @@ export class RegRecoleccionComponent implements OnInit{
         { label: 'Si', value: 'Si' }
     ];
 
-    residuosFirstLine = [
-        { prop: 'aprovechablesBlanco',  label: 'Aprovechables - Blanco (kg)', icon: 'fa fa-recycle' },
-        { prop: 'noAprovechablesNegra', label: 'NO Aprovechables - Negra (kg)', icon: 'fa fa-trash' },
-        { prop: 'biosanitariosRoja',    label: 'Biosanitarios - Roja (kg)', icon: 'fa fa-exclamation-triangle' },
-        { prop: 'cortopunzantesK',      label: 'Cortopunzantes K', icon: 'fa fa-eyedropper' },
-        { prop: 'cortopunzantesNG',     label: 'Cortopunzantes NG', icon: 'fa fa-eyedropper' },
-        { prop: 'anatomopatologicos',   label: 'Anatomopatológicos', icon: 'fa fa-tint' },
-        { prop: 'farmacos',             label: 'Fármacos', icon: 'fa fa-plus-circle' },
-        { prop: 'chatarraElectronica',  label: 'Chatarra electrónica', icon: 'fa fa-desktop' },
-        { prop: 'pilas',                label: 'Pilas', icon: 'fa fa-battery-empty' },
-        { prop: 'quimicos',             label: 'Químicos', icon: 'fa fa-flask' },
-        { prop: 'iluminarias',          label: 'Iluminarias', icon: 'fa fa-lightbulb' },
-        { prop: 'aceitesUsados',        label: 'Aceites usados', icon: 'fa fa-filter' }
+    // Categorías de residuos agrupadas según clasificación RESPEL
+    residuosGrupos = [
+        {
+            titulo: 'Residuos no peligrosos',
+            nota: '',
+            campos: [
+                { prop: 'aprovechablesBlanco', label: 'Aprovechables - Blanco (kg)', icon: 'fa fa-recycle' },
+                { prop: 'aprovechablesOrganicos', label: 'Aprovechables orgánicos (kg)', icon: 'fa fa-leaf' },
+                { prop: 'noAprovechablesNegra', label: 'NO Aprovechables - Negra (kg)', icon: 'fa fa-trash' }
+            ]
+        },
+        {
+            titulo: 'Residuos con riesgo biológico o infeccioso',
+            nota: 'Cortopunzantes NG: NO generados en la prestación de servicios de salud. Cortopunzantes K: generados en la prestación de servicios de salud.',
+            campos: [
+                { prop: 'biosanitariosRoja', label: 'Biosanitarios - Roja (kg)', icon: 'fa fa-exclamation-triangle' },
+                { prop: 'anatomopatologicos', label: 'Anatomopatológicos', icon: 'fa fa-tint' },
+                { prop: 'cortopunzantesNG', label: 'Cortopunzantes NG (kg)', icon: 'fa fa-eyedropper' },
+                { prop: 'cortopunzantesK', label: 'Cortopunzantes K (kg)', icon: 'fa fa-eyedropper' },
+                { prop: 'deAnimales', label: 'De animales', icon: 'fa fa-paw' }
+            ]
+        },
+        {
+            titulo: 'Otros residuos o desechos peligrosos (químicos)',
+            nota: 'Químicos es una categoría histórica (legado); las demás son las nuevas categorías de este grupo RESPEL.',
+            campos: [
+                { prop: 'quimicos', label: 'Químicos (legado)', icon: 'fa fa-flask' },
+                { prop: 'corrosivos', label: 'Corrosivos', icon: 'fa fa-flask' },
+                { prop: 'explosivos', label: 'Explosivos', icon: 'fa fa-bomb' },
+                { prop: 'reactivos', label: 'Reactivos', icon: 'fa fa-vial' },
+                { prop: 'toxicos', label: 'Tóxicos', icon: 'fa fa-skull-crossbones' },
+                { prop: 'inflamables', label: 'Inflamables', icon: 'fa fa-fire' }
+            ]
+        },
+        {
+            titulo: 'Residuos especiales (legado)',
+            nota: 'Categorías históricas del sistema; se mantienen para no perder trazabilidad.',
+            campos: [
+                { prop: 'farmacos', label: 'Fármacos', icon: 'fa fa-plus-circle' },
+                { prop: 'chatarraElectronica', label: 'Chatarra electrónica', icon: 'fa fa-desktop' },
+                { prop: 'pilas', label: 'Pilas', icon: 'fa fa-battery-empty' },
+                { prop: 'iluminarias', label: 'Iluminarias', icon: 'fa fa-lightbulb' },
+                { prop: 'aceitesUsados', label: 'Aceites usados', icon: 'fa fa-filter' }
+            ]
+        },
+        {
+            titulo: 'Radiactivos',
+            nota: '',
+            campos: [
+                { prop: 'radioactivos', label: 'Radioactivos', icon: 'fa fa-radiation' }
+            ]
+        }
     ];
 
     siNoOpts = [
@@ -179,7 +221,7 @@ export class RegRecoleccionComponent implements OnInit{
         private network: NetworkService
     ) {}
 
-    ngOnInit(): void { 
+    async ngOnInit(): Promise<void> {
         this.local_espaniol = localeEs;
 
         /* cargar recolecciones desde API aquí */ 
@@ -188,8 +230,9 @@ export class RegRecoleccionComponent implements OnInit{
             this.formData.fecha = new Date();   // ← hoy, con la hora del navegador
         }
 
-        this.cargarConsultorios();
-        this.cargarRegistrosRecoleccion();
+        // Primero los consultorios: los registros necesitan sus etiquetas para el grid.
+        await this.cargarConsultorios();
+        await this.cargarRegistrosRecoleccion();
         this.cargarInfoUsuarioSesion();
     }
 
@@ -231,7 +274,7 @@ export class RegRecoleccionComponent implements OnInit{
         return {
             id_registropeso: row.id_registropeso,
             fecha: new Date(row.fecha_registro),
-            consultorio: this.consultoriosOpts.find(e => e.value === row.id_consultorio)?.value || null,
+            consultorio: this.valorConsultorio(row.id_consultorio),
             aprovechablesBlanco: parseFloat(row.aprovechables) || 0,
             noAprovechablesNegra: parseFloat(row.no_aprovechables) || 0,
             biosanitariosRoja: parseFloat(row.biosanitarios) || 0,
@@ -244,6 +287,14 @@ export class RegRecoleccionComponent implements OnInit{
             quimicos: parseFloat(row.quimicos) || 0,
             iluminarias: parseFloat(row.iluminarias) || 0,
             aceitesUsados: parseFloat(row.aceites_usados) || 0,
+            aprovechablesOrganicos: parseFloat(row.aprovechables_organicos) || 0,
+            deAnimales: parseFloat(row.de_animales) || 0,
+            corrosivos: parseFloat(row.corrosivos) || 0,
+            explosivos: parseFloat(row.explosivos) || 0,
+            reactivos: parseFloat(row.reactivos) || 0,
+            toxicos: parseFloat(row.toxicos) || 0,
+            inflamables: parseFloat(row.inflamables) || 0,
+            radioactivos: parseFloat(row.radioactivos) || 0,
             bolsasGuardianes: row.bolsas_g ? parseInt(row.bolsas_g) : 0,
             bolsasBlanco: row.bolsas_b ? parseInt(row.bolsas_b) : 0,
             bolsasNegra: row.bolsas_n ? parseInt(row.bolsas_n) : 0,
@@ -317,67 +368,72 @@ export class RegRecoleccionComponent implements OnInit{
 
     async cargarConsultorios() {
         try {
-            (await this.consultorioService.obtenerDatosConsultorios()).subscribe({
-                next: async (data) => {
-                    this.consultoriosOpts = data.filter(e => e.estado == 'A').map((item: any) => ({
-                        label: item.codigo+'-'+item.descripcion,
-                        value: item.id
-                    }));
-                    await this.offlineDb.guardarCache('consultorios', this.consultoriosOpts);
-                },
-                error: async () => {
-                    const cache = await this.offlineDb.obtenerCache<SelectItem[]>('consultorios');
-                    if (cache) { this.consultoriosOpts = cache; }
-                }
-            });
-        } catch(e) {
-            console.error(e)
-            const cache = await this.offlineDb.obtenerCache<SelectItem[]>('consultorios');
-            if (cache) { this.consultoriosOpts = cache; }
-        }
+            const data = await this.consultorioService.obtenerConsultoriosConCache();
 
+            this.consultoriosOpts = data.filter(e => e.estado == 'A').map((item: any) => ({
+                label: item.codigo+'-'+item.descripcion,
+                value: item.id
+            }));
+        } catch(e) {
+            console.error(e);
+        }
     }
 
     async cargarRegistrosRecoleccion(): Promise<void> {
         try {
-            let pendientes = await this.offlineDb.obtenerPendientes();
-            const calidad = await this.network.medirCalidadRed();
+            // Asegura que existan los consultorios para resolver la etiqueta del grid.
+            if (this.consultoriosOpts.length === 0) {
+                await this.cargarConsultorios();
+            }
 
-            // Con pendientes y sin buena red no se consulta el backend: se muestran solo los encolados.
-            if (pendientes.length > 0 && calidad === 'MALA') {
-                this.pendientesCount = pendientes.length;
+            let pendientes = await this.offlineDb.obtenerPendientes();
+            this.pendientesCount = pendientes.length;
+
+            const mostrarSoloLocales = () => {
                 this.recolecciones = pendientes.map(p => this.mapearPendienteAFila(p));
                 this.totalRecords = this.recolecciones.length;
+            };
+
+            // Sin internet no se consulta el backend: se trabaja solo con la cola local.
+            if (!this.network.estaOnline) {
+                mostrarSoloLocales();
                 return;
             }
 
-            // Si hay buena red, primero se intenta sincronizar y luego se recarga del servidor.
+            // Con pendientes y sin red apta, se espera a tener buena conexión para sincronizar.
+            if (pendientes.length > 0 && (await this.network.medirCalidadRed()) === 'MALA') {
+                mostrarSoloLocales();
+                return;
+            }
+
+            // Con red apta: primero se sincroniza y luego se recarga del servidor.
             if (pendientes.length > 0) {
                 await this.syncRecoleccion.sincronizarPendientes();
                 pendientes = await this.offlineDb.obtenerPendientes();
+                this.pendientesCount = pendientes.length;
             }
 
-            this.pendientesCount = pendientes.length;
             const filasPendientes = pendientes.map(p => this.mapearPendienteAFila(p));
 
             const obs = await this.RecoleccionService.obtenerRegistrosRecoleccion(this.pagina, this.limite, this.busquedaGlobal);
-            obs.subscribe((data) => {
-                const registros = (Array.isArray(data) ? data : (data.rows || [])).map((reg: any) => ({
-                    ...reg,
-                    pretratamiento: reg.pret_usado,
-                    firma: reg.blob_firma,
-                    consultorio: this.consultoriosOpts.find(e => e.value === reg.id_consultorio)?.label
-                }));
+            const data: any = await firstValueFrom(obs.pipe(timeout(6000)));
 
-                const totalServidor = Array.isArray(data) ? registros.length : (data.total || 0);
+            const registros = (Array.isArray(data) ? data : (data.rows || [])).map((reg: any) => ({
+                ...reg,
+                pretratamiento: reg.pret_usado,
+                firma: reg.blob_firma,
+                consultorio: this.etiquetaConsultorio(reg.id_consultorio)
+            }));
 
-                this.recolecciones = this.pagina === 1 ? [...filasPendientes, ...registros] : registros;
-                this.totalRecords = totalServidor + pendientes.length;
+            const totalServidor = Array.isArray(data) ? registros.length : (data.total || 0);
 
-                this.registroDiaHoy = registros
-                    .filter((r: any) => this.validarFechaEsHoy(r.fecha_registro))
-                    .map((r: any) => r.id_registropeso);
-            });
+            const combinado = this.pagina === 1 ? [...filasPendientes, ...registros] : registros;
+            this.recolecciones = combinado.sort((a: any, b: any) => this.fechaOrden(b) - this.fechaOrden(a));
+            this.totalRecords = totalServidor + pendientes.length;
+
+            this.registroDiaHoy = registros
+                .filter((r: any) => this.validarFechaEsHoy(r.fecha_registro))
+                .map((r: any) => r.id_registropeso);
         } catch (e) {
             console.error(e);
 
@@ -389,14 +445,37 @@ export class RegRecoleccionComponent implements OnInit{
         }
     }
 
+    // Etiqueta del consultorio a partir de su id (comparación numérica robusta)
+    private etiquetaConsultorio(id: any): string | undefined {
+        if (id === null || id === undefined) { return undefined; }
+        return this.consultoriosOpts.find(e => Number(e.value) === Number(id))?.label;
+    }
+
+    // Valor (id) del consultorio a partir del id del registro
+    private valorConsultorio(id: any): number | null {
+        if (id === null || id === undefined) { return null; }
+        const opt = this.consultoriosOpts.find(e => Number(e.value) === Number(id));
+        return opt ? Number(opt.value) : null;
+    }
+
+    // Devuelve el timestamp de la fecha de un registro (para ordenar)
+    private fechaOrden(row: any): number {
+        const f = row?.fecha_registro;
+        if (!f) { return 0; }
+        const t = new Date(f).getTime();
+        return isNaN(t) ? 0 : t;
+    }
+
     private mapearPendienteAFila(item: OutboxRecoleccion): any {
         const payload: any = item.payload;
         return {
             id_registropeso: null,
             id_local: item.id_local,
             pendiente: true,
+            intentos: item.intentos,
+            ultimo_error: item.ultimo_error,
             fecha_registro: payload.fecha_registro,
-            consultorio: this.consultoriosOpts.find(e => e.value === payload.id_consultorio)?.label,
+            consultorio: this.etiquetaConsultorio(payload.id_consultorio),
             aprovechables: payload.aprovechables,
             no_aprovechables: payload.no_aprovechables,
             biosanitarios: payload.biosanitarios,
@@ -476,6 +555,14 @@ export class RegRecoleccionComponent implements OnInit{
             quimicos: null,
             iluminarias: null,
             aceitesUsados: null,
+            aprovechablesOrganicos: null,
+            deAnimales: null,
+            corrosivos: null,
+            explosivos: null,
+            reactivos: null,
+            toxicos: null,
+            inflamables: null,
+            radioactivos: null,
 
             bolsasGuardianes: null,
             bolsasBlanco: null,
@@ -613,6 +700,19 @@ export class RegRecoleccionComponent implements OnInit{
                 "idRol": idRol
             }
         });
+    }
+
+    // Suma las categorías de un grupo RESPEL del formulario
+    subtotalGrupo(grupo: any): number {
+        return grupo.campos.reduce(
+            (acc: number, c: any) => acc + (Number((this.formData as any)[c.prop]) || 0),
+            0
+        );
+    }
+
+    // Total general de residuos del formulario
+    get totalGeneralResiduos(): number {
+        return this.residuosGrupos.reduce((acc, g) => acc + this.subtotalGrupo(g), 0);
     }
 
     validarFechaEsHoy(fecha: string | Date): boolean {

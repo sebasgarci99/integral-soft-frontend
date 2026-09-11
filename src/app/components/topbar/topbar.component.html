@@ -34,9 +34,14 @@
                                         {{ pendientesCount === 0 ? 'Todo sincronizado' : pendientesCount + ' registro(s) pendiente(s)' }}
                                     </span>
                                 </div>
-                                <p-button *ngIf="pendientesCount > 0" label="Enviar todo" icon="fa fa-sync"
-                                    severity="success" [loading]="sincronizando"
-                                    (onClick)="sincronizarTodo()"></p-button>
+                                <div class="topbar-panel-actions" *ngIf="pendientesCount > 0">
+                                    <p-button label="Enviar todo" icon="fa fa-sync"
+                                        severity="success" [loading]="sincronizando"
+                                        (onClick)="sincronizarTodo()"></p-button>
+                                    <p-button label="JSON" icon="fa fa-download" severity="warn"
+                                        [outlined]="true" pTooltip="Descargar respaldo JSON"
+                                        (onClick)="descargarJson()"></p-button>
+                                </div>
                             </div>
                         </div>
 
@@ -68,4 +73,38 @@
             </div>
         </ng-template>
     </p-toolbar>
+
+    <p-dialog header="Sincronización de registros" [(visible)]="mostrarDialogoSync" [modal]="true"
+        [style]="{ width: '32rem' }" [draggable]="false" [closable]="!sincronizando"
+        [dismissableMask]="!sincronizando" appendTo="body">
+        <div class="sync-status">
+            <div class="sync-status-icon">
+                <i class="fa fa-spinner fa-spin" *ngIf="syncEnProgreso"></i>
+                <i class="fa fa-check-circle" *ngIf="estadoSync.fase === 'completado'"></i>
+                <i class="fa fa-times-circle" *ngIf="estadoSync.fase === 'error'"></i>
+                <i class="fa fa-hourglass-start" *ngIf="estadoSync.fase === 'inactivo'"></i>
+            </div>
+
+            <p class="sync-status-msg">{{ estadoSync.mensaje || 'Iniciando sincronización...' }}</p>
+
+            <div class="sync-progress" *ngIf="estadoSync.total > 0">
+                <div class="sync-progress-bar">
+                    <div class="sync-progress-fill" [style.width.%]="syncProgreso"></div>
+                </div>
+                <span class="sync-progress-text">{{ estadoSync.enviados }} / {{ estadoSync.total }}</span>
+            </div>
+
+            <div class="sync-error" *ngIf="estadoSync.fase === 'error'">
+                <i class="fa fa-exclamation-triangle"></i>
+                <span>Si no logras sincronizar, descarga los registros en JSON para no perder la información.</span>
+                <p-button label="Descargar respaldo JSON" icon="fa fa-download" severity="warn"
+                    (onClick)="descargarJson()"></p-button>
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <p-button label="Cerrar" severity="secondary" [disabled]="sincronizando"
+                (onClick)="mostrarDialogoSync = false"></p-button>
+        </ng-template>
+    </p-dialog>
 </div>

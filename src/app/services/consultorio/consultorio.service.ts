@@ -1,11 +1,15 @@
 // src/app/services/consultorio.service.ts
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { firstValueFrom, map, Observable, timeout } from 'rxjs';
 import { Consultorio, ConsultoriosResponse } from '../../interfaces/consultorio';
 
 import { enviroment } from '../../../enviroments/enviroment';
 import { SecureStorageService } from '../secure-storage.service';
+import { OfflineDbService } from '../offline/offline-db.service';
+
+const CONSULTORIOS_CACHE_KEY = 'consultorios_raw';
+const TIMEOUT_CONSULTORIOS_MS = 6000;
 
 
 @Injectable({ providedIn: 'root' })
@@ -14,9 +18,44 @@ export class ConsultorioService {
     private urlApp : string;
     private urlAppAPI : string;
 
-    constructor(private http: HttpClient, private secureStorage: SecureStorageService) {
+    constructor(
+        private http: HttpClient,
+        private secureStorage: SecureStorageService,
+        private offlineDb: OfflineDbService
+    ) {
         this.urlApp = enviroment.endpoint;
         this.urlAppAPI = 'api/consultorio/'
+    }
+
+    /**
+     * Obtiene los consultorios desde el servidor y los deja en caché local.
+     * Si no hay red, devuelve la última copia cacheada (para operar offline).
+     */
+    async obtenerConsultoriosConCache(): Promise<Consultorio[]> {
+        const cache = await this.offlineDb.obtenerCache<Consultorio[]>(CONSULTORIOS_CACHE_KEY);
+
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            return cache || [];
+        }
+
+        try {
+            const obs = await this.obtenerDatosConsultorios();
+            const data = await firstValueFrom(obs.pipe(timeout(TIMEOUT_CONSULTORIOS_MS)));
+
+            if (Array.isArray(data)) {
+                await this.offlineDb.guardarCache(CONSULTORIOS_CACHE_KEY, data);
+                return data;
+            }
+
+            return cache || [];
+        } catch {
+            return cache || [];
+        }
+    }
+
+    /** Precarga los consultorios en la caché local (útil justo después del login). */
+    async precachearConsultorios(): Promise<void> {
+        await this.obtenerConsultoriosConCache();
     }
 
     async obtenerDatosConsultorios(): Promise<Observable<Consultorio[]>> {

@@ -88,9 +88,9 @@ export class RecoleccionService {
         const calidad = await this.network.medirCalidadRed();
 
         if (calidad !== 'MALA') {
-            const enviado = await this.sync.enviarPayload(body);
+            const resultado = await this.sync.enviarPayload(body);
 
-            if (enviado) {
+            if (resultado.ok) {
                 this.sync.sincronizarPendientes();
                 return { estado: 'SINCRONIZADO', id_local: idLocal };
             }
@@ -180,6 +180,14 @@ export class RecoleccionService {
             quimicos             : data.quimicos                  ?? 0,
             iluminarias          : data.iluminarias               ?? 0,
             aceites_usados       : data.aceitesUsados             ?? 0,
+            aprovechables_organicos: data.aprovechablesOrganicos  ?? 0,
+            de_animales          : data.deAnimales                ?? 0,
+            corrosivos           : data.corrosivos                ?? 0,
+            explosivos           : data.explosivos                ?? 0,
+            reactivos            : data.reactivos                 ?? 0,
+            toxicos              : data.toxicos                   ?? 0,
+            inflamables          : data.inflamables               ?? 0,
+            radioactivos         : data.radioactivos              ?? 0,
 
             /* ───────── Paso 2 ────────────────── */
             bolsas_g             : data.bolsasGuardianes          ?? 0,
