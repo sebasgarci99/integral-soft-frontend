@@ -9,6 +9,7 @@ export interface Consultorio {
     correo: string;
     estado: string;
     id_usuario: number;
+    tipo: string;
 }
 
 export interface ConsultoriosResponse {

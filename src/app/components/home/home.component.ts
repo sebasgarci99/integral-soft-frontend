@@ -101,8 +101,7 @@ export class HomeComponent implements OnInit, OnDestroy {
             const categorias = [
                 'no_aprovechables',
                 'biosanitarios',
-                'cortopunzantes_ng',
-                'cortopunzantes_k',
+                'cortopunzantes',
                 'anatomopatologicos',
                 'farmacos',
                 'chatarra_electronica',
@@ -176,8 +175,7 @@ export class HomeComponent implements OnInit, OnDestroy {
             const categorias = [
                 'no_aprovechables',
                 'biosanitarios',
-                'cortopunzantes_ng',
-                'cortopunzantes_k',
+                'cortopunzantes',
                 'anatomopatologicos',
                 'farmacos',
                 'chatarra_electronica',

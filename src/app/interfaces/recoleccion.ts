@@ -7,8 +7,7 @@ export interface Recoleccion {
     aprovechablesBlanco: number | null;
     noAprovechablesNegra: number | null;
     biosanitariosRoja: number | null;
-    cortopunzantesK: number | null;
-    cortopunzantesNG : number | null;
+    cortopunzantes: number | null;
     anatomopatologicos: number | null;
     farmacos: number | null;
     chatarraElectronica: number | null;

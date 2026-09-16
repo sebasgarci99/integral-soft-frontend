@@ -249,8 +249,35 @@ export class ReportesService {
     }
 
     /* ─────────────────────────────────────────────
+        LISTAR (GET) ─ getReporteComparativo
+   ───────────────────────────────────────────── */
+    async obtenerReporteComparativo(
+        fechaInicio: Date,
+        fechaFin: Date,
+        consultorio: number | null
+    ): Promise<Observable<any[]>> {
+
+        const token = await this.secureStorage.getItem('token');
+
+        const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        const body = {
+            fecha_inicio: this.formatearFechaLocal(fechaInicio),
+            fecha_fin: this.formatearFechaLocal(fechaFin),
+            consultorio: consultorio
+        };
+
+        return this.http.post<any>(
+            `${this.urlApp}${this.urlAppAPI}getReporteComparativo`,
+            body,
+            { headers }
+        ).pipe(
+            map(resp => resp.body)
+        );
+    }
+
+    /* ─────────────────────────────────────────────
         LISTAR (GET) ─ getReporteVacunacion
-    ───────────────────────────────────────────── */
+   ───────────────────────────────────────────── */
     async obtenerReporteVacunacion(
         fechaInicio: String,
         fechaFin: String,

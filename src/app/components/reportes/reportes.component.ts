@@ -17,14 +17,17 @@ import { PaginatorModule } from 'primeng/paginator';
 import { FloatLabelModule  } from 'primeng/floatlabel';
 import { DropdownModule } from 'primeng/dropdown';
 import { CalendarModule } from 'primeng/calendar';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { TagModule } from 'primeng/tag';
 
 
-import type * as XLSXType from 'xlsx-js-style';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { firstValueFrom } from 'rxjs';
+import { ValorResiduosService } from '../../services/valor-residuos/valor-residuos.service';
+import { ValorResiduo } from '../../interfaces/valor-residuo';
 
 @Component({
     selector: 'app-reportes',
@@ -43,6 +46,7 @@ import autoTable from 'jspdf-autotable';
         InputTextModule,
         DropdownModule,
         CalendarModule,
+        InputNumberModule,
         IconFieldModule,
         InputIconModule,
         InputIconModule,
@@ -60,27 +64,47 @@ export class ReportesComponent implements OnInit {
     fechaInicio: Date = new Date;
     fechaFin: Date = new Date;
     consultorio: number | null = null;
-    tipoReporte: 'totalizado' | 'detallado' | 'consolidado_dia' = 'totalizado';
+    tipoReporte: 'totalizado' | 'detallado' | 'consolidado_dia' | 'totalizado_valor' = 'totalizado';
     datos: any[] = [];
     columnas: any[] = [];
     totales: { [key: string]: number } = {};
-    gruposColumnas: { base: any[]; grupos: any[]; cierre: any | null } = { base: [], grupos: [], cierre: null };
+    gruposColumnas: { base: any[]; grupos: any[]; valor?: any | null; cierre: any | null } = { base: [], grupos: [], valor: null, cierre: null };
 
     // Paleta única compartida por pantalla, Excel y PDF
     readonly COLORES_GRUPO = [
         { color: '#0d8aa6', head: '#d7eef3', soft: '#f2fafc', total: '#bfe6ee' },
         { color: '#b45309', head: '#fde9c8', soft: '#fffaf0', total: '#fbdca8' },
-        { color: '#6d28d9', head: '#ece1fb', soft: '#f9f6ff', total: '#ddcbf7' },
-        { color: '#047857', head: '#d0f0e2', soft: '#f1fbf7', total: '#b7e7d4' }
+        { color: '#7c3aed', head: '#ede9fe', soft: '#faf8ff', total: '#ddd6fe' },
+        { color: '#047857', head: '#d0f0e2', soft: '#f1fbf7', total: '#b7e7d4' },
+        { color: '#475569', head: '#e2e8f0', soft: '#f8fafc', total: '#cbd5e1' }
     ];
     readonly COLOR_BASE = { header: '#e6f4f7', color: '#0d8aa6' };
     readonly COLOR_TOTAL_GENERAL = { bg: '#075e70', color: '#ffffff' };
+    // Color propio de la columna "Valor a cobrar (pesos)" del reporte Totalizado + Valor total
+    readonly COLOR_VALOR = { color: '#be123c', head: '#fce7ee', soft: '#fdf2f6', total: '#f7ccd9' };
+    readonly CAMPO_VALOR_TOTAL = 'valor_total_riesgo_biologico';
 
     tipoReporteOptions = [
         { label: 'Totalizado', value: 'totalizado' },
         { label: 'Detallado', value: 'detallado' },
         { label: 'Consolidado por día', value: 'consolidado_dia' }
     ];
+
+    // ===== Valor a cobrar de residuos (rol 1) =====
+    valorKgActual: number | null = null;
+    showValorDialog = false;
+    guardandoValor = false;
+    valores: ValorResiduo[] = [];
+    nuevoValorKg: number | null = null;
+    nuevoValorFecha: Date = new Date();
+    nuevoValorObservacion = '';
+
+    // ===== Reporte comparativo (rol 1) =====
+    comparativoData: any[] = [];
+    comparativoResumen: any = { Consultorio: null, Administracion: null };
+    comparativoExpandido: any = { Consultorio: false, Administracion: false };
+    cargandoComparativo = false;
+    comparativoGenerado = false;
 
     // Agrupación RESPEL para la visualización de los reportes
     readonly GRUPOS_REPORTE = [
@@ -91,20 +115,38 @@ export class ReportesComponent implements OnInit {
         },
         {
             titulo: 'Res. riesgo biológico/infeccioso',
-            campos: ['biosanitarios', 'anatomopatologicos', 'cortopunzantes_ng', 'cortopunzantes_k', 'de_animales'],
+            campos: ['biosanitarios', 'anatomopatologicos', 'cortopunzantes', 'de_animales'],
             total: 'total_riesgo_biologico'
-        },
-        {
-            titulo: 'Otros residuos peligrosos',
-            campos: ['quimicos', 'corrosivos', 'explosivos', 'reactivos', 'toxicos', 'inflamables',
-                     'farmacos', 'chatarra_electronica', 'pilas', 'iluminarias', 'aceites_usados'],
-            total: 'total_otros_peligrosos'
         },
         {
             titulo: 'Radiactivos',
             campos: ['radioactivos'],
             total: 'total_radiactivos'
+        },
+        {
+            titulo: 'Otros residuos peligrosos',
+            campos: ['corrosivos', 'explosivos', 'reactivos', 'toxicos', 'inflamables'],
+            total: 'total_otros_peligrosos'
+        },
+        {
+            titulo: 'Otros residuos no incluidos en la norma',
+            campos: ['quimicos', 'farmacos', 'chatarra_electronica', 'pilas', 'iluminarias', 'aceites_usados'],
+            total: 'total_otros_no_norma'
         }
+    ];
+
+    // En estos tipos de reporte, el grupo "no incluidos en la norma" se omite SOLO en Excel/PDF
+    private readonly GRUPO_NO_NORMA_TOTAL = 'total_otros_no_norma';
+    private readonly TIPOS_EXPORT_SIN_NO_NORMA = ['consolidado_dia', 'totalizado_valor'];
+
+    // Campos (kg) que se muestran en el detalle por día del reporte comparativo
+    readonly CAMPOS_DETALLE_COMPARATIVO: string[] = [
+        'aprovechables', 'aprovechables_organicos', 'no_aprovechables',
+        'biosanitarios', 'anatomopatologicos', 'cortopunzantes', 'de_animales',
+        'radioactivos',
+        'quimicos', 'corrosivos', 'explosivos', 'reactivos', 'toxicos', 'inflamables',
+        'farmacos', 'chatarra_electronica', 'pilas', 'iluminarias', 'aceites_usados',
+        'total'
     ];
 
     readonly ETIQUETAS: { [key: string]: string } = {
@@ -115,8 +157,7 @@ export class ReportesComponent implements OnInit {
         no_aprovechables: 'No aprovechables',
         biosanitarios: 'Biosanitarios',
         anatomopatologicos: 'Anatomopatológicos',
-        cortopunzantes_ng: 'Cortopunzantes NG',
-        cortopunzantes_k: 'Cortopunzantes K',
+        cortopunzantes: 'Cortopunzantes',
         de_animales: 'De animales',
         quimicos: 'Químicos (legado)',
         corrosivos: 'Corrosivos',
@@ -157,10 +198,18 @@ export class ReportesComponent implements OnInit {
         private consultorioService: ConsultorioService,
         private messageService: MessageService,
         private confirmService: ConfirmationService,
-        private secureStorage: SecureStorageService
+        private secureStorage: SecureStorageService,
+        private valorResiduosService: ValorResiduosService
     ) {
         this.secureStorage.getItem('idRol').then(idRol => {
             this.idRol = Number(idRol) || 0;
+
+            if (this.idRol === 1) {
+                this.tipoReporteOptions = [
+                    ...this.tipoReporteOptions,
+                    { label: 'Totalizado + Valor total', value: 'totalizado_valor' }
+                ];
+            }
         });
     }
 
@@ -173,9 +222,34 @@ export class ReportesComponent implements OnInit {
             return;
         }
 
+        // El reporte "Totalizado + Valor total" requiere el valor vigente por kg
+        if (this.tipoReporte === 'totalizado_valor') {
+            try {
+                const vigente: any = await firstValueFrom(await this.valorResiduosService.obtenerValorVigente());
+                this.valorKgActual = vigente ? Number(vigente.valor_kg) : null;
+
+                if (this.valorKgActual == null) {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Sin valor configurado',
+                        detail: 'Configure el valor a cobrar de los residuos para generar este reporte.'
+                    });
+                    return;
+                }
+            } catch (e) {
+                this.valorKgActual = null;
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'No se pudo obtener el valor a cobrar de los residuos.'
+                });
+                return;
+            }
+        }
+
         let obs: any;
 
-        if (this.tipoReporte == 'totalizado') {
+        if (this.tipoReporte == 'totalizado' || this.tipoReporte == 'totalizado_valor') {
             obs = await this.reportesService.obtenerReporteTotalizado(this.fechaInicio, this.fechaFin, this.consultorio);
         } else if (this.tipoReporte == 'detallado') {
             obs = await this.reportesService.obtenerReporteDetallado(this.fechaInicio, this.fechaFin, this.consultorio);
@@ -204,6 +278,13 @@ export class ReportesComponent implements OnInit {
             }
             n['total_general'] = this.GRUPOS_REPORTE.reduce((acc, g) => acc + (Number(n[g.total]) || 0), 0);
 
+            // En el reporte "Totalizado + Valor total" se agrega una columna NUEVA
+            // con el valor a cobrar en pesos (total biológico * valor por kg),
+            // independiente de la suma del grupo biológico (que sigue en kg).
+            if (this.tipoReporte === 'totalizado_valor' && this.valorKgActual != null) {
+                n[this.CAMPO_VALOR_TOTAL] = (Number(n['total_riesgo_biologico']) || 0) * this.valorKgActual;
+            }
+
             return n;
         });
 
@@ -213,7 +294,7 @@ export class ReportesComponent implements OnInit {
 
     private construirColumnas(datos: any[]): any[] {
         if (!datos.length) {
-            this.gruposColumnas = { base: [], grupos: [], cierre: null };
+            this.gruposColumnas = { base: [], grupos: [], valor: null, cierre: null };
             return [];
         }
 
@@ -222,6 +303,7 @@ export class ReportesComponent implements OnInit {
             g.campos.forEach(c => especiales.add(c));
             especiales.add(g.total);
         });
+        especiales.add(this.CAMPO_VALOR_TOTAL);
 
         const baseFields = Object.keys(datos[0]).filter(
             k => !especiales.has(k) && k !== 'total' && k !== 'total_general'
@@ -237,6 +319,7 @@ export class ReportesComponent implements OnInit {
         });
 
         const grupos: any[] = [];
+        let colValor: any | null = null;
 
         this.GRUPOS_REPORTE.forEach((g, gi) => {
             const visibles = g.campos.filter(c => c in datos[0]);
@@ -252,14 +335,106 @@ export class ReportesComponent implements OnInit {
 
             cols.push({ field: g.total, header: 'TOTAL', esTotal: true, grupo: gi, grupoFin: true });
             grupos.push({ titulo: g.titulo, colspan: visibles.length + 1, index: gi });
+
+            // La columna de valor a cobrar (pesos) se ubica junto al TOTAL del grupo de riesgo biológico
+            if (this.tipoReporte === 'totalizado_valor'
+                && this.valorKgActual != null
+                && g.total === 'total_riesgo_biologico') {
+                colValor = { field: this.CAMPO_VALOR_TOTAL, header: 'VALOR A COBRAR (PESOS)', esValorTotal: true };
+                cols.push(colValor);
+            }
         });
 
         const colTotalGeneral = { field: 'total_general', header: 'TOTAL GENERAL', esTotalFuerte: true };
         cols.push(colTotalGeneral);
 
-        this.gruposColumnas = { base, grupos, cierre: colTotalGeneral };
+        this.gruposColumnas = { base, grupos, valor: colValor, cierre: colTotalGeneral };
 
         return cols;
+    }
+
+    // Orden de encabezados (grupos + columna de valor intercalada)
+    private construirCabecera(grupos: any[], valor: any | null): any[] {
+        const cells: any[] = [];
+        for (const g of grupos) {
+            cells.push({ tipo: 'grupo', grupo: g });
+            if (valor && this.GRUPOS_REPORTE[g.index]?.total === 'total_riesgo_biologico') {
+                cells.push({ tipo: 'valor', col: valor });
+            }
+        }
+        return cells;
+    }
+
+    get cabeceraOrdenada(): any[] {
+        return this.construirCabecera(this.gruposColumnas.grupos, this.gruposColumnas.valor ?? null);
+    }
+
+    // ¿El tipo de reporte actual debe exportar sin el grupo "no incluidos en la norma"?
+    private exportaSinGrupoNoNorma(): boolean {
+        return this.TIPOS_EXPORT_SIN_NO_NORMA.includes(this.tipoReporte);
+    }
+
+    // Campos (y total) del grupo "Otros residuos no incluidos en la norma"
+    private camposGrupoNoNorma(): Set<string> {
+        const campos = new Set<string>();
+        const grupo = this.GRUPOS_REPORTE.find(g => g.total === this.GRUPO_NO_NORMA_TOTAL);
+        if (grupo) {
+            grupo.campos.forEach(c => campos.add(c));
+            campos.add(grupo.total);
+        }
+        return campos;
+    }
+
+    /**
+     * Vistas de columnas/datos para exportación (Excel/PDF).
+     * En 'Consolidado por día' y 'Totalizado + Valor total' excluye el grupo
+     * "Otros residuos no incluidos en la norma" y recalcula el TOTAL GENERAL
+     * para que cuadre con lo visible. La visualización en pantalla no cambia.
+     */
+    private datosExportacion(): {
+        cols: any[];
+        base: any[];
+        cabecera: any[];
+        valor: any | null;
+        cierre: any | null;
+        datos: any[];
+        totales: { [key: string]: number };
+    } {
+        const omitir = this.exportaSinGrupoNoNorma();
+        const excluidos = omitir ? this.camposGrupoNoNorma() : new Set<string>();
+
+        const cols = this.columnas
+            .filter(col => !(col.grupo !== undefined && col.grupo !== null && excluidos.has(col.field)))
+            .map(col => ({ ...col }));
+
+        const base = cols.filter(col => col.base);
+
+        const grupos = this.gruposColumnas.grupos
+            .filter(g => !(omitir && this.GRUPOS_REPORTE[g.index]?.total === this.GRUPO_NO_NORMA_TOTAL))
+            .map(g => ({ ...g }));
+
+        const valor = this.gruposColumnas.valor ? { ...this.gruposColumnas.valor } : null;
+        const cabecera = this.construirCabecera(grupos, valor);
+        let cierre = this.gruposColumnas.cierre ? { ...this.gruposColumnas.cierre } : null;
+        let datos = this.datos;
+        let totales = this.totales;
+
+        if (omitir) {
+            datos = this.datos.map(row => ({
+                ...row,
+                total_general_export: (Number(row['total_general']) || 0) - (Number(row[this.GRUPO_NO_NORMA_TOTAL]) || 0)
+            }));
+
+            totales = {
+                ...this.totales,
+                total_general_export: (Number(this.totales['total_general']) || 0)
+                    - (Number(this.totales[this.GRUPO_NO_NORMA_TOTAL]) || 0)
+            };
+
+            if (cierre) { cierre = { ...cierre, field: 'total_general_export' }; }
+        }
+
+        return { cols, base, cabecera, valor, cierre, datos, totales };
     }
 
     private etiqueta(field: string): string {
@@ -269,6 +444,12 @@ export class ReportesComponent implements OnInit {
     // Estilos (colores) de una columna, compartidos con Excel/PDF
     estilosColumna(col: any, esHeader = false): { [k: string]: string } {
         const estilos: { [k: string]: string } = {};
+
+        // Columna Fecha: se agranda para que se vea completa
+        if (col.field === 'fecha') {
+            estilos['min-width'] = '130px';
+            estilos['width'] = '130px';
+        }
 
         if (col.base) {
             if (esHeader) {
@@ -284,6 +465,15 @@ export class ReportesComponent implements OnInit {
             estilos['color'] = this.COLOR_TOTAL_GENERAL.color;
             estilos['font-weight'] = '700';
             estilos['border-left'] = `3px solid ${this.COLOR_TOTAL_GENERAL.bg}`;
+            return estilos;
+        }
+
+        if (col.esValorTotal) {
+            estilos['background-color'] = esHeader ? this.COLOR_VALOR.head : this.COLOR_VALOR.soft;
+            estilos['color'] = this.COLOR_VALOR.color;
+            estilos['font-weight'] = '700';
+            estilos['border-left'] = `3px solid ${this.COLOR_VALOR.color}`;
+            estilos['border-right'] = `3px solid ${this.COLOR_VALOR.color}`;
             return estilos;
         }
 
@@ -373,19 +563,28 @@ export class ReportesComponent implements OnInit {
     }
 
     async descargarExcel(): Promise<void> {
-        const XLSX = await import('xlsx-js-style');
+        // xlsx-js-style es CommonJS: el import dinámico puede exponer la API
+        // directamente o bajo ".default" según el bundler. Normalizamos ambos.
+        const mod: any = await import('xlsx-js-style');
+        const XLSX: any = (mod && mod.utils) ? mod : (mod?.default ?? mod);
 
-        const cols = this.columnas;
+        const { cols, base, cabecera, cierre, datos, totales } = this.datosExportacion();
         const nCols = cols.length;
         if (!nCols) { return; }
 
         const fila0: any[] = new Array(nCols).fill(null);
         const fila1: any[] = new Array(nCols).fill(null);
 
-        this.gruposColumnas.base.forEach((col, i) => { fila0[i] = col.header; });
+        base.forEach((col, i) => { fila0[i] = col.header; });
 
-        let colIdx = this.gruposColumnas.base.length;
-        this.gruposColumnas.grupos.forEach(g => {
+        let colIdx = base.length;
+        cabecera.forEach(cell => {
+            if (cell.tipo === 'valor') {
+                fila0[colIdx] = cell.col.header;
+                colIdx += 1;
+                return;
+            }
+            const g = cell.grupo;
             fila0[colIdx] = g.titulo;
             for (let k = 0; k < g.colspan; k++) {
                 const col = cols[colIdx + k];
@@ -395,14 +594,14 @@ export class ReportesComponent implements OnInit {
         });
 
         let idxCierre = -1;
-        if (this.gruposColumnas.cierre) {
-            idxCierre = cols.findIndex(c => c.field === this.gruposColumnas.cierre.field);
-            if (idxCierre >= 0) { fila0[idxCierre] = this.gruposColumnas.cierre.header; }
+        if (cierre) {
+            idxCierre = cols.findIndex(c => c.field === cierre.field);
+            if (idxCierre >= 0) { fila0[idxCierre] = cierre.header; }
         }
 
         const aoa: any[][] = [fila0, fila1];
 
-        this.datos.forEach(row => {
+        datos.forEach(row => {
             aoa.push(cols.map(col => {
                 const v = row[col.field];
                 return v === null || v === undefined ? '' : v;
@@ -411,17 +610,23 @@ export class ReportesComponent implements OnInit {
 
         const filaTot: any[] = cols.map((col, i) => {
             if (i === 0) { return 'TOTAL'; }
-            const t = this.totales[col.field];
+            const t = totales[col.field];
             return t === undefined ? '' : t;
         });
         aoa.push(filaTot);
 
-        const ws: XLSXType.WorkSheet = XLSX.utils.aoa_to_sheet(aoa);
+        const ws: any = XLSX.utils.aoa_to_sheet(aoa);
 
         const merges: any[] = [];
-        this.gruposColumnas.base.forEach((_, i) => merges.push({ s: { r: 0, c: i }, e: { r: 1, c: i } }));
-        colIdx = this.gruposColumnas.base.length;
-        this.gruposColumnas.grupos.forEach(g => {
+        base.forEach((_, i) => merges.push({ s: { r: 0, c: i }, e: { r: 1, c: i } }));
+        colIdx = base.length;
+        cabecera.forEach(cell => {
+            if (cell.tipo === 'valor') {
+                merges.push({ s: { r: 0, c: colIdx }, e: { r: 1, c: colIdx } });
+                colIdx += 1;
+                return;
+            }
+            const g = cell.grupo;
             if (g.colspan > 1) {
                 merges.push({ s: { r: 0, c: colIdx }, e: { r: 0, c: colIdx + g.colspan - 1 } });
             }
@@ -432,7 +637,7 @@ export class ReportesComponent implements OnInit {
         }
         ws['!merges'] = merges;
 
-        ws['!cols'] = cols.map(col => ({ wch: Math.max(13, String(col.header || '').length + 3) }));
+        ws['!cols'] = cols.map(col => ({ wch: col.field === 'fecha' ? 20 : Math.max(13, String(col.header || '').length + 3) }));
         ws['!rows'] = [{ hpt: 24 }, { hpt: 30 }];
 
         const borde = { style: 'thin', color: { rgb: 'DBE9EE' } };
@@ -468,6 +673,18 @@ export class ReportesComponent implements OnInit {
                 };
                 setCell(0, i, tot);
                 setCell(1, i, tot);
+                return;
+            }
+
+            if (col.esValorTotal) {
+                const valHead = {
+                    fill: { fgColor: { rgb: this.hex(this.COLOR_VALOR.head) } },
+                    font: { color: { rgb: this.hex(this.COLOR_VALOR.color) }, bold: true },
+                    alignment: headAlign,
+                    border: borderAll
+                };
+                setCell(0, i, valHead);
+                setCell(1, i, valHead);
                 return;
             }
 
@@ -513,6 +730,9 @@ export class ReportesComponent implements OnInit {
                 if (col.esTotalFuerte) {
                     style.fill = { fgColor: { rgb: this.hex(this.COLOR_TOTAL_GENERAL.bg) } };
                     style.font = { color: { rgb: 'FFFFFF' }, bold: true };
+                } else if (col.esValorTotal) {
+                    style.fill = { fgColor: { rgb: this.hex(this.COLOR_VALOR.soft) } };
+                    style.font = { color: { rgb: this.hex(this.COLOR_VALOR.color) }, bold: true };
                 } else if (col.grupo !== undefined && col.grupo !== null) {
                     const pal = this.COLORES_GRUPO[col.grupo];
                     if (col.esTotal) {
@@ -533,7 +753,7 @@ export class ReportesComponent implements OnInit {
             });
         }
 
-        const wb: XLSXType.WorkBook = XLSX.utils.book_new();
+        const wb: any = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Reporte');
         XLSX.writeFile(wb, `reporte_${this.tipoReporte}.xlsx`);
     }
@@ -543,7 +763,7 @@ export class ReportesComponent implements OnInit {
     }
 
     descargarPdf() {
-        const cols = this.columnas;
+        const { cols, base, cabecera, cierre, datos, totales } = this.datosExportacion();
         if (!cols.length) { return; }
 
         const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
@@ -551,17 +771,23 @@ export class ReportesComponent implements OnInit {
         const fila0: any[] = [];
         const fila1: any[] = [];
 
-        this.gruposColumnas.base.forEach(col => fila0.push({ content: col.header, rowSpan: 2 }));
+        base.forEach(col => fila0.push({ content: col.header, rowSpan: 2 }));
 
-        this.gruposColumnas.grupos.forEach(g => fila0.push({ content: g.titulo, colSpan: g.colspan }));
+        cabecera.forEach(cell => {
+            if (cell.tipo === 'valor') {
+                fila0.push({ content: cell.col.header, rowSpan: 2 });
+            } else {
+                fila0.push({ content: cell.grupo.titulo, colSpan: cell.grupo.colspan });
+            }
+        });
 
-        if (this.gruposColumnas.cierre) {
-            fila0.push({ content: this.gruposColumnas.cierre.header, rowSpan: 2 });
+        if (cierre) {
+            fila0.push({ content: cierre.header, rowSpan: 2 });
         }
 
-        cols.filter(c => !c.base && !c.esTotalFuerte).forEach(col => fila1.push({ content: col.header }));
+        cols.filter(c => !c.base && !c.esTotalFuerte && !c.esValorTotal).forEach(col => fila1.push({ content: col.header }));
 
-        const body = this.datos.map(row =>
+        const body = datos.map(row =>
             cols.map(col => {
                 const valor = row[col.field];
                 return valor === null || valor === undefined ? '' : valor;
@@ -571,7 +797,7 @@ export class ReportesComponent implements OnInit {
         const foot = [[
             ...cols.map((col, i) => {
                 if (i === 0) { return 'TOTAL'; }
-                const t = this.totales[col.field];
+                const t = totales[col.field];
                 return t === undefined ? '' : t;
             })
         ]];
@@ -585,6 +811,10 @@ export class ReportesComponent implements OnInit {
             headStyles: { fontSize: 6, halign: 'center', valign: 'middle', fillColor: '#F1F7F9', textColor: '#0D8AA6' },
             footStyles: { fontSize: 6, halign: 'right', fontStyle: 'bold' },
             margin: { top: 52, left: 20, right: 20, bottom: 30 },
+            columnStyles: (() => {
+                const idxFecha = cols.findIndex(c => c.field === 'fecha');
+                return idxFecha >= 0 ? { [idxFecha]: { cellWidth: 72 } } : {};
+            })(),
             didParseCell: (data: any) => {
                 const col = cols[data.column.index];
                 if (!col) { return; }
@@ -592,6 +822,10 @@ export class ReportesComponent implements OnInit {
                 if (col.esTotalFuerte) {
                     data.cell.styles.fillColor = this.COLOR_TOTAL_GENERAL.bg;
                     data.cell.styles.textColor = this.COLOR_TOTAL_GENERAL.color;
+                    data.cell.styles.fontStyle = 'bold';
+                } else if (col.esValorTotal) {
+                    data.cell.styles.fillColor = data.section === 'head' ? this.COLOR_VALOR.head : this.COLOR_VALOR.soft;
+                    data.cell.styles.textColor = this.COLOR_VALOR.color;
                     data.cell.styles.fontStyle = 'bold';
                 } else if (col.grupo !== undefined && col.grupo !== null) {
                     const pal = this.COLORES_GRUPO[col.grupo];
@@ -637,8 +871,129 @@ export class ReportesComponent implements OnInit {
             case 'totalizado': return 'Totalizado';
             case 'detallado': return 'Detallado';
             case 'consolidado_dia': return 'Consolidado por día';
+            case 'totalizado_valor': return 'Totalizado + Valor total';
             default: return this.tipoReporte;
         }
+    }
+
+    // Indica si la columna es la NUEVA del valor a cobrar en pesos
+    esColumnaValor(col: any): boolean {
+        return this.tipoReporte === 'totalizado_valor' && col?.field === this.CAMPO_VALOR_TOTAL;
+    }
+
+    // Formato de moneda (pesos) para el reporte de valor total
+    formatearValor(valor: any): string {
+        const n = Number(valor) || 0;
+        return '$ ' + n.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    /* ================== Valor a cobrar de residuos (rol 1) ================== */
+
+    async abrirValorDialog(): Promise<void> {
+        this.showValorDialog = true;
+        this.nuevoValorKg = this.valorKgActual;
+        this.nuevoValorFecha = new Date();
+        this.nuevoValorObservacion = '';
+        await this.cargarValores();
+    }
+
+    async cargarValores(): Promise<void> {
+        try {
+            const data = await firstValueFrom(await this.valorResiduosService.obtenerValores());
+            this.valores = data || [];
+        } catch (e) {
+            this.valores = [];
+            this.messageService.add({ severity: 'error', summary: 'No se pudo cargar el histórico de valores.' });
+        }
+    }
+
+    async guardarValor(): Promise<void> {
+        if (this.nuevoValorKg == null || this.nuevoValorKg < 0) {
+            this.messageService.add({ severity: 'warn', summary: 'Ingrese un valor por kg válido.' });
+            return;
+        }
+
+        this.guardandoValor = true;
+
+        try {
+            const obs = await this.valorResiduosService.crearValor(
+                Number(this.nuevoValorKg),
+                this.formatoFechaLocal(this.nuevoValorFecha) as string,
+                this.nuevoValorObservacion || null
+            );
+
+            obs.subscribe({
+                next: () => {
+                    this.messageService.add({ severity: 'success', summary: 'Valor guardado correctamente.' });
+                    this.valorKgActual = Number(this.nuevoValorKg);
+                    this.nuevoValorKg = null;
+                    this.nuevoValorObservacion = '';
+                    this.cargarValores();
+                },
+                error: () => this.messageService.add({ severity: 'error', summary: 'No se pudo guardar el valor.' }),
+                complete: () => { this.guardandoValor = false; }
+            });
+        } catch (e) {
+            this.guardandoValor = false;
+            this.messageService.add({ severity: 'error', summary: 'No se pudo guardar el valor.' });
+        }
+    }
+
+    /* ================== Reporte comparativo (rol 1) ================== */
+
+    async generarComparativo(): Promise<void> {
+        if (!this.validarParametrosReporte()) { return; }
+
+        this.cargandoComparativo = true;
+        this.comparativoGenerado = true;
+
+        try {
+            const data = await firstValueFrom(
+                await this.reportesService.obtenerReporteComparativo(this.fechaInicio, this.fechaFin, this.consultorio)
+            );
+            this.comparativoData = data || [];
+            this.construirResumenComparativo();
+            this.comparativoExpandido = { Consultorio: false, Administracion: false };
+        } catch (e) {
+            this.comparativoData = [];
+            this.comparativoResumen = { Consultorio: null, Administracion: null };
+            this.messageService.add({ severity: 'error', summary: 'No se pudo generar el reporte comparativo.' });
+        } finally {
+            this.cargandoComparativo = false;
+        }
+    }
+
+    private construirResumenComparativo(): void {
+        const crearResumen = (tipo: string) => {
+            const filas = this.comparativoData.filter(r => r.tipo === tipo);
+            if (!filas.length) { return null; }
+
+            const resumen: any = { tipo, registros: filas.length };
+
+            this.GRUPOS_REPORTE.forEach(g => {
+                g.campos.forEach(c => {
+                    resumen[c] = filas.reduce((acc, r) => acc + (Number(r[c]) || 0), 0);
+                });
+                resumen[g.total] = g.campos.reduce((acc, c) => acc + (Number(resumen[c]) || 0), 0);
+            });
+
+            resumen['total_general'] = this.GRUPOS_REPORTE.reduce((acc, g) => acc + (Number(resumen[g.total]) || 0), 0);
+
+            return resumen;
+        };
+
+        this.comparativoResumen = {
+            Consultorio: crearResumen('Consultorio'),
+            Administracion: crearResumen('Administracion')
+        };
+    }
+
+    detalleComparativo(tipo: string): any[] {
+        return this.comparativoData.filter(r => r.tipo === tipo);
+    }
+
+    toggleComparativo(tipo: string): void {
+        this.comparativoExpandido[tipo] = !this.comparativoExpandido[tipo];
     }
 
     private formatoFechaLocal(fecha: Date | null): string {

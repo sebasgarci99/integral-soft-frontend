@@ -32,8 +32,7 @@
                         <th>Res. Aprovechables</th>
                         <th>Res. No Aprovechables</th>
                         <th>Res. Biosanitarios</th>
-                        <th>Res. Cortopunzantes NG</th>
-                        <th>Res. Cortopunzantes K</th>
+                        <th>Res. Cortopunzantes</th>
                         <th>Anatomopatologicos</th>
                         <th>Farmacos</th>
                         <th>Estado</th>
@@ -48,8 +47,7 @@
                             <td>{{ row.aprovechables }}</td>
                             <td>{{ row.no_aprovechables }}</td>
                             <td>{{ row.biosanitarios }}</td>
-                            <td>{{ row.cortopunzantes_ng }}</td>
-                            <td>{{ row.cortopunzantes_k }}</td>
+                            <td>{{ row.cortopunzantes }}</td>
                             <td>{{ row.anatomopatologicos }}</td>
                             <td>{{ row.farmacos }}</td>
                             <td>
@@ -271,6 +269,7 @@
                                                 optionLabel="label"
                                                 optionValue="value"
                                                 [showClear]="true"
+                                                [ngClass]="{ 'p-inputwrapper-filled': formData.pretratamiento }"
                                                 class="w-100"
                                                 appendTo="body">
                                             </p-dropdown>
@@ -299,10 +298,11 @@
                                                 optionLabel="label"
                                                 optionValue="value"
                                                 [showClear]="true"
+                                                [ngClass]="{ 'p-inputwrapper-filled': formData.tratamiento }"
                                                 class="w-100"
                                                 appendTo="body">
                                             </p-dropdown>
-                                            <label for="tratamiento">Tratamiento</label>
+                                            <label for="tratamiento">Tratamiento usado</label>
                                         </p-floatlabel>
 
                                         <p-floatlabel variant="on" class="col-12 md:col-6 lg:col-4 mt-3">

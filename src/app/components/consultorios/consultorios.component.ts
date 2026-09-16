@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
@@ -25,6 +26,7 @@ import Swal from 'sweetalert2';
         HttpClientModule,
         TableModule,
         DialogModule,
+        DropdownModule,
         ButtonModule,
         InputTextModule,
         ToastModule,
@@ -43,6 +45,11 @@ export class ConsultoriosComponent implements OnInit{
     displayDialog: boolean = false;
     isEdit: boolean = false;
     correoOriginal: string = '';
+
+    tipoOpciones = [
+        { label: 'Consultorio', value: 'Consultorio' },
+        { label: 'Administración', value: 'Administracion' }
+    ];
 
     formData: Consultorio = this.variarCamposFormulario();
 
@@ -67,7 +74,8 @@ export class ConsultoriosComponent implements OnInit{
             aforo: 0,
             correo: '',
             estado: 'A',
-            id_usuario: 0
+            id_usuario: 0,
+            tipo: 'Consultorio'
         };
     }
 
@@ -88,7 +96,7 @@ export class ConsultoriosComponent implements OnInit{
     editarDatosConsultorio(consultorio: Consultorio) {
         this.isEdit = true;
         this.correoOriginal = consultorio.correo ?? '';
-        this.formData = { ...consultorio };
+        this.formData = { ...consultorio, tipo: consultorio.tipo ?? 'Consultorio' };
         this.displayDialog = true;
     }
 
@@ -148,7 +156,7 @@ export class ConsultoriosComponent implements OnInit{
                     this.displayDialog = false;
                 } else {
                     console.log(res)
-                    this.messageService.add({ severity: 'error', summary: 'Ocurrio un problema: '+res.body });
+                    this.messageService.add({ severity: 'error', summary: 'Ocurrio un problema: '+ this.extraerMensaje(res.body) });
                 }
                 
             });
@@ -163,9 +171,15 @@ export class ConsultoriosComponent implements OnInit{
                 this.messageService.add({ severity: 'success', summary: 'Consultorio actualizado correctamente.' });
             } else {
                 console.log(res)
-                this.messageService.add({ severity: 'error', summary: 'Ocurrio un problema: '+res.body });
+                this.messageService.add({ severity: 'error', summary: 'Ocurrio un problema: '+ this.extraerMensaje(res.body) });
             }
         });
+    }
+
+    private extraerMensaje(body: any): string {
+        if (!body) { return 'Error procesando la solicitud.'; }
+        if (typeof body === 'string') { return body; }
+        return body.mensaje || body.message || 'Error procesando la solicitud.';
     }
 
     validarCampos(): boolean {

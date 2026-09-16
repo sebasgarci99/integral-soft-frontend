@@ -164,12 +164,11 @@ export class RegRecoleccionComponent implements OnInit{
         },
         {
             titulo: 'Residuos con riesgo biológico o infeccioso',
-            nota: 'Cortopunzantes NG: NO generados en la prestación de servicios de salud. Cortopunzantes K: generados en la prestación de servicios de salud.',
+            nota: 'Cortopunzantes: incluye los generados y no generados en la prestación de servicios de salud.',
             campos: [
                 { prop: 'biosanitariosRoja', label: 'Biosanitarios - Roja (kg)', icon: 'fa fa-exclamation-triangle' },
                 { prop: 'anatomopatologicos', label: 'Anatomopatológicos', icon: 'fa fa-tint' },
-                { prop: 'cortopunzantesNG', label: 'Cortopunzantes NG (kg)', icon: 'fa fa-eyedropper' },
-                { prop: 'cortopunzantesK', label: 'Cortopunzantes K (kg)', icon: 'fa fa-eyedropper' },
+                { prop: 'cortopunzantes', label: 'Cortopunzantes (kg)', icon: 'fa fa-eyedropper' },
                 { prop: 'deAnimales', label: 'De animales', icon: 'fa fa-paw' }
             ]
         },
@@ -186,7 +185,7 @@ export class RegRecoleccionComponent implements OnInit{
             ]
         },
         {
-            titulo: 'Residuos especiales (legado)',
+            titulo: 'Otros residuos no incluidos en la norma',
             nota: 'Categorías históricas del sistema; se mantienen para no perder trazabilidad.',
             campos: [
                 { prop: 'farmacos', label: 'Fármacos', icon: 'fa fa-plus-circle' },
@@ -278,8 +277,7 @@ export class RegRecoleccionComponent implements OnInit{
             aprovechablesBlanco: parseFloat(row.aprovechables) || 0,
             noAprovechablesNegra: parseFloat(row.no_aprovechables) || 0,
             biosanitariosRoja: parseFloat(row.biosanitarios) || 0,
-            cortopunzantesNG: parseFloat(row.cortopunzantes_ng) || 0,
-            cortopunzantesK: parseFloat(row.cortopunzantes_k) || 0,
+            cortopunzantes: parseFloat(row.cortopunzantes) || 0,
             anatomopatologicos: parseFloat(row.anatomopatologicos) || 0,
             farmacos: parseFloat(row.farmacos) || 0,
             chatarraElectronica: parseFloat(row.chatarra_electronica) || 0,
@@ -479,8 +477,7 @@ export class RegRecoleccionComponent implements OnInit{
             aprovechables: payload.aprovechables,
             no_aprovechables: payload.no_aprovechables,
             biosanitarios: payload.biosanitarios,
-            cortopunzantes_ng: payload.cortopunzantes_ng,
-            cortopunzantes_k: payload.cortopunzantes_k,
+            cortopunzantes: payload.cortopunzantes ?? ((Number(payload.cortopunzantes_ng) || 0) + (Number(payload.cortopunzantes_k) || 0)),
             anatomopatologicos: payload.anatomopatologicos,
             farmacos: payload.farmacos
         };
@@ -546,8 +543,7 @@ export class RegRecoleccionComponent implements OnInit{
             aprovechablesBlanco: null,
             noAprovechablesNegra: null,
             biosanitariosRoja: null,
-            cortopunzantesK: null,
-            cortopunzantesNG: null,
+            cortopunzantes: null,
             anatomopatologicos: null,
             farmacos: null,
             chatarraElectronica: null,
@@ -659,8 +655,7 @@ export class RegRecoleccionComponent implements OnInit{
         //         this.formData.aprovechablesBlanco == null ||
         //         this.formData.noAprovechablesNegra == null ||
         //         this.formData.biosanitariosRoja == null ||
-        //         this.formData.cortopunzantesK == null ||
-        //         this.formData.cortopunzantesNG == null ||
+        //         this.formData.cortopunzantes == null ||
         //         this.formData.anatomopatologicos == null ||
         //         this.formData.farmacos == null ||
         //         this.formData.chatarraElectronica == null ||

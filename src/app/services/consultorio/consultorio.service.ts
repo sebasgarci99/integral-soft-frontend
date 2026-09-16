@@ -98,7 +98,8 @@ export class ConsultorioService {
             correo : data.correo,
             estado : 'A',
             id_usuario: idUser,
-            id_empresa: idEmpresa  
+            id_empresa: idEmpresa,
+            tipo: data.tipo ?? 'Consultorio'
         };
 
         return this.http.post<any>(
@@ -154,7 +155,8 @@ export class ConsultorioService {
             estado : 'A',
             id_usuario: idUser,
             id_empresa: idEmpresa,
-            autorizar_cambio_email: autorizarCambioEmail
+            autorizar_cambio_email: autorizarCambioEmail,
+            tipo: data.tipo ?? 'Consultorio'
         };
 
         return this.http.post<any>(

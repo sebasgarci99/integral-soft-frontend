@@ -3,6 +3,8 @@
             <div class="card-body" style="min-height: 30rem;">
                 <div class="component-header">
                     <h3><i class="fa fa-chart-bar"></i> Reportes</h3>
+                    <button *ngIf="idRol == 1" pButton type="button" label="Valor de residuos" icon="fa fa-dollar-sign"
+                        class="p-button-secondary p-button-sm" (click)="abrirValorDialog()"></button>
                 </div>
                 <div class="card mt-2 p-3">
                         <div class="row mb-2">
@@ -64,10 +66,16 @@
                                         [ngStyle]="estilosColumna(col, true)" class="th-base">
                                         {{ col.header }}
                                     </th>
-                                    <th *ngFor="let g of gruposColumnas.grupos" [attr.colspan]="g.colspan"
-                                        [ngStyle]="estilosGrupo(g.index)" class="th-grupo">
-                                        {{ g.titulo }}
-                                    </th>
+                                    <ng-container *ngFor="let item of cabeceraOrdenada">
+                                        <th *ngIf="item.tipo === 'grupo'" [attr.colspan]="item.grupo.colspan"
+                                            [ngStyle]="estilosGrupo(item.grupo.index)" class="th-grupo">
+                                            {{ item.grupo.titulo }}
+                                        </th>
+                                        <th *ngIf="item.tipo === 'valor'" [attr.rowspan]="2"
+                                            [ngStyle]="estilosColumna(item.col, true)" class="th-valor">
+                                            {{ item.col.header }}
+                                        </th>
+                                    </ng-container>
                                     <th *ngIf="gruposColumnas.cierre" [attr.rowspan]="2"
                                         [ngStyle]="estiloTotalGeneral" class="th-total-general">
                                         {{ gruposColumnas.cierre.header }}
@@ -75,7 +83,7 @@
                                 </tr>
                                 <tr>
                                     <ng-container *ngFor="let col of columnas">
-                                        <th *ngIf="!col.base && !col.esTotalFuerte" [ngStyle]="estilosColumna(col, true)">
+                                        <th *ngIf="!col.base && !col.esTotalFuerte && !col.esValorTotal" [ngStyle]="estilosColumna(col, true)">
                                             {{ col.header }}
                                         </th>
                                     </ng-container>
@@ -85,7 +93,10 @@
                             <ng-template pTemplate="body" let-row>
                                 <tr>
                                     <td *ngFor="let col of columnas" [ngStyle]="estilosColumna(col)">
-                                        {{ row[col.field] }}
+                                        <ng-container *ngIf="esColumnaValor(col); else valorNormal">
+                                            {{ formatearValor(row[col.field]) }}
+                                        </ng-container>
+                                        <ng-template #valorNormal>{{ row[col.field] }}</ng-template>
                                     </td>
                                 </tr>
                             </ng-template>
@@ -93,7 +104,8 @@
                             <ng-template pTemplate="footer" #footer>
                                 <tr>
                                     <td *ngFor="let col of columnas" [ngStyle]="estilosColumna(col)">
-                                        <strong *ngIf="totales[col.field] !== undefined">{{ totales[col.field] | number:'1.2-2' }}</strong>
+                                        <strong *ngIf="esColumnaValor(col) && totales[col.field] !== undefined">{{ formatearValor(totales[col.field]) }}</strong>
+                                        <strong *ngIf="!esColumnaValor(col) && totales[col.field] !== undefined">{{ totales[col.field] | number:'1.2-2' }}</strong>
                                     </td>
                                 </tr>
                             </ng-template>
@@ -101,6 +113,147 @@
                     </div>
             </div>
         </div>
+
+        <div class="card mt-3" *ngIf="idRol == 1">
+            <div class="card-body">
+                <div class="component-header">
+                    <h3><i class="fa fa-balance-scale"></i> Reporte comparativo</h3>
+                    <button pButton type="button" label="Generar comparativo" icon="fa fa-play" class="p-button-info"
+                        (click)="generarComparativo()" [loading]="cargandoComparativo"></button>
+                </div>
+
+                <p *ngIf="comparativoGenerado && !comparativoData.length" class="text-muted">
+                    No se encontraron registros con los filtros seleccionados.
+                </p>
+
+                <table class="table table-sm table-bordered" *ngIf="comparativoData.length">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">Concepto</th>
+                            <th style="cursor: pointer;" (click)="toggleComparativo('Consultorio')">
+                                Consultorios
+                                <i class="fa" [ngClass]="comparativoExpandido['Consultorio'] ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                            </th>
+                            <th style="cursor: pointer;" (click)="toggleComparativo('Administracion')">
+                                Administración
+                                <i class="fa" [ngClass]="comparativoExpandido['Administracion'] ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let g of GRUPOS_REPORTE">
+                            <td>{{ g.titulo }}</td>
+                            <td>{{ comparativoResumen['Consultorio'] ? (comparativoResumen['Consultorio'][g.total] | number:'1.2-2') : '-' }}</td>
+                            <td>{{ comparativoResumen['Administracion'] ? (comparativoResumen['Administracion'][g.total] | number:'1.2-2') : '-' }}</td>
+                        </tr>
+                        <tr class="fw-bold">
+                            <td>TOTAL GENERAL</td>
+                            <td>{{ comparativoResumen['Consultorio'] ? (comparativoResumen['Consultorio']['total_general'] | number:'1.2-2') : '-' }}</td>
+                            <td>{{ comparativoResumen['Administracion'] ? (comparativoResumen['Administracion']['total_general'] | number:'1.2-2') : '-' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div *ngIf="comparativoExpandido['Consultorio']" class="mt-3">
+                    <h6 class="fw-bold">Consultorios - detalle por día</h6>
+                    <p-table [value]="detalleComparativo('Consultorio')" [size]="'small'" [paginator]="true"
+                        [rows]="10" [scrollable]="true" stripedRows responsiveLayout="scroll">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>Fecha</th>
+                                <th *ngFor="let c of CAMPOS_DETALLE_COMPARATIVO">{{ c === 'total' ? 'Total' : (ETIQUETAS[c] || c) }}</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-row>
+                            <tr>
+                                <td>{{ row.fecha | date:'dd-MM-yyyy' }}</td>
+                                <td *ngFor="let c of CAMPOS_DETALLE_COMPARATIVO">{{ row[c] }}</td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+
+                <div *ngIf="comparativoExpandido['Administracion']" class="mt-3">
+                    <h6 class="fw-bold">Administración - detalle por día</h6>
+                    <p-table [value]="detalleComparativo('Administracion')" [size]="'small'" [paginator]="true"
+                        [rows]="10" [scrollable]="true" stripedRows responsiveLayout="scroll">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>Fecha</th>
+                                <th *ngFor="let c of CAMPOS_DETALLE_COMPARATIVO">{{ c === 'total' ? 'Total' : (ETIQUETAS[c] || c) }}</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-row>
+                            <tr>
+                                <td>{{ row.fecha | date:'dd-MM-yyyy' }}</td>
+                                <td *ngFor="let c of CAMPOS_DETALLE_COMPARATIVO">{{ row[c] }}</td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </div>
+        </div>
+
+        <p-dialog header="Valor a cobrar de residuos" [(visible)]="showValorDialog" [modal]="true"
+            [style]="{width: '42rem'}" [draggable]="false" [resizable]="false" appendTo="body">
+            <div class="p-fluid grid p-formgrid">
+                <div class="col-12 mb-2">
+                    <strong>Valor vigente:</strong>
+                    <span *ngIf="valorKgActual != null"> {{ formatearValor(valorKgActual) }} / kg</span>
+                    <span *ngIf="valorKgActual == null" class="text-muted"> Sin configurar</span>
+                </div>
+
+                <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                    <p-inputNumber [(ngModel)]="nuevoValorKg" inputId="nuevoValorKg" [min]="0" mode="decimal"
+                        [minFractionDigits]="0" [maxFractionDigits]="2" [showButtons]="true" class="w-100">
+                    </p-inputNumber>
+                    <label for="nuevoValorKg">Valor por kg</label>
+                </p-floatlabel>
+
+                <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                    <p-calendar [(ngModel)]="nuevoValorFecha" dateFormat="yy-mm-dd" inputId="nuevoValorFecha"
+                        showIcon appendTo="body" class="w-100">
+                    </p-calendar>
+                    <label for="nuevoValorFecha">Fecha de vigencia</label>
+                </p-floatlabel>
+
+                <p-floatlabel variant="on" class="col-12 mt-3">
+                    <input pInputText id="nuevoValorObservacion" [(ngModel)]="nuevoValorObservacion" maxlength="255" class="w-100" />
+                    <label for="nuevoValorObservacion">Observación (opcional)</label>
+                </p-floatlabel>
+            </div>
+
+            <div class="flex justify-content-end mt-3">
+                <button pButton type="button" label="Guardar valor" icon="fa fa-save" class="p-button-info"
+                    [loading]="guardandoValor" [disabled]="nuevoValorKg == null || guardandoValor" (click)="guardarValor()">
+                </button>
+            </div>
+
+            <hr>
+
+            <h6 class="fw-bold">Histórico de valores</h6>
+            <p-table [value]="valores" [size]="'small'" [paginator]="true" [rows]="5" stripedRows responsiveLayout="scroll">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Valor por kg</th>
+                        <th>Vigencia</th>
+                        <th>Observación</th>
+                        <th>Registrado</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-row>
+                    <tr>
+                        <td>{{ formatearValor(row.valor_kg) }}</td>
+                        <td>{{ row.fecha_vigencia | date:'dd-MM-yyyy' }}</td>
+                        <td>{{ row.observacion || '-' }}</td>
+                        <td>{{ row.createdAt | date:'dd-MM-yyyy HH:mm' }}</td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr><td colspan="4" class="text-center">Sin valores registrados</td></tr>
+                </ng-template>
+            </p-table>
+        </p-dialog>
 
 <p-dialog header="Historial de envíos de reportes" [(visible)]="showLogsDialog" [modal]="true" [style]="{width: '90vw', maxWidth: '1200px'}" [draggable]="false" [resizable]="false">
     <p-table [value]="logs" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 20, 50]" [size]="'small'" [responsiveLayout]="'scroll'" [scrollable]="true" stripedRows>

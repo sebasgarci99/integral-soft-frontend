@@ -12,3 +12,51 @@
   transform: translateY(-50%) !important;
 }
 
+/* Formulario de consultorio (diálogo) */
+.consultorio-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 1.1rem 1.25rem;
+    padding-top: 0.25rem;
+}
+
+.consultorio-form .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.consultorio-form .field.full {
+    grid-column: 1 / -1;
+}
+
+.consultorio-form .field label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #495057;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.consultorio-form .field .req {
+    color: #e24c4c;
+}
+
+.consultorio-form .field input,
+.consultorio-form .field .p-dropdown {
+    width: 100%;
+}
+
+.consultorio-form .text-error-small {
+    margin-top: 0;
+}
+
+@media (max-width: 575.98px) {
+    .consultorio-form {
+        grid-template-columns: 1fr;
+    }
+}
+
+
