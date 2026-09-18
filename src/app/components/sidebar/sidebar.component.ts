@@ -76,6 +76,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
                 filter(event => event instanceof NavigationEnd)
             ).subscribe((event: any) => {
                 this.currentRoute = event.urlAfterRedirects || event.url;
+                this.abrirGrupoActivo();
                 this.scrollAlActivo();
             }),
             this.menuService.getModulosAgrupados().subscribe(grupos => {
@@ -104,7 +105,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
 
     isGrupoAbierto(grupo: ModuloPadre): boolean {
-        return this.gruposAbiertos.has(grupo.modulo) || this.isGrupoActivo(grupo);
+        return this.gruposAbiertos.has(grupo.modulo);
+    }
+
+    // Abre únicamente el grupo que contiene la ruta activa (acordeón)
+    private abrirGrupoActivo(): void {
+        const activo = this.modulosAgrupados.find(g => this.isGrupoActivo(g));
+        if (!activo) { return; }
+        if (this.gruposAbiertos.size === 1 && this.gruposAbiertos.has(activo.modulo)) { return; }
+        this.gruposAbiertos.clear();
+        this.gruposAbiertos.add(activo.modulo);
+        this.guardarGruposAbiertos();
     }
 
     toggleGrupo(grupo: ModuloPadre): void {
@@ -122,7 +133,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
             const guardados = localStorage.getItem(this.GRUPOS_ABIERTOS_KEY);
             if (guardados) {
                 const nombres = JSON.parse(guardados) as string[];
-                this.gruposAbiertos = new Set(nombres);
+                // Acordeón: como máximo un grupo abierto
+                this.gruposAbiertos = new Set(nombres.slice(0, 1));
             }
         } catch (error) {
             this.gruposAbiertos = new Set();
@@ -138,6 +150,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     private verificarMenuCargado(): void {
         if (this.gruposCargados && this.directosCargados) {
             this.menuCargado = true;
+            this.abrirGrupoActivo();
         }
     }
 

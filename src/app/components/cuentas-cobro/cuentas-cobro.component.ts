@@ -104,6 +104,24 @@ export class CuentasCobroComponent implements OnInit {
         { label: 'No', value: 'N' }
     ];
 
+    filtroTipoCuenta: string = 'todas';
+
+    opcionesTipoCuenta = [
+        { label: 'Todas', value: 'todas' },
+        { label: 'Base (programadas)', value: 'base' },
+        { label: 'Generadas', value: 'generadas' }
+    ];
+
+    get cuentasFiltradas(): CuentaCobro[] {
+        if (this.filtroTipoCuenta === 'base') {
+            return this.cuentasCobro.filter(cuenta => !!cuenta.info_periodicidad);
+        }
+        if (this.filtroTipoCuenta === 'generadas') {
+            return this.cuentasCobro.filter(cuenta => !!cuenta.es_editable && !cuenta.info_periodicidad);
+        }
+        return this.cuentasCobro;
+    }
+
     steps = [
         { label: 'Datos de la Cuenta', command: () => this.current = 0 },
         { label: 'Periodicidad', command: () => this.current = 1 }

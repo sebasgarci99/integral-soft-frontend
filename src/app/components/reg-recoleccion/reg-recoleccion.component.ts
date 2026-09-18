@@ -172,21 +172,13 @@ export class RegRecoleccionComponent implements OnInit{
                 { prop: 'deAnimales', label: 'De animales', icon: 'fa fa-paw' }
             ]
         },
+        // NOTA: Las características CRETI (químicos, corrosivos, explosivos, reactivos,
+        // tóxicos, inflamables) ya no se capturan en el formulario: el operario registra
+        // los residuos físicos y el reporte los mapea a las características de la norma.
+        // Los campos siguen existiendo en el modelo/payload para conservar el histórico.
         {
-            titulo: 'Otros residuos o desechos peligrosos (químicos)',
-            nota: 'Químicos es una categoría histórica (legado); las demás son las nuevas categorías de este grupo RESPEL.',
-            campos: [
-                { prop: 'quimicos', label: 'Químicos (legado)', icon: 'fa fa-flask' },
-                { prop: 'corrosivos', label: 'Corrosivos', icon: 'fa fa-flask' },
-                { prop: 'explosivos', label: 'Explosivos', icon: 'fa fa-bomb' },
-                { prop: 'reactivos', label: 'Reactivos', icon: 'fa fa-vial' },
-                { prop: 'toxicos', label: 'Tóxicos', icon: 'fa fa-skull-crossbones' },
-                { prop: 'inflamables', label: 'Inflamables', icon: 'fa fa-fire' }
-            ]
-        },
-        {
-            titulo: 'Otros residuos no incluidos en la norma',
-            nota: 'Categorías históricas del sistema; se mantienen para no perder trazabilidad.',
+            titulo: 'Residuos peligrosos identificables',
+            nota: 'Registre aquí los residuos que identifica al recibir. Se reportan en las categorías de la norma.',
             campos: [
                 { prop: 'farmacos', label: 'Fármacos', icon: 'fa fa-plus-circle' },
                 { prop: 'chatarraElectronica', label: 'Chatarra electrónica', icon: 'fa fa-desktop' },
@@ -537,7 +529,7 @@ export class RegRecoleccionComponent implements OnInit{
     private emptyForm(): Recoleccion {
         return {
             id_registropeso : null,
-            fecha: null as Date | null,
+            fecha: new Date(),
             consultorio: null,
 
             aprovechablesBlanco: null,
@@ -570,8 +562,8 @@ export class RegRecoleccionComponent implements OnInit{
             horaRoja: null,
             horaNegra: null,
 
-            dotacionGenerador: null,
-            dotacionPseg: null,
+            dotacionGenerador: 'Si',
+            dotacionPseg: 'Si',
             firma: null
         };
 
@@ -718,6 +710,18 @@ export class RegRecoleccionComponent implements OnInit{
             hoy.getMonth() === f.getMonth() &&
             hoy.getDate() === f.getDate()
         );
+    }
+
+    // Compara solo el día: la fecha con hora de apertura no debe marcar error por milisegundos.
+    get fechaEsFutura(): boolean {
+        if (!this.formData.fecha) { return false; }
+
+        const f = new Date(this.formData.fecha);
+        const ahora = new Date();
+        const diaFecha = new Date(f.getFullYear(), f.getMonth(), f.getDate()).getTime();
+        const diaHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate()).getTime();
+
+        return diaFecha > diaHoy;
     }
 
     // Procedimiento dinamico para asignar una clase y pintar el o los registros del dia

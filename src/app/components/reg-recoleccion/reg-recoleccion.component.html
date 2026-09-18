@@ -119,7 +119,7 @@
                                 <small class="p-error text-error-small" *ngIf="formData.fecha == null && fecha.touched">
                                     El fecha es OBLIGATORIA.
                                 </small>
-                                <small class="p-error text-error-small" *ngIf="formData.fecha != null && formData.fecha > hoy">
+                                <small class="p-error text-error-small" *ngIf="fechaEsFutura">
                                     La fecha no debe ser superior a hoy
                                 </small>
                                 

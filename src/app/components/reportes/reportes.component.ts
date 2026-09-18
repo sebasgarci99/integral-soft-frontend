@@ -66,6 +66,7 @@ export class ReportesComponent implements OnInit {
     consultorio: number | null = null;
     tipoReporte: 'totalizado' | 'detallado' | 'consolidado_dia' | 'totalizado_valor' = 'totalizado';
     datos: any[] = [];
+    reporteGenerado = false;
     columnas: any[] = [];
     totales: { [key: string]: number } = {};
     gruposColumnas: { base: any[]; grupos: any[]; valor?: any | null; cierre: any | null } = { base: [], grupos: [], valor: null, cierre: null };
@@ -129,15 +130,17 @@ export class ReportesComponent implements OnInit {
             total: 'total_otros_peligrosos'
         },
         {
-            titulo: 'Otros residuos no incluidos en la norma',
+            titulo: 'Residuos peligrosos identificables',
             campos: ['quimicos', 'farmacos', 'chatarra_electronica', 'pilas', 'iluminarias', 'aceites_usados'],
             total: 'total_otros_no_norma'
         }
     ];
 
-    // En estos tipos de reporte, el grupo "no incluidos en la norma" se omite SOLO en Excel/PDF
+    // En estos tipos de reporte el grupo se omite SOLO en Excel/PDF (en pantalla sí se ve)
     private readonly GRUPO_NO_NORMA_TOTAL = 'total_otros_no_norma';
-    private readonly TIPOS_EXPORT_SIN_NO_NORMA = ['consolidado_dia', 'totalizado_valor'];
+    private readonly TIPOS_EXPORT_SIN_NO_NORMA = ['totalizado_valor'];
+    // Residuos físicos que se mapean a la característica Tóxico de la norma
+    private readonly CAMPOS_MAPEADOS_TOXICO = ['farmacos', 'chatarra_electronica', 'pilas', 'iluminarias', 'aceites_usados'];
 
     // Campos (kg) que se muestran en el detalle por día del reporte comparativo
     readonly CAMPOS_DETALLE_COMPARATIVO: string[] = [
@@ -258,6 +261,7 @@ export class ReportesComponent implements OnInit {
         }
 
         obs.subscribe((data: any[]) => {
+            this.reporteGenerado = true;
             this.prepararDatos(data || []);
         });
     }
@@ -273,10 +277,20 @@ export class ReportesComponent implements OnInit {
                 }
             }
 
+            // Mapeo a la norma: los residuos físicos suman a la característica Tóxico
+            // (se conserva el valor histórico guardado en tóxicos).
+            const aporteToxico = this.CAMPOS_MAPEADOS_TOXICO.reduce((acc, c) => acc + (Number(n[c]) || 0), 0);
+            n['toxicos'] = (Number(n['toxicos']) || 0) + aporteToxico;
+
             for (const g of this.GRUPOS_REPORTE) {
                 n[g.total] = g.campos.reduce((acc, c) => acc + (Number(n[c]) || 0), 0);
             }
-            n['total_general'] = this.GRUPOS_REPORTE.reduce((acc, g) => acc + (Number(n[g.total]) || 0), 0);
+
+            // TOTAL GENERAL: los campos mapeados ya están dentro de Tóxicos; no se suman de nuevo.
+            // Químicos (legado) solo cuenta cuando su grupo está visible.
+            const totalBase = ['total_no_peligrosos', 'total_riesgo_biologico', 'total_radiactivos', 'total_otros_peligrosos']
+                .reduce((acc, f) => acc + (Number(n[f]) || 0), 0);
+            n['total_general'] = totalBase + (this.ocultaGrupoNoNormaPantalla() ? 0 : (Number(n['quimicos']) || 0));
 
             // En el reporte "Totalizado + Valor total" se agrega una columna NUEVA
             // con el valor a cobrar en pesos (total biológico * valor por kg),
@@ -322,6 +336,8 @@ export class ReportesComponent implements OnInit {
         let colValor: any | null = null;
 
         this.GRUPOS_REPORTE.forEach((g, gi) => {
+            if (this.ocultaGrupoNoNormaPantalla() && g.total === this.GRUPO_NO_NORMA_TOTAL) { return; }
+
             const visibles = g.campos.filter(c => c in datos[0]);
 
             visibles.forEach((c, idx) => {
@@ -367,6 +383,12 @@ export class ReportesComponent implements OnInit {
 
     get cabeceraOrdenada(): any[] {
         return this.construirCabecera(this.gruposColumnas.grupos, this.gruposColumnas.valor ?? null);
+    }
+
+    // ¿El tipo de reporte actual debe ocultar el grupo "no incluidos"/identificables en PANTALLA?
+    // En Consolidado por día (que alimenta el RH1) no deben aparecer.
+    private ocultaGrupoNoNormaPantalla(): boolean {
+        return this.tipoReporte === 'consolidado_dia';
     }
 
     // ¿El tipo de reporte actual debe exportar sin el grupo "no incluidos en la norma"?
@@ -420,15 +442,16 @@ export class ReportesComponent implements OnInit {
         let totales = this.totales;
 
         if (omitir) {
+            // El grupo mostrado en pantalla solo aporta al TOTAL GENERAL los Químicos (legado);
+            // los demás campos ya están incluidos en Tóxico. Al exportar se quitan.
             datos = this.datos.map(row => ({
                 ...row,
-                total_general_export: (Number(row['total_general']) || 0) - (Number(row[this.GRUPO_NO_NORMA_TOTAL]) || 0)
+                total_general_export: (Number(row['total_general']) || 0) - (Number(row['quimicos']) || 0)
             }));
 
             totales = {
                 ...this.totales,
-                total_general_export: (Number(this.totales['total_general']) || 0)
-                    - (Number(this.totales[this.GRUPO_NO_NORMA_TOTAL]) || 0)
+                total_general_export: (Number(this.totales['total_general']) || 0) - (Number(this.totales['quimicos']) || 0)
             };
 
             if (cierre) { cierre = { ...cierre, field: 'total_general_export' }; }
@@ -887,6 +910,13 @@ export class ReportesComponent implements OnInit {
         return '$ ' + n.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     }
 
+    // Etiqueta del consultorio seleccionado en los filtros (para el comparativo)
+    get consultorioSeleccionadoLabel(): string {
+        if (!this.consultorio) { return 'Todos los consultorios'; }
+        const opt = this.consultoriosOpts.find(o => o.value === this.consultorio);
+        return opt ? String(opt.label) : 'Consultorio seleccionado';
+    }
+
     /* ================== Valor a cobrar de residuos (rol 1) ================== */
 
     async abrirValorDialog(): Promise<void> {
@@ -974,10 +1004,18 @@ export class ReportesComponent implements OnInit {
                 g.campos.forEach(c => {
                     resumen[c] = filas.reduce((acc, r) => acc + (Number(r[c]) || 0), 0);
                 });
+            });
+
+            // Mapeo a la norma: los residuos físicos suman a Tóxico
+            const aporteToxico = this.CAMPOS_MAPEADOS_TOXICO.reduce((acc, c) => acc + (Number(resumen[c]) || 0), 0);
+            resumen['toxicos'] = (Number(resumen['toxicos']) || 0) + aporteToxico;
+
+            this.GRUPOS_REPORTE.forEach(g => {
                 resumen[g.total] = g.campos.reduce((acc, c) => acc + (Number(resumen[c]) || 0), 0);
             });
 
-            resumen['total_general'] = this.GRUPOS_REPORTE.reduce((acc, g) => acc + (Number(resumen[g.total]) || 0), 0);
+            resumen['total_general'] = ['total_no_peligrosos', 'total_riesgo_biologico', 'total_radiactivos', 'total_otros_peligrosos']
+                .reduce((acc, f) => acc + (Number(resumen[f]) || 0), 0) + (Number(resumen['quimicos']) || 0);
 
             return resumen;
         };

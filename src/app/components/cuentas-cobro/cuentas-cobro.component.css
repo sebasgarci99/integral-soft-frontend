@@ -94,3 +94,13 @@ input[pInputText] {
     background-color: #ffc107 !important;
     color: #000;
 }
+
+.filtro-tipo-cuenta {
+    width: 100%;
+    font-size: 0.85rem;
+}
+
+.filtro-tipo-cuenta ::ng-deep .p-dropdown-label {
+    padding: 0.4rem 0.5rem;
+    text-align: left;
+}
