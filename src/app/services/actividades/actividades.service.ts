@@ -65,11 +65,11 @@ export class ActividadesService {
         );
     }
 
-    async getActividadesCalendario(fecha_inicio: string, fecha_fin: string): Promise<Observable<any>> {
+    async getActividadesCalendario(fecha_inicio: string, fecha_fin: string, todas = false, id_tipo_grupo?: number | null): Promise<Observable<any>> {
         const headers = await this.getHeaders();
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'getActividadesCalendario',
-            { fecha_inicio, fecha_fin },
+            { fecha_inicio, fecha_fin, todas, id_tipo_grupo: id_tipo_grupo ?? null },
             { headers }
         );
     }

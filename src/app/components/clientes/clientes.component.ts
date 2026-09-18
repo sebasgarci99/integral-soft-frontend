@@ -136,8 +136,8 @@ export class ClientesComponent implements OnInit {
     borrarCliente(id: number) {
         this.confirmService.confirm({
             icon: 'fa fa-exclamation-triangle',
-            header: 'Eliminar cliente',
-            message: '¿Estás seguro de eliminar este cliente?',
+            header: 'Inactivar cliente',
+            message: '¿Estás seguro de inactivar este cliente? Se inactivarán también todas sus cuentas de cobro y se pausará el envío automático programado.',
             acceptLabel: 'Sí',
             rejectLabel: 'No',
             accept: async () => {

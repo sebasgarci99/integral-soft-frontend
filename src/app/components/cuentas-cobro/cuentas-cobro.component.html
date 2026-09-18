@@ -28,8 +28,13 @@
                     <ng-template pTemplate="body" let-row>
                         <tr>
                             <td class="text-center">
-                                <i *ngIf="row.info_periodicidad" class="fa-solid fa-calendar-check text-info"
+                                <i *ngIf="row.info_periodicidad && row.info_periodicidad.activo"
+                                    class="fa-solid fa-calendar-check text-info"
                                     pTooltip="Cuenta programada (base)" tooltipPosition="top">
+                                </i>
+                                <i *ngIf="row.info_periodicidad && !row.info_periodicidad.activo"
+                                    class="fa-solid fa-calendar-xmark text-warning"
+                                    pTooltip="Programación pausada" tooltipPosition="top">
                                 </i>
                                 <i *ngIf="row.es_editable && !row.info_periodicidad" class="fa-solid fa-file-invoice-dollar text-secondary"
                                     pTooltip="Generada automáticamente" tooltipPosition="top">
@@ -57,8 +62,8 @@
                                 <p-button icon="fa fa-envelope" class="p-button-text p-button-sm"
                                     pTooltip="Ver log de correos" severity="info" (onClick)="verLogTareas(row)">
                                 </p-button>
-                                <p-button icon="fa fa-trash" class="p-button-text p-button-sm p-button-danger"
-                                    pTooltip="Inactivar" severity="help"
+                                <p-button *ngIf="row.info_periodicidad" icon="fa fa-trash" class="p-button-text p-button-sm p-button-danger"
+                                    pTooltip="Inactivar cuenta programada" severity="help"
                                     (onClick)="inactivarCuentaCobro(row.id_cuenta_cobro)" />
                             </td>
                         </tr>
@@ -129,12 +134,21 @@
                                             </p-dropdown>
                                             <label>Periodicidad</label>
                                         </p-floatlabel>
-                                        <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-2">
+                                        <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-2"
+                                            *ngIf="formData.periodicidad === 'mensual'">
                                             <p-inputnumber [(ngModel)]="formData.dia_del_mes" name="dia_del_mes"
                                                 [min]="1" [max]="31" [showButtons]="true" [useGrouping]="false"
                                                 (onBlur)="fixDiaMes()" class="w-100">
                                             </p-inputnumber>
                                             <label>Día del Mes</label>
+                                        </p-floatlabel>
+                                        <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-2"
+                                            *ngIf="formData.periodicidad === 'semanal'">
+                                            <p-dropdown [options]="opcionesDiaSemana"
+                                                [(ngModel)]="formData.dia_semana" name="dia_semana" class="w-100"
+                                                [ngClass]="{ 'p-inputwrapper-filled': formData.dia_semana !== null }">
+                                            </p-dropdown>
+                                            <label>Día de la Semana</label>
                                         </p-floatlabel>
                                         <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3">
                                             <p-calendar [(ngModel)]="formData.hora_ejecucion" name="hora_ejecucion"
@@ -215,7 +229,17 @@
                             </ng-container>
                             <ng-container *ngSwitchCase="1">
                                 <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
-                                    <div class="grid">
+                                    <div class="col-12 mt-2">
+                                        <p-checkbox [(ngModel)]="editFormData.activo" name="edit_activo"
+                                            [binary]="true" inputId="edit_activo">
+                                        </p-checkbox>
+                                        <label class="ms-2" for="edit_activo">Programación activa</label>
+                                        <small class="d-block text-600 ms-1"
+                                            *ngIf="!editFormData.activo">
+                                            Al guardar, el envío automático quedará pausado.
+                                        </small>
+                                    </div>
+                                    <div class="grid" *ngIf="editFormData.activo">
                                         <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-2">
                                             <p-dropdown [options]="opcionesPeriodicidad"
                                                 [(ngModel)]="editFormData.periodicidad" name="edit_periodicidad" class="w-100"
@@ -223,12 +247,21 @@
                                             </p-dropdown>
                                             <label>Periodicidad</label>
                                         </p-floatlabel>
-                                        <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-2">
+                                        <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-2"
+                                            *ngIf="editFormData.periodicidad === 'mensual'">
                                             <p-inputnumber [(ngModel)]="editFormData.dia_del_mes" name="edit_dia_del_mes"
                                                 [min]="1" [max]="31" [showButtons]="true" [useGrouping]="false"
                                                 (onBlur)="fixDiaMesEdit()" class="w-100">
                                             </p-inputnumber>
                                             <label>Día del Mes</label>
+                                        </p-floatlabel>
+                                        <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3 me-2"
+                                            *ngIf="editFormData.periodicidad === 'semanal'">
+                                            <p-dropdown [options]="opcionesDiaSemana"
+                                                [(ngModel)]="editFormData.dia_semana" name="edit_dia_semana" class="w-100"
+                                                [ngClass]="{ 'p-inputwrapper-filled': editFormData.dia_semana !== null }">
+                                            </p-dropdown>
+                                            <label>Día de la Semana</label>
                                         </p-floatlabel>
                                         <p-floatlabel variant="on" class="col-lg-4 col-md-12 mt-3">
                                             <p-calendar [(ngModel)]="editFormData.hora_ejecucion" name="edit_hora_ejecucion"

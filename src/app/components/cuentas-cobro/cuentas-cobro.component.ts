@@ -76,7 +76,9 @@ export class CuentasCobroComponent implements OnInit {
         configurar_periodicidad: false,
         periodicidad: 'mensual',
         dia_del_mes: 1,
+        dia_semana: 1,
         hora_ejecucion: null,
+        activo: true,
         aplica_archivos_adjuntos: 'N'
     };
 
@@ -85,6 +87,16 @@ export class CuentasCobroComponent implements OnInit {
         { label: 'Semanal', value: 'semanal' },
         { label: 'Quincenal', value: 'quincenal' },
         { label: 'Mensual', value: 'mensual' }
+    ];
+
+    opcionesDiaSemana = [
+        { label: 'Domingo', value: 0 },
+        { label: 'Lunes', value: 1 },
+        { label: 'Martes', value: 2 },
+        { label: 'Miércoles', value: 3 },
+        { label: 'Jueves', value: 4 },
+        { label: 'Viernes', value: 5 },
+        { label: 'Sábado', value: 6 }
     ];
 
     opcionesSiNo = [
@@ -148,7 +160,9 @@ export class CuentasCobroComponent implements OnInit {
             configurar_periodicidad: false,
             periodicidad: 'mensual',
             dia_del_mes: 1,
+            dia_semana: 1,
             hora_ejecucion: now,
+            activo: true,
             aplica_archivos_adjuntos: 'N'
         };
         this.displayDialog = true;
@@ -174,7 +188,8 @@ export class CuentasCobroComponent implements OnInit {
 
         if (this.formData.configurar_periodicidad) {
             dataToSend.periodicidad = this.formData.periodicidad;
-            dataToSend.dia_del_mes = this.formData.dia_del_mes;
+            dataToSend.dia_del_mes = this.formData.periodicidad === 'mensual' ? this.formData.dia_del_mes : null;
+            dataToSend.dia_semana = this.formData.periodicidad === 'semanal' ? this.formData.dia_semana : null;
             dataToSend.hora_ejecucion = this.formData.hora_ejecucion ? this.formData.hora_ejecucion.getHours() : 8;
         }
 
@@ -230,7 +245,7 @@ export class CuentasCobroComponent implements OnInit {
         this.confirmService.confirm({
             icon: 'fa fa-exclamation-triangle',
             header: 'Inactivar cuenta de cobro',
-            message: '¿Estás seguro de inactivar esta cuenta de cobro?',
+            message: '¿Estás seguro de inactivar esta cuenta de cobro? Se pausará también su envío automático programado.',
             acceptLabel: 'Sí',
             rejectLabel: 'No',
             accept: async () => {
@@ -400,7 +415,9 @@ export class CuentasCobroComponent implements OnInit {
             fecha_emision: row.fecha_emision ? new Date(row.fecha_emision) : new Date(),
             periodicidad: row.info_periodicidad?.periodicidad || 'mensual',
             dia_del_mes: row.info_periodicidad?.dia_del_mes || 1,
+            dia_semana: row.info_periodicidad?.dia_semana ?? 1,
             hora_ejecucion: horaEjecucion,
+            activo: row.info_periodicidad?.activo ?? true,
             aplica_archivos_adjuntos: row.info_periodicidad?.aplica_archivos_adjuntos || 'N'
         };
         this.isAccountBase = !!row.info_periodicidad;
@@ -433,8 +450,10 @@ export class CuentasCobroComponent implements OnInit {
                         const configData = {
                             id_cuenta_cobro: this.editFormData.id_cuenta_cobro,
                             periodicidad: this.editFormData.periodicidad,
-                            dia_del_mes: this.editFormData.dia_del_mes,
+                            dia_del_mes: this.editFormData.periodicidad === 'mensual' ? this.editFormData.dia_del_mes : null,
+                            dia_semana: this.editFormData.periodicidad === 'semanal' ? this.editFormData.dia_semana : null,
                             hora_ejecucion: this.editFormData.hora_ejecucion ? this.editFormData.hora_ejecucion.getHours() : 8,
+                            activo: this.editFormData.activo,
                             aplica_archivos_adjuntos: this.editFormData.aplica_archivos_adjuntos
                         };
 
@@ -537,12 +556,18 @@ export class CuentasCobroComponent implements OnInit {
 
     getPeriodicidadTexto(periodicidad: any): string {
         if (!periodicidad) return 'Sin periodicidad';
-        
+
+        const diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+
         let texto = '';
         switch (periodicidad.periodicidad) {
             case 'diaria': texto = 'Diaria'; break;
-            case 'semanal': texto = 'Semanal'; break;
-            case 'quincenal': texto = 'Quincenal'; break;
+            case 'semanal':
+                texto = periodicidad.dia_semana != null
+                    ? `Semanal (${diasSemana[periodicidad.dia_semana]})`
+                    : 'Semanal';
+                break;
+            case 'quincenal': texto = 'Quincenal (días 1 y 15)'; break;
             case 'mensual': texto = `Mensual (día ${periodicidad.dia_del_mes})`; break;
             default: texto = 'Personalizada';
         }

@@ -22,7 +22,9 @@ export interface CuentaCobro {
     configurar_periodicidad?: boolean;
     periodicidad?: string;
     dia_del_mes?: number;
+    dia_semana?: number;
     hora_ejecucion?: number;
+    activo?: boolean;
     info_periodicidad?: Periodicidad;
     es_editable?: boolean;
     aplica_archivos_adjuntos?: string;

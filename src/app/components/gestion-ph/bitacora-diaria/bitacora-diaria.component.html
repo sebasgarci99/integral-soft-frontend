@@ -1,0 +1,179 @@
+<div class="bd-layout">
+
+    <div class="bd-main">
+        <div class="bd-card bd-notebook">
+
+            <!-- Encabezado y navegador de fecha -->
+            <div class="bd-head">
+                <div>
+                    <span class="bd-eyebrow">Bitácora Operativa Diaria</span>
+                    <h3><i class="fa fa-book-open"></i> Registro Diario de Gestión</h3>
+                </div>
+                <div class="bd-date-nav">
+                    <button type="button" (click)="cambiarFecha(-1)"><i class="fa fa-chevron-left"></i></button>
+                    <span>{{ fechaLarga }}</span>
+                    <button type="button" (click)="cambiarFecha(1)"><i class="fa fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Generador de resumen -->
+            <div class="bd-generator">
+                <span><b>Ámbito actual:</b> {{ nombreGrupo }}</span>
+                <button type="button" class="bd-btn bd-btn-primary" [disabled]="compilando" (click)="compilarResumen()">
+                    <i class="fa fa-wand-magic-sparkles"></i>
+                    {{ compilando ? 'Compilando...' : 'Compilar Resumen del Día' }}
+                </button>
+            </div>
+
+            <!-- Resumen -->
+            <div class="bd-field">
+                <label>Soporte y Argumentación de la Jornada</label>
+                <textarea rows="8" [(ngModel)]="resumen" [disabled]="esCerrada"
+                    placeholder="Haz clic en 'Compilar Resumen del Día' o redacta el detalle del turno..."></textarea>
+            </div>
+
+            <!-- Novedades -->
+            <div class="bd-incidents">
+                <div class="bd-incidents-head">
+                    <span><i class="fa fa-triangle-exclamation"></i> Novedades / Imprevistos del Día</span>
+                    <button type="button" class="bd-btn bd-btn-amber" [disabled]="esCerrada"
+                        (click)="agregarNovedad()">+ Agregar Novedad</button>
+                </div>
+
+                <div class="bd-incidents-list">
+                    <div class="bd-empty" *ngIf="novedades.length === 0">Sin novedades registradas.</div>
+                    <div class="bd-incident" *ngFor="let novedad of novedades; let i = index">
+                        <input type="text" [(ngModel)]="novedad.descripcion" [disabled]="esCerrada"
+                            placeholder="Escribe el imprevisto..."
+                            (blur)="guardarNovedad(novedad, i)" />
+                        <button type="button" class="bd-estado-pill" [class.atendido]="novedad.estado === 'atendido'"
+                            [disabled]="esCerrada" (click)="cambiarEstadoNovedad(novedad, i)">
+                            {{ novedad.estado === 'atendido' ? 'Atendido' : 'Pendiente' }}
+                        </button>
+                        <button type="button" class="bd-icon-btn" [disabled]="esCerrada"
+                            (click)="eliminarNovedad(novedad, i)"><i class="fa fa-times"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evidencias -->
+            <div class="bd-evidencias">
+                <div class="bd-evidencias-head">
+                    <span><i class="fa fa-camera"></i> Evidencias Fotográficas (máx. 3)</span>
+                    <label class="bd-btn bd-btn-ghost" [class.disabled]="esCerrada">
+                        <i class="fa fa-upload"></i>
+                        {{ subiendoEvidencia ? 'Subiendo...' : 'Adjuntar Imagen' }}
+                        <input type="file" accept="image/*" hidden [disabled]="esCerrada"
+                            (change)="onEvidenciaSeleccionada($event)" />
+                    </label>
+                </div>
+
+                <div class="bd-gallery">
+                    <div class="bd-gallery-empty" *ngIf="evidencias.length === 0">Sin fotos adjuntas</div>
+                    <div class="bd-photo" *ngFor="let ev of evidencias; let i = index" (click)="verEvidencia(ev)">
+                        <img [src]="miniatura(ev)" [alt]="ev.nombre_original || 'evidencia'" />
+                        <button type="button" class="bd-photo-del" [disabled]="esCerrada"
+                            (click)="eliminarEvidencia(ev, i); $event.stopPropagation()">&times;</button>
+                        <span class="bd-photo-weight">{{ formatearPeso(ev.peso_bytes) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evidencias de actividades finalizadas (solo lectura, vienen de la actividad) -->
+            <div class="bd-evidencias bd-evidencias-act" *ngIf="evidenciasActividades.length > 0">
+                <div class="bd-evidencias-head">
+                    <span><i class="fa fa-clipboard-check"></i> Evidencias de Actividades Finalizadas</span>
+                    <span class="bd-badge-read">Solo lectura · {{ evidenciasActividades.length }}</span>
+                </div>
+                <div class="bd-gallery">
+                    <div class="bd-photo" *ngFor="let ev of evidenciasActividades"
+                        (click)="verImagenActividad(ev)" [title]="ev.titulo">
+                        <img [src]="ev.dataUrl" [alt]="ev.titulo" />
+                        <a class="bd-photo-download" [href]="ev.dataUrl" [attr.download]="ev.nombre"
+                            (click)="$event.stopPropagation()" title="Descargar">
+                            <i class="fa fa-download"></i>
+                        </a>
+                        <span class="bd-photo-weight">{{ ev.titulo }}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Panel del día -->
+    <div class="bd-side">
+        <div class="bd-card">
+            <h4>📌 Panel del Día</h4>
+            <p class="bd-side-hint">
+                Revisa el avance de la jornada, guarda como borrador y cierra la bitácora al terminar.
+            </p>
+
+            <div class="bd-scope">
+                <i class="fa fa-layer-group"></i>
+                <span>{{ nombreGrupo }}</span>
+            </div>
+
+            <div class="bd-mini-kpis">
+                <div class="bd-mini-kpi">
+                    <div class="bd-mini-head"><i class="fa fa-calendar-check"></i><span>Planificadas</span></div>
+                    <strong>{{ kpis.planificadas }}</strong>
+                </div>
+                <div class="bd-mini-kpi emerald">
+                    <div class="bd-mini-head"><i class="fa fa-bullseye"></i><span>Cumplimiento</span></div>
+                    <strong>{{ kpis.cumplimiento }}%</strong>
+                    <div class="bd-mini-bar"><span [style.width.%]="kpis.cumplimiento"></span></div>
+                </div>
+                <div class="bd-mini-kpi amber">
+                    <div class="bd-mini-head"><i class="fa fa-triangle-exclamation"></i><span>Novedades</span></div>
+                    <strong>{{ kpis.novedades }}</strong>
+                </div>
+                <div class="bd-mini-kpi sky">
+                    <div class="bd-mini-head"><i class="fa fa-list-check"></i><span>To-Do</span></div>
+                    <strong>{{ kpis.todoCompletadas }}/{{ kpis.todoTotal }}</strong>
+                    <div class="bd-mini-bar"><span [style.width.%]="kpis.todoCumplimiento"></span></div>
+                </div>
+            </div>
+
+            <div class="bd-activities">
+                <span class="bd-activities-title">Actividades del día</span>
+                <div class="bd-empty" *ngIf="instanciasDia.length === 0">Sin actividades programadas.</div>
+                <div class="bd-activity" *ngFor="let inst of instanciasDia">
+                    <span class="bd-activity-dot" [style.background]="estadoActividadColor(inst.estado)"></span>
+                    <span class="bd-activity-time">{{ formatearHora(inst.hora_inicio) }}</span>
+                    <span class="bd-activity-title">{{ inst.actividad?.titulo }}</span>
+                    <span class="bd-activity-estado" [style.color]="estadoActividadColor(inst.estado)">
+                        {{ estadoActividadLabel(inst.estado) }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="bd-field">
+                <label>Estado del Registro</label>
+                <span class="bd-estado-registro" [class.cerrada]="esCerrada">
+                    {{ esCerrada ? '🔒 Cerrada (Solo lectura)' : '📝 En Borrador (Editable)' }}
+                </span>
+            </div>
+
+            <button type="button" class="bd-btn bd-btn-ghost bd-full" [disabled]="guardando || esCerrada"
+                (click)="guardarBorrador()">
+                <i class="fa fa-floppy-disk"></i> {{ guardando ? 'Guardando...' : 'Guardar Borrador' }}
+            </button>
+
+            <button type="button" class="bd-btn bd-btn-dark bd-full" [disabled]="esCerrada || cerrando"
+                (click)="cerrarBitacora()">
+                <i class="fa fa-lock"></i> {{ cerrando ? 'Cerrando...' : 'Cerrar Bitácora' }}
+            </button>
+
+            <div class="bd-sync" *ngIf="cargando"><i class="fa fa-spinner fa-spin"></i> Cargando bitácora...</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL IMAGEN -->
+<div class="bd-modal-backdrop" *ngIf="imagenAmpliada" (click)="cerrarImagen()">
+    <div class="bd-image-modal">
+        <img [src]="imagenAmpliada" alt="evidencia" />
+    </div>
+</div>

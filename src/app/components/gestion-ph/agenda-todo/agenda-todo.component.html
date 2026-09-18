@@ -1,0 +1,151 @@
+<div class="at-layout">
+
+    <!-- VISTA SEMANAL -->
+    <div class="at-card at-week">
+        <div class="at-card-header">
+            <div>
+                <h3><i class="fa fa-calendar-week"></i> Vista Semanal</h3>
+                <span>{{ tituloSemana }}</span>
+            </div>
+            <div class="at-week-nav">
+                <button type="button" title="Semana anterior" (click)="semanaAnterior()">
+                    <i class="fa fa-chevron-left"></i>
+                </button>
+                <button type="button" class="at-week-today" (click)="irHoy()">Hoy</button>
+                <button type="button" title="Semana siguiente" (click)="semanaSiguiente()">
+                    <i class="fa fa-chevron-right"></i>
+                </button>
+                <span class="at-count">{{ instanciasSemana.length }} actividad(es)</span>
+            </div>
+        </div>
+
+        <div class="at-week-calendar">
+            <div class="at-cal-head">
+                <div class="at-cal-corner"></div>
+                <div class="at-cal-day-head" *ngFor="let dia of diasSemana"
+                    [class.today]="dia.esHoy" [class.selected]="dia.esSeleccionado"
+                    (click)="seleccionarDia(dia.fecha)">
+                    <span class="at-day-badge" *ngIf="dia.esHoy">HOY</span>
+                    <span class="at-day-name">{{ dia.etiqueta }}</span>
+                    <span class="at-day-number">{{ dia.numero }}</span>
+                </div>
+            </div>
+
+            <div class="at-cal-body">
+                <div class="at-cal-row" *ngFor="let hora of horas">
+                    <div class="at-cal-hour">{{ formatearHora(hora + ':00') }}</div>
+                    <div class="at-cal-cell" *ngFor="let dia of diasSemana"
+                        [class.today]="dia.esHoy" [class.selected]="dia.esSeleccionado"
+                        [class.has-events]="eventosEnHora(dia, hora).length > 0"
+                        (click)="seleccionarDia(dia.fecha)">
+                        <div class="at-now-line" *ngIf="dia.esHoy && horaActual.getHours() === hora">
+                            <span class="at-now-dot"></span>
+                        </div>
+                        <div class="at-event" *ngFor="let inst of eventosEnHora(dia, hora)"
+                            [style.border-left-color]="colorGrupo(inst)"
+                            [title]="'Clic para ver / iniciar / finalizar'"
+                            (click)="abrirDetalle(inst, $event)">
+                            <span class="at-event-time">
+                                <i class="fa fa-circle" [style.color]="estadoInfo(inst.estado).color"></i>
+                                {{ formatearHora(inst.hora_inicio) }}
+                            </span>
+                            <span class="at-event-title">{{ inst.actividad?.titulo }}</span>
+                            <button type="button" class="at-mini-btn" *ngIf="inst.estado === 'programada'"
+                                title="Iniciar actividad" (click)="iniciarRapido(inst, $event)">
+                                <i class="fa fa-play"></i> Iniciar
+                            </button>
+                            <span class="at-event-group" *ngIf="inst.actividad?.tipoGrupo">
+                                {{ inst.actividad?.tipoGrupo?.codigo }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LISTA TO-DO -->
+    <div class="at-card at-todo">
+        <div class="at-card-header">
+            <h3><i class="fa fa-list-check"></i> Lista To-Do</h3>
+            <span class="at-count">{{ pendientes }} Pendiente(s)</span>
+        </div>
+
+        <div class="at-todo-input">
+            <input type="text" [(ngModel)]="nuevaTarea" placeholder="Añadir pendiente rápido..."
+                (keyup.enter)="agregarTarea()" />
+            <button type="button" [disabled]="guardandoTarea" (click)="agregarTarea()">+</button>
+        </div>
+
+        <div class="at-todo-list">
+            <div class="at-empty" *ngIf="!cargandoTareas && tareas.length === 0">
+                Sin pendientes para este día.
+            </div>
+
+            <div class="at-todo-item" *ngFor="let tarea of tareas" [class.done]="tarea.completada">
+                <input type="checkbox" [checked]="tarea.completada" (change)="toggleTarea(tarea)" />
+                <div class="at-todo-text">
+                    <p>{{ tarea.titulo }}</p>
+                </div>
+                <button type="button" class="at-todo-delete" title="Eliminar" (click)="eliminarTarea(tarea)">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </div>
+        </div>
+
+        <span class="at-hint">Las tareas alimentan el resumen automático de la Bitácora.</span>
+    </div>
+
+    <!-- MODAL DETALLE / EJECUCIÓN -->
+    <div class="at-modal-backdrop" *ngIf="detalleVisible && instanciaDetalle">
+        <div class="at-modal">
+            <div class="at-modal-header">
+                <h3>{{ instanciaDetalle.actividad?.titulo }}</h3>
+                <button type="button" class="at-close" (click)="cerrarDetalle()">&times;</button>
+            </div>
+
+            <div class="at-modal-body">
+                <div class="at-detail-meta">
+                    <span [style.color]="estadoInfo(instanciaDetalle.estado).color">
+                        <i class="fa fa-circle"></i> {{ estadoInfo(instanciaDetalle.estado).etiqueta }}
+                    </span>
+                    <span *ngIf="instanciaDetalle.actividad?.tipoGrupo">
+                        <i class="fa fa-tag"></i> {{ instanciaDetalle.actividad?.tipoGrupo?.codigo }}
+                    </span>
+                    <span>
+                        <i class="fa fa-clock"></i>
+                        {{ formatearHora(instanciaDetalle.hora_inicio) }} - {{ formatearHora(instanciaDetalle.hora_fin) }}
+                    </span>
+                </div>
+
+                <p class="at-detail-desc" *ngIf="instanciaDetalle.actividad?.descripcion">
+                    {{ instanciaDetalle.actividad?.descripcion }}
+                </p>
+
+                <div class="at-field" *ngIf="instanciaDetalle.estado === 'iniciada'">
+                    <label>Observaciones de cierre</label>
+                    <textarea rows="3" [(ngModel)]="observacionesFinalizar"
+                        placeholder="Describe lo realizado en la actividad..."></textarea>
+                </div>
+
+                <div class="at-field" *ngIf="instanciaDetalle.estado === 'iniciada'">
+                    <label>Evidencias fotográficas (máx. 2)</label>
+                    <app-evidencia-uploader [(evidencias)]="evidencias" [max]="2"></app-evidencia-uploader>
+                </div>
+            </div>
+
+            <div class="at-modal-footer">
+                <button type="button" class="at-btn at-btn-ghost" (click)="cerrarDetalle()">Cerrar</button>
+                <button type="button" class="at-btn at-btn-amber" *ngIf="instanciaDetalle.estado === 'programada'"
+                    (click)="iniciarDesdeDetalle()">
+                    <i class="fa fa-play"></i> Iniciar
+                </button>
+                <button type="button" class="at-btn at-btn-primary" *ngIf="instanciaDetalle.estado === 'iniciada'"
+                    [disabled]="procesando" (click)="finalizarActividad()">
+                    <i class="fa fa-check"></i> {{ procesando ? 'Finalizando...' : 'Finalizar' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,230 @@
+<div class="pr-layout">
+
+    <div class="pr-main">
+
+        <div class="pr-toolbar">
+            <div class="pr-toolbar-info">
+                <div class="pr-toolbar-icon"><i class="fa fa-calendar-plus"></i></div>
+                <div>
+                    <h3>Programador de Actividades Recurrentes</h3>
+                    <p>Planificación mensual y cronograma detallado por horas.</p>
+                </div>
+            </div>
+            <button class="pr-btn pr-btn-sky" type="button" (click)="abrirModalCrear()">
+                <i class="fa fa-plus"></i> Nueva Actividad
+            </button>
+        </div>
+
+        <div class="pr-card">
+            <div class="pr-calendar-head">
+                <span class="pr-calendar-title"><i class="fa fa-calendar"></i> Calendario</span>
+                <div class="pr-month-nav">
+                    <button type="button" (click)="mesAnterior()"><i class="fa fa-chevron-left"></i></button>
+                    <span>{{ nombreMes }}</span>
+                    <button type="button" (click)="mesSiguiente()"><i class="fa fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <div class="pr-weekdays">
+                <span>DOM</span><span>LUN</span><span>MAR</span><span>MIÉ</span><span>JUE</span><span>VIE</span><span>SÁB</span>
+            </div>
+
+            <div class="pr-days">
+                <button type="button" class="pr-day" *ngFor="let dia of diasCalendario"
+                    [class.other-month]="!dia.esMesActual"
+                    [class.today]="dia.esHoy"
+                    [class.selected]="dia.esSeleccionado"
+                    (click)="seleccionarDia(dia)">
+                    <span class="pr-day-number">{{ dia.dia }}</span>
+                    <span class="pr-day-dots" *ngIf="dia.instancias.length > 0">
+                        <span class="pr-dot"
+                            *ngFor="let inst of dia.instancias.slice(0, 4)"
+                            [style.background]="estadoInfo(inst.estado).color"></span>
+                    </span>
+                </button>
+            </div>
+
+            <div class="pr-legend">
+                <span *ngFor="let item of leyenda">
+                    <i class="pr-legend-dot" [style.background]="item.color"></i> {{ item.etiqueta }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CRONOGRAMA DEL DÍA -->
+    <div class="pr-card pr-schedule">
+        <div class="pr-schedule-head">
+            <h4><i class="fa fa-list"></i> Actividades del {{ tituloDia }}</h4>
+            <span *ngIf="esHoySeleccionado">
+                <i class="fa fa-clock"></i> {{ horaActual | date:'fullDate' }} - {{ horaActual | date:'shortTime' }}
+            </span>
+        </div>
+
+        <div class="pr-timeline">
+            <div class="pr-hour-row" *ngFor="let hora of horas">
+                <span class="pr-hour-label">{{ formatearHora(hora + ':00') }}</span>
+                <div class="pr-hour-slot" role="button" tabindex="0"
+                    [class.has-events]="instanciasPorHora(hora).length > 0"
+                    title="Clic para crear una actividad a las {{ formatearHora(hora + ':00') }}"
+                    (click)="abrirModalCrearEnHora(hora)"
+                    (keyup.enter)="abrirModalCrearEnHora(hora)">
+                    <div class="pr-now-line" *ngIf="esHoySeleccionado && horaActual.getHours() === hora">
+                        <span class="pr-now-dot"></span>
+                        <span class="pr-now-label">{{ horaActual | date:'shortTime' }}</span>
+                    </div>
+                    <div class="pr-event" *ngFor="let inst of instanciasPorHora(hora)"
+                        [style.border-left-color]="estadoInfo(inst.estado).color"
+                        (click)="abrirDetalle(inst); $event.stopPropagation()">
+                        <div class="pr-event-info">
+                            <span class="pr-event-title">{{ inst.actividad?.titulo }}</span>
+                            <span class="pr-event-meta">
+                                <i class="fa fa-clock"></i>
+                                {{ formatearHora(inst.hora_inicio) }} - {{ formatearHora(inst.hora_fin) }}
+                                <b *ngIf="inst.actividad?.tipoGrupo" [style.color]="colorGrupo(inst)">
+                                    · {{ inst.actividad?.tipoGrupo?.codigo }}
+                                </b>
+                            </span>
+                        </div>
+                        <div class="pr-event-actions">
+                            <button type="button" class="pr-mini-btn pr-mini-start"
+                                *ngIf="inst.estado === 'programada'" title="Iniciar actividad"
+                                (click)="iniciarRapido(inst, $event)">
+                                <i class="fa fa-play"></i> Iniciar
+                            </button>
+                            <button type="button" class="pr-mini-btn pr-mini-finish"
+                                *ngIf="inst.estado === 'iniciada'" title="Finalizar actividad"
+                                (click)="finalizarRapido(inst, $event)">
+                                <i class="fa fa-check"></i> Finalizar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL NUEVA ACTIVIDAD -->
+<div class="pr-modal-backdrop" *ngIf="modalVisible">
+    <div class="pr-modal">
+        <div class="pr-modal-header">
+            <h3>Programar Nueva Actividad</h3>
+            <button type="button" class="pr-close" (click)="cerrarModal()">&times;</button>
+        </div>
+
+        <div class="pr-modal-body">
+            <div class="pr-field">
+                <label>Título de la Actividad</label>
+                <input type="text" [(ngModel)]="form.titulo" maxlength="200" placeholder="Ej: Revisión de red de agua" />
+            </div>
+
+            <div class="pr-grid-2">
+                <div class="pr-field">
+                    <label>Grupo de Trabajo</label>
+                    <select [(ngModel)]="form.id_tipo_grupo">
+                        <option [ngValue]="null">Selecciona un grupo</option>
+                        <option *ngFor="let grupo of grupos" [ngValue]="grupo.id_tipo_grupo">
+                            {{ grupo.codigo }} — {{ grupo.nombre }}
+                        </option>
+                    </select>
+                </div>
+                <div class="pr-field">
+                    <label>Periodicidad</label>
+                    <select [(ngModel)]="form.tipo_periodicidad">
+                        <option value="unica">Única (puntual)</option>
+                        <option value="diaria">Diaria</option>
+                        <option value="semanal">Semanal</option>
+                        <option value="quincenal">Quincenal</option>
+                        <option value="mensual">Mensual</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="pr-grid-3">
+                <div class="pr-field">
+                    <label>Fecha inicio</label>
+                    <input type="date" [(ngModel)]="form.fecha_inicio" />
+                </div>
+                <div class="pr-field" *ngIf="form.tipo_periodicidad !== 'unica'">
+                    <label>Fecha fin (opcional)</label>
+                    <input type="date" [(ngModel)]="form.fecha_fin" />
+                </div>
+                <div class="pr-field">
+                    <label>Hora</label>
+                    <input type="time" [(ngModel)]="form.hora_default" />
+                </div>
+            </div>
+
+            <div class="pr-field">
+                <label>Duración (minutos)</label>
+                <input type="number" min="15" step="15" [(ngModel)]="form.duracion_minutos" />
+            </div>
+
+            <div class="pr-field">
+                <label>Descripción</label>
+                <textarea rows="2" [(ngModel)]="form.descripcion" maxlength="500"
+                    placeholder="Detalle de la actividad..."></textarea>
+            </div>
+        </div>
+
+        <div class="pr-modal-footer">
+            <button type="button" class="pr-btn pr-btn-ghost" (click)="cerrarModal()">Cancelar</button>
+            <button type="button" class="pr-btn pr-btn-primary" [disabled]="guardando" (click)="crearActividad()">
+                {{ guardando ? 'Guardando...' : 'Guardar Actividad' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DETALLE / EJECUCIÓN -->
+<div class="pr-modal-backdrop" *ngIf="detalleVisible && instanciaDetalle">
+    <div class="pr-modal">
+        <div class="pr-modal-header">
+            <h3>{{ instanciaDetalle.actividad?.titulo }}</h3>
+            <button type="button" class="pr-close" (click)="cerrarDetalle()">&times;</button>
+        </div>
+
+        <div class="pr-modal-body">
+            <div class="pr-detail-meta">
+                <span [style.color]="estadoInfo(instanciaDetalle.estado).color">
+                    <i class="fa fa-circle"></i> {{ estadoInfo(instanciaDetalle.estado).etiqueta }}
+                </span>
+                <span *ngIf="instanciaDetalle.actividad?.tipoGrupo">
+                    <i class="fa fa-tag"></i> {{ instanciaDetalle.actividad?.tipoGrupo?.codigo }}
+                </span>
+                <span><i class="fa fa-clock"></i>
+                    {{ formatearHora(instanciaDetalle.hora_inicio) }} - {{ formatearHora(instanciaDetalle.hora_fin) }}
+                </span>
+            </div>
+
+            <p class="pr-detail-desc" *ngIf="instanciaDetalle.actividad?.descripcion">
+                {{ instanciaDetalle.actividad?.descripcion }}
+            </p>
+
+            <div class="pr-field" *ngIf="instanciaDetalle.estado === 'iniciada'">
+                <label>Observaciones de cierre</label>
+                <textarea rows="3" [(ngModel)]="observacionesFinalizar"
+                    placeholder="Describe lo realizado en la actividad..."></textarea>
+            </div>
+
+            <div class="pr-field" *ngIf="instanciaDetalle.estado === 'iniciada'">
+                <label>Evidencias fotográficas (máx. 2)</label>
+                <app-evidencia-uploader [(evidencias)]="evidencias" [max]="2"></app-evidencia-uploader>
+            </div>
+        </div>
+
+        <div class="pr-modal-footer">
+            <button type="button" class="pr-btn pr-btn-ghost" (click)="cerrarDetalle()">Cerrar</button>
+            <button type="button" class="pr-btn pr-btn-amber" *ngIf="instanciaDetalle.estado === 'programada'"
+                (click)="iniciarActividad()">
+                <i class="fa fa-play"></i> Iniciar
+            </button>
+            <button type="button" class="pr-btn pr-btn-primary" *ngIf="instanciaDetalle.estado === 'iniciada'"
+                [disabled]="finalizando" (click)="finalizarActividad()">
+                <i class="fa fa-check"></i> {{ finalizando ? 'Finalizando...' : 'Finalizar' }}
+            </button>
+        </div>
+    </div>
+</div>

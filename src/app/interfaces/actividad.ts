@@ -1,3 +1,5 @@
+import { TipoGrupo } from './gestion-ph';
+
 export interface Actividad {
     id_actividad?: number;
     titulo: string;
@@ -11,6 +13,8 @@ export interface Actividad {
     intervalo_semanas?: number;
     hora_default?: string;
     duracion_minutos?: number;
+    id_tipo_grupo?: number | null;
+    tipoGrupo?: TipoGrupo | null;
     estado?: string;
     id_empresa?: number;
     id_usuario?: number;

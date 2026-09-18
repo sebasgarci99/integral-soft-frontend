@@ -1,0 +1,117 @@
+:host {
+    --eu-teal: #0d9488;
+    --eu-border: #e2e8f0;
+    --eu-muted: #94a3b8;
+    display: block;
+}
+
+.eu-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.eu-dropzone {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 0.7rem 0.85rem;
+    background: #f8fafc;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.eu-dropzone.arrastrando {
+    border-color: var(--eu-teal);
+    background: #f0fdfa;
+}
+
+.eu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--eu-teal);
+    color: #ffffff;
+    border-radius: 10px;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.eu-btn:hover {
+    background: #0f766e;
+}
+
+.eu-hint {
+    font-size: 0.8rem;
+    color: var(--eu-muted);
+}
+
+.eu-completo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #047857;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+}
+
+.eu-thumbs {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.eu-thumb {
+    position: relative;
+    width: 88px;
+    height: 88px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--eu-border);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.eu-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.eu-del {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 50%;
+    background: #dc2626;
+    color: #ffffff;
+    font-size: 0.9rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.eu-del:hover {
+    background: #b91c1c;
+}
+
+.eu-weight {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(15, 23, 42, 0.55);
+    color: #ffffff;
+    font-size: 0.75rem;
+    text-align: center;
+    padding: 1px 0;
+}

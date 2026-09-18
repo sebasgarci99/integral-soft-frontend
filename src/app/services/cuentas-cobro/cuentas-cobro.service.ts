@@ -51,6 +51,7 @@ export class CuentasCobroService {
             configurar_periodicidad: data.configurar_periodicidad,
             periodicidad: data.periodicidad,
             dia_del_mes: data.dia_del_mes,
+            dia_semana: data.dia_semana,
             hora_ejecucion: data.hora_ejecucion,
             id_usuario: idUser,
             id_empresa: idEmpresa,
@@ -139,9 +140,10 @@ export class CuentasCobroService {
             id_cuenta_cobro: data.id_cuenta_cobro,
             periodicidad: data.periodicidad,
             dia_del_mes: data.dia_del_mes,
+            dia_semana: data.dia_semana,
             hora_ejecucion: data.hora_ejecucion,
             aplica_archivos_adjuntos: data.aplica_archivos_adjuntos,
-            activo: true,
+            activo: data.activo ?? true,
             id_usuario: idUser,
             id_empresa: idEmpresa
         };

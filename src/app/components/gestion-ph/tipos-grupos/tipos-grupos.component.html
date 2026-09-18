@@ -1,0 +1,148 @@
+<div class="tg-wrapper">
+
+    <div class="tg-toolbar">
+        <div>
+            <h3><i class="fa fa-tags"></i> Administración de Tipos de Grupos</h3>
+            <p>
+                Configura los ámbitos de trabajo operativos para categorizar agendas y bitácoras.
+                <span class="tg-resumen">
+                    {{ grupos.length }} grupo(s) · {{ totalActivos }} activo(s) · {{ totalInactivos }} inactivo(s)
+                </span>
+            </p>
+        </div>
+        <div class="tg-toolbar-actions">
+            <label class="tg-checkbox">
+                <input type="checkbox" [ngModel]="incluirInactivos" (ngModelChange)="cambiarIncluirInactivos($event)" />
+                Ver inactivos
+            </label>
+            <button class="tg-btn tg-btn-primary" type="button" (click)="abrirCrear()">
+                <i class="fa fa-plus"></i> Crear Nuevo Grupo
+            </button>
+        </div>
+    </div>
+
+    <div class="tg-card">
+        <table class="tg-table">
+            <thead>
+                <tr>
+                    <th>Código / Prefijo</th>
+                    <th>Nombre del Grupo</th>
+                    <th>Color Distintivo</th>
+                    <th>Descripción / Alcance</th>
+                    <th class="text-center">Prioridad</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="cargando">
+                    <td colspan="7" class="tg-empty">Cargando grupos...</td>
+                </tr>
+                <tr *ngIf="!cargando && grupos.length === 0">
+                    <td colspan="7" class="tg-empty">No hay grupos configurados. Crea el primero.</td>
+                </tr>
+                <tr *ngFor="let grupo of grupos">
+                    <td class="tg-codigo">{{ grupo.codigo }}</td>
+                    <td class="tg-nombre">
+                        <i [class]="grupo.icono || 'fa-solid fa-list-check'" [style.color]="colorTexto(grupo.color)"></i>
+                        {{ grupo.nombre }}
+                    </td>
+                    <td>
+                        <span class="tg-color">
+                            <span class="tg-color-dot" [style.background]="colorTexto(grupo.color)"></span>
+                            {{ colorTexto(grupo.color) }}
+                        </span>
+                    </td>
+                    <td class="tg-descripcion">{{ grupo.descripcion || '—' }}</td>
+                    <td class="text-center">
+                        <span class="tg-prioridad" [attr.data-nivel]="grupo.prioridad">P{{ grupo.prioridad }}</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="tg-estado" [class.inactivo]="grupo.estado === 'I'">
+                            {{ grupo.estado === 'I' ? 'Inactivo' : 'Activo' }}
+                        </span>
+                    </td>
+                    <td class="text-right tg-acciones">
+                        <button type="button" title="Editar" (click)="abrirEditar(grupo)">
+                            <i class="fa fa-pen-to-square"></i>
+                        </button>
+                        <button type="button" title="Inactivar" class="danger" [disabled]="grupo.estado === 'I'"
+                            (click)="inactivar(grupo)">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- MODAL CREAR/EDITAR -->
+    <div class="tg-modal-backdrop" *ngIf="modalVisible">
+        <div class="tg-modal">
+            <div class="tg-modal-header">
+                <h3>{{ tituloModal }}</h3>
+                <button type="button" class="tg-close" (click)="cerrarModal()">&times;</button>
+            </div>
+
+            <div class="tg-modal-body">
+                <div class="tg-grid-2">
+                    <div class="tg-field">
+                        <label>Código / Prefijo</label>
+                        <input type="text" [(ngModel)]="form.codigo" maxlength="20" placeholder="Ej: SG-SST" />
+                    </div>
+                    <div class="tg-field">
+                        <label>Prioridad</label>
+                        <select [(ngModel)]="form.prioridad">
+                            <option [ngValue]="1">1 - Alta</option>
+                            <option [ngValue]="2">2 - Media alta</option>
+                            <option [ngValue]="3">3 - Media</option>
+                            <option [ngValue]="4">4 - Media baja</option>
+                            <option [ngValue]="5">5 - Baja</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="tg-field">
+                    <label>Nombre del Grupo</label>
+                    <input type="text" [(ngModel)]="form.nombre" maxlength="120"
+                        placeholder="Ej: Seguridad y Salud en el Trabajo" />
+                </div>
+
+                <div class="tg-field">
+                    <label>Descripción / Alcance</label>
+                    <textarea rows="2" [(ngModel)]="form.descripcion" maxlength="250"
+                        placeholder="Ej: Inspecciones, COPASST, extintores y simulacros."></textarea>
+                </div>
+
+                <div class="tg-field">
+                    <label>Color Distintivo</label>
+                    <div class="tg-paleta">
+                        <button type="button" *ngFor="let color of paleta" class="tg-swatch"
+                            [style.background]="color" [class.selected]="form.color === color"
+                            (click)="seleccionarColor(color)"></button>
+                        <input type="color" [(ngModel)]="form.color" title="Color personalizado" />
+                    </div>
+                </div>
+
+                <div class="tg-field">
+                    <label>Icono</label>
+                    <div class="tg-iconos">
+                        <button type="button" *ngFor="let icono of iconos" class="tg-icono"
+                            [class.selected]="form.icono === icono" (click)="seleccionarIcono(icono)">
+                            <i [class]="icono"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tg-modal-footer">
+                <button type="button" class="tg-btn tg-btn-ghost" (click)="cerrarModal()">Cancelar</button>
+                <button type="button" class="tg-btn tg-btn-primary" [disabled]="guardando" (click)="guardar()">
+                    <i class="fa fa-floppy-disk"></i>
+                    {{ guardando ? 'Guardando...' : 'Guardar Grupo' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -14,6 +14,7 @@ import { PqrsPublicoService } from '../../../services/pqrs/pqrs-publico.service'
 import { PropiedadHorizontal, SolicitudPqrs, TipoPqr, EstadoPqr } from '../../../interfaces/pqrs';
 import { enviroment } from '../../../../enviroments/enviroment';
 import { getGoogleMapsEmbedUrl } from '../../../utils/google-maps.util';
+import { comprimirImagen } from '../../../utils/image-compress.util';
 
 interface ArchivoForm {
     base64: string;
@@ -158,7 +159,7 @@ export class GestionUsuarioComponent implements OnInit {
 
         const file = input.files[0];
         try {
-            const base64 = await this.comprimirImagen(file, 0.7, 1200);
+            const base64 = await comprimirImagen(file, 0.7, 1200);
             const archivo: ArchivoForm = {
                 base64: base64.split(',')[1],
                 nombre: file.name,
@@ -174,29 +175,6 @@ export class GestionUsuarioComponent implements OnInit {
         } catch (error) {
             this.messageService.add({ severity: 'error', summary: 'Error al procesar la imagen.' });
         }
-    }
-
-    private comprimirImagen(file: File, calidad: number, maxWidth: number): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const scale = Math.min(1, maxWidth / img.width);
-                    canvas.width = img.width * scale;
-                    canvas.height = img.height * scale;
-                    const ctx = canvas.getContext('2d');
-                    if (!ctx) return reject('No se pudo crear contexto');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', calidad));
-                };
-                img.onerror = reject;
-                img.src = event.target?.result as string;
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
     }
 
     eliminarFoto(tipo: 'FOTO1' | 'FOTO2') {

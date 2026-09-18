@@ -34,6 +34,7 @@ import { SeguimientoPqrsComponent } from './components/pqrs/seguimiento-pqrs/seg
 import { AlertasPqrsComponent } from './components/pqrs/alertas-pqrs/alertas-pqrs.component';
 import { ReportesPqrsComponent } from './components/pqrs/reportes-pqrs/reportes-pqrs.component';
 import { CalculoEmpleadoComponent } from './components/calculo-empleado/calculo-empleado.component';
+import { GestionPhComponent } from './components/gestion-ph/gestion-ph.component';
 
 export const routes: Routes = [
     { path: 'login', loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent) },
@@ -77,6 +78,8 @@ export const routes: Routes = [
             { path: 'pqrs/alertas', component: AlertasPqrsComponent },
             { path: 'pqrs/reportes', component: ReportesPqrsComponent },
             { path: 'calculo_empleado', component: CalculoEmpleadoComponent },
+            { path: 'gestion_ph', redirectTo: 'gestion_ph/agenda', pathMatch: 'full' },
+            { path: 'gestion_ph/:tab', component: GestionPhComponent },
         ]
     }
 ];

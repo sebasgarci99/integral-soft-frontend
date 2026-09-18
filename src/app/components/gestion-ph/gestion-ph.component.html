@@ -1,0 +1,94 @@
+<div class="gph-container">
+
+    <header class="gph-header">
+        <div class="gph-header-title">
+            <i class="fa fa-calendar-check"></i>
+            <div>
+                <h2>Planificación &amp; Control Operativo</h2>
+                <p>Gestión de copropiedades - INTEGRAL-SOFT</p>
+            </div>
+        </div>
+        <span class="gph-date-chip">
+            <i class="fa fa-calendar"></i>
+            {{ fechaLarga }}
+        </span>
+    </header>
+
+    <div class="gph-banner">
+        <div class="gph-banner-info">
+            <div class="gph-banner-icon"><i class="fa fa-layer-group"></i></div>
+            <div>
+                <h3>Ámbito de Trabajo / Grupos PH</h3>
+                <p>Filtra la programación, el To-Do y la bitácora según el grupo seleccionado.</p>
+            </div>
+        </div>
+
+        <div class="gph-banner-controls">
+            <select class="gph-select" [ngModel]="idTipoGrupo" (ngModelChange)="onGrupoChange($event)">
+                <option [ngValue]="null">🌐 MOSTRAR TODOS LOS GRUPOS</option>
+                <option *ngFor="let grupo of tiposGrupo" [ngValue]="grupo.id_tipo_grupo">
+                    {{ grupo.codigo }} — {{ grupo.nombre }}
+                </option>
+            </select>
+
+            <p-calendar
+                styleClass="gph-calendar"
+                [(ngModel)]="fechaDate"
+                (ngModelChange)="onFechaDate($event)"
+                [showIcon]="true"
+                [showOnFocus]="true"
+                [readonlyInput]="true"
+                dateFormat="yy-mm-dd"
+                appendTo="body">
+            </p-calendar>
+
+            <button class="gph-btn gph-btn-light" type="button" (click)="cambiarTab('tipos-grupos')">
+                <i class="fa fa-gear"></i> Administrar grupos
+            </button>
+        </div>
+    </div>
+
+    <nav class="gph-tabs">
+        <button type="button" class="gph-tab" [class.active]="tabActiva === 'agenda'" (click)="cambiarTab('agenda')">
+            <i class="fa fa-list-check"></i><span>1. Agenda &amp; To-Do</span>
+        </button>
+        <button type="button" class="gph-tab" [class.active]="tabActiva === 'bitacora'" (click)="cambiarTab('bitacora')">
+            <i class="fa fa-book-open"></i><span>2. Bitácora Diaria</span>
+        </button>
+        <button type="button" class="gph-tab" [class.active]="tabActiva === 'programador'" (click)="cambiarTab('programador')">
+            <i class="fa fa-calendar-days"></i><span>3. Programador de Actividades</span>
+        </button>
+        <button type="button" class="gph-tab" [class.active]="tabActiva === 'tipos-grupos'" (click)="cambiarTab('tipos-grupos')">
+            <i class="fa fa-tags"></i><span>4. Tipos de Grupos</span>
+        </button>
+    </nav>
+
+    <div class="gph-content">
+        <app-agenda-todo
+            *ngIf="tabActiva === 'agenda'"
+            [fecha]="fecha"
+            [idTipoGrupo]="idTipoGrupo"
+            (fechaChange)="onFechaChange($event)">
+        </app-agenda-todo>
+
+        <app-bitacora-diaria
+            *ngIf="tabActiva === 'bitacora'"
+            [fecha]="fecha"
+            [idTipoGrupo]="idTipoGrupo"
+            [nombreGrupo]="nombreGrupoActual"
+            (fechaChange)="onFechaChange($event)">
+        </app-bitacora-diaria>
+
+        <app-programador
+            *ngIf="tabActiva === 'programador'"
+            [fecha]="fecha"
+            [idTipoGrupo]="idTipoGrupo">
+        </app-programador>
+
+        <app-tipos-grupos
+            *ngIf="tabActiva === 'tipos-grupos'"
+            (gruposCambiados)="cargarGrupos()">
+        </app-tipos-grupos>
+    </div>
+
+</div>

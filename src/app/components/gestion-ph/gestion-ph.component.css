@@ -1,0 +1,220 @@
+:host {
+    --gph-teal: #0d9488;
+    --gph-teal-dark: #0f766e;
+    --gph-teal-darker: #115e59;
+    --gph-slate: #1e293b;
+    --gph-sky: #0ea5e9;
+    --gph-amber: #f59e0b;
+    --gph-emerald: #10b981;
+    --gph-bg: #f1f5f9;
+    --gph-card: #ffffff;
+    --gph-border: #e2e8f0;
+    --gph-text: #334155;
+    --gph-muted: #94a3b8;
+
+    display: block;
+    color: var(--gph-text);
+    font-size: 0.9rem;
+}
+
+.gph-container {
+    padding: 1rem;
+    background: var(--gph-bg);
+    min-height: 100%;
+}
+
+.gph-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: var(--gph-card);
+    border: 1px solid var(--gph-border);
+    border-radius: 16px;
+    padding: 0.9rem 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.gph-header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.gph-header-title > i {
+    color: var(--gph-teal);
+    font-size: 1.25rem;
+}
+
+.gph-header-title h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--gph-slate);
+}
+
+.gph-header-title p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--gph-muted);
+}
+
+.gph-date-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #f1f5f9;
+    border: 1px solid var(--gph-border);
+    border-radius: 12px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.gph-date-chip i {
+    color: var(--gph-teal);
+}
+
+.gph-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: linear-gradient(90deg, var(--gph-teal-darker) 0%, var(--gph-teal) 55%, var(--gph-slate) 100%);
+    border-radius: 18px;
+    padding: 1.1rem 1.35rem;
+    color: #ffffff;
+    margin-bottom: 1.1rem;
+    box-shadow: 0 6px 16px rgba(13, 148, 136, 0.18);
+}
+
+.gph-banner-info {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.gph-banner-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: #99f6e4;
+}
+
+.gph-banner-info h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.gph-banner-info p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: rgba(204, 251, 241, 0.85);
+}
+
+.gph-banner-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.gph-select {
+    border: 0;
+    border-radius: 12px;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gph-slate);
+    background: #ffffff;
+    cursor: pointer;
+    outline: none;
+    min-width: 220px;
+}
+
+.gph-calendar {
+    display: inline-block;
+    min-width: 168px;
+}
+
+:host ::ng-deep .gph-calendar .p-datepicker-input,
+:host ::ng-deep .gph-calendar .p-inputtext {
+    border: 0;
+    border-radius: 12px;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gph-slate);
+    background: #ffffff;
+    width: 100%;
+}
+
+:host ::ng-deep .gph-calendar .p-datepicker-trigger {
+    border-radius: 0 12px 12px 0;
+    border: 0;
+}
+
+.gph-btn {
+    border: 0;
+    border-radius: 12px;
+    padding: 0.6rem 0.95rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.gph-btn-light {
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.gph-btn-light:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.gph-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    border-bottom: 1px solid var(--gph-border);
+    margin-bottom: 1.1rem;
+}
+
+.gph-tab {
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    padding: 0 0.15rem 0.7rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--gph-muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.gph-tab:hover {
+    color: #475569;
+}
+
+.gph-tab.active {
+    color: var(--gph-teal);
+    border-bottom-color: var(--gph-teal);
+}
+
+.gph-content {
+    padding-bottom: 1rem;
+}

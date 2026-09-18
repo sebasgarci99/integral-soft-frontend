@@ -1,0 +1,31 @@
+<div class="eu-wrap">
+
+    <div class="eu-dropzone"
+        *ngIf="!lleno"
+        [class.arrastrando]="arrastrando"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)">
+        <label class="eu-btn">
+            <i class="fa" [class.fa-camera]="!procesando" [class.fa-spinner]="procesando" [class.fa-spin]="procesando"></i>
+            {{ procesando ? 'Procesando...' : 'Adjuntar imagen' }}
+            <input type="file" accept="image/*" multiple hidden [disabled]="procesando"
+                (change)="onInputChange($event)" />
+        </label>
+        <span class="eu-hint">Haz clic o arrastra una imagen aquí · máx. {{ max }}</span>
+    </div>
+
+    <div class="eu-completo" *ngIf="lleno">
+        <i class="fa fa-circle-check"></i>
+        Límite alcanzado ({{ evidencias.length }}/{{ max }}). Elimina una para agregar otra.
+    </div>
+
+    <div class="eu-thumbs" *ngIf="evidencias.length > 0">
+        <div class="eu-thumb" *ngFor="let ev of evidencias; let i = index">
+            <img [src]="'data:' + ev.tipo + ';base64,' + ev.base64" [alt]="ev.url || 'evidencia'" />
+            <button type="button" class="eu-del" title="Quitar imagen" (click)="quitar(i)">&times;</button>
+            <span class="eu-weight">{{ formatearPeso(ev.peso_bytes) }}</span>
+        </div>
+    </div>
+
+</div>
