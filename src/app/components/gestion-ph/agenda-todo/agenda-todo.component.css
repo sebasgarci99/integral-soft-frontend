@@ -586,3 +586,24 @@
 .at-btn-amber:hover { background: #d97706; }
 .at-btn-ghost { background: #f1f5f9; color: #475569; }
 .at-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* En móvil se muestra solo el día seleccionado (no la semana completa). */
+@media (max-width: 768px) {
+    .at-cal-head,
+    .at-cal-row {
+        grid-template-columns: 58px 1fr;
+    }
+
+    .at-cal-day-head:not(.sel),
+    .at-cal-cell:not(.sel) {
+        display: none;
+    }
+
+    .at-cal-body {
+        max-height: none;
+    }
+
+    .at-week-nav .at-count {
+        display: none;
+    }
+}

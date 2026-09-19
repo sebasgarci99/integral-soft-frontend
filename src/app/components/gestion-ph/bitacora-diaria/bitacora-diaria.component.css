@@ -18,6 +18,11 @@
     .bd-layout {
         grid-template-columns: 1fr;
     }
+
+    /* En móvil/tablet el Panel del Día va primero. */
+    .bd-side {
+        order: -1;
+    }
 }
 
 .bd-card {

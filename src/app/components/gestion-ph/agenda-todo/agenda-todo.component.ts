@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -31,11 +31,14 @@ const ESTADOS: Record<string, { etiqueta: string; color: string }> = {
     templateUrl: './agenda-todo.component.html',
     styleUrl: './agenda-todo.component.css'
 })
-export class AgendaTodoComponent implements OnChanges {
+export class AgendaTodoComponent implements OnInit, OnChanges, OnDestroy {
 
     @Input() fecha: string = '';
     @Input() idTipoGrupo: number | null = null;
     @Output() fechaChange = new EventEmitter<string>();
+
+    esMovil = false;
+    private mediaQuery?: MediaQueryList;
 
     horas: number[] = this.construirFranjaHoras();
 
@@ -58,6 +61,20 @@ export class AgendaTodoComponent implements OnChanges {
         private gestionPhService: GestionPhService
     ) {}
 
+    ngOnInit(): void {
+        this.mediaQuery = window.matchMedia('(max-width: 768px)');
+        this.esMovil = this.mediaQuery.matches;
+        this.mediaQuery.addEventListener('change', this.onMediaChange);
+    }
+
+    ngOnDestroy(): void {
+        this.mediaQuery?.removeEventListener('change', this.onMediaChange);
+    }
+
+    private onMediaChange = (evento: MediaQueryListEvent): void => {
+        this.esMovil = evento.matches;
+    };
+
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['fecha'] || changes['idTipoGrupo']) {
             this.cargarSemana();
@@ -70,6 +87,19 @@ export class AgendaTodoComponent implements OnChanges {
         const primero = this.diasSemana[0];
         const ultimo = this.diasSemana[this.diasSemana.length - 1];
         return `Semana del ${this.fechaLegible(primero.fecha)} al ${this.fechaLegible(ultimo.fecha)}`;
+    }
+
+    get tituloVista(): string {
+        return this.esMovil ? 'Vista del Día' : 'Vista Semanal';
+    }
+
+    get subtituloVista(): string {
+        if (this.esMovil) {
+            return this.parseFecha(this.fecha).toLocaleDateString('es-CO', {
+                weekday: 'long', day: 'numeric', month: 'long'
+            });
+        }
+        return this.tituloSemana;
     }
 
     get pendientes(): number {
@@ -147,11 +177,11 @@ export class AgendaTodoComponent implements OnChanges {
     }
 
     semanaAnterior(): void {
-        this.fechaChange.emit(this.sumarDias(this.fecha, -7));
+        this.fechaChange.emit(this.sumarDias(this.fecha, this.esMovil ? -1 : -7));
     }
 
     semanaSiguiente(): void {
-        this.fechaChange.emit(this.sumarDias(this.fecha, 7));
+        this.fechaChange.emit(this.sumarDias(this.fecha, this.esMovil ? 1 : 7));
     }
 
     irHoy(): void {

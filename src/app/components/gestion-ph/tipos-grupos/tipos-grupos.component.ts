@@ -17,6 +17,7 @@ export class TiposGruposComponent implements OnInit {
 
     @Output() gruposCambiados = new EventEmitter<void>();
 
+    todosLosGrupos: TipoGrupo[] = [];
     grupos: TipoGrupo[] = [];
     cargando = false;
     guardando = false;
@@ -68,19 +69,28 @@ export class TiposGruposComponent implements OnInit {
         };
     }
 
+    /** Filtro en cliente: garantiza que la tabla reaccione al instante al checkbox. */
+    private aplicarFiltro(): void {
+        this.grupos = this.incluirInactivos
+            ? [...this.todosLosGrupos]
+            : this.todosLosGrupos.filter(g => g.estado !== 'I');
+    }
+
     cambiarIncluirInactivos(valor: boolean): void {
         this.incluirInactivos = valor;
-        this.cargarGrupos();
+        this.aplicarFiltro();
     }
 
     async cargarGrupos(): Promise<void> {
         this.cargando = true;
         try {
-            const respuesta = await this.tiposGrupoService.getTiposGrupo(this.incluirInactivos);
+            // Siempre se traen todos (activos e inactivos) y el filtro se aplica en cliente.
+            const respuesta = await this.tiposGrupoService.getTiposGrupo(true);
             respuesta.subscribe({
                 next: (res) => {
                     if (res.state === 'OK') {
-                        this.grupos = res.body || [];
+                        this.todosLosGrupos = res.body || [];
+                        this.aplicarFiltro();
                     }
                     this.cargando = false;
                 },
@@ -99,11 +109,11 @@ export class TiposGruposComponent implements OnInit {
     }
 
     get totalActivos(): number {
-        return this.grupos.filter(g => g.estado !== 'I').length;
+        return this.todosLosGrupos.filter(g => g.estado !== 'I').length;
     }
 
     get totalInactivos(): number {
-        return this.grupos.filter(g => g.estado === 'I').length;
+        return this.todosLosGrupos.filter(g => g.estado === 'I').length;
     }
 
     abrirCrear(): void {

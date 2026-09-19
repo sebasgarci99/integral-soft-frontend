@@ -4,8 +4,8 @@
     <div class="at-card at-week">
         <div class="at-card-header">
             <div>
-                <h3><i class="fa fa-calendar-week"></i> Vista Semanal</h3>
-                <span>{{ tituloSemana }}</span>
+                <h3><i class="fa fa-calendar-week"></i> {{ tituloVista }}</h3>
+                <span>{{ subtituloVista }}</span>
             </div>
             <div class="at-week-nav">
                 <button type="button" title="Semana anterior" (click)="semanaAnterior()">
@@ -24,6 +24,7 @@
                 <div class="at-cal-corner"></div>
                 <div class="at-cal-day-head" *ngFor="let dia of diasSemana"
                     [class.today]="dia.esHoy" [class.selected]="dia.esSeleccionado"
+                    [class.sel]="dia.esSeleccionado"
                     (click)="seleccionarDia(dia.fecha)">
                     <span class="at-day-badge" *ngIf="dia.esHoy">HOY</span>
                     <span class="at-day-name">{{ dia.etiqueta }}</span>
@@ -36,6 +37,7 @@
                     <div class="at-cal-hour">{{ formatearHora(hora + ':00') }}</div>
                     <div class="at-cal-cell" *ngFor="let dia of diasSemana"
                         [class.today]="dia.esHoy" [class.selected]="dia.esSeleccionado"
+                        [class.sel]="dia.esSeleccionado"
                         [class.has-events]="eventosEnHora(dia, hora).length > 0"
                         (click)="seleccionarDia(dia.fecha)">
                         <div class="at-now-line" *ngIf="dia.esHoy && horaActual.getHours() === hora">
