@@ -67,9 +67,9 @@
                                         {{ col.header }}
                                     </th>
                                     <ng-container *ngFor="let item of cabeceraOrdenada">
-                                        <th *ngIf="item.tipo === 'grupo'" [attr.colspan]="item.grupo.colspan"
-                                            [ngStyle]="estilosGrupo(item.grupo.index)" class="th-grupo">
-                                            {{ item.grupo.titulo }}
+                                        <th *ngIf="item.tipo === 'grupo'" [attr.colspan]="item.colspan"
+                                            [ngStyle]="estilosGrupo(item.index)" class="th-grupo">
+                                            {{ item.titulo }}
                                         </th>
                                         <th *ngIf="item.tipo === 'valor'" [attr.rowspan]="2"
                                             [ngStyle]="estilosColumna(item.col, true)" class="th-valor">
@@ -96,7 +96,7 @@
                                         <ng-container *ngIf="esColumnaValor(col); else valorNormal">
                                             {{ formatearValor(row[col.field]) }}
                                         </ng-container>
-                                        <ng-template #valorNormal>{{ row[col.field] }}</ng-template>
+                                        <ng-template #valorNormal>{{ formatearNumero(row[col.field]) }}</ng-template>
                                     </td>
                                 </tr>
                             </ng-template>
@@ -222,65 +222,156 @@
             </div>
         </div>
 
-        <p-dialog header="Valor a cobrar de residuos" [(visible)]="showValorDialog" [modal]="true"
-            [style]="{width: '42rem'}" [draggable]="false" [resizable]="false" appendTo="body">
-            <div class="p-fluid grid p-formgrid">
-                <div class="col-12 mb-2">
-                    <strong>Valor vigente:</strong>
-                    <span *ngIf="valorKgActual != null"> {{ formatearValor(valorKgActual) }} / kg</span>
-                    <span *ngIf="valorKgActual == null" class="text-muted"> Sin configurar</span>
+        <p-dialog [(visible)]="showValorDialog" [modal]="true"
+            [style]="{width: '55rem', maxWidth: '95vw'}" [draggable]="false" [resizable]="false"
+            appendTo="body" styleClass="valor-dialog" header="Valor a cobrar de residuos">
+            <div class="valor-form">
+
+                <!-- Selector de tipo -->
+                <div class="valor-segment">
+                    <button type="button" class="seg-btn" [class.active]="nuevoValorTipo === 'grupo'"
+                        (click)="nuevoValorTipo = 'grupo'; nuevoValorClave = null; nuevoValorClaves = []">
+                        <i class="fa fa-layer-group"></i> Por grupo
+                    </button>
+                    <button type="button" class="seg-btn" [class.active]="nuevoValorTipo === 'corriente'"
+                        (click)="nuevoValorTipo = 'corriente'; nuevoValorClave = null; nuevoValorClaves = []">
+                        <i class="fa fa-tags"></i> Por corriente
+                    </button>
                 </div>
 
-                <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
-                    <p-inputNumber [(ngModel)]="nuevoValorKg" inputId="nuevoValorKg" [min]="0" mode="decimal"
-                        [minFractionDigits]="0" [maxFractionDigits]="2" [showButtons]="true" class="w-100">
-                    </p-inputNumber>
-                    <label for="nuevoValorKg">Valor por kg</label>
-                </p-floatlabel>
+                <div class="valor-grid">
+                    <div class="valor-field full">
+                        <label>Objetivo</label>
+                        <p-dropdown *ngIf="nuevoValorTipo === 'grupo'" [options]="gruposValorOpts"
+                            [(ngModel)]="nuevoValorClave" optionLabel="label" optionValue="value"
+                            [filter]="true" placeholder="Seleccione un grupo" class="w-100"></p-dropdown>
+                        <p-multiSelect *ngIf="nuevoValorTipo === 'corriente'" [options]="corrientesValorGrouped"
+                            [(ngModel)]="nuevoValorClaves" [group]="true"
+                            optionLabel="label" optionValue="value"
+                            optionGroupLabel="label" optionGroupChildren="items"
+                            [filter]="true" [showClear]="true" [showToggleAll]="false"
+                            display="chip"
+                            placeholder="Seleccione una o varias corrientes" class="w-100"></p-multiSelect>
+                    </div>
 
-                <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
-                    <p-calendar [(ngModel)]="nuevoValorFecha" dateFormat="yy-mm-dd" inputId="nuevoValorFecha"
-                        showIcon appendTo="body" class="w-100">
-                    </p-calendar>
-                    <label for="nuevoValorFecha">Fecha de vigencia</label>
-                </p-floatlabel>
+                    <div class="valor-field">
+                        <label>Valor por kg</label>
+                        <div class="valor-money">
+                            <span class="money-prefix">$</span>
+                            <p-inputNumber [(ngModel)]="nuevoValorKg" [min]="0" mode="decimal"
+                                [minFractionDigits]="0" [maxFractionDigits]="2" [showButtons]="false"
+                                placeholder="0" class="w-100"></p-inputNumber>
+                            <span class="money-suffix">/kg</span>
+                        </div>
+                    </div>
 
-                <p-floatlabel variant="on" class="col-12 mt-3">
-                    <input pInputText id="nuevoValorObservacion" [(ngModel)]="nuevoValorObservacion" maxlength="255" class="w-100" />
-                    <label for="nuevoValorObservacion">Observación (opcional)</label>
-                </p-floatlabel>
+                    <div class="valor-field">
+                        <label>Fecha de vigencia</label>
+                        <p-calendar [(ngModel)]="nuevoValorFecha" dateFormat="yy-mm-dd" [showIcon]="true"
+                            appendTo="body" class="w-100"></p-calendar>
+                    </div>
+
+                    <div class="valor-field full">
+                        <label>Observación (opcional)</label>
+                        <input pInputText [(ngModel)]="nuevoValorObservacion" maxlength="255"
+                            placeholder="Ej. ajuste de tarifa" class="w-100" />
+                    </div>
+                </div>
+
+                <!-- Vista previa -->
+                <div class="valor-preview" *ngIf="hayObjetivoSeleccionado && nuevoValorKg != null">
+                    <i class="fa fa-calculator"></i>
+                    <span>Se cobrará <strong>{{ formatearValor(nuevoValorKg) }}</strong> por kg a
+                        <strong>{{ objetivoPreviewLabel }}</strong>.</span>
+                </div>
+
+                <div class="valor-actions">
+                    <button pButton type="button" label="Guardar valor" icon="fa fa-save" severity="success"
+                        [loading]="guardandoValor" [disabled]="!hayObjetivoSeleccionado || nuevoValorKg == null || guardandoValor"
+                        (click)="guardarValor()"></button>
+                </div>
+
+                <div class="valor-hist">
+                    <h6><i class="fa fa-history"></i> Histórico de valores</h6>
+                    <p-table [value]="valores" [size]="'small'" [paginator]="true" [rows]="5" stripedRows responsiveLayout="scroll">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>Objetivo</th>
+                                <th>Tipo</th>
+                                <th>Valor/kg</th>
+                                <th>Vigencia</th>
+                                <th>Observación</th>
+                                <th>Registrado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-row>
+                            <tr>
+                                <td>{{ etiquetaObjetivo(row) }}</td>
+                                <td>
+                                    <p-tag [value]="row.tipo_objetivo === 'grupo' ? 'Grupo' : 'Corriente'"
+                                        [severity]="row.tipo_objetivo === 'grupo' ? 'info' : 'warning'"></p-tag>
+                                </td>
+                                <td>{{ formatearValor(row.valor_kg) }}</td>
+                                <td>{{ row.fecha_vigencia | date:'dd-MM-yyyy' }}</td>
+                                <td>{{ row.observacion || '-' }}</td>
+                                <td>{{ row.createdAt | date:'dd-MM-yyyy HH:mm' }}</td>
+                                <td class="text-center" style="white-space: nowrap;">
+                                    <button pButton type="button" icon="fa fa-pencil" class="p-button-text p-button-sm"
+                                        pTooltip="Modificar" (click)="abrirEditarValor(row)"></button>
+                                    <button pButton type="button" icon="fa fa-trash" class="p-button-text p-button-sm p-button-danger"
+                                        pTooltip="Inactivar" (click)="inactivarValorFila(row)"></button>
+                                </td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                            <tr><td colspan="7" class="text-center">Sin valores registrados</td></tr>
+                        </ng-template>
+                    </p-table>
+                </div>
             </div>
+        </p-dialog>
 
-            <div class="flex justify-content-end mt-3">
-                <button pButton type="button" label="Guardar valor" icon="fa fa-save" class="p-button-info"
-                    [loading]="guardandoValor" [disabled]="nuevoValorKg == null || guardandoValor" (click)="guardarValor()">
-                </button>
+        <p-dialog [(visible)]="showEditValorDialog" [modal]="true"
+            [style]="{width: '32rem', maxWidth: '95vw'}" [draggable]="false" [resizable]="false"
+            appendTo="body" styleClass="valor-dialog" header="Modificar valor">
+            <div class="valor-form">
+                <div class="valor-preview" style="background:#eef6f8;border-color:#d7eef3;color:#0d8aa6;">
+                    <i class="fa fa-bullseye"></i>
+                    <span>Objetivo: <strong>{{ editValorObjetivo }}</strong></span>
+                </div>
+
+                <div class="valor-grid">
+                    <div class="valor-field">
+                        <label>Valor por kg</label>
+                        <div class="valor-money">
+                            <span class="money-prefix">$</span>
+                            <p-inputNumber [(ngModel)]="editValorKg" [min]="0" mode="decimal"
+                                [minFractionDigits]="0" [maxFractionDigits]="2" placeholder="0" class="w-100"></p-inputNumber>
+                            <span class="money-suffix">/kg</span>
+                        </div>
+                    </div>
+
+                    <div class="valor-field">
+                        <label>Fecha de vigencia</label>
+                        <p-calendar [(ngModel)]="editValorFecha" dateFormat="yy-mm-dd" [showIcon]="true"
+                            appendTo="body" class="w-100"></p-calendar>
+                    </div>
+
+                    <div class="valor-field full">
+                        <label>Observación (opcional)</label>
+                        <input pInputText [(ngModel)]="editValorObservacion" maxlength="255" class="w-100" />
+                    </div>
+                </div>
+
+                <div class="valor-actions">
+                    <button pButton type="button" label="Cancelar" icon="fa fa-times" severity="secondary"
+                        style="margin-right:.5rem" (click)="showEditValorDialog = false"></button>
+                    <button pButton type="button" label="Guardar cambios" icon="fa fa-save" severity="success"
+                        [loading]="guardandoEdicionValor" [disabled]="editValorKg == null || guardandoEdicionValor"
+                        (click)="guardarEdicionValor()"></button>
+                </div>
             </div>
-
-            <hr>
-
-            <h6 class="fw-bold">Histórico de valores</h6>
-            <p-table [value]="valores" [size]="'small'" [paginator]="true" [rows]="5" stripedRows responsiveLayout="scroll">
-                <ng-template pTemplate="header">
-                    <tr>
-                        <th>Valor por kg</th>
-                        <th>Vigencia</th>
-                        <th>Observación</th>
-                        <th>Registrado</th>
-                    </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-row>
-                    <tr>
-                        <td>{{ formatearValor(row.valor_kg) }}</td>
-                        <td>{{ row.fecha_vigencia | date:'dd-MM-yyyy' }}</td>
-                        <td>{{ row.observacion || '-' }}</td>
-                        <td>{{ row.createdAt | date:'dd-MM-yyyy HH:mm' }}</td>
-                    </tr>
-                </ng-template>
-                <ng-template pTemplate="emptymessage">
-                    <tr><td colspan="4" class="text-center">Sin valores registrados</td></tr>
-                </ng-template>
-            </p-table>
         </p-dialog>
 
 <p-dialog header="Historial de envíos de reportes" [(visible)]="showLogsDialog" [modal]="true" [style]="{width: '90vw', maxWidth: '1200px'}" [draggable]="false" [resizable]="false">

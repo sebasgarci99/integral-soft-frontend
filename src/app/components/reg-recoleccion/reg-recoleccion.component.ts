@@ -8,6 +8,7 @@ import { SecureStorageService } from '../../services/secure-storage.service';
 import { OfflineDbService, OutboxRecoleccion } from '../../services/offline/offline-db.service';
 import { SyncRecoleccionService } from '../../services/offline/sync-recoleccion.service';
 import { NetworkService } from '../../services/offline/network.service';
+import { InfoUsuarioService } from '../../services/info-usuario/info-usuario.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { CommonModule } from '@angular/common';
@@ -118,12 +119,38 @@ export class RegRecoleccionComponent implements OnInit{
     // Mensaje para firma
     mostrarMensajeOK:boolean = false;
 
+    habilitarPaso3 = false;
+
     steps: MenuItem[] = [
         { label: 'General' },
         { label: 'Residuos' },
-        { label: 'Bolsas' },
         { label: 'Confirmación y firma' }
     ];
+
+    private construirSteps(): void {
+        this.steps = this.habilitarPaso3
+            ? [
+                { label: 'General' },
+                { label: 'Residuos' },
+                { label: 'Bolsas' },
+                { label: 'Confirmación y firma' }
+            ]
+            : [
+                { label: 'General' },
+                { label: 'Residuos' },
+                { label: 'Confirmación y firma' }
+            ];
+    }
+
+    // Clave del paso actual, para no depender de índices fijos cuando el paso 3 se oculta
+    pasoKey(): 'general' | 'residuos' | 'bolsas' | 'confirmacion' {
+        if (this.current === 0) { return 'general'; }
+        if (this.current === 1) { return 'residuos'; }
+        if (this.habilitarPaso3) {
+            return this.current === 2 ? 'bolsas' : 'confirmacion';
+        }
+        return 'confirmacion';
+    }
 
     // Datos del formulario
     formData: Recoleccion = this.emptyForm();
@@ -177,9 +204,12 @@ export class RegRecoleccionComponent implements OnInit{
         // los residuos físicos y el reporte los mapea a las características de la norma.
         // Los campos siguen existiendo en el modelo/payload para conservar el histórico.
         {
-            titulo: 'Residuos peligrosos identificables',
+            titulo: 'Residuos peligrosos identificables o Químicos',
             nota: 'Registre aquí los residuos que identifica al recibir. Se reportan en las categorías de la norma.',
             campos: [
+                { prop: 'reactivos', label: 'Reactivos', icon: 'fa fa-vial' },
+                { prop: 'corrosivos', label: 'Corrosivos', icon: 'fa fa-flask' },
+                { prop: 'inflamables', label: 'Inflamables (hidrocarburos)', icon: 'fa fa-fire' },
                 { prop: 'farmacos', label: 'Fármacos', icon: 'fa fa-plus-circle' },
                 { prop: 'chatarraElectronica', label: 'Chatarra electrónica', icon: 'fa fa-desktop' },
                 { prop: 'pilas', label: 'Pilas', icon: 'fa fa-battery-empty' },
@@ -209,7 +239,8 @@ export class RegRecoleccionComponent implements OnInit{
         private secureStorage: SecureStorageService,
         private offlineDb: OfflineDbService,
         private syncRecoleccion: SyncRecoleccionService,
-        private network: NetworkService
+        private network: NetworkService,
+        private infoUsuarioService: InfoUsuarioService
     ) {}
 
     async ngOnInit(): Promise<void> {
@@ -222,9 +253,22 @@ export class RegRecoleccionComponent implements OnInit{
         }
 
         // Primero los consultorios: los registros necesitan sus etiquetas para el grid.
+        await this.cargarConfigEmpresa();
         await this.cargarConsultorios();
         await this.cargarRegistrosRecoleccion();
         this.cargarInfoUsuarioSesion();
+    }
+
+    // Consulta si la empresa tiene habilitado el paso 3 (Bolsas / Info del proceso)
+    private async cargarConfigEmpresa(): Promise<void> {
+        try {
+            const data: any = await firstValueFrom(await this.infoUsuarioService.getEmpresaConfig());
+            this.habilitarPaso3 = data?.habilitar_paso3_bolsas_recolec === true
+                || data?.habilitar_paso3_bolsas_recolec === 'true';
+        } catch (e) {
+            this.habilitarPaso3 = false;
+        }
+        this.construirSteps();
     }
 
     // Funcion que limpia y habilita el formulario de recolección, a su vez impulsa el abrir.
@@ -629,51 +673,23 @@ export class RegRecoleccionComponent implements OnInit{
     // Validaciones para cada paso de los formularios
     validacionesPasos() : boolean {
 
-        // Paso 0 o de datos generales
-        if(this.current == 0) {
-            if(
-                this.formData.consultorio == null || 
+        // Paso general (datos generales)
+        if (this.pasoKey() === 'general') {
+            if (
+                this.formData.consultorio == null ||
                 this.formData.fecha == null
-            ) {
-                return true;
-            } 
-        }
-
-        // Paso 1 o de REGISTRO PROPIO DE PESOS
-        // Validamos que todos los campos esten digitados
-        // 05-08-2025 Se retiran condiciones
-        // if(this.current == 1) {
-        //     if(
-        //         this.formData.aprovechablesBlanco == null ||
-        //         this.formData.noAprovechablesNegra == null ||
-        //         this.formData.biosanitariosRoja == null ||
-        //         this.formData.cortopunzantes == null ||
-        //         this.formData.anatomopatologicos == null ||
-        //         this.formData.farmacos == null ||
-        //         this.formData.chatarraElectronica == null ||
-        //         this.formData.pilas == null ||
-        //         this.formData.quimicos == null ||
-        //         this.formData.iluminarias == null ||
-        //         this.formData.aceitesUsados == null 
-        //     ) {
-        //         return true;
-        //     } 
-        // }
-
-        // Paso 2 o de las bolsas
-        // Pendiente porque no se sin son obligatorias
-
-        // Paso 3 o final : de confirmación
-        if(this.current == 3) {
-            if(
-                this.formData.dotacionPseg == null || 
-                this.formData.dotacionGenerador == null || 
-                this.formData.firma == null
             ) {
                 return true;
             }
         }
-        
+
+        // Paso final: confirmación y firma (las preguntas de dotación ya no se usan)
+        if (this.pasoKey() === 'confirmacion') {
+            if (this.formData.firma == null) {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -700,6 +716,20 @@ export class RegRecoleccionComponent implements OnInit{
     // Total general de residuos del formulario
     get totalGeneralResiduos(): number {
         return this.residuosGrupos.reduce((acc, g) => acc + this.subtotalGrupo(g), 0);
+    }
+
+    // Resumen de los campos de residuos que se digitaron (> 0), para mostrar bajo la firma
+    get resumenResiduos(): { label: string; valor: number }[] {
+        const resumen: { label: string; valor: number }[] = [];
+        for (const g of this.residuosGrupos) {
+            for (const c of g.campos) {
+                const valor = Number((this.formData as any)[c.prop]) || 0;
+                if (valor > 0) {
+                    resumen.push({ label: c.label, valor: valor });
+                }
+            }
+        }
+        return resumen;
     }
 
     validarFechaEsHoy(fecha: string | Date): boolean {

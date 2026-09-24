@@ -95,10 +95,10 @@
                     <p-steps [model]="steps" [activeIndex]="current" styleClass="mb-4"></p-steps>
 
                     <!-- CONTENIDO DE CADA PASO -->
-                    <ng-container [ngSwitch]="current">
+                    <ng-container [ngSwitch]="pasoKey()">
 
-                        <!-- Paso 0: Datos generales -->
-                        <ng-container *ngSwitchCase="0">
+                        <!-- Paso: Datos generales -->
+                        <ng-container *ngSwitchCase="'general'">
                             <div class="p-fluid grid p-formgrid">
                                 <p-floatlabel variant="on" class="col-12 md:col-6">
                                     <p-calendar 
@@ -145,8 +145,8 @@
                             </div>
                         </ng-container>
 
-                        <!-- Paso 1: Residuos (agrupados RESPEL) -->
-                        <ng-container *ngSwitchCase="1">
+                        <!-- Paso: Residuos (agrupados RESPEL) -->
+                        <ng-container *ngSwitchCase="'residuos'">
                             <div class="p-fluid">
                                 <div *ngFor="let grupo of residuosGrupos" class="grupo-residuos mb-3">
                                     <div class="grupo-header">
@@ -194,8 +194,8 @@
                             </div>
                         </ng-container>
 
-                        <!-- Paso 2: Bolsas -->
-                        <ng-container *ngSwitchCase="2">
+                        <!-- Paso: Bolsas (solo si la empresa lo habilita) -->
+                        <ng-container *ngSwitchCase="'bolsas'">
                             <div class="p-fluid">
                                 <!-- Grupo: Bolsas utilizadas -->
                                 <div class="grupo-residuos mb-3">
@@ -335,55 +335,8 @@
                             </div>
                         </ng-container>
 
-                        <!-- Paso 3: Confirmación -->
-                        <!-- Paso 4: Confirmación -->
-                        <ng-container *ngSwitchCase="3">
-                            <div class="p-fluid grid p-formgrid">
-                                <p-floatlabel variant="on" class="col-12 md:col-6">
-                                    <p-dropdown
-                                        id="dotacionGenerador" 
-                                        [options]="siNoOpts"
-                                        [ngClass]="{
-                                            'p-inputwrapper-filled': formData.dotacionGenerador
-                                        }"
-                                        [(ngModel)]="formData.dotacionGenerador"
-                                        #dotacionGenerador="ngModel"
-                                        inputId="dotacionGenerador"
-                                        [checkmark]="true" 
-                                        optionLabel="label" 
-                                        optionValue="value"
-                                        [showClear]="true"
-                                        class="w-100">
-                                    </p-dropdown>
-                                    <label for="dotacionGenerador">¿Dotación personal generador adecuada?</label>
-                                    <small class="p-error text-error-small" *ngIf="formData.dotacionGenerador == null && dotacionGenerador.touched">
-                                        Debes seleccionar una opción en la pregunta.
-                                    </small>
-                                </p-floatlabel>
-                                <br>
-                                <p-floatlabel variant="on" class="col-12 md:col-6">
-                                    <p-dropdown
-                                         id="dotacionPseg" 
-                                        [options]="siNoOpts"
-                                        [ngClass]="{
-                                            'p-inputwrapper-filled': formData.dotacionPseg
-                                        }" 
-                                        [(ngModel)]="formData.dotacionPseg"
-                                        #dotacionPseg="ngModel"
-                                        inputId="dotacionPseg"
-                                        [checkmark]="true" 
-                                        optionLabel="label" 
-                                        optionValue="value"
-                                        [showClear]="true"
-                                        class="w-100">
-                                    </p-dropdown>
-                                    <label for="dotacionPseg">¿Dotación personal pseg adecuada?</label>
-                                    <small class="p-error text-error-small" *ngIf="formData.dotacionPseg == null && dotacionPseg.touched">
-                                        Debes seleccionar una opción en la pregunta.
-                                    </small>
-                                </p-floatlabel>
-                            </div>
-                            <br>
+                        <!-- Paso: Confirmación y firma -->
+                        <ng-container *ngSwitchCase="'confirmacion'">
                             <!-- Firma -->
                             <div class="field col-12 text-center">
                                 
@@ -407,7 +360,22 @@
                                     </div>
                                 </p-floatlabel>
                             </div>
-                            
+
+                            <!-- Resumen de los residuos digitados -->
+                            <div class="resumen-residuos" *ngIf="resumenResiduos.length">
+                                <h6 class="resumen-titulo"><i class="fa fa-list-ul"></i> Resumen de residuos registrados</h6>
+                                <ul class="resumen-lista">
+                                    <li *ngFor="let r of resumenResiduos">
+                                        <span>{{ r.label }}</span>
+                                        <strong>{{ r.valor | number:'1.2-2' }} kg</strong>
+                                    </li>
+                                </ul>
+                                <div class="resumen-total">
+                                    <span>Total</span>
+                                    <strong>{{ totalGeneralResiduos | number:'1.2-2' }} kg</strong>
+                                </div>
+                            </div>
+
                         </ng-container>
 
                     <!-- CONTENIDO DE CADA PASO -->

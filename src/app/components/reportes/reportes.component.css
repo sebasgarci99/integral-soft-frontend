@@ -88,3 +88,171 @@
     font-size: 0.68rem;
 }
 
+/* ============================================= */
+/* Diálogo "Valor a cobrar de residuos"           */
+/* ============================================= */
+:host ::ng-deep .valor-dialog .p-dialog-header {
+    background: linear-gradient(135deg, #0d8aa6 0%, #0a6b82 100%);
+    color: #ffffff;
+    border-radius: 12px 12px 0 0;
+}
+
+:host ::ng-deep .valor-dialog .p-dialog-title {
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+:host ::ng-deep .valor-dialog .p-dialog-header-icon {
+    color: #ffffff;
+}
+
+:host ::ng-deep .valor-dialog .p-dialog-header-icon:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.valor-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
+.valor-segment {
+    display: flex;
+    background: #eef6f8;
+    border: 1px solid #d7eef3;
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.valor-segment .seg-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 0.6rem 0.75rem;
+    border-radius: 9px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #476575;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+}
+
+.valor-segment .seg-btn:hover {
+    color: #0d8aa6;
+}
+
+.valor-segment .seg-btn.active {
+    background: #ffffff;
+    color: #0d8aa6;
+    box-shadow: 0 2px 8px rgba(13, 138, 166, 0.18);
+}
+
+.valor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.valor-grid .full {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 575.98px) {
+    .valor-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.valor-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.valor-field label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #3f5c68;
+}
+
+.valor-money {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.valor-money:focus-within {
+    border-color: #0d8aa6;
+    box-shadow: 0 0 0 3px rgba(13, 138, 166, 0.12);
+}
+
+.valor-money .money-prefix,
+.valor-money .money-suffix {
+    padding: 0.5rem 0.7rem;
+    background: #f2fafc;
+    color: #0d8aa6;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.valor-money .money-prefix { border-right: 1px solid #e2eef1; }
+.valor-money .money-suffix { border-left: 1px solid #e2eef1; }
+
+:host ::ng-deep .valor-money .p-inputnumber,
+:host ::ng-deep .valor-money .p-inputnumber-input {
+    width: 100%;
+}
+
+:host ::ng-deep .valor-money .p-inputnumber-input {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.valor-preview {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: 10px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    font-size: 0.9rem;
+    animation: fadeInPreview 0.25s ease;
+}
+
+.valor-preview i {
+    font-size: 1.1rem;
+}
+
+@keyframes fadeInPreview {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.valor-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.valor-hist {
+    border-top: 1px dashed #dbe9ee;
+    padding-top: 1rem;
+}
+
+.valor-hist h6 {
+    margin: 0 0 0.6rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0d8aa6;
+}
+

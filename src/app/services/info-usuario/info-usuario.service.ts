@@ -27,6 +27,15 @@ export class InfoUsuarioService {
         ).pipe(map(resp => resp.body));
     }
 
+    async getEmpresaConfig(): Promise<Observable<any>> {
+        const headers = await this.getAuthHeaders();
+        return this.http.post<any>(
+            `${this.urlApp}${this.urlAppAPI}getEmpresaConfig`,
+            {},
+            { headers }
+        ).pipe(map(resp => resp.body));
+    }
+
     async updateUserInfo(data: { nombre?: string; apellido?: string; foto_perfil?: string; firma_digital?: string }): Promise<Observable<any>> {
         const headers = await this.getAuthHeaders();
         return this.http.post<any>(

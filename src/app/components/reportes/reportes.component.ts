@@ -16,11 +16,13 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { PaginatorModule } from 'primeng/paginator';
 import { FloatLabelModule  } from 'primeng/floatlabel';
 import { DropdownModule } from 'primeng/dropdown';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { CalendarModule } from 'primeng/calendar';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 
 
 import { jsPDF } from 'jspdf';
@@ -45,12 +47,14 @@ import { ValorResiduo } from '../../interfaces/valor-residuo';
         FloatLabelModule,
         InputTextModule,
         DropdownModule,
+        MultiSelectModule,
         CalendarModule,
         InputNumberModule,
         IconFieldModule,
         InputIconModule,
         InputIconModule,
-        TagModule
+        TagModule,
+        TooltipModule
     ],
     templateUrl: './reportes.component.html',
     styleUrl: './reportes.component.css',
@@ -69,7 +73,7 @@ export class ReportesComponent implements OnInit {
     reporteGenerado = false;
     columnas: any[] = [];
     totales: { [key: string]: number } = {};
-    gruposColumnas: { base: any[]; grupos: any[]; valor?: any | null; cierre: any | null } = { base: [], grupos: [], valor: null, cierre: null };
+    gruposColumnas: { base: any[]; cabecera: any[]; cierre: any | null } = { base: [], cabecera: [], cierre: null };
 
     // Paleta única compartida por pantalla, Excel y PDF
     readonly COLORES_GRUPO = [
@@ -91,14 +95,68 @@ export class ReportesComponent implements OnInit {
         { label: 'Consolidado por día', value: 'consolidado_dia' }
     ];
 
-    // ===== Valor a cobrar de residuos (rol 1) =====
-    valorKgActual: number | null = null;
+    // ===== Valor a cobrar de residuos por grupo/corriente (rol 1) =====
+    valoresVigentes: ValorResiduo[] = [];
     showValorDialog = false;
     guardandoValor = false;
     valores: ValorResiduo[] = [];
+    nuevoValorTipo: 'grupo' | 'corriente' = 'grupo';
+    nuevoValorClave: string | null = null;
+    nuevoValorClaves: string[] = [];
     nuevoValorKg: number | null = null;
     nuevoValorFecha: Date = new Date();
     nuevoValorObservacion = '';
+
+    // Edición de un valor del histórico
+    showEditValorDialog = false;
+    editValorId: number | null = null;
+    editValorObjetivo = '';
+    editValorKg: number | null = null;
+    editValorFecha: Date = new Date();
+    editValorObservacion = '';
+    guardandoEdicionValor = false;
+
+    // Objetivos configurables: grupos y sus corrientes
+    readonly GRUPOS_VALOR = [
+        {
+            label: 'Res. no peligrosos', total: 'total_no_peligrosos', corrientes: [
+                { label: 'Aprovechables', value: 'aprovechables' },
+                { label: 'Aprovechables orgánicos', value: 'aprovechables_organicos' },
+                { label: 'No aprovechables', value: 'no_aprovechables' }
+            ]
+        },
+        {
+            label: 'Res. riesgo biológico/infeccioso', total: 'total_riesgo_biologico', corrientes: [
+                { label: 'Biosanitarios', value: 'biosanitarios' },
+                { label: 'Anatomopatológicos', value: 'anatomopatologicos' },
+                { label: 'Cortopunzantes', value: 'cortopunzantes' },
+                { label: 'De animales', value: 'de_animales' }
+            ]
+        },
+        {
+            label: 'Radiactivos', total: 'total_radiactivos', corrientes: [
+                { label: 'Radioactivos', value: 'radioactivos' }
+            ]
+        },
+        {
+            label: 'Otros residuos peligrosos', total: 'total_otros_peligrosos', corrientes: [
+                { label: 'Corrosivos', value: 'corrosivos' },
+                { label: 'Explosivos', value: 'explosivos' },
+                { label: 'Reactivos', value: 'reactivos' },
+                { label: 'Tóxicos', value: 'toxicos' },
+                { label: 'Inflamables (hidrocarburos)', value: 'inflamables' }
+            ]
+        },
+        {
+            label: 'Residuos peligrosos identificables o Químicos', total: 'total_otros_no_norma', corrientes: [
+                { label: 'Fármacos', value: 'farmacos' },
+                { label: 'Chatarra electrónica', value: 'chatarra_electronica' },
+                { label: 'Pilas', value: 'pilas' },
+                { label: 'Iluminarias', value: 'iluminarias' },
+                { label: 'Aceites usados', value: 'aceites_usados' }
+            ]
+        }
+    ];
 
     // ===== Reporte comparativo (rol 1) =====
     comparativoData: any[] = [];
@@ -122,7 +180,8 @@ export class ReportesComponent implements OnInit {
         {
             titulo: 'Radiactivos',
             campos: ['radioactivos'],
-            total: 'total_radiactivos'
+            total: 'total_radiactivos',
+            sinTotal: true
         },
         {
             titulo: 'Otros residuos peligrosos',
@@ -130,8 +189,8 @@ export class ReportesComponent implements OnInit {
             total: 'total_otros_peligrosos'
         },
         {
-            titulo: 'Residuos peligrosos identificables',
-            campos: ['quimicos', 'farmacos', 'chatarra_electronica', 'pilas', 'iluminarias', 'aceites_usados'],
+            titulo: 'Residuos peligrosos identificables o Químicos',
+            campos: ['farmacos', 'chatarra_electronica', 'pilas', 'iluminarias', 'aceites_usados'],
             total: 'total_otros_no_norma'
         }
     ];
@@ -139,15 +198,17 @@ export class ReportesComponent implements OnInit {
     // En estos tipos de reporte el grupo se omite SOLO en Excel/PDF (en pantalla sí se ve)
     private readonly GRUPO_NO_NORMA_TOTAL = 'total_otros_no_norma';
     private readonly TIPOS_EXPORT_SIN_NO_NORMA = ['totalizado_valor'];
-    // Residuos físicos que se mapean a la característica Tóxico de la norma
-    private readonly CAMPOS_MAPEADOS_TOXICO = ['farmacos', 'chatarra_electronica', 'pilas', 'iluminarias', 'aceites_usados'];
+    // Residuos físicos que se mapean a la característica Tóxico (químicos legado incluido, sin captura nueva)
+    private readonly CAMPOS_MAPEADOS_TOXICO = ['farmacos', 'chatarra_electronica', 'pilas', 'iluminarias', 'quimicos'];
+    // Los aceites usados suman a Inflamables (hidrocarburos)
+    private readonly CAMPOS_MAPEADOS_INFLAMABLES = ['aceites_usados'];
 
     // Campos (kg) que se muestran en el detalle por día del reporte comparativo
     readonly CAMPOS_DETALLE_COMPARATIVO: string[] = [
         'aprovechables', 'aprovechables_organicos', 'no_aprovechables',
         'biosanitarios', 'anatomopatologicos', 'cortopunzantes', 'de_animales',
         'radioactivos',
-        'quimicos', 'corrosivos', 'explosivos', 'reactivos', 'toxicos', 'inflamables',
+        'corrosivos', 'explosivos', 'reactivos', 'toxicos', 'inflamables',
         'farmacos', 'chatarra_electronica', 'pilas', 'iluminarias', 'aceites_usados',
         'total'
     ];
@@ -167,7 +228,7 @@ export class ReportesComponent implements OnInit {
         explosivos: 'Explosivos',
         reactivos: 'Reactivos',
         toxicos: 'Tóxicos',
-        inflamables: 'Inflamables',
+        inflamables: 'Inflamables (hidrocarburos)',
         farmacos: 'Fármacos',
         chatarra_electronica: 'Chatarra electrónica',
         pilas: 'Pilas',
@@ -225,26 +286,27 @@ export class ReportesComponent implements OnInit {
             return;
         }
 
-        // El reporte "Totalizado + Valor total" requiere el valor vigente por kg
+        // El reporte "Totalizado + Valor total" requiere los valores vigentes por grupo/corriente
+        this.valoresVigentes = [];
         if (this.tipoReporte === 'totalizado_valor') {
             try {
-                const vigente: any = await firstValueFrom(await this.valorResiduosService.obtenerValorVigente());
-                this.valorKgActual = vigente ? Number(vigente.valor_kg) : null;
+                const vigentes: any = await firstValueFrom(await this.valorResiduosService.obtenerValoresVigentes());
+                this.valoresVigentes = vigentes || [];
 
-                if (this.valorKgActual == null) {
+                if (!this.valoresVigentes.length) {
                     this.messageService.add({
                         severity: 'warn',
-                        summary: 'Sin valor configurado',
-                        detail: 'Configure el valor a cobrar de los residuos para generar este reporte.'
+                        summary: 'Sin valores configurados',
+                        detail: 'Configure el valor a cobrar por grupo o corriente para generar este reporte.'
                     });
                     return;
                 }
             } catch (e) {
-                this.valorKgActual = null;
+                this.valoresVigentes = [];
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
-                    detail: 'No se pudo obtener el valor a cobrar de los residuos.'
+                    detail: 'No se pudieron obtener los valores a cobrar de los residuos.'
                 });
                 return;
             }
@@ -277,26 +339,37 @@ export class ReportesComponent implements OnInit {
                 }
             }
 
-            // Mapeo a la norma: los residuos físicos suman a la característica Tóxico
-            // (se conserva el valor histórico guardado en tóxicos).
+            // Mapeo a la norma:
+            //  - Tóxicos = histórico + Fármacos + Chatarra + Pilas + Iluminarias
+            //  - Inflamables (hidrocarburos) = histórico + Aceites usados
             const aporteToxico = this.CAMPOS_MAPEADOS_TOXICO.reduce((acc, c) => acc + (Number(n[c]) || 0), 0);
             n['toxicos'] = (Number(n['toxicos']) || 0) + aporteToxico;
+
+            const aporteInflamable = this.CAMPOS_MAPEADOS_INFLAMABLES.reduce((acc, c) => acc + (Number(n[c]) || 0), 0);
+            n['inflamables'] = (Number(n['inflamables']) || 0) + aporteInflamable;
 
             for (const g of this.GRUPOS_REPORTE) {
                 n[g.total] = g.campos.reduce((acc, c) => acc + (Number(n[c]) || 0), 0);
             }
 
-            // TOTAL GENERAL: los campos mapeados ya están dentro de Tóxicos; no se suman de nuevo.
-            // Químicos (legado) solo cuenta cuando su grupo está visible.
-            const totalBase = ['total_no_peligrosos', 'total_riesgo_biologico', 'total_radiactivos', 'total_otros_peligrosos']
+            // TOTAL GENERAL: los campos mapeados ya están dentro de Tóxico/Inflamable; no se suman de nuevo.
+            n['total_general'] = ['total_no_peligrosos', 'total_riesgo_biologico', 'total_radiactivos', 'total_otros_peligrosos']
                 .reduce((acc, f) => acc + (Number(n[f]) || 0), 0);
-            n['total_general'] = totalBase + (this.ocultaGrupoNoNormaPantalla() ? 0 : (Number(n['quimicos']) || 0));
 
-            // En el reporte "Totalizado + Valor total" se agrega una columna NUEVA
-            // con el valor a cobrar en pesos (total biológico * valor por kg),
-            // independiente de la suma del grupo biológico (que sigue en kg).
-            if (this.tipoReporte === 'totalizado_valor' && this.valorKgActual != null) {
-                n[this.CAMPO_VALOR_TOTAL] = (Number(n['total_riesgo_biologico']) || 0) * this.valorKgActual;
+            // Redondear a 2 decimales todos los campos numéricos
+            for (const k in n) {
+                if (typeof n[k] === 'number' && isFinite(n[k])) {
+                    n[k] = Math.round(n[k] * 100) / 100;
+                }
+            }
+
+            // Columnas de valor a cobrar por objetivo (grupo o corriente)
+            if (this.tipoReporte === 'totalizado_valor') {
+                for (const v of this.valoresVigentes) {
+                    const clave = String(v.clave_objetivo || '');
+                    if (!clave) { continue; }
+                    n[`valor_${clave}`] = Math.round((Number(n[clave]) || 0) * (Number(v.valor_kg) || 0) * 100) / 100;
+                }
             }
 
             return n;
@@ -308,7 +381,7 @@ export class ReportesComponent implements OnInit {
 
     private construirColumnas(datos: any[]): any[] {
         if (!datos.length) {
-            this.gruposColumnas = { base: [], grupos: [], valor: null, cierre: null };
+            this.gruposColumnas = { base: [], cabecera: [], cierre: null };
             return [];
         }
 
@@ -317,14 +390,19 @@ export class ReportesComponent implements OnInit {
             g.campos.forEach(c => especiales.add(c));
             especiales.add(g.total);
         });
-        especiales.add(this.CAMPO_VALOR_TOTAL);
+        // Campo legado oculto (ya no se captura); su histórico se mapea a Tóxicos
+        especiales.add('quimicos');
+        this.valoresVigentes.forEach(v => {
+            if (v.clave_objetivo) { especiales.add(`valor_${v.clave_objetivo}`); }
+        });
 
         const baseFields = Object.keys(datos[0]).filter(
-            k => !especiales.has(k) && k !== 'total' && k !== 'total_general'
+            k => !especiales.has(k) && k !== 'total' && k !== 'total_general' && !k.startsWith('valor_')
         );
 
         const cols: any[] = [];
         const base: any[] = [];
+        const cabecera: any[] = [];
 
         baseFields.forEach(f => {
             const col = { field: f, header: this.etiqueta(f), base: true };
@@ -332,57 +410,85 @@ export class ReportesComponent implements OnInit {
             base.push(col);
         });
 
-        const grupos: any[] = [];
-        let colValor: any | null = null;
+        // Columnas de valor a cobrar, indexadas por el campo después del cual van
+        const valorPorCampo: { [campo: string]: any[] } = {};
+        if (this.tipoReporte === 'totalizado_valor') {
+            for (const v of this.valoresVigentes) {
+                const clave = String(v.clave_objetivo || '');
+                if (!clave) { continue; }
+
+                const grupo = this.GRUPOS_REPORTE.find(g => g.total === clave);
+                const afterField = (v.tipo_objetivo === 'grupo' && grupo && (grupo as any).sinTotal)
+                    ? grupo.campos[grupo.campos.length - 1]
+                    : clave;
+
+                const col = {
+                    field: `valor_${clave}`,
+                    header: 'VALOR A COBRAR (PESOS)',
+                    esValorTotal: true,
+                    valorObjetivo: clave,
+                    tipoObjetivo: v.tipo_objetivo
+                };
+                (valorPorCampo[afterField] = valorPorCampo[afterField] || []).push(col);
+            }
+        }
 
         this.GRUPOS_REPORTE.forEach((g, gi) => {
             if (this.ocultaGrupoNoNormaPantalla() && g.total === this.GRUPO_NO_NORMA_TOTAL) { return; }
 
             const visibles = g.campos.filter(c => c in datos[0]);
+            if (!visibles.length) { return; }
+
+            let segmento: string[] = [];
+            const cerrarSegmento = () => {
+                if (segmento.length) {
+                    cabecera.push({ tipo: 'grupo', titulo: g.titulo, colspan: segmento.length, index: gi });
+                    segmento = [];
+                }
+            };
 
             visibles.forEach((c, idx) => {
                 cols.push({
                     field: c,
-                    header: this.etiqueta(c),
+                    header: (this.tipoReporte === 'consolidado_dia' && c === 'inflamables') ? 'Inflamable' : this.etiqueta(c),
                     grupo: gi,
                     grupoInicio: idx === 0
                 });
+                segmento.push(c);
+
+                if (valorPorCampo[c]) {
+                    cerrarSegmento();
+                    for (const col of valorPorCampo[c]) {
+                        cols.push(col);
+                        cabecera.push({ tipo: 'valor', col });
+                    }
+                }
             });
 
-            cols.push({ field: g.total, header: 'TOTAL', esTotal: true, grupo: gi, grupoFin: true });
-            grupos.push({ titulo: g.titulo, colspan: visibles.length + 1, index: gi });
+            if (!(g as any).sinTotal) {
+                cols.push({ field: g.total, header: 'TOTAL', esTotal: true, grupo: gi, grupoFin: true });
+                segmento.push(g.total);
+            }
+            cerrarSegmento();
 
-            // La columna de valor a cobrar (pesos) se ubica junto al TOTAL del grupo de riesgo biológico
-            if (this.tipoReporte === 'totalizado_valor'
-                && this.valorKgActual != null
-                && g.total === 'total_riesgo_biologico') {
-                colValor = { field: this.CAMPO_VALOR_TOTAL, header: 'VALOR A COBRAR (PESOS)', esValorTotal: true };
-                cols.push(colValor);
+            if (valorPorCampo[g.total]) {
+                for (const col of valorPorCampo[g.total]) {
+                    cols.push(col);
+                    cabecera.push({ tipo: 'valor', col });
+                }
             }
         });
 
         const colTotalGeneral = { field: 'total_general', header: 'TOTAL GENERAL', esTotalFuerte: true };
         cols.push(colTotalGeneral);
 
-        this.gruposColumnas = { base, grupos, valor: colValor, cierre: colTotalGeneral };
+        this.gruposColumnas = { base, cabecera, cierre: colTotalGeneral };
 
         return cols;
     }
 
-    // Orden de encabezados (grupos + columna de valor intercalada)
-    private construirCabecera(grupos: any[], valor: any | null): any[] {
-        const cells: any[] = [];
-        for (const g of grupos) {
-            cells.push({ tipo: 'grupo', grupo: g });
-            if (valor && this.GRUPOS_REPORTE[g.index]?.total === 'total_riesgo_biologico') {
-                cells.push({ tipo: 'valor', col: valor });
-            }
-        }
-        return cells;
-    }
-
     get cabeceraOrdenada(): any[] {
-        return this.construirCabecera(this.gruposColumnas.grupos, this.gruposColumnas.valor ?? null);
+        return this.gruposColumnas.cabecera;
     }
 
     // ¿El tipo de reporte actual debe ocultar el grupo "no incluidos"/identificables en PANTALLA?
@@ -417,47 +523,38 @@ export class ReportesComponent implements OnInit {
         cols: any[];
         base: any[];
         cabecera: any[];
-        valor: any | null;
         cierre: any | null;
         datos: any[];
         totales: { [key: string]: number };
     } {
         const omitir = this.exportaSinGrupoNoNorma();
-        const excluidos = omitir ? this.camposGrupoNoNorma() : new Set<string>();
+        const omitIndex = this.GRUPOS_REPORTE.findIndex(g => g.total === this.GRUPO_NO_NORMA_TOTAL);
+        const omitFields = new Set<string>(omitIndex >= 0 ? this.GRUPOS_REPORTE[omitIndex].campos : []);
 
-        const cols = this.columnas
-            .filter(col => !(col.grupo !== undefined && col.grupo !== null && excluidos.has(col.field)))
-            .map(col => ({ ...col }));
+        const esOmitido = (col: any): boolean => {
+            if (!omitir) { return false; }
+            if (col.grupo === omitIndex) { return true; }
+            if (col.esValorTotal) {
+                if (col.tipoObjetivo === 'grupo') { return col.valorObjetivo === this.GRUPO_NO_NORMA_TOTAL; }
+                return omitFields.has(col.valorObjetivo);
+            }
+            return false;
+        };
 
+        const cols = this.columnas.filter(col => !esOmitido(col)).map(col => ({ ...col }));
         const base = cols.filter(col => col.base);
 
-        const grupos = this.gruposColumnas.grupos
-            .filter(g => !(omitir && this.GRUPOS_REPORTE[g.index]?.total === this.GRUPO_NO_NORMA_TOTAL))
-            .map(g => ({ ...g }));
+        const cabecera = this.gruposColumnas.cabecera.filter(cell => {
+            if (!omitir) { return true; }
+            if (cell.tipo === 'grupo') { return cell.index !== omitIndex; }
+            const col = cell.col;
+            if (col.tipoObjetivo === 'grupo') { return col.valorObjetivo !== this.GRUPO_NO_NORMA_TOTAL; }
+            return !omitFields.has(col.valorObjetivo);
+        }).map(cell => (cell.tipo === 'grupo' ? { ...cell } : { tipo: 'valor', col: { ...cell.col } }));
 
-        const valor = this.gruposColumnas.valor ? { ...this.gruposColumnas.valor } : null;
-        const cabecera = this.construirCabecera(grupos, valor);
-        let cierre = this.gruposColumnas.cierre ? { ...this.gruposColumnas.cierre } : null;
-        let datos = this.datos;
-        let totales = this.totales;
+        const cierre = this.gruposColumnas.cierre ? { ...this.gruposColumnas.cierre } : null;
 
-        if (omitir) {
-            // El grupo mostrado en pantalla solo aporta al TOTAL GENERAL los Químicos (legado);
-            // los demás campos ya están incluidos en Tóxico. Al exportar se quitan.
-            datos = this.datos.map(row => ({
-                ...row,
-                total_general_export: (Number(row['total_general']) || 0) - (Number(row['quimicos']) || 0)
-            }));
-
-            totales = {
-                ...this.totales,
-                total_general_export: (Number(this.totales['total_general']) || 0) - (Number(this.totales['quimicos']) || 0)
-            };
-
-            if (cierre) { cierre = { ...cierre, field: 'total_general_export' }; }
-        }
-
-        return { cols, base, cabecera, valor, cierre, datos, totales };
+        return { cols, base, cabecera, cierre, datos: this.datos, totales: this.totales };
     }
 
     private etiqueta(field: string): string {
@@ -581,7 +678,8 @@ export class ReportesComponent implements OnInit {
 
         console.log(numericFields)
         for (const field of numericFields) {
-            this.totales[field] = this.datos.reduce((acc, cur) => acc + (cur[field] || 0), 0);
+            const suma = this.datos.reduce((acc, cur) => acc + (cur[field] || 0), 0);
+            this.totales[field] = Math.round(suma * 100) / 100;
         }
     }
 
@@ -607,13 +705,12 @@ export class ReportesComponent implements OnInit {
                 colIdx += 1;
                 return;
             }
-            const g = cell.grupo;
-            fila0[colIdx] = g.titulo;
-            for (let k = 0; k < g.colspan; k++) {
+            fila0[colIdx] = cell.titulo;
+            for (let k = 0; k < cell.colspan; k++) {
                 const col = cols[colIdx + k];
                 if (col) { fila1[colIdx + k] = col.header; }
             }
-            colIdx += g.colspan;
+            colIdx += cell.colspan;
         });
 
         let idxCierre = -1;
@@ -649,11 +746,10 @@ export class ReportesComponent implements OnInit {
                 colIdx += 1;
                 return;
             }
-            const g = cell.grupo;
-            if (g.colspan > 1) {
-                merges.push({ s: { r: 0, c: colIdx }, e: { r: 0, c: colIdx + g.colspan - 1 } });
+            if (cell.colspan > 1) {
+                merges.push({ s: { r: 0, c: colIdx }, e: { r: 0, c: colIdx + cell.colspan - 1 } });
             }
-            colIdx += g.colspan;
+            colIdx += cell.colspan;
         });
         if (idxCierre >= 0) {
             merges.push({ s: { r: 0, c: idxCierre }, e: { r: 1, c: idxCierre } });
@@ -714,15 +810,6 @@ export class ReportesComponent implements OnInit {
             if (col.grupo !== undefined && col.grupo !== null) {
                 const pal = this.COLORES_GRUPO[col.grupo];
 
-                if (col.grupoInicio) {
-                    setCell(0, i, {
-                        fill: { fgColor: { rgb: this.hex(pal.head) } },
-                        font: { color: { rgb: this.hex(pal.color) }, bold: true },
-                        alignment: headAlign,
-                        border: borderAll
-                    });
-                }
-
                 if (col.esTotal) {
                     setCell(1, i, {
                         fill: { fgColor: { rgb: this.hex(pal.total) } },
@@ -731,6 +818,12 @@ export class ReportesComponent implements OnInit {
                         border: borderAll
                     });
                 } else {
+                    setCell(0, i, {
+                        fill: { fgColor: { rgb: this.hex(pal.head) } },
+                        font: { color: { rgb: this.hex(pal.color) }, bold: true },
+                        alignment: headAlign,
+                        border: borderAll
+                    });
                     setCell(1, i, {
                         fill: { fgColor: { rgb: this.hex(pal.soft) } },
                         font: { color: { rgb: this.hex(pal.color) }, bold: true },
@@ -753,9 +846,11 @@ export class ReportesComponent implements OnInit {
                 if (col.esTotalFuerte) {
                     style.fill = { fgColor: { rgb: this.hex(this.COLOR_TOTAL_GENERAL.bg) } };
                     style.font = { color: { rgb: 'FFFFFF' }, bold: true };
+                    style.numFmt = '0.00';
                 } else if (col.esValorTotal) {
                     style.fill = { fgColor: { rgb: this.hex(this.COLOR_VALOR.soft) } };
                     style.font = { color: { rgb: this.hex(this.COLOR_VALOR.color) }, bold: true };
+                    style.numFmt = '0.00';
                 } else if (col.grupo !== undefined && col.grupo !== null) {
                     const pal = this.COLORES_GRUPO[col.grupo];
                     if (col.esTotal) {
@@ -764,6 +859,7 @@ export class ReportesComponent implements OnInit {
                     } else {
                         style.fill = { fgColor: { rgb: this.hex(pal.soft) } };
                     }
+                    style.numFmt = '0.00';
                 } else if (col.base) {
                     style.font = { color: { rgb: this.hex(this.COLOR_BASE.color) }, bold: true };
                 }
@@ -800,7 +896,7 @@ export class ReportesComponent implements OnInit {
             if (cell.tipo === 'valor') {
                 fila0.push({ content: cell.col.header, rowSpan: 2 });
             } else {
-                fila0.push({ content: cell.grupo.titulo, colSpan: cell.grupo.colspan });
+                fila0.push({ content: cell.titulo, colSpan: cell.colspan });
             }
         });
 
@@ -811,17 +907,13 @@ export class ReportesComponent implements OnInit {
         cols.filter(c => !c.base && !c.esTotalFuerte && !c.esValorTotal).forEach(col => fila1.push({ content: col.header }));
 
         const body = datos.map(row =>
-            cols.map(col => {
-                const valor = row[col.field];
-                return valor === null || valor === undefined ? '' : valor;
-            })
+            cols.map(col => this.formatearNumero(row[col.field]))
         );
 
         const foot = [[
             ...cols.map((col, i) => {
                 if (i === 0) { return 'TOTAL'; }
-                const t = totales[col.field];
-                return t === undefined ? '' : t;
+                return this.formatearNumero(totales[col.field]);
             })
         ]];
 
@@ -835,8 +927,14 @@ export class ReportesComponent implements OnInit {
             footStyles: { fontSize: 6, halign: 'right', fontStyle: 'bold' },
             margin: { top: 52, left: 20, right: 20, bottom: 30 },
             columnStyles: (() => {
+                const estilos: any = {};
                 const idxFecha = cols.findIndex(c => c.field === 'fecha');
-                return idxFecha >= 0 ? { [idxFecha]: { cellWidth: 72 } } : {};
+                if (idxFecha >= 0) { estilos[idxFecha] = { cellWidth: 72 }; }
+                cols.forEach((col, i) => {
+                    if (col.base) { return; }
+                    estilos[i] = { ...(estilos[i] || {}), halign: 'right' };
+                });
+                return estilos;
             })(),
             didParseCell: (data: any) => {
                 const col = cols[data.column.index];
@@ -899,9 +997,17 @@ export class ReportesComponent implements OnInit {
         }
     }
 
-    // Indica si la columna es la NUEVA del valor a cobrar en pesos
+    // Indica si la columna es una columna de valor a cobrar en pesos
     esColumnaValor(col: any): boolean {
-        return this.tipoReporte === 'totalizado_valor' && col?.field === this.CAMPO_VALOR_TOTAL;
+        return col?.esValorTotal === true;
+    }
+
+    // Formatea un número a 2 decimales (o devuelve el valor tal cual si no es numérico)
+    formatearNumero(valor: any): string {
+        if (valor === null || valor === undefined || valor === '') { return ''; }
+        const n = Number(valor);
+        if (isNaN(n)) { return String(valor); }
+        return n.toFixed(2);
     }
 
     // Formato de moneda (pesos) para el reporte de valor total
@@ -921,7 +1027,10 @@ export class ReportesComponent implements OnInit {
 
     async abrirValorDialog(): Promise<void> {
         this.showValorDialog = true;
-        this.nuevoValorKg = this.valorKgActual;
+        this.nuevoValorTipo = 'grupo';
+        this.nuevoValorClave = null;
+        this.nuevoValorClaves = [];
+        this.nuevoValorKg = null;
         this.nuevoValorFecha = new Date();
         this.nuevoValorObservacion = '';
         await this.cargarValores();
@@ -930,14 +1039,90 @@ export class ReportesComponent implements OnInit {
     async cargarValores(): Promise<void> {
         try {
             const data = await firstValueFrom(await this.valorResiduosService.obtenerValores());
-            this.valores = data || [];
+            this.valores = (data || []).filter(v => v.tipo_objetivo && v.clave_objetivo);
         } catch (e) {
             this.valores = [];
             this.messageService.add({ severity: 'error', summary: 'No se pudo cargar el histórico de valores.' });
         }
     }
 
+    // Opciones de grupo para el configurador
+    get gruposValorOpts(): { label: string; value: string }[] {
+        return this.GRUPOS_VALOR.map(g => ({ label: g.label, value: g.total }));
+    }
+
+    // Opciones de corriente (aplanadas, con el grupo como prefijo)
+    get corrientesValorOpts(): { label: string; value: string }[] {
+        const opts: { label: string; value: string }[] = [];
+        for (const g of this.GRUPOS_VALOR) {
+            for (const c of g.corrientes) {
+                opts.push({ label: `${g.label} · ${c.label}`, value: c.value });
+            }
+        }
+        return opts;
+    }
+
+    // Opciones de corriente agrupadas por grupo (para el dropdown con group)
+    get corrientesValorGrouped(): any[] {
+        return this.GRUPOS_VALOR.map(g => ({
+            label: g.label,
+            items: g.corrientes.map(c => ({ label: c.label, value: c.value }))
+        }));
+    }
+
+    // Etiqueta del objetivo actualmente seleccionado (para la vista previa)
+    get objetivoSeleccionadoLabel(): string {
+        if (!this.nuevoValorClave) { return ''; }
+        return this.etiquetaObjetivo({ tipo_objetivo: this.nuevoValorTipo, clave_objetivo: this.nuevoValorClave });
+    }
+
+    // ¿Hay al menos un objetivo seleccionado (grupo o una/más corrientes)?
+    get hayObjetivoSeleccionado(): boolean {
+        return this.nuevoValorTipo === 'grupo'
+            ? !!this.nuevoValorClave
+            : this.nuevoValorClaves.length > 0;
+    }
+
+    // Texto de la vista previa (nombre del grupo o resumen de corrientes)
+    get objetivoPreviewLabel(): string {
+        if (this.nuevoValorTipo === 'grupo') {
+            if (!this.nuevoValorClave) { return ''; }
+            return this.etiquetaObjetivo({ tipo_objetivo: 'grupo', clave_objetivo: this.nuevoValorClave });
+        }
+
+        const etiquetas = this.nuevoValorClaves.map(c =>
+            this.etiquetaObjetivo({ tipo_objetivo: 'corriente', clave_objetivo: c })
+        );
+
+        if (etiquetas.length <= 2) { return etiquetas.join(' y '); }
+        return `${etiquetas.length} corrientes`;
+    }
+
+    // Etiqueta legible del objetivo configurado
+    etiquetaObjetivo(v: any): string {
+        const clave = v?.clave_objetivo;
+        if (!clave) { return '-'; }
+        if (v.tipo_objetivo === 'grupo') {
+            const g = this.GRUPOS_VALOR.find(x => x.total === clave);
+            return g ? g.label : clave;
+        }
+        for (const g of this.GRUPOS_VALOR) {
+            const c = g.corrientes.find(x => x.value === clave);
+            if (c) { return `${g.label} · ${c.label}`; }
+        }
+        return clave;
+    }
+
     async guardarValor(): Promise<void> {
+        const claves = this.nuevoValorTipo === 'grupo'
+            ? (this.nuevoValorClave ? [this.nuevoValorClave] : [])
+            : [...this.nuevoValorClaves];
+
+        if (!claves.length) {
+            this.messageService.add({ severity: 'warn', summary: 'Seleccione el grupo o al menos una corriente.' });
+            return;
+        }
+
         if (this.nuevoValorKg == null || this.nuevoValorKg < 0) {
             this.messageService.add({ severity: 'warn', summary: 'Ingrese un valor por kg válido.' });
             return;
@@ -945,28 +1130,115 @@ export class ReportesComponent implements OnInit {
 
         this.guardandoValor = true;
 
-        try {
-            const obs = await this.valorResiduosService.crearValor(
-                Number(this.nuevoValorKg),
-                this.formatoFechaLocal(this.nuevoValorFecha) as string,
-                this.nuevoValorObservacion || null
-            );
+        const fecha = this.formatoFechaLocal(this.nuevoValorFecha) as string;
+        let guardados = 0;
+        let primerError = '';
 
-            obs.subscribe({
-                next: () => {
-                    this.messageService.add({ severity: 'success', summary: 'Valor guardado correctamente.' });
-                    this.valorKgActual = Number(this.nuevoValorKg);
-                    this.nuevoValorKg = null;
-                    this.nuevoValorObservacion = '';
-                    this.cargarValores();
-                },
-                error: () => this.messageService.add({ severity: 'error', summary: 'No se pudo guardar el valor.' }),
-                complete: () => { this.guardandoValor = false; }
-            });
-        } catch (e) {
-            this.guardandoValor = false;
-            this.messageService.add({ severity: 'error', summary: 'No se pudo guardar el valor.' });
+        for (const clave of claves) {
+            try {
+                const obs = await this.valorResiduosService.crearValor(
+                    this.nuevoValorTipo,
+                    clave,
+                    Number(this.nuevoValorKg),
+                    fecha,
+                    this.nuevoValorObservacion || null
+                );
+                await firstValueFrom(obs);
+                guardados++;
+            } catch (err: any) {
+                if (!primerError) { primerError = err?.error?.msg || 'No se pudo guardar el valor.'; }
+            }
         }
+
+        this.guardandoValor = false;
+
+        if (guardados > 0) {
+            this.messageService.add({
+                severity: 'success',
+                summary: guardados === 1 ? 'Valor guardado correctamente.' : `${guardados} valores guardados correctamente.`
+            });
+            this.nuevoValorClave = null;
+            this.nuevoValorClaves = [];
+            this.nuevoValorKg = null;
+            this.nuevoValorObservacion = '';
+            this.cargarValores();
+        }
+
+        if (guardados < claves.length) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Algunos valores no se guardaron',
+                detail: primerError || 'Revise las corrientes seleccionadas.'
+            });
+        }
+    }
+
+    /* ================== Editar / Inactivar valores (rol 1) ================== */
+
+    abrirEditarValor(row: any): void {
+        this.editValorId = row.id_valor;
+        this.editValorObjetivo = this.etiquetaObjetivo(row);
+        this.editValorKg = Number(row.valor_kg) || 0;
+        this.editValorFecha = row.fecha_vigencia ? new Date(row.fecha_vigencia) : new Date();
+        this.editValorObservacion = row.observacion || '';
+        this.showEditValorDialog = true;
+    }
+
+    async guardarEdicionValor(): Promise<void> {
+        if (this.editValorId == null) { return; }
+
+        if (this.editValorKg == null || this.editValorKg < 0) {
+            this.messageService.add({ severity: 'warn', summary: 'Ingrese un valor por kg válido.' });
+            return;
+        }
+
+        this.guardandoEdicionValor = true;
+
+        try {
+            const obs = await this.valorResiduosService.actualizarValor(
+                this.editValorId,
+                Number(this.editValorKg),
+                this.formatoFechaLocal(this.editValorFecha) as string,
+                this.editValorObservacion || null
+            );
+            await firstValueFrom(obs);
+
+            this.messageService.add({ severity: 'success', summary: 'Valor actualizado correctamente.' });
+            this.showEditValorDialog = false;
+            this.cargarValores();
+        } catch (err: any) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'No se pudo actualizar el valor',
+                detail: err?.error?.msg || 'Intente nuevamente.'
+            });
+        } finally {
+            this.guardandoEdicionValor = false;
+        }
+    }
+
+    inactivarValorFila(row: any): void {
+        this.confirmService.confirm({
+            message: `¿Inactivar el valor de "${this.etiquetaObjetivo(row)}"? Dejará de usarse en los reportes.`,
+            header: 'Inactivar valor',
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Sí, inactivar',
+            rejectLabel: 'Cancelar',
+            accept: async () => {
+                try {
+                    const obs = await this.valorResiduosService.inactivarValor(row.id_valor);
+                    await firstValueFrom(obs);
+                    this.messageService.add({ severity: 'success', summary: 'Valor inactivado correctamente.' });
+                    this.cargarValores();
+                } catch (err: any) {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'No se pudo inactivar el valor',
+                        detail: err?.error?.msg || 'Intente nuevamente.'
+                    });
+                }
+            }
+        });
     }
 
     /* ================== Reporte comparativo (rol 1) ================== */
@@ -1006,16 +1278,26 @@ export class ReportesComponent implements OnInit {
                 });
             });
 
-            // Mapeo a la norma: los residuos físicos suman a Tóxico
+            // Mapeo a la norma: Tóxico (físicos sin aceites) e Inflamables (+ aceites)
             const aporteToxico = this.CAMPOS_MAPEADOS_TOXICO.reduce((acc, c) => acc + (Number(resumen[c]) || 0), 0);
             resumen['toxicos'] = (Number(resumen['toxicos']) || 0) + aporteToxico;
+
+            const aporteInflamable = this.CAMPOS_MAPEADOS_INFLAMABLES.reduce((acc, c) => acc + (Number(resumen[c]) || 0), 0);
+            resumen['inflamables'] = (Number(resumen['inflamables']) || 0) + aporteInflamable;
 
             this.GRUPOS_REPORTE.forEach(g => {
                 resumen[g.total] = g.campos.reduce((acc, c) => acc + (Number(resumen[c]) || 0), 0);
             });
 
+            // Redondear a 2 decimales
+            for (const k in resumen) {
+                if (typeof resumen[k] === 'number' && isFinite(resumen[k])) {
+                    resumen[k] = Math.round(resumen[k] * 100) / 100;
+                }
+            }
+
             resumen['total_general'] = ['total_no_peligrosos', 'total_riesgo_biologico', 'total_radiactivos', 'total_otros_peligrosos']
-                .reduce((acc, f) => acc + (Number(resumen[f]) || 0), 0) + (Number(resumen['quimicos']) || 0);
+                .reduce((acc, f) => acc + (Number(resumen[f]) || 0), 0);
 
             return resumen;
         };

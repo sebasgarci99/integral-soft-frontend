@@ -8,6 +8,52 @@
   font-style: italic;
 }
 
+/* --- RESUMEN DE RESIDUOS (bajo la firma) --- */
+.resumen-residuos {
+  margin-top: 1rem;
+  border: 1px solid #d7eef3;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.resumen-titulo {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  background: #e6f4f7;
+  color: #0d8aa6;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.resumen-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0.4rem 0.8rem;
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.resumen-lista li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  border-bottom: 1px dashed #eef4f6;
+  font-size: 0.85rem;
+}
+
+.resumen-lista li:last-child {
+  border-bottom: none;
+}
+
+.resumen-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.55rem 0.8rem;
+  background: #f2fafc;
+  font-weight: 700;
+  color: #0d8aa6;
+}
+
 /* --- RESIDUOS: AGRUPACIÓN RESPEL --- */
 .grupo-residuos {
   border: 1px solid #e2e8f0;

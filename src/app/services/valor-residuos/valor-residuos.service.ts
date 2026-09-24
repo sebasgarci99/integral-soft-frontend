@@ -48,11 +48,32 @@ export class ValorResiduosService {
         );
     }
 
-    /** Crea un nuevo valor (queda en el histórico) (solo rol 1). */
-    async crearValor(valorKg: number, fechaVigencia: string, observacion: string | null): Promise<Observable<any>> {
+    /** Valores vigentes por objetivo (grupo/corriente) (solo rol 1). */
+    async obtenerValoresVigentes(): Promise<Observable<ValorResiduo[]>> {
+        const headers = await this.getAuthHeaders();
+
+        return this.http.post<any>(
+            `${this.urlApp}${this.urlAppAPI}getValoresVigentes`,
+            {},
+            { headers }
+        ).pipe(
+            map(resp => resp.body || [])
+        );
+    }
+
+    /** Crea un nuevo valor para un grupo o corriente (queda en el histórico) (solo rol 1). */
+    async crearValor(
+        tipoObjetivo: 'grupo' | 'corriente',
+        claveObjetivo: string,
+        valorKg: number,
+        fechaVigencia: string,
+        observacion: string | null
+    ): Promise<Observable<any>> {
         const headers = await this.getAuthHeaders();
 
         const body = {
+            tipo_objetivo: tipoObjetivo,
+            clave_objetivo: claveObjetivo,
             valor_kg: valorKg,
             fecha_vigencia: fechaVigencia,
             observacion: observacion
@@ -61,6 +82,40 @@ export class ValorResiduosService {
         return this.http.post<any>(
             `${this.urlApp}${this.urlAppAPI}crearValorResiduo`,
             body,
+            { headers }
+        );
+    }
+
+    /** Actualiza un valor existente (solo rol 1). */
+    async actualizarValor(
+        idValor: number,
+        valorKg: number,
+        fechaVigencia: string,
+        observacion: string | null
+    ): Promise<Observable<any>> {
+        const headers = await this.getAuthHeaders();
+
+        const body = {
+            id_valor: idValor,
+            valor_kg: valorKg,
+            fecha_vigencia: fechaVigencia,
+            observacion: observacion
+        };
+
+        return this.http.post<any>(
+            `${this.urlApp}${this.urlAppAPI}actualizarValorResiduo`,
+            body,
+            { headers }
+        );
+    }
+
+    /** Inactiva (elimina lógicamente) un valor (solo rol 1). */
+    async inactivarValor(idValor: number): Promise<Observable<any>> {
+        const headers = await this.getAuthHeaders();
+
+        return this.http.post<any>(
+            `${this.urlApp}${this.urlAppAPI}inactivarValorResiduo`,
+            { id_valor: idValor },
             { headers }
         );
     }
