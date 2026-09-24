@@ -5,6 +5,7 @@ import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextarea } from 'primeng/inputtextarea';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -22,7 +23,7 @@ import { parseDateSinTimezone, formatDateLocal } from '../../../utils/fecha.util
     selector: 'app-productos-inv',
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, DialogModule,
-              InputTextModule, InputTextarea, ToastModule, ConfirmDialogModule,
+              InputTextModule, InputNumberModule, InputTextarea, ToastModule, ConfirmDialogModule,
               DropdownModule, CheckboxModule, AccordionModule, BadgeModule],
     templateUrl: './productos.component.html',
     styleUrls: ['./productos.component.css'],
@@ -188,7 +189,12 @@ export class ProductosComponent implements OnInit {
             maneja_lote: false,
             maneja_vencimiento: false,
             stock_minimo: 0,
-            stock_maximo: 0
+            stock_maximo: 0,
+            precio_compra: 0,
+            precio_venta: 0,
+            aplica_iva: false,
+            porcentaje_iva: 0,
+            precio_incluye_iva: true
         };
         await this.cargarCategorias(this.selectedGrupo?.id_grupo_producto);
         this.displayDialog = true;

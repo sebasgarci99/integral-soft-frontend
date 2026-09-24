@@ -26,10 +26,17 @@ export interface UnidadMedida {
 export interface Producto {
     id_producto: number;
     codigo: string;
+    codigo_barras?: string | null;
     nombre: string;
     descripcion: string;
     id_categoria_producto: number;
     id_unidad_medida: number;
+    precio_compra?: number;
+    precio_venta?: number;
+    aplica_iva?: boolean;
+    porcentaje_iva?: number;
+    precio_incluye_iva?: boolean;
+    stock_sede?: number;
     stock_minimo: number;
     stock_maximo: number;
     maneja_lote: boolean;

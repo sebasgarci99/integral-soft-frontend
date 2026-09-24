@@ -57,6 +57,10 @@ export class InventarioService {
         return this.post<ApiResponse<Producto>>('getProductoPorId', { id_producto });
     }
 
+    async getProductoPorCodigoBarras(codigo_barras: string, id_sede?: number): Promise<Observable<ApiResponse<Producto>>> {
+        return this.post<ApiResponse<Producto>>('getProductoPorCodigoBarras', { codigo_barras, id_sede });
+    }
+
     async crearProducto(data: Partial<Producto>): Promise<Observable<ApiResponse<Producto>>> {
         return this.post<ApiResponse<Producto>>('crearProducto', data);
     }

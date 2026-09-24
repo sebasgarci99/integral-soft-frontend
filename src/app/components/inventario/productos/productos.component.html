@@ -154,6 +154,49 @@
                         </div>
                     </p-accordionTab>
 
+                    <p-accordionTab header="Precios e IVA" leftIcon="fa fa-tag">
+                        <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Código de barras</label>
+                                    <input pInputText [(ngModel)]="formData.codigo_barras" class="w-100" maxlength="100" placeholder="Escanee o digite el código" />
+                                </div>
+                                <div class="col-lg-6 col-md-12 mt-2">
+                                    <label class="form-label">Precio de compra</label>
+                                    <p-inputNumber [(ngModel)]="formData.precio_compra" mode="currency" currency="COP"
+                                        locale="es-CO" [min]="0" [maxFractionDigits]="2" styleClass="w-100"
+                                        inputStyleClass="text-end" placeholder="0"></p-inputNumber>
+                                </div>
+                            </div>
+
+                            <div class="col-12 d-md-flex d-sm-grid">
+                                <div class="col-lg-6 col-md-12 mt-2 me-2">
+                                    <label class="form-label">Precio de venta</label>
+                                    <p-inputNumber [(ngModel)]="formData.precio_venta" mode="currency" currency="COP"
+                                        locale="es-CO" [min]="0" [maxFractionDigits]="2" styleClass="w-100"
+                                        inputStyleClass="text-end" placeholder="0"></p-inputNumber>
+                                </div>
+                                <div class="col-lg-6 col-md-12 mt-2">
+                                    <label class="form-label">Porcentaje IVA (%)</label>
+                                    <p-inputNumber [(ngModel)]="formData.porcentaje_iva" suffix="%" [min]="0" [max]="100"
+                                        [maxFractionDigits]="2" styleClass="w-100" inputStyleClass="text-end"
+                                        [disabled]="!formData.aplica_iva"></p-inputNumber>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-3 d-md-flex">
+                                <div class="me-4">
+                                    <p-checkbox [(ngModel)]="formData.aplica_iva" [binary]="true" inputId="aplica_iva" />
+                                    <label for="aplica_iva" class="ms-2">Aplica IVA</label>
+                                </div>
+                                <div>
+                                    <p-checkbox [(ngModel)]="formData.precio_incluye_iva" [binary]="true" inputId="precio_incluye_iva" />
+                                    <label for="precio_incluye_iva" class="ms-2">El precio de venta ya incluye IVA</label>
+                                </div>
+                            </div>
+                        </div>
+                    </p-accordionTab>
+
                     <p-accordionTab header="Información regulatoria de los medicamentos" leftIcon="fa fa-pills" *ngIf="esPerfilMedicamento()">
                         <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
                             <div class="col-12 d-md-flex d-sm-grid">

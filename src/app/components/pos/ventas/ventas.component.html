@@ -1,0 +1,113 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="hist-wrap">
+    <div class="hist-topbar">
+        <div class="hist-title-box">
+            <div class="hist-icon"><i class="fa fa-receipt"></i></div>
+            <div>
+                <h2>Historial de ventas</h2>
+                <span>Consulta, reimprime y reenvía tus facturas POS</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="hist-filters">
+        <div class="hist-field">
+            <label>Desde</label>
+            <p-calendar [(ngModel)]="fechaDesde" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body" styleClass="w-100"></p-calendar>
+        </div>
+        <div class="hist-field">
+            <label>Hasta</label>
+            <p-calendar [(ngModel)]="fechaHasta" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body" styleClass="w-100"></p-calendar>
+        </div>
+        <div class="hist-field">
+            <label>Sede</label>
+            <p-dropdown [(ngModel)]="idSede" [options]="sedes" optionLabel="nombre" optionValue="id_sede"
+                appendTo="body" placeholder="Todas" [showClear]="true" styleClass="w-100"></p-dropdown>
+        </div>
+        <div class="hist-field">
+            <label>N° factura</label>
+            <input pInputText [(ngModel)]="numero" placeholder="POS-000001" (keyup.enter)="cargar()" />
+        </div>
+        <div class="hist-actions">
+            <button pButton (click)="cargar()"><i class="fa fa-search"></i> Buscar</button>
+            <button pButton class="p-button-text" (click)="limpiarFiltros()"><i class="fa fa-eraser"></i> Limpiar</button>
+        </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="hist-stats">
+        <div class="hist-stat">
+            <div class="hist-stat-icon hist-stat-blue"><i class="fa fa-receipt"></i></div>
+            <div>
+                <span class="hist-stat-label">Ventas válidas</span>
+                <span class="hist-stat-value">{{ resumen.cantidad_ventas }}</span>
+            </div>
+        </div>
+        <div class="hist-stat">
+            <div class="hist-stat-icon hist-stat-green"><i class="fa fa-sack-dollar"></i></div>
+            <div>
+                <span class="hist-stat-label">Total vendido</span>
+                <span class="hist-stat-value">{{ formatoMoneda(resumen.total_ventas) }}</span>
+            </div>
+        </div>
+        <div class="hist-stat">
+            <div class="hist-stat-icon hist-stat-gray"><i class="fa fa-list"></i></div>
+            <div>
+                <span class="hist-stat-label">Registros</span>
+                <span class="hist-stat-value">{{ ventas.length }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="hist-table-card">
+        <p-table [value]="ventas" [paginator]="true" [rows]="10" [loading]="loading"
+            responsiveLayout="scroll" stripedRows styleClass="hist-table">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Factura</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Sede</th>
+                    <th class="text-end">Total</th>
+                    <th>Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-venta>
+                <tr>
+                    <td><span class="hist-doc">{{ venta.numero_factura }}</span></td>
+                    <td>{{ venta.fecha_venta }}</td>
+                    <td>{{ venta.Cliente?.nombre_razon_social || 'Consumidor final' }}</td>
+                    <td>{{ venta.Sede?.nombre || '-' }}</td>
+                    <td class="text-end hist-total">{{ formatoMoneda(venta.total) }}</td>
+                    <td>
+                        <p-tag [value]="venta.estado === 'A' ? 'Válida' : 'Anulada'"
+                            [severity]="venta.estado === 'A' ? 'success' : 'danger'"></p-tag>
+                    </td>
+                    <td class="text-center hist-row-actions">
+                        <button pButton icon="fa fa-receipt" class="p-button-text p-button-sm p-button-rounded" pTooltip="Ticket 80mm" (click)="imprimir(venta, 'TICKET')"></button>
+                        <button pButton icon="fa fa-file-pdf" class="p-button-text p-button-sm p-button-rounded" pTooltip="Factura A4" (click)="imprimir(venta, 'A4')"></button>
+                        <button pButton icon="fa fa-envelope" class="p-button-text p-button-sm p-button-rounded" pTooltip="Enviar por correo" (click)="enviarCorreo(venta)" [disabled]="!venta.Cliente"></button>
+                        <button pButton icon="fa fa-whatsapp" class="p-button-text p-button-sm p-button-rounded" pTooltip="Enviar por WhatsApp" (click)="enviarWhatsapp(venta)" [disabled]="!venta.Cliente"></button>
+                        <button pButton icon="fa fa-ban" class="p-button-text p-button-danger p-button-sm p-button-rounded" pTooltip="Anular venta" (click)="anular(venta)" [disabled]="venta.estado !== 'A'"></button>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="7">
+                        <div class="hist-empty">
+                            <i class="fa fa-receipt"></i>
+                            <p>No hay ventas registradas</p>
+                            <span>Ajusta los filtros o realiza una nueva venta en el Punto de venta</span>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>

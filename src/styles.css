@@ -479,3 +479,15 @@
         font-size: 0.85rem;
     }
 }
+
+/* --- POS: paleta para diálogos (se montan en <body>, fuera del :host) --- */
+.pos-modal {
+    --p: #3da1b8;
+    --pd: #005f99;
+    --ps: #f0f9fc;
+    --ok: #16a34a;
+    --bad: #dc2626;
+    --ink: #1e293b;
+    --mut: #64748b;
+    --bor: #e2e8f0;
+}

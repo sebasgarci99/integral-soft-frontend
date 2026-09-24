@@ -35,6 +35,9 @@ import { AlertasPqrsComponent } from './components/pqrs/alertas-pqrs/alertas-pqr
 import { ReportesPqrsComponent } from './components/pqrs/reportes-pqrs/reportes-pqrs.component';
 import { CalculoEmpleadoComponent } from './components/calculo-empleado/calculo-empleado.component';
 import { GestionPhComponent } from './components/gestion-ph/gestion-ph.component';
+import { PosComponent } from './components/pos/pos.component';
+import { VentasComponent } from './components/pos/ventas/ventas.component';
+import { ConfiguracionPosComponent } from './components/pos/configuracion/configuracion-pos.component';
 
 export const routes: Routes = [
     { path: 'login', loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent) },
@@ -72,6 +75,9 @@ export const routes: Routes = [
             { path: 'inventario/stock', component: StockComponent },
             { path: 'inventario/configuracion', component: ConfiguracionComponent },
             { path: 'inventario/reporte-productos', component: ReporteProductosComponent },
+            { path: 'pos', component: PosComponent },
+            { path: 'pos/ventas', component: VentasComponent },
+            { path: 'pos/configuracion', component: ConfiguracionPosComponent },
             { path: 'programacion_pacientes', component: ProgramacionPacientesComponent },
             { path: 'pqrs/propiedades', component: PropiedadesHorizontalesComponent },
             { path: 'pqrs/seguimiento', component: SeguimientoPqrsComponent },

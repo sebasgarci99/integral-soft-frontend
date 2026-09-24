@@ -1,0 +1,199 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="cfg-wrap">
+    <div class="cfg-topbar">
+        <div class="cfg-title-box">
+            <div class="cfg-icon"><i class="fa fa-sliders"></i></div>
+            <div>
+                <h2>Configuración POS</h2>
+                <span>Datos de la factura, numeración y valores por defecto</span>
+            </div>
+        </div>
+        <button pButton class="cfg-save" (click)="guardar()" [loading]="loading">
+            <i class="fa fa-floppy-disk"></i> Guardar cambios
+        </button>
+    </div>
+
+    <!-- Datos del negocio -->
+    <div class="cfg-card">
+        <div class="cfg-card-head">
+            <span class="cfg-card-icon"><i class="fa fa-store"></i></span>
+            <div>
+                <h3>Datos del negocio</h3>
+                <p>Aparecerán en el encabezado de la factura</p>
+            </div>
+        </div>
+
+        <div class="cfg-logo-row">
+            <div class="cfg-logo-preview">
+                <img *ngIf="config.logo_base64" [src]="config.logo_base64" alt="Logo" />
+                <div class="cfg-logo-empty" *ngIf="!config.logo_base64">
+                    <i class="fa fa-image"></i>
+                    <span>Sin logo</span>
+                </div>
+            </div>
+            <div class="cfg-logo-actions">
+                <label class="cfg-label">Logo de la empresa</label>
+                <p class="cfg-hint">PNG o JPG, máximo 500&nbsp;KB. Se muestra en la factura.</p>
+                <div class="cfg-logo-buttons">
+                    <label class="cfg-file-btn">
+                        <i class="fa fa-upload"></i> {{ config.logo_base64 ? 'Cambiar logo' : 'Subir logo' }}
+                        <input type="file" accept="image/*" (change)="onLogoSeleccionado($event)" hidden />
+                    </label>
+                    <button pButton class="p-button-text p-button-danger p-button-sm" *ngIf="config.logo_base64"
+                        icon="fa fa-trash" label="Quitar" (click)="quitarLogo()"></button>
+                </div>
+                <small class="cfg-error" *ngIf="logoError">{{ logoError }}</small>
+            </div>
+        </div>
+
+        <div class="cfg-grid">
+            <div class="cfg-field">
+                <label>Nombre del negocio</label>
+                <input pInputText [(ngModel)]="config.nombre_negocio" />
+            </div>
+            <div class="cfg-field">
+                <label>NIT / Identificación</label>
+                <input pInputText [(ngModel)]="config.nit" />
+            </div>
+            <div class="cfg-field cfg-span2">
+                <label>Dirección</label>
+                <input pInputText [(ngModel)]="config.direccion" />
+            </div>
+            <div class="cfg-field">
+                <label>Ciudad</label>
+                <input pInputText [(ngModel)]="config.ciudad" />
+            </div>
+            <div class="cfg-field">
+                <label>Teléfono</label>
+                <input pInputText [(ngModel)]="config.telefono" />
+            </div>
+            <div class="cfg-field">
+                <label>Correo remitente</label>
+                <input pInputText [(ngModel)]="config.email" />
+            </div>
+            <div class="cfg-field">
+                <label>Mensaje al pie de la factura</label>
+                <input pInputText [(ngModel)]="config.mensaje_factura" placeholder="¡Gracias por su compra!" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Numeración -->
+    <div class="cfg-card">
+        <div class="cfg-card-head cfg-card-head-row">
+            <div class="cfg-card-head-left">
+                <span class="cfg-card-icon"><i class="fa fa-hashtag"></i></span>
+                <div>
+                    <h3>Numeración</h3>
+                    <p>Histórico de resoluciones. Solo una está activa.</p>
+                </div>
+            </div>
+            <button pButton label="Nueva resolución" icon="fa fa-plus" (click)="abrirNuevaResolucion()"></button>
+        </div>
+
+        <div class="cfg-res-list" *ngIf="resoluciones.length > 0">
+            <div class="cfg-res-item" *ngFor="let r of resoluciones">
+                <div class="cfg-res-main">
+                    <div class="cfg-res-top">
+                        <span class="cfg-res-prefix">{{ r.prefijo }}</span>
+                        <p-tag [value]="r.estado" [severity]="estadoSeverity(r.estado)"></p-tag>
+                        <span class="cfg-res-tipo">{{ r.tipo_numeracion === 'DIAN' ? 'DIAN' : 'Interno' }}</span>
+                    </div>
+                    <div class="cfg-res-range">{{ rangoResolucion(r) }}</div>
+                    <div class="cfg-res-meta">
+                        <span *ngIf="r.numero_resolucion">Resolución: {{ r.numero_resolucion }}</span>
+                        <span
+                            *ngIf="r.tipo_numeracion === 'DIAN' && r.vigencia_hasta">Vigencia: {{ r.vigencia_desde || '—' }} a {{ r.vigencia_hasta }}</span>
+                    </div>
+                </div>
+                <div class="cfg-res-actions">
+                    <button pButton class="p-button-text p-button-sm" icon="fa fa-check" label="Activar"
+                        *ngIf="r.estado !== 'ACTIVA'" (click)="activarResolucion(r)"></button>
+                    <button pButton class="p-button-text p-button-danger p-button-sm" icon="fa fa-ban" label="Inactivar"
+                        *ngIf="r.estado === 'ACTIVA'" (click)="inactivarResolucion(r)"></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="cfg-res-empty" *ngIf="resoluciones.length === 0">
+            <i class="fa fa-hashtag"></i>
+            <p>Sin resoluciones configuradas</p>
+            <span>Se creará una serie interna automáticamente en la primera venta.</span>
+        </div>
+    </div>
+
+    <!-- Valores por defecto -->
+    <div class="cfg-card">
+        <div class="cfg-card-head">
+            <span class="cfg-card-icon"><i class="fa fa-percent"></i></span>
+            <div>
+                <h3>Valores por defecto</h3>
+                <p>Aplican al crear nuevos productos</p>
+            </div>
+        </div>
+        <div class="cfg-grid">
+            <div class="cfg-field">
+                <label>IVA por defecto (%)</label>
+                <p-inputNumber [(ngModel)]="config.porcentaje_iva_default" suffix="%" [min]="0" [max]="100"
+                    [maxFractionDigits]="2" styleClass="w-100" inputStyleClass="text-end"></p-inputNumber>
+            </div>
+            <div class="cfg-field cfg-checks">
+                <div class="cfg-check">
+                    <p-checkbox [(ngModel)]="config.aplica_iva_default" [binary]="true" inputId="iva_def" />
+                    <label for="iva_def">Los productos aplican IVA por defecto</label>
+                </div>
+                <div class="cfg-check">
+                    <p-checkbox [(ngModel)]="config.precio_incluye_iva_default" [binary]="true" inputId="incluye_iva" />
+                    <label for="incluye_iva">El precio ya incluye IVA</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal nueva resolución -->
+<p-dialog header="Nueva resolución de numeración" [(visible)]="displayResolucion" *ngIf="displayResolucion"
+    [modal]="true" [style]="{ width: '34rem' }" [draggable]="false" appendTo="body">
+    <div class="cfg-dialog-grid">
+        <div class="cfg-field cfg-span2">
+            <label>Tipo de numeración</label>
+            <p-dropdown [(ngModel)]="nuevaResolucion.tipo_numeracion" [options]="tiposNumeracion"
+                optionLabel="label" optionValue="value" appendTo="body" styleClass="w-100"></p-dropdown>
+        </div>
+        <div class="cfg-field">
+            <label>Prefijo</label>
+            <input pInputText [(ngModel)]="nuevaResolucion.prefijo" placeholder="POS-" />
+        </div>
+        <div class="cfg-field">
+            <label>Número de resolución</label>
+            <input pInputText [(ngModel)]="nuevaResolucion.numero_resolucion" [disabled]="!esResolucionDian"
+                placeholder="Solo DIAN" />
+        </div>
+        <div class="cfg-field">
+            <label>Rango desde</label>
+            <input pInputText type="number" [(ngModel)]="nuevaResolucion.rango_desde" />
+        </div>
+        <div class="cfg-field">
+            <label>Rango hasta</label>
+            <input pInputText type="number" [(ngModel)]="nuevaResolucion.rango_hasta" />
+        </div>
+        <div class="cfg-field">
+            <label>Vigencia desde</label>
+            <input pInputText type="date" [(ngModel)]="nuevaResolucion.vigencia_desde" [disabled]="!esResolucionDian" />
+        </div>
+        <div class="cfg-field">
+            <label>Vigencia hasta</label>
+            <input pInputText type="date" [(ngModel)]="nuevaResolucion.vigencia_hasta" [disabled]="!esResolucionDian" />
+        </div>
+        <div class="cfg-field cfg-span2">
+            <label>Observación</label>
+            <input pInputText [(ngModel)]="nuevaResolucion.observacion" placeholder="Opcional" />
+        </div>
+    </div>
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancelar" class="p-button-text" (click)="displayResolucion = false"></button>
+        <button pButton label="Crear y activar" icon="fa fa-check" [loading]="guardandoResolucion" (click)="guardarResolucion()"></button>
+    </ng-template>
+</p-dialog>

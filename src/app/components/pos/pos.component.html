@@ -1,0 +1,356 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="pos-wrap">
+    <!-- Barra superior -->
+    <div class="pos-topbar">
+        <div class="pos-topbar-info">
+            <div class="pos-logo"><i class="fa fa-cash-register"></i></div>
+            <div>
+                <h2 class="pos-title">Punto de venta</h2>
+                <div class="pos-subtitle">
+                    <span>{{ config?.nombre_negocio || 'Mi negocio' }}</span>
+                    <span class="pos-dot">·</span>
+                    <span class="pos-badge" [class.pos-badge-fiscal]="config?.tipo_numeracion === 'DIAN'">
+                        {{ config?.tipo_numeracion === 'DIAN' ? 'Numeración DIAN' : 'Comprobante interno' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="pos-topbar-sede">
+            <label>Sede</label>
+            <p-dropdown [(ngModel)]="idSede" [options]="sedes" optionLabel="nombre" optionValue="id_sede"
+                appendTo="body" placeholder="Seleccione sede" (onChange)="focusBarcode()" styleClass="pos-sede-dd"></p-dropdown>
+        </div>
+    </div>
+
+    <div class="pos-grid">
+        <!-- Columna izquierda -->
+        <div class="pos-left">
+            <div class="pos-search">
+                <div class="pos-search-input">
+                    <i class="fa fa-barcode"></i>
+                    <input #barcodeInput pInputText [(ngModel)]="codigoBarras"
+                        placeholder="Escanee el código y presione Enter…"
+                        (keyup.enter)="onBarcode()" autocomplete="off" autofocus />
+                </div>
+                <button pButton class="pos-btn-buscar" (click)="abrirBuscador()" pTooltip="Buscar producto (F2)" tooltipPosition="bottom">
+                    <i class="fa fa-magnifying-glass"></i>
+                    <span>Buscar</span>
+                    <kbd>F2</kbd>
+                </button>
+            </div>
+
+            <div class="pos-cart-card">
+                <div class="pos-cart-head">
+                    <span><i class="fa fa-cart-shopping me-2"></i>Venta actual</span>
+                    <span class="pos-cart-count">{{ cantidadItems }} ítem(s)</span>
+                </div>
+
+                <div class="pos-cart-items" *ngIf="carrito.length > 0">
+                    <div class="pos-item" *ngFor="let item of carrito; let i = index">
+                        <div class="pos-item-info">
+                            <div class="pos-item-name">{{ item.nombre }}</div>
+                            <div class="pos-item-meta">
+                                <span class="pos-code">{{ item.codigo }}</span>
+                                <span class="pos-iva" *ngIf="item.aplica_iva">IVA {{ item.porcentaje_iva }}%</span>
+                                <span class="pos-lote" *ngIf="item.lote">Lote: {{ item.lote }}</span>
+                                <span class="pos-lote" *ngIf="item.fecha_vencimiento">Vence: {{ item.fecha_vencimiento }}</span>
+                            </div>
+                        </div>
+                        <div class="pos-item-qty">
+                            <button type="button" (click)="cambiarCantidad(item, -1)"><i class="fa fa-minus"></i></button>
+                            <input type="number" min="1" [(ngModel)]="item.cantidad" />
+                            <button type="button" (click)="cambiarCantidad(item, 1)"><i class="fa fa-plus"></i></button>
+                        </div>
+                        <div class="pos-item-price">
+                            <div class="pos-item-total">{{ formatoMoneda(totalLinea(item)) }}</div>
+                            <div class="pos-item-unit">{{ formatoMoneda(item.precio_unitario) }} c/u</div>
+                        </div>
+                        <button class="pos-item-del" (click)="quitarItem(i)" pTooltip="Quitar"><i class="fa fa-xmark"></i></button>
+                    </div>
+                </div>
+
+                <div class="pos-empty" *ngIf="carrito.length === 0">
+                    <i class="fa fa-barcode"></i>
+                    <p>No hay productos en la venta</p>
+                    <span>Escanea un código o usa la búsqueda para agregar productos</span>
+                    <button pButton label="Buscar productos" icon="fa fa-magnifying-glass" class="p-button-outlined" (click)="abrirBuscador()"></button>
+                </div>
+
+                <div class="pos-cart-foot" *ngIf="carrito.length > 0">
+                    <button pButton label="Vaciar venta" icon="fa fa-eraser" class="p-button-text p-button-danger p-button-sm" (click)="vaciarCarrito()"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha -->
+        <div class="pos-right">
+            <div class="pos-panel">
+                <label class="pos-label"><i class="fa fa-user me-2"></i>Cliente</label>
+                <p-dropdown [(ngModel)]="clienteSeleccionado" [options]="clientes" optionLabel="nombre_razon_social"
+                    appendTo="body" placeholder="Consumidor final" [filter]="true" filterBy="nombre_razon_social,numero_identificacion"
+                    [showClear]="true" styleClass="w-100"></p-dropdown>
+
+                <div class="pos-totales">
+                    <div class="pos-total-row"><span>Subtotal</span><span>{{ formatoMoneda(subtotal) }}</span></div>
+                    <div class="pos-total-row" *ngFor="let iva of ivaDesagregado">
+                        <span>IVA {{ iva.tasa }}%</span><span>{{ formatoMoneda(iva.impuesto) }}</span>
+                    </div>
+                    <div class="pos-total-row pos-desc-row">
+                        <span>Descuento</span>
+                        <div class="pos-money-box">
+                            <p-inputNumber [(ngModel)]="descuentoGlobal" mode="currency" currency="COP" locale="es-CO"
+                                [min]="0" [maxFractionDigits]="2" [showButtons]="false" [fluid]="true"></p-inputNumber>
+                        </div>
+                    </div>
+                    <div class="pos-total-main">
+                        <span>TOTAL</span><span>{{ formatoMoneda(total) }}</span>
+                    </div>
+                </div>
+
+                <!-- Pagos -->
+                <div class="pos-pay">
+                    <div class="pos-label-row">
+                        <label class="pos-label"><i class="fa fa-wallet me-2"></i>Método de pago</label>
+                        <span class="pos-saldo" [class.pos-saldo-ok]="saldoPendiente === 0">
+                            {{ saldoPendiente > 0 ? 'Pendiente: ' + formatoMoneda(saldoPendiente) : 'Pago completo' }}
+                        </span>
+                    </div>
+
+                    <div class="pos-methods">
+                        <button type="button" *ngFor="let m of metodos"
+                            class="pos-method" [class.pos-method-active]="metodoSeleccionado === m.value"
+                            (click)="seleccionarMetodo(m.value)">
+                            <i [class]="m.icono"></i>
+                            <span>{{ m.label }}</span>
+                        </button>
+                    </div>
+
+                    <div class="pos-pay-input">
+                        <div class="pos-money-grow">
+                            <p-inputNumber [(ngModel)]="montoPago" mode="currency" currency="COP" locale="es-CO"
+                                [min]="0" [maxFractionDigits]="2" [showButtons]="false" [fluid]="true"
+                                placeholder="Valor"></p-inputNumber>
+                        </div>
+                        <button class="pos-pay-add" (click)="agregarPago()" [disabled]="!montoPago || montoPago <= 0">
+                            <i class="fa fa-plus"></i> Agregar
+                        </button>
+                    </div>
+
+                    <input *ngIf="metodoSeleccionado !== 'EFECTIVO'" pInputText [(ngModel)]="refPago"
+                        class="w-100 mt-2" placeholder="Referencia / aprobación (opcional)" />
+
+                    <div class="pos-quick" *ngIf="metodoSeleccionado === 'EFECTIVO'">
+                        <button type="button" (click)="pagoExacto()">Exacto</button>
+                        <button type="button" (click)="sumarMonto(1000)">+1.000</button>
+                        <button type="button" (click)="sumarMonto(5000)">+5.000</button>
+                        <button type="button" (click)="sumarMonto(10000)">+10.000</button>
+                        <button type="button" (click)="sumarMonto(20000)">+20.000</button>
+                        <button type="button" (click)="sumarMonto(50000)">+50.000</button>
+                    </div>
+
+                    <div class="pos-pay-list" *ngIf="pagos.length > 0">
+                        <div class="pos-pay-item" *ngFor="let pago of pagos; let i = index">
+                            <span class="pos-pay-icon"><i [class]="iconoMetodo(pago.metodo_pago)"></i></span>
+                            <span class="pos-pay-name">
+                                {{ pago.metodo_pago | titlecase }}
+                                <small *ngIf="pago.referencia"> · {{ pago.referencia }}</small>
+                            </span>
+                            <span class="pos-pay-value">{{ formatoMoneda(pago.valor) }}</span>
+                            <button class="pos-pay-del" (click)="quitarPago(i)"><i class="fa fa-xmark"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="pos-pay-resumen">
+                        <div class="pos-total-row"><span>Pagado</span><span>{{ formatoMoneda(totalPagos) }}</span></div>
+                        <div class="pos-change" *ngIf="cambio > 0"><span>Cambio</span><span>{{ formatoMoneda(cambio) }}</span></div>
+                    </div>
+                </div>
+
+                <button pButton class="pos-cobrar" (click)="cobrar()" [loading]="loading"
+                    [disabled]="carrito.length === 0">
+                    <i class="fa fa-circle-check"></i>
+                    <span>Cobrar {{ formatoMoneda(total) }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal buscador dinámico -->
+<p-dialog [(visible)]="displayBuscador" *ngIf="displayBuscador" [modal]="true" [style]="{ width: '64rem' }"
+    [draggable]="false" [resizable]="false" appendTo="body" [dismissableMask]="true" styleClass="pos-modal"
+    (onHide)="focusBarcode()">
+    <ng-template pTemplate="header">
+        <div class="pos-modal-title"><i class="fa fa-magnifying-glass me-2"></i>Buscar producto</div>
+    </ng-template>
+
+    <div class="pos-modal-filters">
+        <div class="pos-modal-search">
+            <i class="fa fa-search"></i>
+            <input #modalBusquedaInput pInputText [(ngModel)]="textoBusqueda"
+                placeholder="Nombre, código o código de barras…" (input)="onBusquedaInput()" />
+        </div>
+        <p-dropdown [(ngModel)]="filtroGrupo" [options]="grupos" optionLabel="nombre" optionValue="id_grupo_producto"
+            appendTo="body" placeholder="Todos los grupos" [showClear]="true" (onChange)="seleccionarGrupoFiltro()"></p-dropdown>
+        <p-dropdown [(ngModel)]="filtroCategoria" [options]="categoriasFiltradas" optionLabel="nombre"
+            optionValue="id_categoria_producto" appendTo="body" placeholder="Todas las categorías" [showClear]="true"
+            (onChange)="seleccionarCategoriaFiltro()"></p-dropdown>
+        <button pButton class="p-button-text p-button-sm" icon="fa fa-eraser" label="Limpiar" (click)="limpiarFiltrosBusqueda()"></button>
+    </div>
+
+    <div class="pos-results" *ngIf="!cargandoProductos && productosBusqueda.length > 0">
+        <div class="pos-prod-card" *ngFor="let p of productosBusqueda"
+            [class.pos-prod-in-cart]="cantidadEnCarrito(p.id_producto) > 0"
+            [class.pos-prod-no-stock]="(p.cantidad_total ?? 1) <= 0">
+            <div class="pos-prod-body" (click)="agregarDesdeModal(p)">
+                <div class="pos-prod-name">{{ p.nombre }}</div>
+                <div class="pos-prod-meta">
+                    <span class="pos-code">{{ p.codigo }}</span>
+                    <span class="pos-cat" *ngIf="p.Categoria?.nombre">{{ p.Categoria?.nombre }}</span>
+                    <span class="pos-iva" *ngIf="p.aplica_iva">IVA {{ p.porcentaje_iva }}%</span>
+                </div>
+                <div class="pos-prod-stock">
+                    <i class="fa fa-cubes"></i>
+                    <span [class.pos-stock-out]="(p.cantidad_total ?? 1) <= 0">
+                        {{ p.cantidad_total ?? '—' }} disponible{{ (p.cantidad_total ?? 1) === 1 ? '' : 's' }}
+                    </span>
+                </div>
+            </div>
+            <div class="pos-prod-foot">
+                <span class="pos-prod-price">{{ formatoMoneda(+(p.precio_venta || 0)) }}</span>
+                <div class="pos-stepper" *ngIf="cantidadEnCarrito(p.id_producto) > 0">
+                    <button type="button" class="pos-step-btn" (click)="quitarUnoProducto(p)" pTooltip="Restar uno">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                    <span class="pos-step-count">{{ cantidadEnCarrito(p.id_producto) }}</span>
+                    <button type="button" class="pos-step-btn pos-step-plus" (click)="agregarDesdeModal(p)" pTooltip="Sumar uno">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </div>
+                <button type="button" class="pos-step-add" *ngIf="cantidadEnCarrito(p.id_producto) === 0"
+                    (click)="agregarDesdeModal(p)" pTooltip="Agregar">
+                    <i class="fa fa-plus"></i>
+                </button>
+            </div>
+            <div class="pos-prod-linetotal" *ngIf="cantidadEnCarrito(p.id_producto) > 0">
+                <span>{{ cantidadEnCarrito(p.id_producto) }} × {{ formatoMoneda(+(p.precio_venta || 0)) }}</span>
+                <strong>{{ formatoMoneda(subtotalProducto(p)) }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="pos-results-empty" *ngIf="!cargandoProductos && productosBusqueda.length === 0">
+        <i class="fa fa-box-open"></i>
+        <p>No se encontraron productos</p>
+        <span>Prueba con otro término o cambia los filtros</span>
+    </div>
+
+    <div class="pos-results-empty" *ngIf="cargandoProductos">
+        <i class="fa fa-spinner fa-spin"></i>
+        <p>Cargando productos…</p>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="pos-buscar-foot">
+            <div class="pos-buscar-resumen">
+                <span class="pos-buscar-ico"><i class="fa fa-cart-shopping"></i></span>
+                <div class="pos-buscar-info">
+                    <span class="pos-buscar-items">{{ cantidadItems }} ítem{{ cantidadItems === 1 ? '' : 's' }}</span>
+                    <span class="pos-buscar-total">{{ formatoMoneda(total) }}</span>
+                </div>
+            </div>
+            <button pButton class="pos-buscar-listo" label="Listo" icon="fa fa-check" (click)="cerrarBuscador()"></button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<!-- Modal selección de lote -->
+<p-dialog [(visible)]="displayLote" *ngIf="displayLote" [modal]="true" [style]="{ width: '36rem' }"
+    [draggable]="false" [resizable]="false" appendTo="body" (onHide)="cancelarLote()" styleClass="pos-modal">
+    <ng-template pTemplate="header">
+        <div class="pos-modal-title"><i class="fa fa-layer-group me-2"></i>Seleccionar lote</div>
+    </ng-template>
+
+    <div class="pos-lote-product" *ngIf="productoLote">
+        <span class="pos-lote-prod-icon"><i class="fa fa-cube"></i></span>
+        <div class="pos-lote-prod-info">
+            <strong>{{ productoLote.nombre }}</strong>
+            <span class="pos-code">{{ productoLote.codigo }}</span>
+        </div>
+    </div>
+
+    <div class="pos-results-empty" *ngIf="cargandoLotes">
+        <i class="fa fa-spinner fa-spin"></i>
+        <p>Cargando lotes…</p>
+    </div>
+
+    <div class="pos-lote-list" *ngIf="!cargandoLotes && lotesDisponibles.length > 0">
+        <button type="button" class="pos-lote-item" *ngFor="let lote of lotesDisponibles"
+            [class.pos-lote-active]="loteElegido === lote" (click)="seleccionarLote(lote)">
+            <span class="pos-lote-dot" [ngClass]="'semaforo-' + (lote.color_semaforo || 'gris').toLowerCase()"></span>
+            <span class="pos-lote-info">
+                <strong>Lote {{ lote.lote || '—' }}</strong>
+                <small>
+                    <i class="fa fa-calendar-day"></i>
+                    {{ lote.fecha_vencimiento ? 'Vence ' + lote.fecha_vencimiento : 'Sin vencimiento' }}
+                    <em *ngIf="lote.dias_vencimiento !== null"> · {{ lote.dias_vencimiento }} días</em>
+                </small>
+            </span>
+            <span class="pos-lote-stock">{{ lote.cantidad }} disp.</span>
+            <i class="fa fa-circle-check pos-lote-check" *ngIf="loteElegido === lote"></i>
+        </button>
+    </div>
+
+    <div class="pos-results-empty" *ngIf="!cargandoLotes && lotesDisponibles.length === 0">
+        <i class="fa fa-box-open"></i>
+        <p>Sin stock disponible</p>
+        <span>Este producto no tiene existencias en la sede seleccionada.</span>
+    </div>
+
+    <div class="pos-lote-cantidad" *ngIf="loteElegido">
+        <label>Cantidad</label>
+        <div class="pos-stepper">
+            <button type="button" class="pos-step-btn" (click)="decrementarLote()"><i class="fa fa-minus"></i></button>
+            <input type="number" min="1" [max]="loteElegido.cantidad" [(ngModel)]="cantidadLote" />
+            <button type="button" class="pos-step-btn pos-step-plus" (click)="incrementarLote()"><i class="fa fa-plus"></i></button>
+        </div>
+        <span class="pos-lote-max">Máx. {{ loteElegido.cantidad }}</span>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancelar" class="p-button-text" (click)="cancelarLote()"></button>
+        <button pButton label="Agregar" icon="fa fa-plus" (click)="confirmarLote()" [disabled]="!loteElegido"></button>
+    </ng-template>
+</p-dialog>
+
+<!-- Modal resultado -->
+<p-dialog [(visible)]="displayResultado" *ngIf="displayResultado" [modal]="true" [style]="{ width: '34rem' }"
+    [draggable]="false" [closable]="false" appendTo="body" styleClass="pos-modal">
+    <ng-template pTemplate="header">
+        <div class="pos-modal-title"><i class="fa fa-circle-check me-2 text-success"></i>Venta registrada</div>
+    </ng-template>
+
+    <div class="pos-success" *ngIf="resultado">
+        <div class="pos-success-icon"><i class="fa fa-check"></i></div>
+        <div class="pos-success-doc">{{ resultado.numero_factura }}</div>
+        <div class="pos-success-total">{{ formatoMoneda(resultado.total) }}</div>
+        <div class="pos-success-change" *ngIf="resultado.cambio > 0">Cambio: {{ formatoMoneda(resultado.cambio) }}</div>
+
+        <div class="pos-success-actions">
+            <button pButton class="p-button-outlined" (click)="imprimir('TICKET')"><i class="fa fa-receipt"></i> Ticket 80mm</button>
+            <button pButton class="p-button-outlined" (click)="imprimir('A4')"><i class="fa fa-file-pdf"></i> Factura A4</button>
+            <button pButton class="p-button-outlined" (click)="enviarCorreo()" [disabled]="esAnonima"><i class="fa fa-envelope"></i> Correo</button>
+            <button pButton class="p-button-outlined" (click)="enviarWhatsapp()" [disabled]="esAnonima"><i class="fa fa-whatsapp"></i> WhatsApp</button>
+        </div>
+
+        <small class="pos-success-hint" *ngIf="esAnonima">
+            Venta anónima: asigna un cliente para enviar por correo o WhatsApp.
+        </small>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <button pButton label="Nueva venta" icon="fa fa-plus" (click)="cerrarResultado()"></button>
+    </ng-template>
+</p-dialog>
