@@ -37,10 +37,20 @@ export class PqrsReportesService {
         );
     }
 
-    async generarReporte(id_propiedad_horizontal: number | null, fecha_inicio: string, fecha_fin: string, estado?: string): Promise<Observable<ApiResponse<any[]>>> {
+    async generarReporte(id_propiedad_horizontal: number | null, fecha_inicio: string, fecha_fin: string, estado?: string, id_usuario_gestor?: number | null): Promise<Observable<ApiResponse<any[]>>> {
         const body: Record<string, unknown> = { fecha_inicio, fecha_fin };
         if (id_propiedad_horizontal) body['id_propiedad_horizontal'] = id_propiedad_horizontal;
         if (estado) body['estado'] = estado;
+        if (id_usuario_gestor) body['id_usuario_gestor'] = id_usuario_gestor;
         return this.post<ApiResponse<any[]>>('generarReporte', body);
+    }
+
+    async getUsuarios(): Promise<Observable<ApiResponse<{ id: number; usuario: string; nombre_completo: string }[]>>> {
+        const headers = await this.getHeaders();
+        return this.http.post<ApiResponse<{ id: number; usuario: string; nombre_completo: string }[]>>(
+            this.urlApp + 'api/usuario/getUsuarios',
+            {},
+            { headers }
+        );
     }
 }

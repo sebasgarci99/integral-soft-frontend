@@ -9,3 +9,46 @@
     margin: 0;
     color: var(--primary);
 }
+
+.filtros-panel {
+    background: #f8fafc;
+    border: 1px solid #eef2f6;
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1.1rem;
+}
+
+.filtros-titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1a5f7a;
+    margin-bottom: 0.9rem;
+}
+
+.filtros-titulo i {
+    color: #3da1b8;
+}
+
+.filtros-panel .form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 0.3rem;
+}
+
+.req {
+    color: #e11d48;
+    font-weight: 700;
+}
+
+.filtros-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed #e2e8f0;
+}

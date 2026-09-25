@@ -33,6 +33,9 @@
                     <input #barcodeInput pInputText [(ngModel)]="codigoBarras"
                         placeholder="Escanee el código y presione Enter…"
                         (keyup.enter)="onBarcode()" autocomplete="off" autofocus />
+                    <button type="button" class="pos-cam-btn" (click)="abrirEscaner()" pTooltip="Escanear con cámara" tooltipPosition="bottom">
+                        <i class="fa fa-camera"></i>
+                    </button>
                 </div>
                 <button pButton class="pos-btn-buscar" (click)="abrirBuscador()" pTooltip="Buscar producto (F2)" tooltipPosition="bottom">
                     <i class="fa fa-magnifying-glass"></i>
@@ -325,6 +328,13 @@
     </ng-template>
 </p-dialog>
 
+<!-- Modal escáner con cámara -->
+<p-dialog [(visible)]="displayEscaner" *ngIf="displayEscaner" [modal]="true" [style]="{ width: '34rem' }"
+    [draggable]="false" [resizable]="false" appendTo="body" header="Escanear con cámara" styleClass="pos-modal"
+    (onHide)="focusBarcode()">
+    <app-escaner-qr (codigoDetectado)="onEscanerDetectado($event)" (cerrar)="displayEscaner = false"></app-escaner-qr>
+</p-dialog>
+
 <!-- Modal resultado -->
 <p-dialog [(visible)]="displayResultado" *ngIf="displayResultado" [modal]="true" [style]="{ width: '34rem' }"
     [draggable]="false" [closable]="false" appendTo="body" styleClass="pos-modal">
@@ -339,10 +349,18 @@
         <div class="pos-success-change" *ngIf="resultado.cambio > 0">Cambio: {{ formatoMoneda(resultado.cambio) }}</div>
 
         <div class="pos-success-actions">
-            <button pButton class="p-button-outlined" (click)="imprimir('TICKET')"><i class="fa fa-receipt"></i> Ticket 80mm</button>
-            <button pButton class="p-button-outlined" (click)="imprimir('A4')"><i class="fa fa-file-pdf"></i> Factura A4</button>
-            <button pButton class="p-button-outlined" (click)="enviarCorreo()" [disabled]="esAnonima"><i class="fa fa-envelope"></i> Correo</button>
-            <button pButton class="p-button-outlined" (click)="enviarWhatsapp()" [disabled]="esAnonima"><i class="fa fa-whatsapp"></i> WhatsApp</button>
+            <button pButton class="p-button-outlined" (click)="imprimir('TICKET')" [loading]="generandoTicket">
+                <i class="fa fa-receipt"></i> Ticket 80mm
+            </button>
+            <button pButton class="p-button-outlined" (click)="imprimir('A4')" [loading]="generandoPdf">
+                <i class="fa fa-file-pdf"></i> Factura A4
+            </button>
+            <button pButton class="p-button-outlined" (click)="enviarCorreo()" [disabled]="esAnonima" [loading]="enviandoCorreo">
+                <i class="fa fa-envelope"></i> Correo
+            </button>
+            <button pButton class="p-button-outlined" (click)="enviarWhatsapp()" [disabled]="esAnonima" [loading]="enviandoWhatsapp">
+                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+            </button>
         </div>
 
         <small class="pos-success-hint" *ngIf="esAnonima">

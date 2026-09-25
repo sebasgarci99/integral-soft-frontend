@@ -490,4 +490,13 @@
     --ink: #1e293b;
     --mut: #64748b;
     --bor: #e2e8f0;
+    max-width: 95vw !important;
+}
+
+/* Diálogos del POS en móvil: sin desbordes y con menos padding */
+@media (max-width: 640px) {
+    .pos-modal { width: 96vw !important; max-width: 96vw !important; }
+    .pos-modal .p-dialog-content { padding: .75rem 1rem !important; }
+    .pos-modal .p-dialog-header { padding: .85rem 1rem !important; }
+    .p-dialog .p-dialog-content { padding: 1rem !important; }
 }

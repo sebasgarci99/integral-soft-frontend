@@ -7,6 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextarea } from 'primeng/inputtextarea';
+import { CheckboxModule } from 'primeng/checkbox';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TooltipModule } from 'primeng/tooltip';
@@ -23,7 +24,7 @@ import { getGoogleMapsEmbedUrl } from '../../../utils/google-maps.util';
     standalone: true,
     imports: [
         CommonModule, FormsModule, TableModule, ButtonModule, DialogModule,
-        InputTextModule, InputTextarea, ToastModule, ConfirmDialogModule, TooltipModule
+        InputTextModule, InputTextarea, CheckboxModule, ToastModule, ConfirmDialogModule, TooltipModule
     ],
     templateUrl: './propiedades-horizontales.component.html',
     styleUrls: ['./propiedades-horizontales.component.css'],
@@ -50,8 +51,10 @@ export class PropiedadesHorizontalesComponent implements OnInit {
 
     private readonly QR_BASE_WIDTH = 420;
     private readonly QR_BASE_HEIGHT = 620;
-    private readonly QR_BASE_QR_WIDTH = 260;
-    private readonly QR_HD_ESCALA = 3;
+    private readonly QR_BASE_QR_WIDTH = 300;
+    private readonly QR_MARGIN = 2;
+    private readonly QR_ERROR_LEVEL = 'H' as const;
+    readonly QR_HD_ESCALA = 5;
 
     getGoogleMapsEmbedUrl = getGoogleMapsEmbedUrl;
 
@@ -181,7 +184,12 @@ export class PropiedadesHorizontalesComponent implements OnInit {
         this.propiedadSeleccionada = propiedad;
         this.qrUrl = `${enviroment.pqrsLandingUrl}?k=${propiedad.codigo_acceso}`;
         try {
-            this.qrDataUrl = await QRCode.toDataURL(this.qrUrl, { width: this.QR_BASE_QR_WIDTH, margin: 1, color: { dark: '#1a5f7a', light: '#ffffff' } });
+            this.qrDataUrl = await QRCode.toDataURL(this.qrUrl, {
+                width: this.QR_BASE_QR_WIDTH,
+                margin: this.QR_MARGIN,
+                errorCorrectionLevel: this.QR_ERROR_LEVEL,
+                color: { dark: '#1a5f7a', light: '#ffffff' }
+            });
             this.qrDecoradoDataUrl = await this.generarQrDecorado(this.qrDataUrl, 1);
         } catch (error) {
             this.qrDataUrl = '';
@@ -204,7 +212,8 @@ export class PropiedadesHorizontalesComponent implements OnInit {
         try {
             const qrDataUrl = await QRCode.toDataURL(this.qrUrl, {
                 width: this.QR_BASE_QR_WIDTH * this.QR_HD_ESCALA,
-                margin: 1,
+                margin: this.QR_MARGIN,
+                errorCorrectionLevel: this.QR_ERROR_LEVEL,
                 color: { dark: '#1a5f7a', light: '#ffffff' }
             });
             const hdUrl = await this.generarQrDecorado(qrDataUrl, this.QR_HD_ESCALA);
@@ -261,26 +270,30 @@ export class PropiedadesHorizontalesComponent implements OnInit {
             }
         }
 
+        const qrSize = this.QR_BASE_QR_WIDTH;
+        const qrX = (baseWidth - qrSize) / 2;
+        const qrY = 125;
+
         const qrImg = await this.cargarImagen(qrDataUrl);
-        ctx.drawImage(qrImg, (baseWidth - 260) / 2, 130, 260, 260);
+        ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
         ctx.strokeStyle = '#3da1b8';
         ctx.lineWidth = 4;
-        ctx.strokeRect((baseWidth - 260) / 2 - 10, 120, 280, 280);
+        ctx.strokeRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20);
 
         ctx.fillStyle = '#1a5f7a';
         ctx.font = 'bold 26px Segoe UI, Arial, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('PQRS', baseWidth / 2, 450);
+        ctx.fillText('PQRS', baseWidth / 2, qrY + qrSize + 40);
 
         ctx.fillStyle = '#334155';
         ctx.font = '16px Segoe UI, Arial, sans-serif';
-        ctx.fillText('Escanea para registrar o consultar', baseWidth / 2, 480);
+        ctx.fillText('Escanea para registrar o consultar', baseWidth / 2, qrY + qrSize + 70);
 
         if (this.propiedadSeleccionada) {
             ctx.fillStyle = '#64748b';
             ctx.font = '14px Segoe UI, Arial, sans-serif';
-            ctx.fillText(this.propiedadSeleccionada.nombre, baseWidth / 2, 515);
+            this.dibujarTextoAjustado(ctx, this.propiedadSeleccionada.nombre, baseWidth / 2, qrY + qrSize + 100, baseWidth - 40, 14);
         }
 
         ctx.fillStyle = '#dbeafe';
@@ -290,6 +303,23 @@ export class PropiedadesHorizontalesComponent implements OnInit {
         ctx.fillText('Powered by Integral-Soft | Soluciones Integrales de Software', baseWidth / 2, baseHeight - 25);
 
         return canvas.toDataURL('image/png');
+    }
+
+    private dibujarTextoAjustado(ctx: CanvasRenderingContext2D, texto: string, x: number, y: number, maxWidth: number, fontSize: number): void {
+        let contenido = texto || '';
+        let actual = fontSize;
+        ctx.font = `${actual}px Segoe UI, Arial, sans-serif`;
+        while (ctx.measureText(contenido).width > maxWidth && actual > 9) {
+            actual -= 1;
+            ctx.font = `${actual}px Segoe UI, Arial, sans-serif`;
+        }
+        while (ctx.measureText(contenido).width > maxWidth && contenido.length > 3) {
+            contenido = contenido.slice(0, -1);
+        }
+        if (contenido !== texto) {
+            contenido = contenido.slice(0, -1) + '…';
+        }
+        ctx.fillText(contenido, x, y);
     }
 
     private cargarImagen(src: string): Promise<HTMLImageElement> {
@@ -331,7 +361,7 @@ export class PropiedadesHorizontalesComponent implements OnInit {
 
     async abrirCategorias(propiedad: PropiedadHorizontal) {
         this.propiedadSeleccionada = propiedad;
-        this.categoriaForm = {};
+        this.categoriaForm = { requiere_correo: false };
         this.isEditCategoria = false;
         await this.cargarCategorias();
         this.displayCategoriasDialog = true;
@@ -374,7 +404,7 @@ export class PropiedadesHorizontalesComponent implements OnInit {
             next: (res) => {
                 this.guardandoCategoria = false;
                 if (res.state === 'OK') {
-                    this.categoriaForm = {};
+                    this.categoriaForm = { requiere_correo: false };
                     this.isEditCategoria = false;
                     this.cargarCategorias();
                     this.messageService.add({ severity: 'success', summary: this.isEditCategoria ? 'Categoría actualizada.' : 'Categoría creada.' });

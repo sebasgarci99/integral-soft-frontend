@@ -17,13 +17,14 @@ import { ClienteService } from '../../services/cliente/cliente.service';
 import { Producto, Sede, Grupo, Categoria } from '../../interfaces/inventario';
 import { Cliente } from '../../interfaces/cliente';
 import { ItemCarrito, MetodoPago, PagoVenta, PosConfiguracion, ResultadoVenta } from '../../interfaces/pos';
+import { EscanerQrComponent } from '../shared/escaner-qr/escaner-qr.component';
 
 @Component({
     selector: 'app-pos',
     standalone: true,
     imports: [CommonModule, FormsModule, ButtonModule, DialogModule,
               InputTextModule, InputNumberModule, DropdownModule, ToastModule, ConfirmDialogModule,
-              TagModule, TooltipModule],
+              TagModule, TooltipModule, EscanerQrComponent],
     templateUrl: './pos.component.html',
     styleUrls: ['./pos.component.css'],
     providers: [MessageService, ConfirmationService]
@@ -69,6 +70,15 @@ export class PosComponent implements OnInit {
     loading = false;
     resultado: ResultadoVenta | null = null;
     displayResultado = false;
+
+    // Loaders de acciones post-venta
+    generandoTicket = false;
+    generandoPdf = false;
+    enviandoCorreo = false;
+    enviandoWhatsapp = false;
+
+    // Escáner QR con cámara
+    displayEscaner = false;
 
     // Selector de lote
     displayLote = false;
@@ -180,6 +190,22 @@ export class PosComponent implements OnInit {
 
     focusBarcode() {
         setTimeout(() => this.barcodeInput?.nativeElement?.focus(), 80);
+    }
+
+    // ---------------- Escáner QR con cámara ----------------
+
+    abrirEscaner() {
+        if (!this.idSede) {
+            this.messageService.add({ severity: 'warn', summary: 'Seleccione una sede antes de escanear.' });
+            return;
+        }
+        this.displayEscaner = true;
+    }
+
+    onEscanerDetectado(codigo: string) {
+        this.displayEscaner = false;
+        this.codigoBarras = codigo;
+        this.onBarcode();
     }
 
     // ---------------- Buscador dinámico ----------------
@@ -628,10 +654,16 @@ export class PosComponent implements OnInit {
     // ---------------- Envío e impresión ----------------
 
     imprimir(formato: 'A4' | 'TICKET') {
-        if (!this.resultado) return;
+        if (!this.resultado || this.generandoTicket || this.generandoPdf) return;
+
+        if (formato === 'TICKET') this.generandoTicket = true;
+        else this.generandoPdf = true;
+
         this.posService.generarFacturaHtml(this.resultado.id_venta, formato).then(obs$ => {
             obs$.subscribe({
                 next: (res) => {
+                    this.generandoTicket = false;
+                    this.generandoPdf = false;
                     if (res.state === 'OK' && res.body?.html) {
                         const ventana = window.open('', '_blank');
                         if (!ventana) return;
@@ -640,39 +672,95 @@ export class PosComponent implements OnInit {
                         setTimeout(() => ventana.print(), 500);
                     }
                 },
-                error: () => this.messageService.add({ severity: 'error', summary: 'No se pudo generar la factura.' })
+                error: () => {
+                    this.generandoTicket = false;
+                    this.generandoPdf = false;
+                    this.messageService.add({ severity: 'error', summary: 'No se pudo generar la factura.' });
+                }
             });
         });
     }
 
     enviarCorreo() {
-        if (!this.resultado) return;
-        this.posService.enviarFacturaCorreo(this.resultado.id_venta).then(obs$ => {
-            obs$.subscribe({
-                next: (res) => {
-                    if (res.state === 'OK') this.messageService.add({ severity: 'success', summary: `Factura enviada a ${res.body?.correo}.` });
-                    else this.messageService.add({ severity: 'error', summary: res.msg || 'No se pudo enviar la factura.' });
-                },
-                error: (err) => this.messageService.add({ severity: 'error', summary: err.error?.msg || 'No se pudo enviar la factura.' })
-            });
+        if (!this.resultado || this.enviandoCorreo) return;
+
+        const correo = this.clienteSeleccionado?.correo_electronico;
+        this.confirmService.confirm({
+            icon: 'fa fa-envelope',
+            header: 'Enviar factura por correo',
+            message: correo
+                ? `¿Enviar la factura ${this.resultado.numero_factura} a ${correo}?`
+                : `¿Enviar la factura ${this.resultado.numero_factura} por correo?`,
+            acceptLabel: 'Sí, enviar',
+            rejectLabel: 'Cancelar',
+            accept: () => {
+                this.enviandoCorreo = true;
+                this.posService.enviarFacturaCorreo(this.resultado!.id_venta).then(obs$ => {
+                    obs$.subscribe({
+                        next: (res) => {
+                            this.enviandoCorreo = false;
+                            if (res.state === 'OK') this.messageService.add({ severity: 'success', summary: `Factura enviada a ${res.body?.correo}.` });
+                            else this.messageService.add({ severity: 'error', summary: res.msg || 'No se pudo enviar la factura.' });
+                        },
+                        error: (err) => {
+                            this.enviandoCorreo = false;
+                            this.messageService.add({ severity: 'error', summary: err.error?.msg || 'No se pudo enviar la factura.' });
+                        }
+                    });
+                });
+            }
         });
     }
 
     enviarWhatsapp() {
-        if (!this.resultado) return;
-        this.posService.obtenerEnlaceWhatsapp(this.resultado.id_venta).then(obs$ => {
-            obs$.subscribe({
-                next: (res) => {
-                    if (res.state === 'OK' && res.body?.whatsapp_url) window.open(res.body.whatsapp_url, '_blank');
-                    else this.messageService.add({ severity: 'error', summary: res.msg || 'No se pudo generar el enlace.' });
-                },
-                error: (err) => this.messageService.add({ severity: 'error', summary: err.error?.msg || 'No se pudo generar el enlace.' })
-            });
+        if (!this.resultado || this.enviandoWhatsapp) return;
+
+        const telefono = this.clienteSeleccionado?.telefono;
+        this.confirmService.confirm({
+            icon: 'fa-brands fa-whatsapp',
+            header: 'Enviar factura por WhatsApp',
+            message: telefono
+                ? `¿Enviar la factura ${this.resultado.numero_factura} al ${telefono}?`
+                : `¿Enviar la factura ${this.resultado.numero_factura} por WhatsApp?`,
+            acceptLabel: 'Sí, enviar',
+            rejectLabel: 'Cancelar',
+            accept: () => {
+                this.enviandoWhatsapp = true;
+                this.posService.obtenerEnlaceWhatsapp(this.resultado!.id_venta).then(obs$ => {
+                    obs$.subscribe({
+                        next: (res) => {
+                            this.enviandoWhatsapp = false;
+                            if (res.state === 'OK' && res.body?.whatsapp_texto) {
+                                this.abrirWhatsApp(res.body.whatsapp_texto, res.body.whatsapp_telefono);
+                            } else {
+                                this.messageService.add({ severity: 'error', summary: res.msg || 'No se pudo generar el enlace.' });
+                            }
+                        },
+                        error: (err) => {
+                            this.enviandoWhatsapp = false;
+                            this.messageService.add({ severity: 'error', summary: err.error?.msg || 'No se pudo generar el enlace.' });
+                        }
+                    });
+                });
+            }
         });
     }
 
     get esAnonima(): boolean {
         return !this.clienteSeleccionado;
+    }
+
+    private abrirWhatsApp(texto: string, telefono: string) {
+        const esMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        let url: string;
+        if (!telefono) {
+            url = `https://api.whatsapp.com/send?text=${texto}`;
+        } else if (esMovil) {
+            url = `https://wa.me/${telefono}?text=${texto}`;
+        } else {
+            url = `https://web.whatsapp.com/send?phone=${telefono}&text=${texto}`;
+        }
+        window.open(url, '_blank');
     }
 
     formatoMoneda(valor: number): string {

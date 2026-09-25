@@ -72,6 +72,7 @@
                             <td><i class="fa" [ngClass]="row.maneja_vencimiento ? 'fa-check text-success' : 'fa-times text-muted'"></i></td>
                             <td>{{ row.registro_sanitario_invima || 'Sin registro' }}</td>
                             <td>
+                                <p-button icon="fa fa-qrcode" class="p-button-text p-button-sm" title="Imprimir código QR" (onClick)="imprimirQr(row)" />
                                 <p-button icon="fa fa-pencil" class="p-button-text p-button-sm" (onClick)="editarProducto(row)" />
                                 <p-button icon="fa fa-trash" class="p-button-text p-button-sm" severity="danger" (onClick)="borrarProducto(row)" [loading]="loadingEliminar" />
                             </td>

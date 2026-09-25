@@ -1,0 +1,70 @@
+:host { display: block; }
+
+.esc-wrap { display: flex; flex-direction: column; gap: .75rem; }
+
+.esc-preview {
+    position: relative;
+    width: 100%;
+    height: 60vh;
+    max-height: 26rem;
+    min-height: 16rem;
+    background: #0b1220;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.esc-preview video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.esc-overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+}
+
+.esc-frame {
+    width: min(62%, 15rem);
+    aspect-ratio: 1 / 1;
+    border: 3px solid rgba(61, 161, 184, .95);
+    border-radius: 16px;
+    box-shadow: 0 0 0 100vmax rgba(6, 18, 30, .45);
+    animation: esc-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes esc-pulse {
+    0%, 100% { opacity: .75; }
+    50% { opacity: 1; }
+}
+
+.esc-loading,
+.esc-error-box {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .6rem;
+    color: #fff;
+    text-align: center;
+    padding: 1.5rem;
+    background: rgba(6, 18, 30, .7);
+}
+
+.esc-loading i { font-size: 2rem; }
+.esc-error-box i { font-size: 2rem; color: #fca5a5; }
+.esc-error-box span { font-size: .95rem; max-width: 22rem; }
+
+.esc-hint {
+    margin: 0;
+    text-align: center;
+    color: #64748b;
+    font-size: .9rem;
+}
+
+.esc-actions { display: flex; justify-content: center; }

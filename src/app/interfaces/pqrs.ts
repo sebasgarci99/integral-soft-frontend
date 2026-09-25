@@ -31,12 +31,31 @@ export interface CategoriaPqrs {
     id_propiedad_horizontal: number;
     nombre: string;
     orden: number;
+    requiere_correo: boolean;
     estado: string;
     PropiedadHorizontal?: PropiedadHorizontal;
 }
 
 export type TipoPqr = 'PETICION' | 'QUEJA' | 'RECLAMO' | 'SUGERENCIA';
 export type EstadoPqr = 'RADICADO' | 'CATEGORIZADO' | 'EN_AVANCE' | 'FINALIZADO';
+export type OrigenPqr = 'QR' | 'WEB' | 'CORREO';
+
+export interface UsuarioPqrs {
+    id: number;
+    usuario?: string;
+    nombre?: string;
+    apellido?: string;
+}
+
+export interface HistorialPqrs {
+    id_historial_pqrs: number;
+    id_solicitud_pqrs: number;
+    id_usuario?: number;
+    accion: string;
+    detalle?: string;
+    createdAt?: string;
+    Usuario?: UsuarioPqrs;
+}
 
 export interface AlertaConfigPqrs {
     id_alerta_config: number;
@@ -86,12 +105,18 @@ export interface SolicitudPqrs {
     estado: EstadoPqr;
     resumen_finalizacion?: string;
     id_usuario_gestor?: number;
+    id_usuario_crea?: number;
+    origen: OrigenPqr;
+    correo_reenvio?: string;
     fecha_radicacion?: string;
     fecha_categorizacion?: string;
     fecha_ultimo_avance?: string;
     fecha_finalizacion?: string;
     PropiedadHorizontal?: PropiedadHorizontal;
     Categoria?: CategoriaPqrs;
+    UsuarioGestor?: UsuarioPqrs;
+    UsuarioCrea?: UsuarioPqrs;
+    Historial?: HistorialPqrs[];
     Archivos?: ArchivoPqrs[];
     Avances?: AvancePqrs[];
 }

@@ -105,3 +105,14 @@
     .cfg-span2 { grid-column: span 1; }
     .cfg-res-item { flex-direction: column; align-items: flex-start; }
 }
+@media (max-width: 640px) {
+    .cfg-wrap { padding: .75rem; }
+    .cfg-topbar { padding: .85rem 1rem; }
+    .cfg-title-box h2 { font-size: 1.15rem; }
+    .cfg-title-box span { font-size: .78rem; }
+    .cfg-save { width: 100%; justify-content: center; }
+    .cfg-logo-row { flex-direction: column; align-items: stretch; }
+    .cfg-logo-preview { width: 100%; height: 130px; }
+    .cfg-res-actions { width: 100%; }
+    .cfg-res-actions .p-button { flex: 1; }
+}

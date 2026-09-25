@@ -62,8 +62,8 @@
         </div>
     </div>
 
-    <!-- Tabla -->
-    <div class="hist-table-card">
+    <!-- Tabla (escritorio) -->
+    <div class="hist-table-card hist-table-desktop">
         <p-table [value]="ventas" [paginator]="true" [rows]="10" [loading]="loading"
             responsiveLayout="scroll" stripedRows styleClass="hist-table">
             <ng-template pTemplate="header">
@@ -74,6 +74,7 @@
                     <th>Sede</th>
                     <th class="text-end">Total</th>
                     <th>Estado</th>
+                    <th>Pago</th>
                     <th class="text-center">Acciones</th>
                 </tr>
             </ng-template>
@@ -88,18 +89,35 @@
                         <p-tag [value]="venta.estado === 'A' ? 'Válida' : 'Anulada'"
                             [severity]="venta.estado === 'A' ? 'success' : 'danger'"></p-tag>
                     </td>
+                    <td>
+                        <p-tag [value]="venta.estado_pago === 'PENDIENTE' ? 'No pagada' : 'Pagada'"
+                            [severity]="venta.estado_pago === 'PENDIENTE' ? 'danger' : 'success'"></p-tag>
+                    </td>
                     <td class="text-center hist-row-actions">
-                        <button pButton icon="fa fa-receipt" class="p-button-text p-button-sm p-button-rounded" pTooltip="Ticket 80mm" (click)="imprimir(venta, 'TICKET')"></button>
-                        <button pButton icon="fa fa-file-pdf" class="p-button-text p-button-sm p-button-rounded" pTooltip="Factura A4" (click)="imprimir(venta, 'A4')"></button>
-                        <button pButton icon="fa fa-envelope" class="p-button-text p-button-sm p-button-rounded" pTooltip="Enviar por correo" (click)="enviarCorreo(venta)" [disabled]="!venta.Cliente"></button>
-                        <button pButton icon="fa fa-whatsapp" class="p-button-text p-button-sm p-button-rounded" pTooltip="Enviar por WhatsApp" (click)="enviarWhatsapp(venta)" [disabled]="!venta.Cliente"></button>
-                        <button pButton icon="fa fa-ban" class="p-button-text p-button-danger p-button-sm p-button-rounded" pTooltip="Anular venta" (click)="anular(venta)" [disabled]="venta.estado !== 'A'"></button>
+                        <button pButton icon="fa fa-receipt" class="p-button-text p-button-sm p-button-rounded" pTooltip="Ticket 80mm"
+                            (click)="imprimir(venta, 'TICKET')" [loading]="generandoId === venta.id_venta"></button>
+                        <button pButton icon="fa fa-file-pdf" class="p-button-text p-button-sm p-button-rounded" pTooltip="Factura A4"
+                            (click)="imprimir(venta, 'A4')" [loading]="generandoId === venta.id_venta"></button>
+                        <button pButton icon="fa fa-envelope" class="p-button-text p-button-sm p-button-rounded" pTooltip="Enviar por correo"
+                            (click)="enviarCorreo(venta)" [disabled]="!venta.Cliente" [loading]="enviandoCorreoId === venta.id_venta"></button>
+                        <button pButton icon="fa-brands fa-whatsapp" class="p-button-text p-button-sm p-button-rounded" pTooltip="Enviar por WhatsApp"
+                            (click)="enviarWhatsapp(venta)" [disabled]="!venta.Cliente" [loading]="enviandoWhatsappId === venta.id_venta"></button>
+                        <button pButton
+                            [icon]="venta.estado_pago === 'PENDIENTE' ? 'fa fa-money-bill-wave' : 'fa fa-hand-holding-dollar'"
+                            class="p-button-text p-button-sm p-button-rounded"
+                            [class.p-button-success]="venta.estado_pago === 'PENDIENTE'"
+                            [class.p-button-warning]="venta.estado_pago !== 'PENDIENTE'"
+                            [pTooltip]="venta.estado_pago === 'PENDIENTE' ? 'Marcar como pagada' : 'Marcar como NO pagada'"
+                            (click)="cambiarPago(venta)" [disabled]="venta.estado !== 'A'"
+                            [loading]="cambiandoPagoId === venta.id_venta"></button>
+                        <button pButton icon="fa fa-ban" class="p-button-text p-button-danger p-button-sm p-button-rounded" pTooltip="Anular venta"
+                            (click)="anular(venta)" [disabled]="venta.estado !== 'A'" [loading]="anulandoId === venta.id_venta"></button>
                     </td>
                 </tr>
             </ng-template>
             <ng-template pTemplate="emptymessage">
                 <tr>
-                    <td colspan="7">
+                    <td colspan="8">
                         <div class="hist-empty">
                             <i class="fa fa-receipt"></i>
                             <p>No hay ventas registradas</p>
@@ -109,5 +127,55 @@
                 </tr>
             </ng-template>
         </p-table>
+    </div>
+
+    <!-- Tarjetas (móvil) -->
+    <div class="hist-cards" *ngIf="ventas.length > 0">
+        <div class="hist-card" *ngFor="let venta of ventasPagina">
+            <div class="hist-card-top">
+                <span class="hist-doc">{{ venta.numero_factura }}</span>
+                <span class="hist-card-total">{{ formatoMoneda(venta.total) }}</span>
+            </div>
+            <div class="hist-card-meta">
+                <span><i class="fa fa-calendar-day"></i> {{ venta.fecha_venta }}</span>
+                <span><i class="fa fa-user"></i> {{ venta.Cliente?.nombre_razon_social || 'Consumidor final' }}</span>
+                <span><i class="fa fa-store"></i> {{ venta.Sede?.nombre || '-' }}</span>
+            </div>
+            <div class="hist-card-tags">
+                <p-tag [value]="venta.estado === 'A' ? 'Válida' : 'Anulada'"
+                    [severity]="venta.estado === 'A' ? 'success' : 'danger'"></p-tag>
+                <p-tag [value]="venta.estado_pago === 'PENDIENTE' ? 'No pagada' : 'Pagada'"
+                    [severity]="venta.estado_pago === 'PENDIENTE' ? 'danger' : 'success'"></p-tag>
+            </div>
+            <div class="hist-card-actions">
+                <button pButton icon="fa fa-receipt" class="p-button-text p-button-rounded" title="Ticket 80mm"
+                    (click)="imprimir(venta, 'TICKET')" [loading]="generandoId === venta.id_venta"></button>
+                <button pButton icon="fa fa-file-pdf" class="p-button-text p-button-rounded" title="Factura A4"
+                    (click)="imprimir(venta, 'A4')" [loading]="generandoId === venta.id_venta"></button>
+                <button pButton icon="fa fa-envelope" class="p-button-text p-button-rounded" title="Enviar por correo"
+                    (click)="enviarCorreo(venta)" [disabled]="!venta.Cliente" [loading]="enviandoCorreoId === venta.id_venta"></button>
+                <button pButton icon="fa-brands fa-whatsapp" class="p-button-text p-button-rounded" title="Enviar por WhatsApp"
+                    (click)="enviarWhatsapp(venta)" [disabled]="!venta.Cliente" [loading]="enviandoWhatsappId === venta.id_venta"></button>
+                <button pButton
+                    [icon]="venta.estado_pago === 'PENDIENTE' ? 'fa fa-money-bill-wave' : 'fa fa-hand-holding-dollar'"
+                    class="p-button-text p-button-rounded"
+                    [class.p-button-success]="venta.estado_pago === 'PENDIENTE'"
+                    [class.p-button-warning]="venta.estado_pago !== 'PENDIENTE'"
+                    (click)="cambiarPago(venta)" [disabled]="venta.estado !== 'A'"
+                    [loading]="cambiandoPagoId === venta.id_venta"
+                    [title]="venta.estado_pago === 'PENDIENTE' ? 'Marcar como pagada' : 'Marcar como NO pagada'"></button>
+                <button pButton icon="fa fa-ban" class="p-button-text p-button-danger p-button-rounded" title="Anular venta"
+                    (click)="anular(venta)" [disabled]="venta.estado !== 'A'" [loading]="anulandoId === venta.id_venta"></button>
+            </div>
+        </div>
+        <p-paginator [rows]="rows" [totalRecords]="ventas.length" [first]="(page - 1) * rows"
+            [rowsPerPageOptions]="[10, 20, 50]" (onPageChange)="onPageChange($event)"></p-paginator>
+    </div>
+
+    <!-- Vacío (móvil) -->
+    <div class="hist-empty hist-empty-mobile" *ngIf="ventas.length === 0">
+        <i class="fa fa-receipt"></i>
+        <p>No hay ventas registradas</p>
+        <span>Ajusta los filtros o realiza una nueva venta en el Punto de venta</span>
     </div>
 </div>

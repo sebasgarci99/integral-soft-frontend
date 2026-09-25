@@ -5,29 +5,37 @@
                 <h3><i class="fa fa-file-excel"></i> Reportes PQRS</h3>
             </div>
 
-            <div class="row g-3 mb-3 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label">Propiedad horizontal</label>
-                    <p-dropdown [options]="propiedades" [(ngModel)]="propiedadSeleccionada" optionLabel="nombre" [showClear]="true" placeholder="Todas" class="w-100" appendTo="body" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Fecha inicio *</label>
-                    <p-calendar [(ngModel)]="filtros.fecha_inicio" dateFormat="yy-mm-dd" class="w-100" appendTo="body" placeholder="yyyy-mm-dd" [showIcon]="true" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Fecha fin *</label>
-                    <p-calendar [(ngModel)]="filtros.fecha_fin" dateFormat="yy-mm-dd" class="w-100" appendTo="body" placeholder="yyyy-mm-dd" [showIcon]="true" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Estado</label>
-                    <p-dropdown [options]="estados" [(ngModel)]="filtros.estado" optionLabel="label" optionValue="value" class="w-100" appendTo="body" placeholder="Seleccione" />
-                </div>
-            </div>
+            <div class="filtros-panel">
+                <div class="filtros-titulo"><i class="fa fa-filter"></i> Filtros de búsqueda</div>
 
-            <div class="d-flex gap-2 mb-3">
-                <p-button label="Generar" icon="fa fa-search" severity="info" (onClick)="generar()" [loading]="generando" />
-                <p-button label="Exportar Excel" icon="fa fa-file-excel" severity="success" (onClick)="exportarExcel()" [disabled]="resultados.length === 0" />
-                <p-button label="Limpiar" icon="fa fa-eraser" severity="secondary" (onClick)="limpiar()" />
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <label class="form-label">Propiedad horizontal</label>
+                        <p-dropdown [options]="propiedades" [(ngModel)]="propiedadSeleccionada" optionLabel="nombre" [showClear]="true" placeholder="Todas" class="w-100" appendTo="body" />
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <label class="form-label">Fecha inicio <span class="req">*</span></label>
+                        <p-calendar [(ngModel)]="filtros.fecha_inicio" dateFormat="yy-mm-dd" class="w-100" appendTo="body" placeholder="yyyy-mm-dd" [showIcon]="true" />
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <label class="form-label">Fecha fin <span class="req">*</span></label>
+                        <p-calendar [(ngModel)]="filtros.fecha_fin" dateFormat="yy-mm-dd" class="w-100" appendTo="body" placeholder="yyyy-mm-dd" [showIcon]="true" />
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <label class="form-label">Estado</label>
+                        <p-dropdown [options]="estados" [(ngModel)]="filtros.estado" optionLabel="label" optionValue="value" class="w-100" appendTo="body" placeholder="Todos" />
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-3">
+                        <label class="form-label">Gestor</label>
+                        <p-dropdown [options]="usuarios" [(ngModel)]="filtros.id_usuario_gestor" optionLabel="nombre_completo" optionValue="id" [showClear]="true" class="w-100" appendTo="body" placeholder="Todos" />
+                    </div>
+                </div>
+
+                <div class="filtros-acciones">
+                    <p-button label="Generar" icon="fa fa-search" severity="info" (onClick)="generar()" [loading]="generando" />
+                    <p-button label="Exportar Excel" icon="fa fa-file-excel" severity="success" (onClick)="exportarExcel()" [disabled]="resultados.length === 0" />
+                    <p-button label="Limpiar" icon="fa fa-eraser" severity="secondary" [outlined]="true" (onClick)="limpiar()" />
+                </div>
             </div>
 
             <div class="position-relative">
@@ -47,6 +55,9 @@
                             <th>Tipo</th>
                             <th>Categoría</th>
                             <th>Estado</th>
+                            <th>Origen</th>
+                            <th>Radicado por</th>
+                            <th>Gestor</th>
                             <th>Fecha radicación</th>
                             <th>Días</th>
                             <th>Avances</th>
@@ -61,6 +72,9 @@
                             <td>{{ row.tipo_pqr }}</td>
                             <td>{{ row.categoria || '—' }}</td>
                             <td>{{ row.estado }}</td>
+                            <td>{{ row.origen || '—' }}</td>
+                            <td>{{ row.usuario_radica || row.usuario_radica_login || '—' }}</td>
+                            <td>{{ row.usuario_gestor || row.usuario_gestor_login || '—' }}</td>
                             <td>{{ row.fecha_radicacion | date:'shortDate' }}</td>
                             <td>{{ row.dias_transcurridos }}</td>
                             <td>{{ row.cantidad_avances }}</td>
@@ -68,7 +82,7 @@
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                         <tr>
-                            <td colspan="10" class="text-center text-muted p-4">
+                            <td colspan="13" class="text-center text-muted p-4">
                                 <i class="fa fa-inbox me-2"></i> No hay datos para mostrar
                             </td>
                         </tr>

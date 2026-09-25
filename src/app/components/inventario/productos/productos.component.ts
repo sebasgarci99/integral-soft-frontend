@@ -14,8 +14,10 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { AccordionModule } from 'primeng/accordion';
 import { BadgeModule } from 'primeng/badge';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { forkJoin } from 'rxjs';
+import { firstValueFrom, forkJoin } from 'rxjs';
+import QRCode from 'qrcode';
 import { InventarioService } from '../../../services/inventario/inventario.service';
+import { PosService } from '../../../services/pos/pos.service';
 import { Producto, Grupo, Categoria, UnidadMedida } from '../../../interfaces/inventario';
 import { parseDateSinTimezone, formatDateLocal } from '../../../utils/fecha.util';
 
@@ -55,8 +57,11 @@ export class ProductosComponent implements OnInit {
 
     @ViewChild('tablaProductos') tablaProductos?: Table;
 
+    private nombreNegocioCache: string | null = null;
+
     constructor(
         private inventarioService: InventarioService,
+        private posService: PosService,
         private messageService: MessageService,
         private confirmService: ConfirmationService
     ) {}
@@ -355,5 +360,85 @@ export class ProductosComponent implements OnInit {
             this.formData.maneja_lote = false;
             this.formData.maneja_vencimiento = false;
         }
+    }
+
+    // ---------------- Código QR ----------------
+
+    private formatoMoneda(valor: number): string {
+        return new Intl.NumberFormat('es-CO', {
+            style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 2
+        }).format(valor || 0);
+    }
+
+    private async obtenerNombreNegocio(): Promise<string> {
+        if (this.nombreNegocioCache !== null) return this.nombreNegocioCache;
+        try {
+            const res: any = await firstValueFrom(await this.posService.getConfiguracion());
+            this.nombreNegocioCache = res?.body?.nombre_negocio || 'Mi negocio';
+        } catch {
+            this.nombreNegocioCache = 'Mi negocio';
+        }
+        return this.nombreNegocioCache || 'Mi negocio';
+    }
+
+    async imprimirQr(producto: Producto) {
+        try {
+            const codigo = (producto.codigo_barras && String(producto.codigo_barras).trim())
+                ? String(producto.codigo_barras)
+                : String(producto.codigo);
+
+            const [qrDataUrl, negocio] = await Promise.all([
+                QRCode.toDataURL(codigo, { margin: 1, width: 360, errorCorrectionLevel: 'M' }),
+                this.obtenerNombreNegocio()
+            ]);
+
+            const precio = this.formatoMoneda(parseFloat(String(producto.precio_venta ?? 0)) || 0);
+            const html = this.generarHtmlEtiqueta(qrDataUrl, negocio, producto.nombre, codigo, precio);
+
+            const ventana = window.open('', '_blank');
+            if (!ventana) return;
+            ventana.document.write(html);
+            ventana.document.close();
+            setTimeout(() => ventana.print(), 400);
+        } catch (error) {
+            this.messageService.add({ severity: 'error', summary: 'No se pudo generar el código QR.' });
+        }
+    }
+
+    private generarHtmlEtiqueta(qr: string, negocio: string, nombre: string, codigo: string, precio: string): string {
+        const esc = (v: string) => String(v ?? '')
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+        return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Etiqueta ${esc(codigo)}</title>
+<style>
+    @page { size: auto; margin: 8mm; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+    .etiqueta {
+        width: 62mm; padding: 4mm; border: 1px dashed #cbd5e1; border-radius: 4mm;
+        text-align: center; margin: 0;
+    }
+    .negocio { font-size: 9pt; font-weight: 700; color: #0d8aa6; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 2mm; }
+    .qr { width: 42mm; height: 42mm; margin: 0 auto; display: block; }
+    .nombre { font-size: 10pt; font-weight: 600; color: #1e293b; margin-top: 2mm; line-height: 1.2; }
+    .codigo { font-size: 8.5pt; color: #475569; margin-top: 1mm; word-break: break-all; }
+    .precio { font-size: 13pt; font-weight: 800; color: #005f99; margin-top: 1.5mm; }
+</style>
+</head>
+<body>
+    <div class="etiqueta">
+        <div class="negocio">${esc(negocio)}</div>
+        <img class="qr" src="${qr}" alt="QR" />
+        <div class="nombre">${esc(nombre)}</div>
+        <div class="codigo">${esc(codigo)}</div>
+        <div class="precio">${esc(precio)}</div>
+    </div>
+</body>
+</html>`;
     }
 }

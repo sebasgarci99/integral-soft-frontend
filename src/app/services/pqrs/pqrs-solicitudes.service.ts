@@ -41,12 +41,16 @@ export class PqrsSolicitudesService {
         return this.post<ApiResponse<any[]>>('listarSolicitudesPorPropiedad', { id_propiedad_horizontal });
     }
 
+    async crearSolicitudInterna(payload: Record<string, unknown>): Promise<Observable<ApiResponse<{ codigo_radicado: string; id_solicitud_pqrs: number }>>> {
+        return this.post<ApiResponse<{ codigo_radicado: string; id_solicitud_pqrs: number }>>('crearSolicitudInterna', payload);
+    }
+
     async obtenerDetalleSolicitud(id_solicitud_pqrs: number): Promise<Observable<ApiResponse<SolicitudPqrs>>> {
         return this.post<ApiResponse<SolicitudPqrs>>('obtenerDetalleSolicitud', { id_solicitud_pqrs });
     }
 
-    async categorizarSolicitud(id_solicitud_pqrs: number, id_categoria: number, notificar_usuario: boolean): Promise<Observable<ApiResponse<SolicitudPqrs>>> {
-        return this.post<ApiResponse<SolicitudPqrs>>('categorizarSolicitud', { id_solicitud_pqrs, id_categoria, notificar_usuario });
+    async categorizarSolicitud(id_solicitud_pqrs: number, id_categoria: number, notificar_usuario: boolean, correo_destino?: string): Promise<Observable<ApiResponse<SolicitudPqrs>>> {
+        return this.post<ApiResponse<SolicitudPqrs>>('categorizarSolicitud', { id_solicitud_pqrs, id_categoria, notificar_usuario, correo_destino });
     }
 
     async registrarAvance(id_solicitud_pqrs: number, descripcion: string, avanza_a_finalizacion: boolean, archivos: any[] = [], notificar_usuario: boolean = false): Promise<Observable<ApiResponse<any>>> {

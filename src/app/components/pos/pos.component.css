@@ -41,6 +41,12 @@
 .pos-search-input:focus-within { border-color: var(--p); box-shadow: 0 0 0 4px var(--ps); }
 .pos-search-input i { color: var(--p); font-size: 1.1rem; }
 .pos-search-input input { border: none !important; box-shadow: none !important; padding: .85rem 0; font-size: 1rem; width: 100%; background: transparent; }
+.pos-cam-btn {
+    width: 2.4rem; height: 2.4rem; flex-shrink: 0; border: none; border-radius: 10px; cursor: pointer;
+    background: var(--ps); color: var(--pd); font-size: 1rem; display: grid; place-items: center;
+    transition: background .12s, color .12s;
+}
+.pos-cam-btn:hover { background: var(--p); color: #fff; }
 .pos-btn-buscar { display: inline-flex; align-items: center; gap: .5rem; background: var(--pd) !important; border: none !important; border-radius: 14px !important; padding: 0 1.25rem !important; }
 .pos-btn-buscar kbd { background: rgba(255, 255, 255, .2); border-radius: 5px; padding: .05rem .4rem; font-size: .7rem; }
 
@@ -234,8 +240,26 @@
     .pos-modal-filters { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 640px) {
+    .pos-wrap { padding: .75rem; }
+    .pos-topbar { padding: .85rem 1rem; }
+    .pos-topbar-sede { width: 100%; }
+    :host ::ng-deep .pos-sede-dd { width: 100%; min-width: 0; }
     .pos-search { flex-direction: column; }
-    .pos-item { grid-template-columns: minmax(0, 1fr) auto; row-gap: .5rem; }
-    .pos-item-price { text-align: left; }
+    .pos-search-input { padding: .1rem .5rem; }
+    .pos-search-input input { padding: .7rem 0; font-size: 1rem; }
+    .pos-btn-buscar { justify-content: center; padding: .7rem 1rem !important; }
+    .pos-btn-buscar kbd { display: none; }
+    .pos-cart-items { max-height: none; }
+    .pos-item { grid-template-columns: minmax(0, 1fr) auto; row-gap: .55rem; padding: .8rem .9rem; }
+    .pos-item-price { text-align: left; min-width: 0; grid-column: 1 / 2; }
+    .pos-item-del { grid-column: 2 / 3; grid-row: 2; justify-self: end; }
     .pos-modal-filters { grid-template-columns: 1fr; }
+    .pos-results { grid-template-columns: 1fr; max-height: 58vh; }
+    .pos-success-actions { grid-template-columns: 1fr; }
+    .pos-methods { gap: .35rem; }
+    .pos-method { padding: .5rem .25rem; font-size: .7rem; }
+    .pos-quick { gap: .3rem; }
+    .pos-quick button { flex: 1 1 auto; }
+    .pos-lote-list { max-height: 50vh; }
+    .pos-lote-cantidad { flex-wrap: wrap; }
 }

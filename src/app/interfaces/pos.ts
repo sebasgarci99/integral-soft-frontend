@@ -108,6 +108,7 @@ export interface Venta {
     cambio: number;
     observacion?: string | null;
     estado: string;
+    estado_pago?: 'PAGADA' | 'PENDIENTE';
     Cliente?: Cliente | null;
     Sede?: { id_sede: number; nombre: string } | null;
 }

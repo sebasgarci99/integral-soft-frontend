@@ -56,6 +56,10 @@ export class PosService {
         return this.post<ApiResponse<{ id_venta: number; estado: string }>>('anularVenta', { id_venta });
     }
 
+    async cambiarEstadoPagoVenta(id_venta: number, estado_pago: 'PAGADA' | 'PENDIENTE'): Promise<Observable<ApiResponse<{ id_venta: number; estado_pago: string }>>> {
+        return this.post<ApiResponse<{ id_venta: number; estado_pago: string }>>('cambiarEstadoPagoVenta', { id_venta, estado_pago });
+    }
+
     async getResumenPos(filtros: Record<string, unknown> = {}): Promise<Observable<ApiResponse<{ cantidad_ventas: number; total_ventas: number }>>> {
         return this.post<ApiResponse<{ cantidad_ventas: number; total_ventas: number }>>('getResumenPos', filtros);
     }
@@ -92,7 +96,13 @@ export class PosService {
         return this.post<ApiResponse<{ correo: string }>>('enviarFacturaCorreo', { id_venta, correo });
     }
 
-    async obtenerEnlaceWhatsapp(id_venta: number): Promise<Observable<ApiResponse<{ whatsapp_url: string; url_factura: string; expira_en: string }>>> {
-        return this.post<ApiResponse<{ whatsapp_url: string; url_factura: string; expira_en: string }>>('obtenerEnlaceWhatsapp', { id_venta });
+    async obtenerEnlaceWhatsapp(id_venta: number): Promise<Observable<ApiResponse<{
+        whatsapp_url: string;
+        whatsapp_texto: string;
+        whatsapp_telefono: string;
+        url_factura: string;
+        expira_en: string;
+    }>>> {
+        return this.post('obtenerEnlaceWhatsapp', { id_venta });
     }
 }

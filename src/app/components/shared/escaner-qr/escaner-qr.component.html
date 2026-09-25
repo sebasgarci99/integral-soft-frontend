@@ -1,0 +1,24 @@
+<div class="esc-wrap">
+    <div class="esc-preview">
+        <video #video autoplay muted playsinline></video>
+        <div class="esc-overlay" *ngIf="!error">
+            <div class="esc-frame"></div>
+        </div>
+        <div class="esc-loading" *ngIf="iniciando && !error">
+            <i class="fa fa-spinner fa-spin"></i>
+            <span>Iniciando cámara…</span>
+        </div>
+        <div class="esc-error-box" *ngIf="error">
+            <i class="fa fa-triangle-exclamation"></i>
+            <span>{{ error }}</span>
+        </div>
+    </div>
+
+    <p class="esc-hint" *ngIf="!error">
+        <i class="fa fa-qrcode"></i> Apunta al código QR o de barras del producto
+    </p>
+
+    <div class="esc-actions">
+        <button pButton label="Cancelar" icon="fa fa-times" class="p-button-text" (click)="cancelar()"></button>
+    </div>
+</div>

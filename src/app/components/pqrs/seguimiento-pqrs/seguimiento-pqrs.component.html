@@ -3,10 +3,11 @@
         <div class="card-body">
             <div class="component-header">
                 <h3><i class="fa fa-tasks"></i> Seguimiento de Procesos PQRS</h3>
+                <p-button *ngIf="propiedadSeleccionada" label="Nueva solicitud" icon="fa fa-plus" severity="info" (onClick)="abrirNuevaSolicitud()" />
             </div>
 
             <div class="row mb-3 align-items-end">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label">Propiedad horizontal</label>
                     <p-dropdown [options]="propiedades" [(ngModel)]="propiedadSeleccionada" optionLabel="nombre" [showClear]="true" placeholder="Seleccione una propiedad" (onChange)="onPropiedadChange()" class="w-100" appendTo="body" />
                 </div>
@@ -26,8 +27,10 @@
                             <th>Solicitante</th>
                             <th>Documento</th>
                             <th>Tipo</th>
-                            <th>Categoría</th>
+                            <th>Categoría asignada</th>
                             <th>Estado</th>
+                            <th>Origen</th>
+                            <th>Gestor</th>
                             <th>Días</th>
                             <th>Bandera</th>
                             <th>Acciones</th>
@@ -40,7 +43,14 @@
                             <td>{{ row.nombre_solicitante }}</td>
                             <td>{{ row.documento_solicitante }}</td>
                             <td>{{ getLabelTipoPqr(row.tipo_pqr) }}</td>
-                            <td>{{ row.Categoria?.nombre || '—' }}</td>
+                            <td>
+                                <span class="categoria-chip" *ngIf="row.Categoria?.nombre; else sinCategoria">
+                                    <i class="fa fa-tag"></i> {{ row.Categoria?.nombre }}
+                                </span>
+                                <ng-template #sinCategoria>
+                                    <span class="categoria-chip categoria-chip-vacia">Sin categorizar</span>
+                                </ng-template>
+                            </td>
                             <td>
                                 <span class="badge" [ngClass]="{
                                     'bg-secondary': row.estado === 'RADICADO',
@@ -49,6 +59,10 @@
                                     'bg-success': row.estado === 'FINALIZADO'
                                 }">{{ row.estado === 'RADICADO' ? 'Radicado' : row.estado === 'CATEGORIZADO' ? 'Categorizado' : row.estado === 'EN_AVANCE' ? 'En avance' : 'Finalizado' }}</span>
                             </td>
+                            <td>
+                                <span class="badge" [ngClass]="row.origen === 'QR' ? 'bg-primary' : row.origen === 'CORREO' ? 'bg-warning text-dark' : 'bg-info'">{{ row.origen === 'QR' ? 'QR' : row.origen === 'CORREO' ? 'Correo' : 'Web' }}</span>
+                            </td>
+                            <td>{{ getNombreUsuario(row.UsuarioGestor) }}</td>
                             <td>{{ row.dias_transcurridos }}</td>
                             <td>
                                 <span *ngIf="row.bandera" [class]="getClaseBandera(row.bandera)">{{ getLabelBandera(row.bandera) }}</span>
@@ -61,7 +75,7 @@
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                         <tr>
-                            <td colspan="10" class="text-center text-muted p-4">
+                            <td colspan="12" class="text-center text-muted p-4">
                                 <i class="fa fa-inbox me-2"></i> No se encontraron solicitudes
                             </td>
                         </tr>
@@ -72,76 +86,137 @@
     </div>
 </div>
 
-<p-dialog header="Detalle de la solicitud" [(visible)]="displayDetalle" [modal]="true" [style]="{ width: '60rem' }" [draggable]="false" appendTo="body">
-    <div *ngIf="solicitudSeleccionada">
-        <div class="d-flex justify-content-between align-items-start mb-3">
-            <div>
-                <h5 class="mb-1">{{ solicitudSeleccionada.codigo_radicado }}</h5>
-                <p class="text-muted mb-0">{{ solicitudSeleccionada.nombre_solicitante }} | {{ solicitudSeleccionada.email_solicitante }}</p>
-            </div>
-            <span class="badge" [ngClass]="{
-                'bg-secondary': solicitudSeleccionada.estado === 'RADICADO',
-                'bg-info': solicitudSeleccionada.estado === 'CATEGORIZADO',
-                'bg-warning': solicitudSeleccionada.estado === 'EN_AVANCE',
-                'bg-success': solicitudSeleccionada.estado === 'FINALIZADO'
-            }">{{ solicitudSeleccionada.estado === 'RADICADO' ? 'Radicado' : solicitudSeleccionada.estado === 'CATEGORIZADO' ? 'Categorizado' : solicitudSeleccionada.estado === 'EN_AVANCE' ? 'En avance' : 'Finalizado' }}</span>
-        </div>
-
-        <div class="stepper mb-4">
-            <div *ngFor="let paso of pasos; let i = index" class="step" [class.active]="i <= getIndexPaso(solicitudSeleccionada.estado)" [class.current]="i === getIndexPaso(solicitudSeleccionada.estado)">
-                <div class="step-circle">{{ i + 1 }}</div>
-                <div class="step-label">{{ paso.label }}</div>
-                <div *ngIf="i < pasos.length - 1" class="step-line"></div>
-            </div>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col-md-6"><strong>Tipo:</strong> {{ getLabelTipoPqr(solicitudSeleccionada.tipo_pqr) }}</div>
-            <div class="col-md-6"><strong>Documento:</strong> {{ solicitudSeleccionada.documento_solicitante }}</div>
-            <div class="col-md-6"><strong>Piso/Ubicación:</strong> {{ solicitudSeleccionada.piso || '—' }} / {{ solicitudSeleccionada.ubicacion || '—' }}</div>
-            <div class="col-md-6"><strong>Fecha radicación:</strong> {{ solicitudSeleccionada.fecha_radicacion | date:'medium' }}</div>
-            <div class="col-md-12"><strong>Pretensiones:</strong> {{ solicitudSeleccionada.pretensiones || '—' }}</div>
-            <div class="col-md-12"><strong>Observaciones:</strong> {{ solicitudSeleccionada.observaciones || '—' }}</div>
-        </div>
-
-        <div *ngIf="solicitudSeleccionada.resumen_finalizacion" class="alert alert-success">
-            <strong>Resumen de finalización:</strong> {{ solicitudSeleccionada.resumen_finalizacion }}
-        </div>
-
+<p-dialog header="Detalle de la solicitud" [(visible)]="displayDetalle" [modal]="true" [style]="{ width: '60rem', height: '84vh' }" [draggable]="false" appendTo="body" styleClass="pqrs-detalle-dialog">
+    <div *ngIf="solicitudSeleccionada" class="detalle-solicitud">
         <ul class="nav nav-tabs mb-3">
             <li class="nav-item">
-                <a class="nav-link" [class.active]="vistaDetalle === 'detalle'" (click)="vistaDetalle = 'detalle'">Detalle</a>
+                <a class="nav-link" [class.active]="vistaDetalle === 'radicado'" (click)="vistaDetalle = 'radicado'"><i class="fa fa-file-lines"></i> Radicado</a>
             </li>
-            <li class="nav-item" *ngIf="solicitudSeleccionada.estado === 'RADICADO'">
-                <a class="nav-link" [class.active]="vistaDetalle === 'categoria'" (click)="vistaDetalle = 'categoria'">Categoría</a>
-            </li>
-            <li class="nav-item" *ngIf="solicitudSeleccionada.estado !== 'FINALIZADO'">
-                <a class="nav-link" [class.active]="vistaDetalle === 'avance'" (click)="vistaDetalle = 'avance'">Avance</a>
-            </li>
-            <li class="nav-item" *ngIf="solicitudSeleccionada.estado !== 'FINALIZADO'">
-                <a class="nav-link" [class.active]="vistaDetalle === 'finalizar'" (click)="vistaDetalle = 'finalizar'">Finalizar</a>
+            <li class="nav-item">
+                <a class="nav-link" [class.active]="vistaDetalle === 'seguimiento'" (click)="vistaDetalle = 'seguimiento'"><i class="fa fa-history"></i> Avances y trazabilidad</a>
             </li>
         </ul>
 
         <div class="tab-content">
-            <div class="tab-pane show active" *ngIf="vistaDetalle === 'categoria'">
-                <div class="form-section">
+            <!-- ===== TAB RADICADO ===== -->
+            <div class="tab-pane show active" *ngIf="vistaDetalle === 'radicado'">
+                <div class="detalle-head mb-3">
+                    <div class="detalle-head-info">
+                        <span class="detalle-radicado">{{ solicitudSeleccionada.codigo_radicado }}</span>
+                        <span class="detalle-meta"><i class="fa fa-user"></i> {{ solicitudSeleccionada.nombre_solicitante }}</span>
+                        <span class="detalle-meta"><i class="fa fa-envelope"></i> {{ solicitudSeleccionada.email_solicitante }}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge" [ngClass]="solicitudSeleccionada.origen === 'QR' ? 'bg-primary' : solicitudSeleccionada.origen === 'CORREO' ? 'bg-warning text-dark' : 'bg-info'">
+                            <i class="fa" [ngClass]="solicitudSeleccionada.origen === 'QR' ? 'fa-qrcode' : solicitudSeleccionada.origen === 'CORREO' ? 'fa-envelope' : 'fa-globe'"></i>
+                            {{ solicitudSeleccionada.origen === 'QR' ? 'QR' : solicitudSeleccionada.origen === 'CORREO' ? 'Correo' : 'Web' }}
+                        </span>
+                        <span class="badge" [ngClass]="{
+                            'bg-secondary': solicitudSeleccionada.estado === 'RADICADO',
+                            'bg-info': solicitudSeleccionada.estado === 'CATEGORIZADO',
+                            'bg-warning': solicitudSeleccionada.estado === 'EN_AVANCE',
+                            'bg-success': solicitudSeleccionada.estado === 'FINALIZADO'
+                        }">{{ solicitudSeleccionada.estado === 'RADICADO' ? 'Radicado' : solicitudSeleccionada.estado === 'CATEGORIZADO' ? 'Categorizado' : solicitudSeleccionada.estado === 'EN_AVANCE' ? 'En avance' : 'Finalizado' }}</span>
+                    </div>
+                </div>
+
+                <div class="stepper mb-4">
+                    <div *ngFor="let paso of pasos; let i = index" class="step" [class.active]="i <= getIndexPaso(solicitudSeleccionada.estado)" [class.current]="i === getIndexPaso(solicitudSeleccionada.estado)">
+                        <div class="step-circle">{{ i + 1 }}</div>
+                        <div class="step-label">{{ paso.label }}</div>
+                        <div *ngIf="i < pasos.length - 1" class="step-line"></div>
+                    </div>
+                </div>
+
+                <div class="detalle-group">
+                    <div class="detalle-section-title"><i class="fa fa-user"></i> Solicitante y ubicación</div>
+                    <div class="row g-2 detalle-info">
+                        <div class="col-md-6 detalle-item"><span class="detalle-label">Solicitante</span><span class="detalle-value">{{ solicitudSeleccionada.nombre_solicitante || '—' }}</span></div>
+                        <div class="col-md-6 detalle-item"><span class="detalle-label">Correo electrónico</span><span class="detalle-value">{{ solicitudSeleccionada.email_solicitante || '—' }}</span></div>
+                        <div class="col-md-6 detalle-item"><span class="detalle-label">Documento</span><span class="detalle-value">{{ solicitudSeleccionada.documento_solicitante || '—' }}</span></div>
+                        <div class="col-md-6 detalle-item"><span class="detalle-label">Piso / Ubicación</span><span class="detalle-value">{{ solicitudSeleccionada.piso || '—' }} / {{ solicitudSeleccionada.ubicacion || '—' }}</span></div>
+                        <div class="col-md-6 detalle-item"><span class="detalle-label">Radicada por</span><span class="detalle-value">{{ getNombreUsuario(solicitudSeleccionada.UsuarioCrea) }}</span></div>
+                        <div class="col-md-6 detalle-item"><span class="detalle-label">Gestor</span><span class="detalle-value">{{ getNombreUsuario(solicitudSeleccionada.UsuarioGestor) }}</span></div>
+                    </div>
+                </div>
+
+                <div class="detalle-group">
+                    <div class="detalle-section-title"><i class="fa fa-file-lines"></i> Radicación</div>
+                    <div class="row g-2 detalle-info">
+                        <div class="col-md-6 detalle-item"><span class="detalle-label">Tipo</span><span class="detalle-value">{{ getLabelTipoPqr(solicitudSeleccionada.tipo_pqr) }}</span></div>
+                        <div class="col-md-6 detalle-item"><span class="detalle-label">Categoría</span><span class="detalle-value">{{ solicitudSeleccionada.Categoria?.nombre || 'Sin categorizar' }}</span></div>
+                        <div class="col-md-6 detalle-item"><span class="detalle-label">Fecha radicación</span><span class="detalle-value">{{ solicitudSeleccionada.fecha_radicacion | date:'medium' }}</span></div>
+                        <div class="col-md-6 detalle-item"><span class="detalle-label">Origen</span><span class="detalle-value">{{ solicitudSeleccionada.origen === 'QR' ? 'Código QR' : solicitudSeleccionada.origen === 'CORREO' ? 'Correo electrónico' : 'Web' }}</span></div>
+                        <div class="col-12 detalle-item" *ngIf="solicitudSeleccionada.correo_reenvio"><span class="detalle-label">Correo de validación</span><span class="detalle-value">{{ solicitudSeleccionada.correo_reenvio }}</span></div>
+                    </div>
+                </div>
+
+                <div class="detalle-group">
+                    <div class="detalle-section-title"><i class="fa fa-align-left"></i> Descripción</div>
+                    <div class="row g-2 detalle-info">
+                        <div class="col-12 detalle-item"><span class="detalle-label">Pretensiones</span><span class="detalle-value">{{ solicitudSeleccionada.pretensiones || '—' }}</span></div>
+                        <div class="col-12 detalle-item"><span class="detalle-label">Observaciones</span><span class="detalle-value">{{ solicitudSeleccionada.observaciones || '—' }}</span></div>
+                    </div>
+                </div>
+
+                <div *ngIf="solicitudSeleccionada.resumen_finalizacion" class="detalle-resumen mb-3">
+                    <span class="detalle-label">Resumen de finalización</span>
+                    <span class="detalle-value">{{ solicitudSeleccionada.resumen_finalizacion }}</span>
+                </div>
+
+                <div class="form-section" *ngIf="solicitudSeleccionada.estado === 'RADICADO'">
+                    <div class="detalle-section-title mb-3"><i class="fa fa-tags"></i> Categorizar solicitud</div>
                     <div class="mb-3">
                         <p-checkbox [(ngModel)]="notificarCategoria" [binary]="true" inputId="notificar-categoria" />
                         <label for="notificar-categoria" class="ms-2">Notificar al usuario por email</label>
                     </div>
-                    <label class="form-label">Categoría *</label>
+                    <label class="form-label">Categoría <span class="req">*</span></label>
                     <p-dropdown [options]="categorias" [(ngModel)]="formCategoria.id_categoria" optionLabel="nombre" optionValue="id_categoria_pqrs" class="w-100 mb-3" appendTo="body" placeholder="Seleccione categoría" />
+                    <div class="mb-3" *ngIf="categoriaRequiereCorreo">
+                        <label class="form-label">Correo para validación <span class="req">*</span></label>
+                        <input pInputText type="email" [(ngModel)]="correoCategoria" class="w-100" placeholder="correo@abogado.com" />
+                        <small class="text-muted">La solicitud se reenviará a este correo junto con sus adjuntos.</small>
+                    </div>
                     <div class="d-flex justify-content-end">
                         <p-button label="Guardar categoría" icon="fa fa-check" severity="info" (onClick)="guardarCategoria()" [loading]="guardando" />
                     </div>
                 </div>
+
+                <div class="detalle-section-title"><i class="fa fa-paperclip"></i> Adjuntos de radicación</div>
+                <div class="d-flex flex-wrap gap-2">
+                    <a *ngFor="let arch of solicitudSeleccionada.Archivos" [href]="getPreviewUrl(arch)" target="_blank" class="archivo-chip">
+                        <i class="fa" [ngClass]="esImagen(arch.mime_type) ? 'fa-image' : 'fa-file'"></i> {{ arch.nombre_original }}
+                    </a>
+                    <span *ngIf="!solicitudSeleccionada.Archivos?.length" class="detalle-vacio">Sin archivos adjuntos</span>
+                </div>
             </div>
 
-            <div class="tab-pane show active" *ngIf="vistaDetalle === 'avance'">
-                <div class="form-section">
+            <!-- ===== TAB AVANCES Y TRAZABILIDAD ===== -->
+            <div class="tab-pane show active" *ngIf="vistaDetalle === 'seguimiento'">
+                <div class="detalle-section-title"><i class="fa fa-history"></i> Avances</div>
+                <div *ngFor="let avance of solicitudSeleccionada.Avances" class="avance-item mb-2">
+                    <div class="avance-header">
+                        <i class="fa fa-clock"></i>
+                        <span>{{ avance.createdAt | date:'medium' }}</span>
+                    </div>
+                    <div class="avance-desc">{{ avance.descripcion }}</div>
+                    <div class="d-flex flex-wrap gap-2 mt-2" *ngIf="avance.Archivos?.length">
+                        <a *ngFor="let arch of avance.Archivos" [href]="getPreviewUrl(arch)" target="_blank" class="archivo-chip archivo-chip-suave">
+                            <i class="fa" [ngClass]="esImagen(arch.mime_type) ? 'fa-image' : 'fa-file'"></i> {{ arch.nombre_original }}
+                        </a>
+                    </div>
+                </div>
+                <div *ngIf="!solicitudSeleccionada.Avances?.length" class="detalle-vacio">Sin avances registrados</div>
+
+                <div class="seguimiento-acciones" *ngIf="solicitudSeleccionada.estado !== 'FINALIZADO'">
+                    <p-button label="Registrar avance" icon="fa fa-plus" styleClass="btn-avance" (onClick)="mostrarFormAvance = !mostrarFormAvance; mostrarFormFinalizar = false" />
+                    <p-button label="Finalizar solicitud" icon="fa fa-check" styleClass="btn-finalizar" (onClick)="mostrarFormFinalizar = !mostrarFormFinalizar; mostrarFormAvance = false" />
+                </div>
+
+                <div class="form-section mt-3 form-anim" *ngIf="mostrarFormAvance">
+                    <div class="detalle-section-title mb-3"><i class="fa fa-plus"></i> Registrar avance</div>
                     <div class="mb-3">
-                        <label class="form-label">Descripción del avance *</label>
+                        <label class="form-label">Descripción del avance <span class="req">*</span></label>
                         <textarea pInputTextarea [(ngModel)]="formAvance.descripcion" rows="3" class="w-100" placeholder="Registre la novedad"></textarea>
                     </div>
                     <div class="mb-3">
@@ -162,16 +237,16 @@
                             </div>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-end">
+                    <div class="d-flex justify-content-end gap-2">
+                        <p-button label="Cancelar" icon="fa fa-times" severity="secondary" [outlined]="true" (onClick)="mostrarFormAvance = false" />
                         <p-button label="Registrar avance" icon="fa fa-check" severity="info" (onClick)="guardarAvance()" [loading]="guardando" />
                     </div>
                 </div>
-            </div>
 
-            <div class="tab-pane show active" *ngIf="vistaDetalle === 'finalizar'">
-                <div class="form-section">
+                <div class="form-section mt-3 form-anim" *ngIf="mostrarFormFinalizar">
+                    <div class="detalle-section-title mb-3"><i class="fa fa-check"></i> Finalizar solicitud</div>
                     <div class="mb-3">
-                        <label class="form-label">Resumen de finalización *</label>
+                        <label class="form-label">Resumen de finalización <span class="req">*</span></label>
                         <textarea pInputTextarea [(ngModel)]="formFinalizar.resumen_finalizacion" rows="3" class="w-100" placeholder="Indique cómo se resolvió la solicitud"></textarea>
                     </div>
                     <div class="mb-3">
@@ -188,35 +263,136 @@
                             </div>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-end">
+                    <div class="d-flex justify-content-end gap-2">
+                        <p-button label="Cancelar" icon="fa fa-times" severity="secondary" [outlined]="true" (onClick)="mostrarFormFinalizar = false" />
                         <p-button label="Finalizar solicitud" icon="fa fa-check" severity="success" (onClick)="finalizarSolicitud()" [loading]="guardando" />
                     </div>
                 </div>
-            </div>
 
-            <div class="tab-pane show active" *ngIf="vistaDetalle === 'detalle'">
-                <h6>Archivos de radicación</h6>
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    <a *ngFor="let arch of solicitudSeleccionada.Archivos" [href]="getPreviewUrl(arch)" target="_blank" class="btn btn-sm btn-outline-info">
-                        <i class="fa" [ngClass]="esImagen(arch.mime_type) ? 'fa-image' : 'fa-file'"></i> {{ arch.nombre_original }}
-                    </a>
-                    <span *ngIf="!solicitudSeleccionada.Archivos?.length" class="text-muted">Sin archivos</span>
-                </div>
-
-                <h6>Avances</h6>
-                <div *ngFor="let avance of solicitudSeleccionada.Avances" class="avance-item mb-2 p-2 border rounded">
-                    <p class="mb-1"><strong>{{ avance.createdAt | date:'medium' }}</strong></p>
-                    <p class="mb-1">{{ avance.descripcion }}</p>
-                    <div class="d-flex flex-wrap gap-2">
-                        <a *ngFor="let arch of avance.Archivos" [href]="getPreviewUrl(arch)" target="_blank" class="btn btn-sm btn-outline-secondary">
-                            <i class="fa" [ngClass]="esImagen(arch.mime_type) ? 'fa-image' : 'fa-file'"></i> {{ arch.nombre_original }}
-                        </a>
-                    </div>
-                </div>
-                <div *ngIf="!solicitudSeleccionada.Avances?.length" class="text-muted">Sin avances registrados</div>
+                <div class="detalle-section-title mt-3"><i class="fa fa-sitemap"></i> Trazabilidad</div>
+                <ul class="historial-list">
+                    <li *ngFor="let h of solicitudSeleccionada.Historial">
+                        <div class="historial-linea">
+                            <span class="historial-accion">{{ getAccionLabel(h.accion) }}</span>
+                            <span class="historial-fecha">{{ h.createdAt | date:'short' }}</span>
+                        </div>
+                        <div class="historial-usuario">{{ getNombreUsuario(h.Usuario) }}</div>
+                        <div class="historial-detalle">{{ h.detalle }}</div>
+                    </li>
+                </ul>
+                <div *ngIf="!solicitudSeleccionada.Historial?.length" class="detalle-vacio">Sin trazabilidad registrada</div>
             </div>
         </div>
     </div>
+</p-dialog>
+
+<p-dialog header="Nueva solicitud PQRS" [(visible)]="displayNueva" [modal]="true" [style]="{ width: '62rem' }" [draggable]="false" appendTo="body" styleClass="pqrs-nueva-dialog">
+    <div *ngIf="propiedadSeleccionada" class="nueva-solicitud">
+
+        <div class="nueva-hero">
+            <div class="nueva-hero-icon"><i class="fa fa-file-lines"></i></div>
+            <div class="nueva-hero-txt">
+                <span class="nueva-hero-title">Radicación de PQRS</span>
+                <span class="nueva-hero-sub"><i class="fa fa-building"></i> {{ propiedadSeleccionada.nombre }}</span>
+            </div>
+            <span class="origen-pill" [ngClass]="origenNueva === 'CORREO' ? 'origen-correo' : 'origen-web'">
+                <i class="fa" [ngClass]="origenNueva === 'CORREO' ? 'fa-envelope' : 'fa-globe'"></i>
+                {{ origenNueva === 'CORREO' ? 'Correo' : 'Web' }}
+            </span>
+        </div>
+
+        <div class="cargar-eml">
+            <div class="cargar-eml-info">
+                <i class="fa fa-cloud-arrow-up"></i>
+                <div>
+                    <strong>Cargar información desde un correo</strong>
+                    <small>Exporte el correo desde Gmail como "Solicitud.eml" y cárguelo para autocompletar el formulario.</small>
+                </div>
+            </div>
+            <label class="btn-eml" [class.disabled]="cargandoEml">
+                <input type="file" accept=".eml,message/rfc822" (change)="onEmlSelected($event)" [disabled]="cargandoEml" hidden />
+                <i class="fa" [ngClass]="cargandoEml ? 'fa-spinner fa-spin' : 'fa-folder-open'"></i>
+                {{ cargandoEml ? 'Procesando…' : 'Seleccionar .eml' }}
+            </label>
+        </div>
+        <div class="eml-msg" *ngIf="mensajeEml">
+            <i class="fa fa-info-circle"></i> {{ mensajeEml }}
+        </div>
+
+        <div class="form-block">
+            <div class="form-block-title"><i class="fa fa-user"></i> Datos del solicitante</div>
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label">Nombre del solicitante <span class="req">*</span></label>
+                    <input pInputText [(ngModel)]="nuevaForm.nombre_solicitante" class="w-100" maxlength="200" placeholder="Nombre completo" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Documento <span class="req">*</span></label>
+                    <input pInputText [(ngModel)]="nuevaForm.documento_solicitante" class="w-100" maxlength="30" placeholder="N.º de documento" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Correo electrónico <span class="req">*</span></label>
+                    <input pInputText type="email" [(ngModel)]="nuevaForm.email_solicitante" class="w-100" maxlength="100" placeholder="correo@ejemplo.com" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Piso</label>
+                    <input pInputText [(ngModel)]="nuevaForm.piso" class="w-100" maxlength="50" placeholder="Ej: 3" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Ubicación</label>
+                    <input pInputText [(ngModel)]="nuevaForm.ubicacion" class="w-100" maxlength="200" placeholder="Ej: Apto 301" />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-block">
+            <div class="form-block-title"><i class="fa fa-list-alt"></i> Detalle de la solicitud</div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Tipo <span class="req">*</span></label>
+                    <p-dropdown [options]="tiposPqr" [(ngModel)]="nuevaForm.tipo_pqr" optionLabel="label" optionValue="value" class="w-100" appendTo="body" />
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">Pretensiones</label>
+                    <input pInputText [(ngModel)]="nuevaForm.pretensiones" class="w-100" maxlength="500" placeholder="¿Qué solicita?" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Observaciones</label>
+                    <textarea pInputTextarea [(ngModel)]="nuevaForm.observaciones" rows="3" class="w-100" placeholder="Describa la situación con el mayor detalle posible"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-block">
+            <div class="form-block-title">
+                <i class="fa fa-paperclip"></i> Adjuntos
+                <span class="contador" *ngIf="nuevaArchivos.length">{{ nuevaArchivos.length }}</span>
+            </div>
+            <label class="adjunto-dropzone">
+                <input type="file" accept="image/*,application/pdf" (change)="onFileNueva($event)" hidden />
+                <i class="fa fa-upload"></i>
+                <span>Haga clic para adjuntar imágenes o PDF</span>
+                <small>Las imágenes se comprimen automáticamente. Máximo 4 MB en total.</small>
+            </label>
+            <div class="adjuntos-lista" *ngIf="nuevaArchivos.length">
+                <div *ngFor="let arch of nuevaArchivos; let i = index" class="adjunto-chip">
+                        <i class="fa" [ngClass]="arch.mime_type.startsWith('image/') ? 'fa-image' : arch.mime_type === 'message/rfc822' ? 'fa-envelope' : 'fa-file'"></i>
+                    <span class="adjunto-nombre">{{ arch.nombre_original }}</span>
+                    <button type="button" class="adjunto-quitar" (click)="eliminarArchivoNueva(i)" title="Quitar"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="nueva-footer">
+            <span class="nueva-footer-nota"><span class="req">*</span> Campos obligatorios</span>
+            <div class="d-flex gap-2">
+                <p-button label="Cancelar" icon="fa fa-times" severity="secondary" (onClick)="displayNueva = false" [disabled]="guardandoNueva" />
+                <p-button label="Radicar solicitud" icon="fa fa-paper-plane" severity="info" (onClick)="guardarNuevaSolicitud()" [loading]="guardandoNueva" />
+            </div>
+        </div>
+    </ng-template>
 </p-dialog>
 
 <p-toast></p-toast>

@@ -31,8 +31,11 @@ export class ReportesPqrsComponent implements OnInit {
     filtros = {
         fecha_inicio: '',
         fecha_fin: '',
-        estado: ''
+        estado: '',
+        id_usuario_gestor: null as number | null
     };
+
+    usuarios: { id: number; usuario: string; nombre_completo: string }[] = [];
 
     estados = [
         { label: 'Todos', value: '' },
@@ -53,6 +56,20 @@ export class ReportesPqrsComponent implements OnInit {
 
     ngOnInit(): void {
         this.cargarPropiedades();
+        this.cargarUsuarios();
+    }
+
+    async cargarUsuarios() {
+        (await this.reportesService.getUsuarios()).subscribe({
+            next: (res) => {
+                if (res.state === 'OK') {
+                    this.usuarios = res.body || [];
+                }
+            },
+            error: () => {
+                this.usuarios = [];
+            }
+        });
     }
 
     async cargarPropiedades() {
@@ -81,7 +98,8 @@ export class ReportesPqrsComponent implements OnInit {
             this.propiedadSeleccionada?.id_propiedad_horizontal || null,
             this.filtros.fecha_inicio,
             this.filtros.fecha_fin,
-            this.filtros.estado || undefined
+            this.filtros.estado || undefined,
+            this.filtros.id_usuario_gestor || undefined
         )).subscribe({
             next: (res) => {
                 this.generando = false;
@@ -122,6 +140,9 @@ export class ReportesPqrsComponent implements OnInit {
             'Fecha último avance': r.fecha_ultimo_avance,
             'Fecha finalización': r.fecha_finalizacion,
             'Resumen finalización': r.resumen_finalizacion,
+            'Origen': r.origen,
+            'Radicado por': r.usuario_radica || r.usuario_radica_login,
+            'Gestor': r.usuario_gestor || r.usuario_gestor_login,
             'Cantidad avances': r.cantidad_avances,
             'Último avance': r.ultimo_avance,
             'Días transcurridos': r.dias_transcurridos
@@ -136,7 +157,7 @@ export class ReportesPqrsComponent implements OnInit {
 
     limpiar() {
         this.propiedadSeleccionada = null;
-        this.filtros = { fecha_inicio: '', fecha_fin: '', estado: '' };
+        this.filtros = { fecha_inicio: '', fecha_fin: '', estado: '', id_usuario_gestor: null };
         this.resultados = [];
     }
 }
