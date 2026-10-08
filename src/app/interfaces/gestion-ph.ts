@@ -29,6 +29,10 @@ export interface BitacoraDiaria {
     fecha_cierre?: string | null;
     id_empresa?: number;
     id_usuario?: number;
+    origen?: 'operativo' | 'mantenimiento';
+    equipo?: string | null;
+    tipo_mantenimiento?: 'preventivo' | 'correctivo' | 'predictivo' | 'limpieza' | 'otro' | null;
+    ubicacion?: string | null;
 }
 
 export interface BitacoraNovedad {
@@ -63,6 +67,12 @@ export interface BitacoraPayload {
     novedades: BitacoraNovedad[];
     evidencias: BitacoraEvidencia[];
     tareas: AgendaTodo[];
+}
+
+export interface MantenimientoPayload {
+    bitacora: BitacoraDiaria | null;
+    novedades: BitacoraNovedad[];
+    evidencias: BitacoraEvidencia[];
 }
 
 export interface ResumenBitacora {

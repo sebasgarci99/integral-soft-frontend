@@ -35,6 +35,7 @@ import { AlertasPqrsComponent } from './components/pqrs/alertas-pqrs/alertas-pqr
 import { ReportesPqrsComponent } from './components/pqrs/reportes-pqrs/reportes-pqrs.component';
 import { CalculoEmpleadoComponent } from './components/calculo-empleado/calculo-empleado.component';
 import { GestionPhComponent } from './components/gestion-ph/gestion-ph.component';
+import { MantenimientosComponent } from './components/mantenimientos/mantenimientos.component';
 import { PosComponent } from './components/pos/pos.component';
 import { VentasComponent } from './components/pos/ventas/ventas.component';
 import { ConfiguracionPosComponent } from './components/pos/configuracion/configuracion-pos.component';
@@ -86,6 +87,7 @@ export const routes: Routes = [
             { path: 'calculo_empleado', component: CalculoEmpleadoComponent },
             { path: 'gestion_ph', redirectTo: 'gestion_ph/agenda', pathMatch: 'full' },
             { path: 'gestion_ph/:tab', component: GestionPhComponent },
+            { path: 'mantenimientos', component: MantenimientosComponent },
         ]
     }
 ];

@@ -177,6 +177,25 @@ export class InfoUsuarioComponent implements OnInit {
         });
     }
 
+    async guardarConfigEmpresa() {
+        this.guardando = true;
+        (await this.infoUsuarioService.updateEmpresaConfig({
+            auto_compilar_bitacora: this.empresa.auto_compilar_bitacora === true
+        })).subscribe({
+            next: (res) => {
+                if (res.state === 'OK') {
+                    this.messageService.add({ severity: 'info', summary: 'Guardado', detail: 'Configuraci\u00f3n de empresa actualizada correctamente.' });
+                } else {
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: res.body || 'No se pudo guardar.' });
+                }
+            },
+            error: () => {
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al guardar la configuraci\u00f3n de la empresa.' });
+            },
+            complete: () => { this.guardando = false; }
+        });
+    }
+
     async guardarConfigCorreo() {
         this.guardando = true;
         (await this.infoUsuarioService.updateCorreoSmtp({

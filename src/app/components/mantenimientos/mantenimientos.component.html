@@ -1,0 +1,224 @@
+<div class="mt-container">
+
+    <header class="mt-header">
+        <div class="mt-header-title">
+            <i class="fa fa-screwdriver-wrench"></i>
+            <div>
+                <h2>Bitácora de Mantenimientos</h2>
+                <p>Registro, novedades y evidencias de mantenimiento</p>
+            </div>
+        </div>
+        <span class="mt-date-chip">
+            <i class="fa fa-calendar"></i>
+            {{ fechaLarga }}
+        </span>
+    </header>
+
+    <div class="mt-banner">
+        <div class="mt-banner-info">
+            <div class="mt-banner-icon"><i class="fa fa-wrench"></i></div>
+            <div>
+                <h3>Registro de Mantenimientos</h3>
+                <p>Agenda, registra y documenta los mantenimientos por fecha.</p>
+            </div>
+        </div>
+        <div class="mt-banner-controls">
+            <button type="button" class="mt-btn mt-btn-light" (click)="cambiarFecha(-1)">
+                <i class="fa fa-chevron-left"></i>
+            </button>
+            <p-calendar
+                styleClass="mt-calendar"
+                [(ngModel)]="fechaDate"
+                (ngModelChange)="onFechaDate($event)"
+                [showIcon]="true"
+                [showOnFocus]="true"
+                [readonlyInput]="true"
+                dateFormat="yy-mm-dd"
+                appendTo="body">
+            </p-calendar>
+            <button type="button" class="mt-btn mt-btn-light" (click)="cambiarFecha(1)">
+                <i class="fa fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="mt-layout">
+
+        <div class="mt-main">
+            <div class="mt-card mt-notebook">
+
+                <!-- Encabezado del registro -->
+                <div class="mt-head">
+                    <div>
+                        <span class="mt-eyebrow">Bitácora de Mantenimientos</span>
+                        <h3><i class="fa fa-screwdriver-wrench"></i> {{ tituloMantenimiento }}</h3>
+                    </div>
+                </div>
+
+            <!-- Registro -->
+            <div class="mt-registro">
+                <div class="mt-field">
+                    <label>Tipo de Mantenimiento</label>
+                    <div class="mt-tipos">
+                        <button type="button" class="mt-tipo" *ngFor="let tipo of tiposMantenimiento"
+                            [class.active]="tipoMantenimiento === tipo.value"
+                            [style.color]="tipoMantenimiento === tipo.value ? tipo.color : null"
+                            [style.border-color]="tipoMantenimiento === tipo.value ? tipo.color : null"
+                            [style.background]="tipoMantenimiento === tipo.value ? tipo.color + '1a' : null"
+                            (click)="seleccionarTipo(tipo)">
+                            <i class="fa" [ngClass]="tipo.icono"></i>
+                            <span>{{ tipo.label }}</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-grid">
+                    <div class="mt-field">
+                        <label>Equipo / Activo Afectado</label>
+                        <input type="text" [(ngModel)]="equipo" placeholder="Ej. Ascensor Torre A, Planta eléctrica..." />
+                    </div>
+                    <div class="mt-field">
+                        <label>Ubicación (dirección, coordenadas o URL de Maps)</label>
+                        <input type="text" [(ngModel)]="ubicacion"
+                            placeholder="Ej. Cra 10 #20-30 / 4.6097,-74.0817" />
+                    </div>
+                </div>
+
+                <div class="mt-field">
+                    <label>Descripción del Trabajo</label>
+                    <textarea rows="6" [(ngModel)]="descripcion"
+                        placeholder="Detalla el trabajo realizado, repuestos, observaciones..."></textarea>
+                </div>
+
+                <!-- Mapa pequeño de la ubicación -->
+                <div class="mt-field" *ngIf="getGoogleMapsEmbedUrl(ubicacion)">
+                    <label>Ubicación en el Mapa</label>
+                    <div class="mt-map">
+                        <iframe [src]="getSafeMapsUrl(ubicacion)" loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade" title="Mapa del mantenimiento"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Novedades -->
+            <div class="mt-incidents">
+                <div class="mt-incidents-head">
+                    <span><i class="fa fa-triangle-exclamation"></i> Novedades / Imprevistos</span>
+                    <button type="button" class="mt-btn mt-btn-amber" (click)="agregarNovedad()">+ Agregar Novedad</button>
+                </div>
+
+                <div class="mt-incidents-list">
+                    <div class="mt-empty" *ngIf="novedades.length === 0">Sin novedades registradas.</div>
+                    <div class="mt-incident" *ngFor="let novedad of novedades; let i = index">
+                        <input type="text" [(ngModel)]="novedad.descripcion"
+                            placeholder="Escribe el imprevisto..."
+                            (blur)="guardarNovedad(novedad, i)" />
+                        <button type="button" class="mt-estado-pill" [class.atendido]="novedad.estado === 'atendido'"
+                            (click)="cambiarEstadoNovedad(novedad, i)">
+                            {{ novedad.estado === 'atendido' ? 'Atendido' : 'Pendiente' }}
+                        </button>
+                        <button type="button" class="mt-icon-btn"
+                            (click)="eliminarNovedad(novedad, i)"><i class="fa fa-times"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evidencias -->
+            <div class="mt-evidencias">
+                <div class="mt-evidencias-head">
+                    <span><i class="fa fa-camera"></i> Evidencias Fotográficas (máx. 3)</span>
+                    <label class="mt-btn mt-btn-ghost">
+                        <i class="fa fa-upload"></i>
+                        {{ subiendoEvidencia ? 'Subiendo...' : 'Adjuntar Imagen' }}
+                        <input type="file" accept="image/*" hidden (change)="onEvidenciaSeleccionada($event)" />
+                    </label>
+                </div>
+
+                <div class="mt-gallery">
+                    <div class="mt-gallery-empty" *ngIf="evidencias.length === 0">Sin fotos adjuntas</div>
+                    <div class="mt-photo" *ngFor="let ev of evidencias; let i = index" (click)="verEvidencia(ev)">
+                        <img [src]="miniatura(ev)" [alt]="ev.nombre_original || 'evidencia'" />
+                        <button type="button" class="mt-photo-del"
+                            (click)="eliminarEvidencia(ev, i); $event.stopPropagation()">&times;</button>
+                        <span class="mt-photo-weight">{{ formatearPeso(ev.peso_bytes) }}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Panel lateral -->
+    <div class="mt-side">
+        <div class="mt-card">
+            <h4>🛠️ Panel del Mantenimiento</h4>
+            <p class="mt-side-hint">
+                Escribe el mantenimiento y usa el calendario para agendarlo en otra fecha o abrir los ya agendados.
+            </p>
+
+            <div class="mt-scope">
+                <i class="fa fa-calendar-day"></i>
+                <span>{{ fechaLarga }}</span>
+            </div>
+
+            <button type="button" class="mt-btn mt-btn-primary mt-full" [disabled]="guardando" (click)="guardar()">
+                <i class="fa fa-floppy-disk"></i> {{ guardando ? 'Guardando...' : 'Guardar Mantenimiento' }}
+            </button>
+
+            <!-- Calendario de agenda -->
+            <div class="mt-calendario">
+                <div class="mt-cal-head">
+                    <button type="button" (click)="mesAnterior()"><i class="fa fa-chevron-left"></i></button>
+                    <span>{{ nombreMesAgenda }}</span>
+                    <button type="button" (click)="mesSiguiente()"><i class="fa fa-chevron-right"></i></button>
+                </div>
+                <div class="mt-cal-grid mt-cal-weekdays">
+                    <span *ngFor="let d of diasSemana">{{ d }}</span>
+                </div>
+                <div class="mt-cal-grid">
+                    <button type="button" class="mt-cal-day"
+                        *ngFor="let dia of diasAgenda"
+                        [class.otro-mes]="!dia.esMesActual"
+                        [class.hoy]="dia.esHoy"
+                        [class.seleccionado]="dia.esSeleccionado"
+                        [class.agendado]="dia.agendados > 0"
+                        [title]="dia.agendados > 0 ? dia.agendados + ' mantenimiento(s)' : 'Seleccionar para agendar'"
+                        (click)="seleccionarDiaAgenda(dia)">
+                        <span>{{ dia.dia }}</span>
+                        <span class="mt-cal-dot" *ngIf="dia.agendados > 0"></span>
+                    </button>
+                </div>
+
+                <button type="button" class="mt-btn mt-btn-agendar mt-full mt-cal-agendar"
+                    [disabled]="guardando || !!bitacora?.id_bitacora"
+                    (click)="agendar()">
+                    <i class="fa" [ngClass]="bitacora?.id_bitacora ? 'fa-circle-check' : 'fa-calendar-plus'"></i>
+                    {{ bitacora?.id_bitacora ? 'Día agendado' : 'Agendar mantenimiento' }}
+                </button>
+            </div>
+
+            <div class="mt-agenda">
+                <span class="mt-agenda-title">Agendados del mes · {{ mantenimientosMes.length }}</span>
+                <div class="mt-empty" *ngIf="mantenimientosMes.length === 0">Sin mantenimientos agendados.</div>
+                <button type="button" class="mt-agenda-item" *ngFor="let item of mantenimientosMes"
+                    [class.activo]="item.fecha === fecha" (click)="irAMantenimiento(item)">
+                    <span class="mt-agenda-fecha">{{ item.fecha }}</span>
+                    <span class="mt-agenda-equipo">{{ item.equipo || 'Sin equipo' }}</span>
+                    <span class="mt-agenda-tipo">{{ labelTipo(item.tipo_mantenimiento) }}</span>
+                </button>
+            </div>
+
+            <div class="mt-sync" *ngIf="cargando"><i class="fa fa-spinner fa-spin"></i> Cargando mantenimiento...</div>
+        </div>
+    </div>
+
+    </div>
+
+</div>
+
+<!-- MODAL IMAGEN -->
+<div class="mt-modal-backdrop" *ngIf="imagenAmpliada" (click)="cerrarImagen()">
+    <div class="mt-image-modal">
+        <img [src]="imagenAmpliada" alt="evidencia" />
+    </div>
+</div>

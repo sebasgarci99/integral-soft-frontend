@@ -280,9 +280,11 @@ export class AgendaTodoComponent implements OnInit, OnChanges, OnDestroy {
                         Swal.fire('Atención', res.msg, 'warning');
                     }
                 },
-                error: () => {
+                error: (err) => {
                     this.guardandoTarea = false;
-                    Swal.fire('Error', 'No se pudo crear la tarea.', 'error');
+                    const detalle = err?.error?.msg
+                        || 'No se pudo crear la tarea, recarga la página e intenta nuevamente o solicita ayuda con el administrador.';
+                    Swal.fire('Error', detalle, 'error');
                 }
             });
         } catch {

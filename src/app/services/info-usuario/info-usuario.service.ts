@@ -36,6 +36,15 @@ export class InfoUsuarioService {
         ).pipe(map(resp => resp.body));
     }
 
+    async updateEmpresaConfig(data: { auto_compilar_bitacora?: boolean }): Promise<Observable<any>> {
+        const headers = await this.getAuthHeaders();
+        return this.http.post<any>(
+            `${this.urlApp}${this.urlAppAPI}updateEmpresaConfig`,
+            data,
+            { headers }
+        );
+    }
+
     async updateUserInfo(data: { nombre?: string; apellido?: string; foto_perfil?: string; firma_digital?: string }): Promise<Observable<any>> {
         const headers = await this.getAuthHeaders();
         return this.http.post<any>(
