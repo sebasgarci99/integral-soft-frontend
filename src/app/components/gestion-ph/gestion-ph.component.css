@@ -130,16 +130,33 @@
 }
 
 .gph-select {
+    min-width: 240px;
+}
+
+:host ::ng-deep .gph-select.p-dropdown,
+:host ::ng-deep .gph-select.p-select {
     border: 0;
     border-radius: 12px;
+    background: #ffffff;
+    align-items: center;
+    min-height: 42px;
+}
+
+:host ::ng-deep .gph-select .p-dropdown-label,
+:host ::ng-deep .gph-select .p-select-label {
+    border: 0;
     padding: 0.6rem 0.85rem;
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--gph-slate);
-    background: #ffffff;
-    cursor: pointer;
-    outline: none;
-    min-width: 220px;
+    display: flex;
+    align-items: center;
+}
+
+:host ::ng-deep .gph-select .p-dropdown-trigger,
+:host ::ng-deep .gph-select .p-select-dropdown {
+    color: #475569;
+    width: 2.25rem;
 }
 
 .gph-calendar {

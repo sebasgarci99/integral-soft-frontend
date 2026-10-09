@@ -17,6 +17,13 @@ interface DiaSemana {
     esSeleccionado: boolean;
 }
 
+interface GrupoTareas {
+    fecha: string;
+    etiqueta: string;
+    esHoy: boolean;
+    tareas: AgendaTodo[];
+}
+
 const ESTADOS: Record<string, { etiqueta: string; color: string }> = {
     programada: { etiqueta: 'Programada', color: '#0d9488' },
     iniciada: { etiqueta: 'Iniciada', color: '#f59e0b' },
@@ -45,6 +52,7 @@ export class AgendaTodoComponent implements OnInit, OnChanges, OnDestroy {
     diasSemana: DiaSemana[] = [];
     instanciasSemana: any[] = [];
     tareas: AgendaTodo[] = [];
+    expandidos: Record<string, boolean> = {};
     nuevaTarea = '';
     cargandoSemana = false;
     cargandoTareas = false;
@@ -392,6 +400,82 @@ export class AgendaTodoComponent implements OnInit, OnChanges, OnDestroy {
 
     private fechaLegible(fecha: string): string {
         return this.parseFecha(fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
+    }
+
+    /** Diferencia en días entre dos fechas ISO (b - a). */
+    private diferenciaDias(desde: string, hasta: string): number {
+        const a = this.parseFecha(desde).getTime();
+        const b = this.parseFecha(hasta).getTime();
+        return Math.round((b - a) / 86400000);
+    }
+
+    /** Etiqueta relativa de una fecha respecto al día seleccionado. */
+    etiquetaFecha(fecha: string | null): string {
+        if (!fecha) return 'Sin fecha';
+        if (fecha === this.fecha) return 'Hoy';
+
+        const diff = this.diferenciaDias(fecha, this.fecha);
+        if (diff === 1) return 'Ayer';
+        if (diff > 1 && diff <= 6) return `Hace ${diff} días`;
+
+        const mismaAnio = this.parseFecha(fecha).getFullYear() === this.parseFecha(this.fecha).getFullYear();
+        return this.parseFecha(fecha).toLocaleDateString('es-CO',
+            mismaAnio ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    /** Etiqueta relativa de la fecha de la tarea respecto al día seleccionado. */
+    fechaTarea(tarea: AgendaTodo): string {
+        return this.etiquetaFecha(tarea.fecha ?? null);
+    }
+
+    /** Fecha completa para el tooltip. */
+    fechaCompletaTarea(tarea: AgendaTodo): string {
+        if (!tarea.fecha) return 'Sin fecha';
+        return this.parseFecha(tarea.fecha).toLocaleDateString('es-CO', {
+            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+        });
+    }
+
+    /** Tarea pendiente con fecha anterior al día seleccionado. */
+    esAtrasada(tarea: AgendaTodo): boolean {
+        return !tarea.completada && !!tarea.fecha && tarea.fecha < this.fecha;
+    }
+
+    /** Tareas agrupadas por día; el día seleccionado primero y el resto por fecha descendente. */
+    get gruposTareas(): GrupoTareas[] {
+        const mapa = new Map<string, AgendaTodo[]>();
+        for (const tarea of this.tareas) {
+            const fecha = tarea.fecha || '';
+            if (!mapa.has(fecha)) mapa.set(fecha, []);
+            mapa.get(fecha)!.push(tarea);
+        }
+
+        const grupos: GrupoTareas[] = [];
+        mapa.forEach((tareas, fecha) => {
+            grupos.push({
+                fecha,
+                etiqueta: this.etiquetaFecha(fecha || null),
+                esHoy: fecha === this.fecha,
+                tareas
+            });
+        });
+
+        return grupos.sort((a, b) => {
+            if (a.esHoy) return -1;
+            if (b.esHoy) return 1;
+            return b.fecha.localeCompare(a.fecha);
+        });
+    }
+
+    /** El grupo del día seleccionado se muestra desplegado naturalmente. */
+    esGrupoExpandido(fecha: string): boolean {
+        if (fecha === this.fecha) return true;
+        return this.expandidos[fecha] === true;
+    }
+
+    toggleGrupo(fecha: string): void {
+        if (fecha === this.fecha) return;
+        this.expandidos[fecha] = !this.esGrupoExpandido(fecha);
     }
 
     formatearHora(hora?: string | null): string {

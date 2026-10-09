@@ -372,3 +372,7 @@
         <button pButton label="Nueva venta" icon="fa fa-plus" (click)="cerrarResultado()"></button>
     </ng-template>
 </p-dialog>
+
+<!-- Animación de impresión de factura -->
+<app-receipt-print-animation [html]="facturaHtmlAnim"
+    [active]="displayAnimacionImpresion" (closed)="onAnimacionTerminada()"></app-receipt-print-animation>

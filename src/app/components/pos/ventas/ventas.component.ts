@@ -16,12 +16,14 @@ import { PosService } from '../../../services/pos/pos.service';
 import { InventarioService } from '../../../services/inventario/inventario.service';
 import { Sede } from '../../../interfaces/inventario';
 import { Venta } from '../../../interfaces/pos';
+import { ReceiptPrintAnimationComponent } from '../../shared/receipt-print-animation/receipt-print-animation.component';
 
 @Component({
     selector: 'app-ventas-pos',
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, PaginatorModule, ButtonModule, InputTextModule,
-              DropdownModule, CalendarModule, ToastModule, ConfirmDialogModule, TagModule, TooltipModule],
+              DropdownModule, CalendarModule, ToastModule, ConfirmDialogModule, TagModule, TooltipModule,
+              ReceiptPrintAnimationComponent],
     templateUrl: './ventas.component.html',
     styleUrls: ['./ventas.component.css'],
     providers: [MessageService, ConfirmationService]
@@ -59,6 +61,11 @@ export class VentasComponent implements OnInit {
     enviandoWhatsappId: number | null = null;
     anulandoId: number | null = null;
     cambiandoPagoId: number | null = null;
+
+    // Animación de impresión de factura
+    displayAnimacionImpresion = false;
+    facturaHtmlAnim = '';
+    private pendienteDescarga: { id: number; formato: 'A4' | 'TICKET'; numero: string } | null = null;
 
     constructor(
         private posService: PosService,
@@ -124,28 +131,65 @@ export class VentasComponent implements OnInit {
         this.cargar();
     }
 
-    imprimir(venta: Venta, formato: 'A4' | 'TICKET') {
+    async imprimir(venta: Venta, formato: 'A4' | 'TICKET') {
         if (this.generandoId !== null) return;
         this.generandoId = venta.id_venta;
 
-        this.posService.generarFacturaHtml(venta.id_venta, formato).then(obs$ => {
+        try {
+            // La animación siempre muestra la tirilla (80mm); al terminar se descarga el PDF del formato pedido.
+            const visual = await this.obtenerHtmlFactura(venta.id_venta, 'TICKET');
+
+            this.facturaHtmlAnim = visual;
+            this.pendienteDescarga = { id: venta.id_venta, formato, numero: venta.numero_factura };
+            this.displayAnimacionImpresion = true;
+        } catch {
+            this.messageService.add({ severity: 'error', summary: 'No se pudo generar la factura.' });
+        } finally {
+            this.generandoId = null;
+        }
+    }
+
+    onAnimacionTerminada() {
+        this.displayAnimacionImpresion = false;
+
+        const pendiente = this.pendienteDescarga;
+        if (!pendiente) return;
+        this.pendienteDescarga = null;
+        this.descargarFacturaPdf(pendiente.id, pendiente.formato, pendiente.numero);
+    }
+
+    private async descargarFacturaPdf(id: number, formato: 'A4' | 'TICKET', numero: string) {
+        try {
+            const blob = await this.obtenerBlobFactura(id, formato);
+            const url = window.URL.createObjectURL(blob);
+            const enlace = document.createElement('a');
+            enlace.href = url;
+            enlace.download = `Factura-${numero || id}.pdf`;
+            document.body.appendChild(enlace);
+            enlace.click();
+            enlace.remove();
+            window.URL.revokeObjectURL(url);
+        } catch {
+            this.messageService.add({ severity: 'error', summary: 'No se pudo descargar la factura.' });
+        }
+    }
+
+    private obtenerHtmlFactura(id: number, formato: 'A4' | 'TICKET'): Promise<string> {
+        return this.posService.generarFacturaHtml(id, formato).then(obs$ => new Promise<string>((resolve, reject) => {
             obs$.subscribe({
-                next: (res) => {
-                    this.generandoId = null;
-                    if (res.state === 'OK' && res.body?.html) {
-                        const ventana = window.open('', '_blank');
-                        if (!ventana) return;
-                        ventana.document.write(res.body.html);
-                        ventana.document.close();
-                        setTimeout(() => ventana.print(), 500);
-                    }
-                },
-                error: () => {
-                    this.generandoId = null;
-                    this.messageService.add({ severity: 'error', summary: 'No se pudo generar la factura.' });
-                }
+                next: (res) => (res.state === 'OK' && res.body?.html) ? resolve(res.body.html) : reject(new Error('sin html')),
+                error: (err) => reject(err)
             });
-        });
+        }));
+    }
+
+    private obtenerBlobFactura(id: number, formato: 'A4' | 'TICKET'): Promise<Blob> {
+        return this.posService.generarFacturaPdf(id, formato).then(obs$ => new Promise<Blob>((resolve, reject) => {
+            obs$.subscribe({
+                next: (blob) => resolve(blob),
+                error: (err) => reject(err)
+            });
+        }));
     }
 
     enviarCorreo(venta: Venta) {

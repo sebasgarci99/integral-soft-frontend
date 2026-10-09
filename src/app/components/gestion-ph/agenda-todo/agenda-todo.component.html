@@ -84,14 +84,31 @@
                 Sin pendientes para este día.
             </div>
 
-            <div class="at-todo-item" *ngFor="let tarea of tareas" [class.done]="tarea.completada">
-                <input type="checkbox" [checked]="tarea.completada" (change)="toggleTarea(tarea)" />
-                <div class="at-todo-text">
-                    <p>{{ tarea.titulo }}</p>
-                </div>
-                <button type="button" class="at-todo-delete" title="Eliminar" (click)="eliminarTarea(tarea)">
-                    <i class="fa fa-trash"></i>
+            <div class="at-todo-group" *ngFor="let grupo of gruposTareas">
+                <button type="button" class="at-todo-group-head" *ngIf="!grupo.esHoy"
+                    [class.atrasada]="true"
+                    (click)="toggleGrupo(grupo.fecha)">
+                    <i class="fa" [ngClass]="esGrupoExpandido(grupo.fecha) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                    <i class="fa fa-clock"></i>
+                    <span class="at-todo-group-label">{{ grupo.etiqueta }}</span>
+                    <span class="at-todo-group-count">{{ grupo.tareas.length }}</span>
                 </button>
+
+                <div class="at-todo-group-body" *ngIf="esGrupoExpandido(grupo.fecha)">
+                    <div class="at-todo-item" *ngFor="let tarea of grupo.tareas" [class.done]="tarea.completada">
+                        <input type="checkbox" [checked]="tarea.completada" (change)="toggleTarea(tarea)" />
+                        <div class="at-todo-text">
+                            <p>{{ tarea.titulo }}</p>
+                        </div>
+                        <span class="at-todo-date hoy" *ngIf="!tarea.completada && grupo.esHoy"
+                            [title]="fechaCompletaTarea(tarea)">
+                            <i class="fa fa-calendar-day"></i> HOY
+                        </span>
+                        <button type="button" class="at-todo-delete" title="Eliminar" (click)="eliminarTarea(tarea)">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 

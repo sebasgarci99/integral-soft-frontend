@@ -92,6 +92,16 @@ export class PosService {
         return this.post<ApiResponse<{ html: string }>>('generarFacturaHtml', { id_venta, formato });
     }
 
+    async generarFacturaPdf(id_venta: number, formato: 'A4' | 'TICKET' = 'A4'): Promise<Observable<Blob>> {
+        const headers = await this.getHeaders();
+        const base = await this.getBody();
+        return this.http.post(
+            this.urlApp + this.urlAppAPI + 'generarFacturaPdf',
+            { ...base, id_venta, formato },
+            { headers, responseType: 'blob' }
+        );
+    }
+
     async enviarFacturaCorreo(id_venta: number, correo?: string): Promise<Observable<ApiResponse<{ correo: string }>>> {
         return this.post<ApiResponse<{ correo: string }>>('enviarFacturaCorreo', { id_venta, correo });
     }

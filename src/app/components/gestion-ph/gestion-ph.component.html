@@ -24,12 +24,20 @@
         </div>
 
         <div class="gph-banner-controls">
-            <select class="gph-select" [ngModel]="idTipoGrupo" (ngModelChange)="onGrupoChange($event)">
-                <option [ngValue]="null">🌐 MOSTRAR TODOS LOS GRUPOS</option>
-                <option *ngFor="let grupo of tiposGrupo" [ngValue]="grupo.id_tipo_grupo">
-                    {{ grupo.codigo }} — {{ grupo.nombre }}
-                </option>
-            </select>
+            <p-dropdown
+                styleClass="gph-select"
+                [options]="grupoOpciones"
+                optionLabel="label"
+                optionValue="id_tipo_grupo"
+                [ngModel]="idTipoGrupo"
+                (ngModelChange)="onGrupoChange($event)"
+                placeholder="MOSTRAR TODOS LOS GRUPOS"
+                [showClear]="true"
+                [filter]="true"
+                filterBy="label"
+                scrollHeight="320px"
+                appendTo="body">
+            </p-dropdown>
 
             <p-calendar
                 styleClass="gph-calendar"

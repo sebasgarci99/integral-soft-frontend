@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CalendarModule } from 'primeng/calendar';
+import { DropdownModule } from 'primeng/dropdown';
 import { Subscription } from 'rxjs';
 import { TiposGrupoService } from '../../services/tipos-grupo/tipos-grupo.service';
 import { TipoGrupo } from '../../interfaces/gestion-ph';
@@ -22,6 +23,7 @@ const TABS_VALIDAS: TabGestionPh[] = ['agenda', 'bitacora', 'programador', 'tipo
         CommonModule,
         FormsModule,
         CalendarModule,
+        DropdownModule,
         AgendaTodoComponent,
         BitacoraDiariaComponent,
         ProgramadorComponent,
@@ -75,6 +77,13 @@ export class GestionPhComponent implements OnInit, OnDestroy {
         if (!this.idTipoGrupo) return 'TODOS LOS GRUPOS';
         const grupo = this.tiposGrupo.find(g => g.id_tipo_grupo === this.idTipoGrupo);
         return grupo ? `${grupo.codigo} - ${grupo.nombre}` : 'GRUPO ESPECÍFICO';
+    }
+
+    get grupoOpciones(): { id_tipo_grupo: number | null; label: string }[] {
+        return this.tiposGrupo.map(g => ({
+            id_tipo_grupo: g.id_tipo_grupo ?? null,
+            label: `${g.codigo} — ${g.nombre}`
+        }));
     }
 
     get fechaLarga(): string {

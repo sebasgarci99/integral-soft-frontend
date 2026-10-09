@@ -345,7 +345,7 @@ export class ProgramadorComponent implements OnInit, OnChanges {
         const mes = this.mesActual.getMonth();
         const primerDia = new Date(anio, mes, 1);
         const ultimoDia = new Date(anio, mes + 1, 0);
-        const offset = primerDia.getDay() === 0 ? 6 : primerDia.getDay() - 1;
+        const offset = primerDia.getDay();
         const hoy = this.obtenerFechaHoy();
 
         const dias: DiaCalendario[] = [];

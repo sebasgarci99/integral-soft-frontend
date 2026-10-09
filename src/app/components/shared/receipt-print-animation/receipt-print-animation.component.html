@@ -1,0 +1,22 @@
+<div class="rpa-overlay" *ngIf="active">
+    <div class="rpa-scene">
+        <div class="rpa-slot"></div>
+        <div class="rpa-paper"
+            [style.width.px]="docAncho || null"
+            [style.height.px]="docAlto ? (docAlto * progreso / 100) : null">
+            <div class="rpa-doc" [style.width.px]="docAncho || null" [style.height.px]="docAlto || null">
+                <iframe #frame class="rpa-frame" (load)="onDocLoad($event)" title="Imprimiendo factura"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div class="rpa-footer">
+        <div class="rpa-bar">
+            <div class="rpa-bar-fill" [style.width.%]="progreso"></div>
+        </div>
+        <div class="rpa-label">
+            <i class="fa fa-print"></i>
+            <span>Imprimiendo {{ progreso }}%</span>
+        </div>
+    </div>
+</div>

@@ -179,3 +179,7 @@
         <span>Ajusta los filtros o realiza una nueva venta en el Punto de venta</span>
     </div>
 </div>
+
+<!-- Animación de impresión de factura -->
+<app-receipt-print-animation [html]="facturaHtmlAnim"
+    [active]="displayAnimacionImpresion" (closed)="onAnimacionTerminada()"></app-receipt-print-animation>

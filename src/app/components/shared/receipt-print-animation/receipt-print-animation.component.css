@@ -1,0 +1,177 @@
+:host {
+    display: contents;
+}
+
+.rpa-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 7vh 1rem 2rem;
+    perspective: 1600px;
+    overflow: hidden;
+    background-color: #eef2f7;
+    background-image:
+        linear-gradient(rgba(148, 163, 184, .22) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, .22) 1px, transparent 1px),
+        radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #e8eef5 55%, #dbe3ec 100%);
+    background-size: 22px 22px, 22px 22px, 100% 100%;
+    animation: rpa-fade-in .4s ease-out both;
+}
+
+.rpa-scene {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform-style: preserve-3d;
+}
+
+.rpa-slot {
+    position: relative;
+    z-index: 6;
+    width: min(370px, 90vw);
+    height: 30px;
+    border-radius: 14px 14px 7px 7px;
+    background: linear-gradient(180deg, #ffffff 0%, #eef3f8 55%, #dbe3ec 100%);
+    box-shadow:
+        0 14px 26px rgba(15, 23, 42, .30),
+        0 2px 0 rgba(255, 255, 255, .8) inset,
+        0 -6px 12px rgba(15, 23, 42, .10) inset;
+}
+
+.rpa-slot::after {
+    content: "";
+    position: absolute;
+    left: 3%;
+    right: 3%;
+    bottom: 5px;
+    height: 7px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #0b1220, #1e293b);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, .75), 0 1px 0 rgba(255, 255, 255, .5);
+}
+
+.rpa-paper {
+    position: relative;
+    z-index: 3;
+    width: 300px;
+    margin-top: -7px;
+    background: #fffdf8;
+    border-radius: 0 0 3px 3px;
+    overflow: hidden;
+    transform-origin: top center;
+    transform: perspective(1600px) rotateX(9deg);
+    filter: drop-shadow(0 26px 22px rgba(15, 23, 42, .38));
+    animation: rpa-feed 3.4s ease-in-out infinite;
+}
+
+/* Sombreado lateral: simula la curvatura del papel */
+.rpa-paper::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background:
+        linear-gradient(100deg, rgba(15, 23, 42, .12) 0%, rgba(255, 255, 255, 0) 26%),
+        linear-gradient(260deg, rgba(15, 23, 42, .10) 0%, rgba(255, 255, 255, 0) 24%);
+    mix-blend-mode: multiply;
+}
+
+/* Borde inferior curvado + micro perforación de tirilla */
+.rpa-paper::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 22px;
+    z-index: 4;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(15, 23, 42, .16));
+    border-radius: 0 0 50% 50% / 0 0 22px 22px;
+    box-shadow: 0 10px 12px -6px rgba(15, 23, 42, .35);
+    -webkit-mask-image: radial-gradient(circle at 6px 24px, #000 4px, transparent 4.5px);
+    -webkit-mask-size: 12px 100%;
+    -webkit-mask-repeat: repeat-x;
+    mask-image: radial-gradient(circle at 6px 24px, #000 4px, transparent 4.5px);
+    mask-size: 12px 100%;
+    mask-repeat: repeat-x;
+}
+
+.rpa-doc {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.rpa-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 0;
+    background: #fffdf8;
+    transform-origin: top left;
+}
+
+.rpa-footer {
+    width: min(400px, 90vw);
+    margin-top: 2rem;
+    animation: rpa-fade-in .6s ease-out both;
+}
+
+.rpa-bar {
+    width: 100%;
+    height: 12px;
+    border-radius: 999px;
+    background: #dbe3ec;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(15, 23, 42, .18);
+}
+
+.rpa-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #fbbf24, #f97316);
+    box-shadow: 0 0 12px rgba(249, 115, 22, .6);
+    transition: width .08s linear;
+}
+
+.rpa-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    margin-top: .85rem;
+    font-weight: 700;
+    color: #005f99;
+    letter-spacing: .03em;
+}
+
+.rpa-label i {
+    animation: rpa-pulse 1s ease-in-out infinite;
+}
+
+@keyframes rpa-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes rpa-feed {
+    0%, 100% { transform: perspective(1600px) rotateX(9deg) translateZ(0); }
+    50% { transform: perspective(1600px) rotateX(6.5deg) translateZ(6px); }
+}
+
+@keyframes rpa-pulse {
+    0%, 100% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(-2px); opacity: .65; }
+}
+
+@media (max-width: 640px) {
+    .rpa-overlay { padding-top: 4vh; }
+    .rpa-paper { transform: perspective(1600px) rotateX(6deg); }
+}
