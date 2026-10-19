@@ -179,6 +179,7 @@ export class RecoleccionService {
             quimicos             : data.quimicos                  ?? 0,
             iluminarias          : data.iluminarias               ?? 0,
             aceites_usados       : data.aceitesUsados             ?? 0,
+            toneres              : data.toneres                   ?? 0,
             aprovechables_organicos: data.aprovechablesOrganicos  ?? 0,
             de_animales          : data.deAnimales                ?? 0,
             corrosivos           : data.corrosivos                ?? 0,

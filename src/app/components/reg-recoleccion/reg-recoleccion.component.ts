@@ -214,7 +214,8 @@ export class RegRecoleccionComponent implements OnInit{
                 { prop: 'chatarraElectronica', label: 'Chatarra electrónica', icon: 'fa fa-desktop' },
                 { prop: 'pilas', label: 'Pilas', icon: 'fa fa-battery-empty' },
                 { prop: 'iluminarias', label: 'Iluminarias', icon: 'fa fa-lightbulb' },
-                { prop: 'aceitesUsados', label: 'Aceites usados', icon: 'fa fa-filter' }
+                { prop: 'aceitesUsados', label: 'Aceites usados', icon: 'fa fa-filter' },
+                { prop: 'toneres', label: 'Tóners', icon: 'fa fa-print' }
             ]
         },
         {
@@ -321,6 +322,7 @@ export class RegRecoleccionComponent implements OnInit{
             quimicos: parseFloat(row.quimicos) || 0,
             iluminarias: parseFloat(row.iluminarias) || 0,
             aceitesUsados: parseFloat(row.aceites_usados) || 0,
+            toneres: parseFloat(row.toneres) || 0,
             aprovechablesOrganicos: parseFloat(row.aprovechables_organicos) || 0,
             deAnimales: parseFloat(row.de_animales) || 0,
             corrosivos: parseFloat(row.corrosivos) || 0,
@@ -587,6 +589,7 @@ export class RegRecoleccionComponent implements OnInit{
             quimicos: null,
             iluminarias: null,
             aceitesUsados: null,
+            toneres: null,
             aprovechablesOrganicos: null,
             deAnimales: null,
             corrosivos: null,

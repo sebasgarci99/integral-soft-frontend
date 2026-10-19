@@ -15,6 +15,7 @@ export interface Recoleccion {
     quimicos: number | null;
     iluminarias: number | null;
     aceitesUsados: number | null;
+    toneres: number | null;
 
     // Paso 1 – Categorías RESPEL adicionales
     aprovechablesOrganicos: number | null;

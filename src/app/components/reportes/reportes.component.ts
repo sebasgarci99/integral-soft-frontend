@@ -153,7 +153,8 @@ export class ReportesComponent implements OnInit {
                 { label: 'Chatarra electrónica', value: 'chatarra_electronica' },
                 { label: 'Pilas', value: 'pilas' },
                 { label: 'Iluminarias', value: 'iluminarias' },
-                { label: 'Aceites usados', value: 'aceites_usados' }
+                { label: 'Aceites usados', value: 'aceites_usados' },
+                { label: 'Tóners', value: 'toneres' }
             ]
         }
     ];
@@ -190,7 +191,7 @@ export class ReportesComponent implements OnInit {
         },
         {
             titulo: 'Residuos peligrosos identificables o Químicos',
-            campos: ['farmacos', 'chatarra_electronica', 'pilas', 'iluminarias', 'aceites_usados'],
+            campos: ['farmacos', 'chatarra_electronica', 'pilas', 'iluminarias', 'aceites_usados', 'toneres'],
             total: 'total_otros_no_norma'
         }
     ];
@@ -209,7 +210,7 @@ export class ReportesComponent implements OnInit {
         'biosanitarios', 'anatomopatologicos', 'cortopunzantes', 'de_animales',
         'radioactivos',
         'corrosivos', 'explosivos', 'reactivos', 'toxicos', 'inflamables',
-        'farmacos', 'chatarra_electronica', 'pilas', 'iluminarias', 'aceites_usados',
+        'farmacos', 'chatarra_electronica', 'pilas', 'iluminarias', 'aceites_usados', 'toneres',
         'total'
     ];
 
@@ -234,6 +235,7 @@ export class ReportesComponent implements OnInit {
         pilas: 'Pilas',
         iluminarias: 'Iluminarias',
         aceites_usados: 'Aceites usados',
+        toneres: 'Tóners',
         radioactivos: 'Radioactivos',
         total: 'Total (legado)'
     };
@@ -345,6 +347,11 @@ export class ReportesComponent implements OnInit {
             const aporteToxico = this.CAMPOS_MAPEADOS_TOXICO.reduce((acc, c) => acc + (Number(n[c]) || 0), 0);
             n['toxicos'] = (Number(n['toxicos']) || 0) + aporteToxico;
 
+            // Tóners: en Consolidado por día se suma a Tóxicos; en los demás reportes es columna independiente.
+            if (this.tipoReporte === 'consolidado_dia') {
+                n['toxicos'] = (Number(n['toxicos']) || 0) + (Number(n['toneres']) || 0);
+            }
+
             const aporteInflamable = this.CAMPOS_MAPEADOS_INFLAMABLES.reduce((acc, c) => acc + (Number(n[c]) || 0), 0);
             n['inflamables'] = (Number(n['inflamables']) || 0) + aporteInflamable;
 
@@ -353,8 +360,10 @@ export class ReportesComponent implements OnInit {
             }
 
             // TOTAL GENERAL: los campos mapeados ya están dentro de Tóxico/Inflamable; no se suman de nuevo.
+            // Tóners se suma aparte cuando es independiente (todos los reportes excepto Consolidado por día).
             n['total_general'] = ['total_no_peligrosos', 'total_riesgo_biologico', 'total_radiactivos', 'total_otros_peligrosos']
-                .reduce((acc, f) => acc + (Number(n[f]) || 0), 0);
+                .reduce((acc, f) => acc + (Number(n[f]) || 0), 0)
+                + (this.tipoReporte === 'consolidado_dia' ? 0 : (Number(n['toneres']) || 0));
 
             // Redondear a 2 decimales todos los campos numéricos
             for (const k in n) {
@@ -1297,7 +1306,8 @@ export class ReportesComponent implements OnInit {
             }
 
             resumen['total_general'] = ['total_no_peligrosos', 'total_riesgo_biologico', 'total_radiactivos', 'total_otros_peligrosos']
-                .reduce((acc, f) => acc + (Number(resumen[f]) || 0), 0);
+                .reduce((acc, f) => acc + (Number(resumen[f]) || 0), 0)
+                + (Number(resumen['toneres']) || 0);
 
             return resumen;
         };
