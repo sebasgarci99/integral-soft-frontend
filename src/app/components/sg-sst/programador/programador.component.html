@@ -1,0 +1,180 @@
+<div class="pg-layout">
+    <section class="pg-card pg-calendar">
+        <header class="pg-head">
+            <div>
+                <h2><i class="fa fa-calendar-days"></i> Agenda y programación</h2>
+                <span>Calendario mensual, agenda diaria y planificación</span>
+            </div>
+            <button type="button" class="pg-btn primary" (click)="abrirModalCrear()">
+                <i class="fa fa-plus"></i> Nueva actividad
+            </button>
+        </header>
+
+        <div class="pg-month-nav">
+            <button type="button" (click)="mesAnterior()"><i class="fa fa-chevron-left"></i></button>
+            <span>{{ nombreMes }}</span>
+            <button type="button" (click)="mesSiguiente()"><i class="fa fa-chevron-right"></i></button>
+        </div>
+
+        <div class="pg-weekdays">
+            <span>DOM</span><span>LUN</span><span>MAR</span><span>MIÉ</span><span>JUE</span><span>VIE</span><span>SÁB</span>
+        </div>
+
+        <div class="pg-days">
+            <button type="button" class="pg-day" *ngFor="let dia of diasCalendario"
+                [class.other-month]="!dia.esMesActual"
+                [class.today]="dia.esHoy"
+                [class.selected]="dia.esSeleccionado"
+                (click)="seleccionarDia(dia)">
+                <span class="pg-day-number">{{ dia.dia }}</span>
+                <span class="pg-dots" *ngIf="dia.instancias.length > 0">
+                    <i *ngFor="let inst of dia.instancias.slice(0, 4)"
+                        [style.background]="estadoColor(inst.estado)"></i>
+                </span>
+            </button>
+        </div>
+
+        <div class="pg-legend">
+            <span><i style="background:#f59e0b"></i> Pendiente</span>
+            <span><i style="background:#22c55e"></i> Ejecutado</span>
+            <span class="pg-loading" *ngIf="cargando"><i class="fa fa-spinner fa-spin"></i> Cargando...</span>
+        </div>
+    </section>
+
+    <section class="pg-card pg-schedule">
+        <header class="pg-head">
+            <div>
+                <h2><i class="fa fa-list"></i> Actividades del día</h2>
+                <span class="pg-day-title">{{ tituloDia }}</span>
+            </div>
+            <span class="pg-counter">{{ instanciasDelDiaSeleccionado.length }} actividad(es)</span>
+        </header>
+
+        <div class="pg-timeline">
+            <div class="pg-hour-row" *ngFor="let hora of horas">
+                <span class="pg-hour-label">{{ formatearHora(hora + ':00') }}</span>
+                <div class="pg-hour-slot" [class.has-events]="instanciasPorHora(hora).length > 0"
+                    title="Clic para programar una actividad"
+                    (click)="abrirModalCrearEnHora(hora)">
+                    <div class="pg-now-line" *ngIf="esHoySeleccionado && horaActual.getHours() === hora">
+                        <span></span>
+                        <small>{{ horaActual | date:'shortTime' }}</small>
+                    </div>
+                    <button type="button" class="pg-event" *ngFor="let inst of instanciasPorHora(hora)"
+                        [style.border-left-color]="estadoColor(inst.estado)"
+                        (click)="abrirDetalle(inst); $event.stopPropagation()">
+                        <div>
+                            <strong>{{ inst.actividad?.titulo }}</strong>
+                            <small>{{ formatearHora(inst.hora_inicio) }} - {{ formatearHora(inst.hora_fin) }}</small>
+                        </div>
+                        <span class="pg-state" [style.color]="estadoColor(inst.estado)">
+                            {{ estadoLabel(inst.estado) }}
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="pg-modal-backdrop" *ngIf="modalVisible">
+    <div class="pg-modal">
+        <header>
+            <h3>Programar nueva actividad</h3>
+            <button type="button" class="pg-close" (click)="cerrarModal()">&times;</button>
+        </header>
+        <div class="pg-modal-body">
+            <label class="pg-label">Título de la actividad</label>
+            <input type="text" [(ngModel)]="form.titulo" maxlength="200" placeholder="Ej: Inspección de extintores" />
+
+            <div class="pg-grid-2">
+                <div>
+                    <label class="pg-label">Periodicidad</label>
+                    <select [(ngModel)]="form.tipo_periodicidad">
+                        <option value="unica">Única (puntual)</option>
+                        <option value="diaria">Diaria</option>
+                        <option value="semanal">Semanal</option>
+                        <option value="quincenal">Quincenal</option>
+                        <option value="mensual">Mensual</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="pg-label">Duración (minutos)</label>
+                    <input type="number" min="15" step="15" [(ngModel)]="form.duracion_minutos" />
+                </div>
+            </div>
+
+            <div class="pg-grid-2">
+                <div>
+                    <label class="pg-label">Fecha inicio</label>
+                    <input type="date" [(ngModel)]="form.fecha_inicio" />
+                </div>
+                <div *ngIf="form.tipo_periodicidad !== 'unica'">
+                    <label class="pg-label">Fecha fin (opcional)</label>
+                    <input type="date" [(ngModel)]="form.fecha_fin" />
+                </div>
+            </div>
+
+            <label class="pg-label">Hora</label>
+            <input type="time" [(ngModel)]="form.hora_default" />
+
+            <label class="pg-label">Descripción</label>
+            <textarea rows="3" [(ngModel)]="form.descripcion" maxlength="500"
+                placeholder="Detalle de la actividad..."></textarea>
+        </div>
+        <footer>
+            <button type="button" class="pg-btn ghost" (click)="cerrarModal()">Cancelar</button>
+            <button type="button" class="pg-btn primary" [disabled]="guardando" (click)="crearActividad()">
+                {{ guardando ? 'Guardando...' : 'Guardar actividad' }}
+            </button>
+        </footer>
+    </div>
+</div>
+
+<div class="pg-modal-backdrop" *ngIf="detalleVisible && instanciaDetalle">
+    <div class="pg-modal">
+        <header>
+            <div>
+                <h3>{{ instanciaDetalle.actividad?.titulo }}</h3>
+                <span>{{ formatearHora(instanciaDetalle.hora_inicio) }} - {{ formatearHora(instanciaDetalle.hora_fin) }}</span>
+            </div>
+            <button type="button" class="pg-close" (click)="cerrarDetalle()">&times;</button>
+        </header>
+        <div class="pg-modal-body">
+            <div class="pg-state-badge" [class.done]="instanciaDetalle.estado === 'completada'">
+                <i class="fa" [ngClass]="instanciaDetalle.estado === 'completada' ? 'fa-circle-check' : 'fa-clock'"></i>
+                {{ estadoLabel(instanciaDetalle.estado) }}
+            </div>
+
+            <p class="pg-desc" *ngIf="instanciaDetalle.actividad?.descripcion">
+                {{ instanciaDetalle.actividad?.descripcion }}
+            </p>
+
+            <label class="pg-label">Observaciones</label>
+            <textarea rows="4" [(ngModel)]="observaciones" maxlength="2000"
+                placeholder="Observaciones, hallazgos o soportes de la ejecución..."></textarea>
+
+            <div class="pg-evidencias-head">
+                <label class="pg-label">Evidencias fotográficas (máx. 2)</label>
+                <label class="pg-upload">
+                    <i class="fa fa-camera"></i> Adjuntar
+                    <input type="file" accept="image/*" hidden (change)="onEvidenciaSeleccionada($event)" />
+                </label>
+            </div>
+            <div class="pg-photos">
+                <div class="pg-empty" *ngIf="evidencias.length === 0">Sin imágenes adjuntas.</div>
+                <div class="pg-photo" *ngFor="let ev of evidencias; let i = index">
+                    <img [src]="ev.dataUrl" alt="evidencia" />
+                    <button type="button" (click)="eliminarEvidencia(i)">&times;</button>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <button type="button" class="pg-btn ghost" (click)="cerrarDetalle()">Cancelar</button>
+            <button type="button" class="pg-btn primary" [disabled]="guardandoEjecucion" (click)="guardarEjecucion()">
+                <i class="fa fa-check"></i>
+                {{ guardandoEjecucion ? 'Guardando...' : (instanciaDetalle.estado === 'completada' ? 'Actualizar ejecución' : 'Marcar ejecutado') }}
+            </button>
+        </footer>
+    </div>
+</div>

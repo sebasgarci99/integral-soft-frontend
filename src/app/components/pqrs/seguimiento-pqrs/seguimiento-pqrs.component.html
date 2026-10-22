@@ -184,9 +184,9 @@
 
                 <div class="detalle-section-title"><i class="fa fa-paperclip"></i> Adjuntos de radicación</div>
                 <div class="d-flex flex-wrap gap-2">
-                    <a *ngFor="let arch of solicitudSeleccionada.Archivos" [href]="getPreviewUrl(arch)" target="_blank" class="archivo-chip">
+                    <button *ngFor="let arch of solicitudSeleccionada.Archivos" type="button" class="archivo-chip" (click)="abrirAdjunto(arch)">
                         <i class="fa" [ngClass]="esImagen(arch.mime_type) ? 'fa-image' : 'fa-file'"></i> {{ arch.nombre_original }}
-                    </a>
+                    </button>
                     <span *ngIf="!solicitudSeleccionada.Archivos?.length" class="detalle-vacio">Sin archivos adjuntos</span>
                 </div>
             </div>
@@ -201,9 +201,9 @@
                     </div>
                     <div class="avance-desc">{{ avance.descripcion }}</div>
                     <div class="d-flex flex-wrap gap-2 mt-2" *ngIf="avance.Archivos?.length">
-                        <a *ngFor="let arch of avance.Archivos" [href]="getPreviewUrl(arch)" target="_blank" class="archivo-chip archivo-chip-suave">
+                        <button *ngFor="let arch of avance.Archivos" type="button" class="archivo-chip archivo-chip-suave" (click)="abrirAdjunto(arch)">
                             <i class="fa" [ngClass]="esImagen(arch.mime_type) ? 'fa-image' : 'fa-file'"></i> {{ arch.nombre_original }}
-                        </a>
+                        </button>
                     </div>
                 </div>
                 <div *ngIf="!solicitudSeleccionada.Avances?.length" class="detalle-vacio">Sin avances registrados</div>
@@ -392,6 +392,15 @@
                 <p-button label="Radicar solicitud" icon="fa fa-paper-plane" severity="info" (onClick)="guardarNuevaSolicitud()" [loading]="guardandoNueva" />
             </div>
         </div>
+    </ng-template>
+</p-dialog>
+
+<p-dialog [header]="adjuntoNombre" [(visible)]="displayAdjunto" [modal]="true" [style]="{ width: 'auto', 'max-width': '92vw' }" [draggable]="false" appendTo="body" styleClass="pqrs-adjunto-dialog" (onHide)="cerrarAdjunto()">
+    <div class="adjunto-preview">
+        <img [src]="adjuntoPreviewUrl" [alt]="adjuntoNombre" />
+    </div>
+    <ng-template pTemplate="footer">
+        <p-button label="Cerrar" icon="fa fa-times" severity="secondary" (onClick)="cerrarAdjunto()" />
     </ng-template>
 </p-dialog>
 

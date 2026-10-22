@@ -204,7 +204,9 @@ export class ResponsablesSstComponent implements OnInit {
     }
 
     volver(): void {
-        this.router.navigate(['/actas']);
+        this.router.navigate([
+            this.router.url.startsWith('/gestion-sg-sst') ? '/gestion-sg-sst/actas' : '/actas'
+        ]);
     }
 
     private mostrarError(detail: string): void {

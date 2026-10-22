@@ -355,6 +355,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+    font-family: inherit;
     font-size: 0.82rem;
     font-weight: 500;
     color: #0369a1;
@@ -363,6 +364,8 @@
     border-radius: 8px;
     padding: 0.32rem 0.65rem;
     text-decoration: none;
+    text-align: left;
+    cursor: pointer;
     transition: background 0.15s ease, border-color 0.15s ease;
 }
 
@@ -860,4 +863,49 @@
     background: #ffffff;
     border-top: 1px solid #eef2f6;
     padding: 0.9rem 1.25rem;
+}
+
+/* Visor de adjuntos */
+::ng-deep .pqrs-adjunto-dialog .p-dialog-header {
+    background: #164e63;
+    color: #ffffff;
+    border-radius: 14px 14px 0 0;
+    padding: 0.9rem 1.15rem;
+}
+
+::ng-deep .pqrs-adjunto-dialog .p-dialog-header .p-dialog-title {
+    color: #ffffff;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.98rem;
+}
+
+::ng-deep .pqrs-adjunto-dialog .p-dialog-header .p-dialog-header-close,
+::ng-deep .pqrs-adjunto-dialog .p-dialog-header .p-dialog-header-icon {
+    color: #ffffff;
+}
+
+::ng-deep .pqrs-adjunto-dialog .p-dialog-content {
+    padding: 0.9rem 1.1rem;
+    background: #f8fafc;
+}
+
+.adjunto-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.05);
+    border: 1px solid #eef2f6;
+    border-radius: 10px;
+    padding: 0.75rem;
+    max-height: 72vh;
+    overflow: auto;
+}
+
+.adjunto-preview img {
+    display: block;
+    max-width: min(84vw, 1100px);
+    max-height: 68vh;
+    object-fit: contain;
+    border-radius: 6px;
 }

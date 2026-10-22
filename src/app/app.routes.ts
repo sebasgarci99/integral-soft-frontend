@@ -35,6 +35,7 @@ import { AlertasPqrsComponent } from './components/pqrs/alertas-pqrs/alertas-pqr
 import { ReportesPqrsComponent } from './components/pqrs/reportes-pqrs/reportes-pqrs.component';
 import { CalculoEmpleadoComponent } from './components/calculo-empleado/calculo-empleado.component';
 import { GestionPhComponent } from './components/gestion-ph/gestion-ph.component';
+import { SgSstComponent } from './components/sg-sst/sg-sst.component';
 import { MantenimientosComponent } from './components/mantenimientos/mantenimientos.component';
 import { PosComponent } from './components/pos/pos.component';
 import { VentasComponent } from './components/pos/ventas/ventas.component';
@@ -87,6 +88,13 @@ export const routes: Routes = [
             { path: 'calculo_empleado', component: CalculoEmpleadoComponent },
             { path: 'gestion_ph', redirectTo: 'gestion_ph/agenda', pathMatch: 'full' },
             { path: 'gestion_ph/:tab', component: GestionPhComponent },
+            { path: 'gestion-sg-sst', redirectTo: 'gestion-sg-sst/panel', pathMatch: 'full' },
+            { path: 'gestion-sg-sst/agenda', redirectTo: 'gestion-sg-sst/programador', pathMatch: 'full' },
+            { path: 'gestion-sg-sst/actas', redirectTo: 'actas', pathMatch: 'full' },
+            { path: 'gestion-sg-sst/actas/nueva', redirectTo: 'actas/nueva', pathMatch: 'full' },
+            { path: 'gestion-sg-sst/actas/editar/:id', redirectTo: 'actas/editar/:id', pathMatch: 'full' },
+            { path: 'gestion-sg-sst/actas/responsables', redirectTo: 'actas/responsables', pathMatch: 'full' },
+            { path: 'gestion-sg-sst/:tab', component: SgSstComponent },
             { path: 'mantenimientos', component: MantenimientosComponent },
         ]
     }

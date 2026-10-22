@@ -163,7 +163,7 @@ export class GestionUsuarioComponent implements OnInit {
             const archivo: ArchivoForm = {
                 base64: base64.split(',')[1],
                 nombre: file.name,
-                mimeType: file.type,
+                mimeType: 'image/jpeg',
                 tipo_archivo: tipo
             };
             const idx = this.archivos.findIndex(a => a.tipo_archivo === tipo);

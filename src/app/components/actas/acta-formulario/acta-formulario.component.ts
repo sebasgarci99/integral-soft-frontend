@@ -335,7 +335,7 @@ export class ActaFormularioComponent implements OnInit {
         try {
             await lastValueFrom(await this.actasService.cerrarActa(this.acta.id_acta));
             this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Acta cerrada' });
-            this.router.navigate(['/actas']);
+            this.router.navigate([this.rutaActas]);
         } catch (error: unknown) {
             console.error('Error cerrando acta:', error);
             this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cerrar el acta' });
@@ -424,7 +424,11 @@ export class ActaFormularioComponent implements OnInit {
     }
 
     volver(): void {
-        this.router.navigate(['/actas']);
+        this.router.navigate([this.rutaActas]);
+    }
+
+    private get rutaActas(): string {
+        return this.router.url.startsWith('/gestion-sg-sst') ? '/gestion-sg-sst/actas' : '/actas';
     }
 
     private descargarBlob(blob: Blob, nombre: string): void {

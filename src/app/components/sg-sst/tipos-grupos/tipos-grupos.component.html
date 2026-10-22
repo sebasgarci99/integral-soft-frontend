@@ -1,0 +1,177 @@
+<div class="tg-wrap">
+    <section class="tg-card">
+        <header class="tg-head">
+            <div>
+                <h2><i class="fa fa-tags"></i> Tipos de grupo SG-SST</h2>
+                <span>{{ grupos.length }} grupo(s) registrado(s) para el cliente seleccionado</span>
+            </div>
+            <button type="button" class="tg-btn primary" (click)="abrirCrear()">
+                <i class="fa fa-plus"></i> Nuevo grupo
+            </button>
+        </header>
+
+        <div class="tg-toolbar">
+            <div class="tg-search">
+                <i class="fa fa-magnifying-glass"></i>
+                <input type="text" [(ngModel)]="busqueda" maxlength="80"
+                    placeholder="Buscar por código, nombre o descripción..." />
+            </div>
+            <div class="tg-filters">
+                <button type="button" [class.active]="filtroEstado === 'todos'" (click)="filtroEstado = 'todos'">Todos</button>
+                <button type="button" [class.active]="filtroEstado === 'activos'" (click)="filtroEstado = 'activos'">Activos</button>
+                <button type="button" [class.active]="filtroEstado === 'inactivos'" (click)="filtroEstado = 'inactivos'">Inactivos</button>
+            </div>
+        </div>
+
+        <div class="tg-loading" *ngIf="cargando">
+            <i class="fa fa-spinner fa-spin"></i> Cargando grupos...
+        </div>
+
+        <div class="tg-empty" *ngIf="!cargando && grupos.length === 0">
+            <i class="fa fa-tags"></i>
+            <h3>Este cliente aún no tiene grupos SG-SST</h3>
+            <p>Crea el primer grupo para poder usar agenda, bitácora y programador.</p>
+            <button type="button" class="tg-btn primary" (click)="abrirCrear()">Crear primer grupo</button>
+        </div>
+
+        <div class="tg-empty" *ngIf="!cargando && grupos.length > 0 && gruposFiltrados.length === 0">
+            <i class="fa fa-filter-circle-xmark"></i>
+            <h3>No hay grupos con ese filtro</h3>
+            <p>Prueba con otro término de búsqueda o cambia el estado.</p>
+            <button type="button" class="tg-btn ghost" (click)="limpiarFiltros()">Limpiar filtros</button>
+        </div>
+
+        <div class="tg-table" *ngIf="!cargando && gruposFiltrados.length > 0">
+            <div class="tg-row tg-row-head">
+                <span>Grupo</span>
+                <span>Color</span>
+                <span>Prioridad</span>
+                <span>Estado</span>
+                <span>Acciones</span>
+            </div>
+            <div class="tg-row" *ngFor="let grupo of gruposFiltrados" [class.inactivo]="grupo.estado === 'I'">
+                <div class="tg-group-cell">
+                    <span class="tg-icon-wrap" [style.background]="fondoIcono(grupo.color)">
+                        <i [class]="grupo.icono || 'fa fa-layer-group'" [style.color]="grupo.color || '#0f766e'"></i>
+                    </span>
+                    <div>
+                        <span class="tg-code">{{ grupo.codigo }}</span>
+                        <strong>{{ grupo.nombre }}</strong>
+                        <small *ngIf="grupo.descripcion">{{ grupo.descripcion }}</small>
+                    </div>
+                </div>
+                <span class="tg-color">
+                    <i [style.background]="grupo.color || '#0f766e'"></i>
+                    <span>{{ grupo.color || 'Sin color' }}</span>
+                </span>
+                <span class="tg-priority" [ngClass]="'p' + grupo.prioridad">P{{ grupo.prioridad }}</span>
+                <span class="tg-estado" [class.activo]="grupo.estado === 'A'">
+                    <i class="fa fa-circle"></i>
+                    {{ grupo.estado === 'A' ? 'Activo' : 'Inactivo' }}
+                </span>
+                <div class="tg-actions">
+                    <button type="button" title="Editar" (click)="abrirEditar(grupo)">
+                        <i class="fa fa-pencil"></i>
+                    </button>
+                    <button type="button" title="Inactivar" class="danger" *ngIf="grupo.estado === 'A'" (click)="inactivar(grupo)">
+                        <i class="fa fa-ban"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="tg-modal-backdrop" *ngIf="modalVisible">
+    <div class="tg-modal">
+        <header>
+            <h3>{{ edicion ? 'Editar grupo' : 'Nuevo grupo SG-SST' }}</h3>
+            <button type="button" class="tg-close" (click)="cerrarModal()">&times;</button>
+        </header>
+        <div class="tg-modal-body">
+            <div class="tg-preview">
+                <span class="tg-preview-icon" [style.background]="fondoIcono(form.color)">
+                    <i [class]="form.icono || 'fa fa-layer-group'" [style.color]="form.color || '#0f766e'"></i>
+                </span>
+                <div>
+                    <strong>{{ form.nombre || 'Nombre del grupo' }}</strong>
+                    <span>{{ form.codigo || 'CÓDIGO' }} · {{ nombreIconoActual }}</span>
+                </div>
+            </div>
+
+            <div class="tg-grid-2">
+                <div>
+                    <label>Código</label>
+                    <input type="text" [(ngModel)]="form.codigo" maxlength="20" placeholder="Ej: GH-01" />
+                </div>
+                <div>
+                    <label>Prioridad</label>
+                    <select [(ngModel)]="form.prioridad">
+                        <option [ngValue]="1">1 - Alta</option>
+                        <option [ngValue]="2">2</option>
+                        <option [ngValue]="3">3 - Media</option>
+                        <option [ngValue]="4">4</option>
+                        <option [ngValue]="5">5 - Baja</option>
+                    </select>
+                </div>
+            </div>
+
+            <label>Nombre</label>
+            <input type="text" [(ngModel)]="form.nombre" maxlength="120" placeholder="Ej: Grupo de mantenimiento" />
+
+            <div class="tg-grid-2">
+                <div>
+                    <label>Color del grupo</label>
+                    <div class="tg-color-picker">
+                        <button type="button" class="tg-color-swatch custom"
+                            [style.background]="form.color || '#0f766e'"
+                            [class.selected]="!coloresRapidos.includes(form.color || '')">
+                            <input type="color" [(ngModel)]="form.color" title="Color personalizado" />
+                        </button>
+                        <button type="button" class="tg-color-swatch" *ngFor="let color of coloresRapidos"
+                            [style.background]="color"
+                            [class.selected]="form.color === color"
+                            (click)="seleccionarColor(color)">
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label>Clase personalizada (opcional)</label>
+                    <input type="text" [(ngModel)]="form.icono" maxlength="60" placeholder="fa fa-layer-group" />
+                </div>
+            </div>
+
+            <div class="tg-icon-picker">
+                <div class="tg-icon-picker-head">
+                    <label>Icono del grupo</label>
+                    <div class="tg-icon-search">
+                        <i class="fa fa-magnifying-glass"></i>
+                        <input type="text" [(ngModel)]="busquedaIcono" maxlength="40" placeholder="Buscar icono..." />
+                    </div>
+                </div>
+                <div class="tg-icon-grid">
+                    <button type="button" class="tg-icon-option" *ngFor="let icono of iconosFiltrados"
+                        [class.selected]="form.icono === icono.clase"
+                        (click)="seleccionarIcono(icono.clase)"
+                        [title]="icono.nombre">
+                        <i [class]="icono.clase"></i>
+                        <span>{{ icono.nombre }}</span>
+                    </button>
+                    <div class="tg-icon-empty" *ngIf="iconosFiltrados.length === 0">
+                        No se encontraron iconos.
+                    </div>
+                </div>
+            </div>
+
+            <label>Descripción</label>
+            <textarea rows="3" [(ngModel)]="form.descripcion" maxlength="250"
+                placeholder="Alcance o responsabilidad del grupo..."></textarea>
+        </div>
+        <footer>
+            <button type="button" class="tg-btn ghost" (click)="cerrarModal()">Cancelar</button>
+            <button type="button" class="tg-btn primary" [disabled]="guardando" (click)="guardar()">
+                {{ guardando ? 'Guardando...' : 'Guardar grupo' }}
+            </button>
+        </footer>
+    </div>
+</div>

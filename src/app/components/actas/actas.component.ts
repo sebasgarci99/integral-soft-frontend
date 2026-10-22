@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -36,7 +36,7 @@ interface ClienteOpcion extends Cliente {
                         <button pButton type="button" label="Configurar responsables" icon="fa fa-user-tie" class="p-button-secondary" (click)="configurarResponsables()"></button>
                     </div>
 
-                    <div class="row g-3 mb-4">
+                    <div class="row g-3 mb-4" *ngIf="!embebido">
                         <div class="col-12 col-md-8 col-lg-6 col-xl-4">
                             <p-floatlabel variant="on">
                                 <p-autoComplete
@@ -119,7 +119,10 @@ interface ClienteOpcion extends Cliente {
         </div>
     `
 })
-export class ActasComponent implements OnInit {
+export class ActasComponent implements OnInit, OnChanges {
+    @Input() idCliente: number | null = null;
+    @Input() embebido = false;
+
     clientes: ClienteOpcion[] = [];
     clientesFiltrados: ClienteOpcion[] = [];
     clienteSeleccionado: ClienteOpcion | null = null;
@@ -139,8 +142,27 @@ export class ActasComponent implements OnInit {
                     ...c,
                     labelCompleto: `${c.tipo_identificacion} ${c.numero_identificacion} - ${c.nombre_razon_social}`
                 }));
+                this.aplicarClienteInicial();
             }
         });
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['idCliente'] && this.clientes.length > 0) {
+            this.aplicarClienteInicial();
+        }
+    }
+
+    private aplicarClienteInicial(): void {
+        if (!this.embebido || !this.idCliente) return;
+        if (this.clienteSeleccionado?.id_cliente === this.idCliente) return;
+        const cliente = this.clientes.find(c => c.id_cliente === this.idCliente) || null;
+        this.clienteSeleccionado = cliente;
+        if (cliente) this.onClienteSeleccionado();
+    }
+
+    private get rutaBase(): string {
+        return this.embebido ? '/gestion-sg-sst/actas' : '/actas';
     }
 
     filtrarClientes(event: any): void {
@@ -176,33 +198,33 @@ export class ActasComponent implements OnInit {
     nuevaActa(): void {
         if (!this.clienteSeleccionado) return;
         if (this.ultimaActa && this.ultimaActa.estado === 'CERRADA') {
-            this.router.navigate(['/actas/nueva'], { queryParams: { id_cliente: this.clienteSeleccionado.id_cliente }, state: { actaBase: this.ultimaActa } });
+            this.router.navigate([`${this.rutaBase}/nueva`], { queryParams: { id_cliente: this.clienteSeleccionado.id_cliente }, state: { actaBase: this.ultimaActa } });
         } else {
-            this.router.navigate(['/actas/nueva'], { queryParams: { id_cliente: this.clienteSeleccionado.id_cliente } });
+            this.router.navigate([`${this.rutaBase}/nueva`], { queryParams: { id_cliente: this.clienteSeleccionado.id_cliente } });
         }
     }
 
     async editarUltima(): Promise<void> {
         if (!this.clienteSeleccionado || !this.ultimaActa) return;
         if (this.ultimaActa.estado === 'CERRADA') {
-            this.router.navigate(['/actas/nueva'], { queryParams: { id_cliente: this.clienteSeleccionado.id_cliente }, state: { actaBase: this.ultimaActa } });
+            this.router.navigate([`${this.rutaBase}/nueva`], { queryParams: { id_cliente: this.clienteSeleccionado.id_cliente }, state: { actaBase: this.ultimaActa } });
         } else {
-            this.router.navigate(['/actas/editar', this.ultimaActa.id_acta]);
+            this.router.navigate([`${this.rutaBase}/editar`, this.ultimaActa.id_acta]);
         }
     }
 
     clonarActa(acta: Acta): void {
         if (!acta.id_cliente) return;
-        this.router.navigate(['/actas/nueva'], { queryParams: { id_cliente: acta.id_cliente }, state: { actaBase: acta } });
+        this.router.navigate([`${this.rutaBase}/nueva`], { queryParams: { id_cliente: acta.id_cliente }, state: { actaBase: acta } });
     }
 
     editarActa(id: number | undefined): void {
         if (!id) return;
-        this.router.navigate(['/actas/editar', id]);
+        this.router.navigate([`${this.rutaBase}/editar`, id]);
     }
 
     configurarResponsables(): void {
-        this.router.navigate(['/actas/responsables']);
+        this.router.navigate([`${this.rutaBase}/responsables`]);
     }
 
     async descargarDocx(id_acta: number | undefined): Promise<void> {

@@ -48,6 +48,10 @@ export class SeguimientoPqrsComponent implements OnInit {
     mostrarFormAvance = false;
     mostrarFormFinalizar = false;
 
+    displayAdjunto = false;
+    adjuntoPreviewUrl = '';
+    adjuntoNombre = '';
+
     formCategoria: { id_categoria?: number } = {};
     formAvance: { descripcion: string; avanza_a_finalizacion: boolean; archivos: any[] } = { descripcion: '', avanza_a_finalizacion: false, archivos: [] };
     formFinalizar: { resumen_finalizacion: string; archivos: any[] } = { resumen_finalizacion: '', archivos: [] };
@@ -536,11 +540,75 @@ export class SeguimientoPqrsComponent implements OnInit {
         }
     }
 
-    getPreviewUrl(archivo: ArchivoPqrs | any): string {
-        if (archivo.archivo_base64 && !archivo.archivo_base64.startsWith('data:')) {
-            return `data:${archivo.mime_type};base64,${archivo.archivo_base64}`;
+    abrirAdjunto(archivo: ArchivoPqrs | any): void {
+        const base64 = this.limpiarBase64(archivo?.archivo_base64);
+        if (!base64) {
+            this.messageService.add({ severity: 'error', summary: 'El adjunto no tiene contenido.' });
+            return;
         }
-        return archivo.archivo_base64;
+
+        const mime = this.detectarMime(archivo, base64);
+        const blob = this.blobDesdeBase64(base64, mime);
+        const url = URL.createObjectURL(blob);
+
+        if (mime.startsWith('image/')) {
+            if (this.adjuntoPreviewUrl) {
+                URL.revokeObjectURL(this.adjuntoPreviewUrl);
+            }
+            this.adjuntoPreviewUrl = url;
+            this.adjuntoNombre = archivo?.nombre_original || 'Adjunto';
+            this.displayAdjunto = true;
+            return;
+        }
+
+        const ventana = window.open(url, '_blank');
+        if (!ventana) {
+            this.descargarBlob(url, archivo?.nombre_original || 'adjunto');
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }
+
+    cerrarAdjunto(): void {
+        if (this.adjuntoPreviewUrl) {
+            URL.revokeObjectURL(this.adjuntoPreviewUrl);
+        }
+        this.adjuntoPreviewUrl = '';
+        this.adjuntoNombre = '';
+        this.displayAdjunto = false;
+    }
+
+    private descargarBlob(url: string, nombre: string): void {
+        const enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = nombre;
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
+    }
+
+    private limpiarBase64(valor?: string): string {
+        if (!valor) return '';
+        const indice = valor.indexOf('base64,');
+        const limpio = indice >= 0 ? valor.slice(indice + 7) : valor;
+        return limpio.replace(/\s/g, '');
+    }
+
+    private detectarMime(archivo: ArchivoPqrs | any, base64: string): string {
+        if (base64.startsWith('/9j/')) return 'image/jpeg';
+        if (base64.startsWith('iVBORw0KGgo')) return 'image/png';
+        if (base64.startsWith('R0lGOD')) return 'image/gif';
+        if (base64.startsWith('UklGR')) return 'image/webp';
+        if (base64.startsWith('JVBERi0')) return 'application/pdf';
+        return archivo?.mime_type || 'application/octet-stream';
+    }
+
+    private blobDesdeBase64(base64: string, mime: string): Blob {
+        const binario = atob(base64);
+        const bytes = new Uint8Array(binario.length);
+        for (let i = 0; i < binario.length; i++) {
+            bytes[i] = binario.charCodeAt(i);
+        }
+        return new Blob([bytes], { type: mime });
     }
 
     esImagen(mimeType?: string): boolean {

@@ -1,0 +1,201 @@
+<div class="sgsst-page">
+
+    <header class="sgsst-header">
+        <div class="sgsst-brand">
+            <div class="sgsst-brand-icon"><i class="fa fa-shield-heart"></i></div>
+            <div>
+                <h1>Gestión SG-SST</h1>
+                <p>Seguridad y Salud en el Trabajo por cliente y grupo operativo</p>
+            </div>
+        </div>
+        <div class="sgsst-date-chip">
+            <i class="fa fa-calendar-day"></i>
+            <span>{{ fechaLarga }}</span>
+        </div>
+    </header>
+
+    <section class="sgsst-context" [class.calendario-abierto]="calendarioAbierto">
+        <div class="sgsst-context-main">
+            <div class="sgsst-context-title">
+                <i class="fa fa-layer-group"></i>
+                <div>
+                    <h2>Cliente y grupo de trabajo</h2>
+                    <p>Selecciona primero el cliente y luego el grupo. Toda la información se filtra por ese ámbito.</p>
+                </div>
+            </div>
+
+            <div class="sgsst-selectors">
+                <div class="sgsst-field">
+                    <label>Cliente</label>
+                    <p-dropdown
+                        styleClass="sgsst-select"
+                        [options]="clienteOpciones"
+                        optionLabel="label"
+                        optionValue="id_cliente"
+                        [ngModel]="idCliente"
+                        (ngModelChange)="onClienteChange($event)"
+                        placeholder="Selecciona un cliente"
+                        [filter]="true"
+                        filterBy="label"
+                        [loading]="cargandoClientes"
+                        scrollHeight="320px"
+                        appendTo="body">
+                    </p-dropdown>
+                </div>
+
+                <div class="sgsst-field">
+                    <label>Grupo SG-SST</label>
+                    <p-dropdown
+                        styleClass="sgsst-select"
+                        [options]="grupoOpciones"
+                        optionLabel="label"
+                        optionValue="id_tipo_grupo"
+                        [ngModel]="idTipoGrupo"
+                        (ngModelChange)="onGrupoChange($event)"
+                        placeholder="Selecciona un grupo"
+                        [filter]="true"
+                        filterBy="label"
+                        [loading]="cargandoGrupos"
+                        [disabled]="!idCliente"
+                        scrollHeight="320px"
+                        appendTo="body">
+                    </p-dropdown>
+                </div>
+
+                <div class="sgsst-actions">
+                    <button type="button" class="sgsst-btn sgsst-btn-light" (click)="cambiarTab('tipos-grupos')">
+                        <i class="fa fa-gear"></i> Administrar grupos
+                    </button>
+                    <button type="button" class="sgsst-btn sgsst-btn-calendar"
+                        [class.active]="calendarioAbierto"
+                        (click)="toggleCalendario()"
+                        [attr.aria-expanded]="calendarioAbierto"
+                        aria-controls="calendario-diligenciados">
+                        <i class="fa fa-calendar-days"></i>
+                        {{ calendarioAbierto ? 'Ocultar calendario' : 'Calendario' }}
+                    </button>
+                </div>
+            </div>
+
+            <div class="sgsst-scope" *ngIf="idCliente">
+                <span><i class="fa fa-building"></i> {{ nombreCliente }}</span>
+                <span *ngIf="idTipoGrupo"><i class="fa fa-tag"></i> {{ nombreGrupo }}</span>
+                <span class="sgsst-scope-warning" *ngIf="!idTipoGrupo">
+                    <i class="fa fa-circle-exclamation"></i> Selecciona un grupo para cargar la gestión
+                </span>
+            </div>
+        </div>
+
+        <aside class="sgsst-calendar" id="calendario-diligenciados"
+            [attr.aria-hidden]="!calendarioAbierto"
+            [attr.inert]="!calendarioAbierto ? '' : null">
+            <div class="sgsst-calendar-head">
+                <div>
+                    <strong>Días diligenciados</strong>
+                    <span>Consulta rápida del mes</span>
+                </div>
+                <div class="sgsst-calendar-nav">
+                    <button type="button" (click)="mesAnterior()"><i class="fa fa-chevron-left"></i></button>
+                    <button type="button" class="today" (click)="irHoy()">Hoy</button>
+                    <button type="button" (click)="mesSiguiente()"><i class="fa fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <div class="sgsst-calendar-month">{{ nombreMes }}</div>
+
+            <div class="sgsst-calendar-grid">
+                <span class="sgsst-weekday">DOM</span>
+                <span class="sgsst-weekday">LUN</span>
+                <span class="sgsst-weekday">MAR</span>
+                <span class="sgsst-weekday">MIÉ</span>
+                <span class="sgsst-weekday">JUE</span>
+                <span class="sgsst-weekday">VIE</span>
+                <span class="sgsst-weekday">SÁB</span>
+
+                <button type="button" class="sgsst-day"
+                    *ngFor="let dia of diasCalendario"
+                    [class.other-month]="!dia.esMesActual"
+                    [class.today]="dia.esHoy"
+                    [class.selected]="dia.esSeleccionado"
+                    [class.diligenciado]="informacionDia(dia.fecha)"
+                    (click)="seleccionarFecha(dia)"
+                    [title]="informacionDia(dia.fecha) ? 'Día diligenciado' : 'Seleccionar día'">
+                    <span>{{ dia.dia }}</span>
+                    <i class="sgsst-day-dot" *ngIf="informacionDia(dia.fecha)"
+                        [style.background]="colorDia(dia)"></i>
+                </button>
+            </div>
+
+            <div class="sgsst-calendar-legend">
+                <span><i style="background:#16a34a"></i> Cerrada</span>
+                <span><i style="background:#f59e0b"></i> Borrador con contenido</span>
+            </div>
+        </aside>
+    </section>
+
+    <nav class="sgsst-tabs">
+        <button type="button" class="sgsst-tab" [class.active]="tabActiva === 'panel'" (click)="cambiarTab('panel')">
+            <i class="fa fa-chart-pie"></i><span>Panel del Día</span>
+        </button>
+        <button type="button" class="sgsst-tab" [class.active]="tabActiva === 'bitacora'" (click)="cambiarTab('bitacora')">
+            <i class="fa fa-book-open"></i><span>Bitácora Diaria</span>
+        </button>
+        <button type="button" class="sgsst-tab" [class.active]="tabActiva === 'programador'" (click)="cambiarTab('programador')">
+            <i class="fa fa-calendar-days"></i><span>Agenda y Programador</span>
+        </button>
+        <button type="button" class="sgsst-tab" [class.active]="tabActiva === 'tipos-grupos'" (click)="cambiarTab('tipos-grupos')">
+            <i class="fa fa-tags"></i><span>Tipos de Grupo</span>
+        </button>
+    </nav>
+
+    <div class="sgsst-content">
+        <div class="sgsst-empty" *ngIf="!contextoCliente && tabActiva === 'tipos-grupos'">
+            <i class="fa fa-building-circle-exclamation"></i>
+            <h3>Selecciona un cliente</h3>
+            <p>Para administrar los grupos necesitas elegir el cliente en la parte superior.</p>
+        </div>
+
+        <div class="sgsst-empty" *ngIf="!contextoCompleto && tabActiva !== 'tipos-grupos'">
+            <i class="fa fa-layer-group"></i>
+            <h3>Selecciona cliente y grupo</h3>
+            <p>El panel, la bitácora y el programador trabajan sobre un grupo específico.</p>
+        </div>
+
+        <ng-container *ngIf="contextoCompleto">
+            <app-sgsst-panel-dia
+                *ngIf="tabActiva === 'panel'"
+                [fecha]="fecha"
+                [idCliente]="idCliente"
+                [idTipoGrupo]="idTipoGrupo"
+                (datosActualizados)="onDatosActualizados()">
+            </app-sgsst-panel-dia>
+
+            <app-sgsst-bitacora
+                *ngIf="tabActiva === 'bitacora'"
+                [fecha]="fecha"
+                [idCliente]="idCliente"
+                [idTipoGrupo]="idTipoGrupo"
+                [nombreGrupo]="nombreGrupo"
+                (fechaChange)="onFechaChange($event)"
+                (datosActualizados)="onDatosActualizados()"
+                (guardadoSilencioso)="onGuardadoSilencioso($event)">
+            </app-sgsst-bitacora>
+
+            <app-sgsst-programador
+                *ngIf="tabActiva === 'programador'"
+                [fecha]="fecha"
+                [idCliente]="idCliente"
+                [idTipoGrupo]="idTipoGrupo"
+                (fechaChange)="onFechaChange($event)"
+                (datosActualizados)="onDatosActualizados()">
+            </app-sgsst-programador>
+        </ng-container>
+
+        <app-sgsst-tipos-grupos
+            *ngIf="tabActiva === 'tipos-grupos' && contextoCliente"
+            [idCliente]="idCliente"
+            (gruposCambiados)="onGruposCambiados()">
+        </app-sgsst-tipos-grupos>
+    </div>
+
+</div>

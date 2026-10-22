@@ -1,0 +1,100 @@
+<div class="pd-wrap">
+    <div class="pd-head">
+        <div>
+            <span class="pd-eyebrow">Panel del Día</span>
+            <h2>{{ fechaLarga }}</h2>
+        </div>
+        <span class="pd-live" *ngIf="cargando"><i class="fa fa-spinner fa-spin"></i> Actualizando</span>
+    </div>
+
+    <div class="pd-cards">
+        <article class="pd-card pd-bitacora" [ngClass]="claseEstadoBitacora">
+            <div class="pd-card-icon"><i class="fa fa-book-open"></i></div>
+            <div class="pd-card-body">
+                <span>Estado de la bitácora</span>
+                <strong>{{ estadoBitacora }}</strong>
+                <small *ngIf="panel?.bitacora?.updatedAt">
+                    Actualizada {{ panel?.bitacora?.updatedAt | date:'shortTime' }}
+                </small>
+                <small *ngIf="!panel?.bitacora">Aún no hay registro del día</small>
+            </div>
+        </article>
+
+        <article class="pd-card">
+            <div class="pd-card-icon sky"><i class="fa fa-list-check"></i></div>
+            <div class="pd-card-body">
+                <span>Actividades</span>
+                <strong>{{ panel?.kpis?.actividades_ejecutadas || 0 }} / {{ panel?.kpis?.actividades_total || 0 }}</strong>
+                <div class="pd-bar">
+                    <i [style.width.%]="panel?.kpis?.cumplimiento || 0"></i>
+                </div>
+                <small>{{ panel?.kpis?.cumplimiento || 0 }}% de cumplimiento</small>
+            </div>
+        </article>
+
+        <article class="pd-card">
+            <div class="pd-card-icon amber"><i class="fa fa-clipboard-list"></i></div>
+            <div class="pd-card-body">
+                <span>To-Do</span>
+                <strong>{{ panel?.kpis?.tareas_completadas || 0 }} / {{ panel?.kpis?.tareas_total || 0 }}</strong>
+                <small>{{ panel?.kpis?.tareas_pendientes || 0 }} pendientes</small>
+                <small class="pd-alert" *ngIf="tareasVencidas > 0">{{ tareasVencidas }} vencidas</small>
+            </div>
+        </article>
+
+        <article class="pd-card">
+            <div class="pd-card-icon violet"><i class="fa fa-camera"></i></div>
+            <div class="pd-card-body">
+                <span>Evidencias</span>
+                <strong>{{ panel?.total_evidencias || 0 }}</strong>
+                <small>Fotos cargadas en la bitácora</small>
+            </div>
+        </article>
+    </div>
+
+    <div class="pd-columns">
+        <section class="pd-panel">
+            <header>
+                <h3><i class="fa fa-clock"></i> Actividades del día</h3>
+                <span>{{ panel?.instancias?.length || 0 }} programadas</span>
+            </header>
+            <div class="pd-empty" *ngIf="!panel?.instancias?.length">Sin actividades programadas.</div>
+            <div class="pd-activity" *ngFor="let inst of panel?.instancias">
+                <span class="pd-dot" [class.done]="inst.estado === 'completada'"></span>
+                <span class="pd-hour">{{ formatearHora(inst.hora_inicio) }}</span>
+                <div class="pd-activity-info">
+                    <strong>{{ inst.actividad?.titulo }}</strong>
+                    <small *ngIf="inst.actividad?.descripcion">{{ inst.actividad?.descripcion }}</small>
+                </div>
+                <span class="pd-state" [class.done]="inst.estado === 'completada'">
+                    {{ estadoActividad(inst.estado) }}
+                </span>
+            </div>
+        </section>
+
+        <section class="pd-panel">
+            <header>
+                <h3><i class="fa fa-list-ul"></i> Pendientes relevantes</h3>
+                <span>{{ panel?.tareas?.length || 0 }} en seguimiento</span>
+            </header>
+            <div class="pd-empty" *ngIf="!panel?.tareas?.length">Sin pendientes registrados.</div>
+            <div class="pd-todo" *ngFor="let tarea of panel?.tareas" [class.done]="tarea.completada">
+                <i class="fa" [ngClass]="tarea.completada ? 'fa-circle-check' : 'fa-circle'"></i>
+                <div>
+                    <strong>{{ tarea.titulo }}</strong>
+                    <small *ngIf="tarea.fecha && tarea.fecha < fecha" class="pd-alert">Vencida desde {{ tarea.fecha }}</small>
+                    <small *ngIf="tarea.fecha === fecha">Para hoy</small>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="pd-next" *ngIf="proximaActividad">
+        <i class="fa fa-arrow-right"></i>
+        <div>
+            <span>Próxima actividad</span>
+            <strong>{{ proximaActividad.actividad?.titulo }}</strong>
+        </div>
+        <span class="pd-next-hour">{{ formatearHora(proximaActividad.hora_inicio) }}</span>
+    </div>
+</div>
