@@ -18,9 +18,16 @@
                     <div class="topbar-panel" *ngIf="panelAbierto" (click)="$event.stopPropagation()">
                         <div class="topbar-panel-header">
                             <span><i class="fa fa-bell me-2"></i>Notificaciones</span>
-                            <button class="topbar-panel-close" type="button" (click)="cerrarPanel()" aria-label="Cerrar">
-                                <i class="fa fa-times"></i>
-                            </button>
+                            <div class="topbar-panel-header-actions">
+                                <button class="topbar-panel-refresh" type="button"
+                                    (click)="cargarSolicitudesReapertura()" [disabled]="cargandoSolicitudes"
+                                    aria-label="Actualizar notificaciones">
+                                    <i class="fa fa-rotate" [class.fa-spin]="cargandoSolicitudes"></i>
+                                </button>
+                                <button class="topbar-panel-close" type="button" (click)="cerrarPanel()" aria-label="Cerrar">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Sincronización offline -->
@@ -45,9 +52,32 @@
                             </div>
                         </div>
 
+                        <!-- Solicitudes de reapertura -->
+                        <div class="topbar-panel-section" *ngIf="solicitudesReapertura.length > 0">
+                            <div class="topbar-panel-subtitle">
+                                <i class="fa fa-rotate-left"></i>
+                                Solicitudes de reapertura
+                            </div>
+                            <div class="topbar-request" *ngFor="let solicitud of solicitudesReapertura">
+                                <i class="fa fa-lock-open topbar-panel-icon"></i>
+                                <div class="topbar-panel-info">
+                                    <span class="titulo">{{ solicitud.cliente_nombre || 'Cliente' }}</span>
+                                    <span class="detalle">{{ solicitud.grupo_codigo }} - {{ solicitud.grupo_nombre }}</span>
+                                    <span class="detalle">Bitácora {{ solicitud.fecha }} · {{ solicitud.usuario_solicita_nombre }}</span>
+                                    <span class="topbar-request-reason">{{ solicitud.motivo }}</span>
+                                </div>
+                                <div class="topbar-panel-actions">
+                                    <p-button label="Reabrir" icon="fa fa-lock-open" severity="success"
+                                        [loading]="cargandoSolicitudes" (onClick)="aprobarSolicitud(solicitud)"></p-button>
+                                    <p-button label="Rechazar" icon="fa fa-ban" severity="danger" [outlined]="true"
+                                        (onClick)="rechazarSolicitud(solicitud)"></p-button>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Notificaciones -->
                         <div class="topbar-panel-section">
-                            <div class="topbar-panel-empty" *ngIf="notificacionesCount === 0">
+                            <div class="topbar-panel-empty" *ngIf="notificacionesCount === 0 && solicitudesReapertura.length === 0">
                                 <i class="fa fa-bell-slash"></i>
                                 <span>Sin notificaciones</span>
                             </div>

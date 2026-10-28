@@ -8,7 +8,7 @@
                     <h2><i class="fa fa-book-open"></i> Registro diario de gestión</h2>
                     <div class="bt-meta">
                         <span><i class="fa fa-tag"></i> {{ nombreGrupo }}</span>
-                        <span class="bt-status-pill" [class.cerrada]="esCerrada">{{ estadoBitacora }}</span>
+                        <span class="bt-status-pill" [class.cerrada]="esCerrada" [class.reabierta]="esReabierta">{{ estadoBitacora }}</span>
                     </div>
                 </div>
                 <div class="bt-date-nav">
@@ -59,18 +59,22 @@
                     </div>
                     <label class="bt-upload-tile" [class.disabled]="esCerrada">
                         <i class="fa fa-cloud-arrow-up"></i>
-                        <strong>{{ subiendoEvidencia ? 'Subiendo...' : 'Adjuntar imagen' }}</strong>
-                        <small>JPG, PNG o WEBP · máx. 1.5 MB</small>
-                        <input type="file" accept="image/*" hidden [disabled]="esCerrada"
+                        <strong>{{ subiendoEvidencia ? 'Subiendo...' : 'Adjuntar archivo' }}</strong>
+                        <small>JPG, PNG, WEBP o PDF · imágenes 1.5 MB / PDF 5 MB</small>
+                        <input type="file" accept="image/*,.pdf" hidden [disabled]="esCerrada"
                             (change)="onEvidenciaSeleccionada($event)" />
                     </label>
                     <div class="bt-gallery">
                         <div class="bt-empty" *ngIf="evidencias.length === 0">
                             <i class="fa fa-image"></i>
-                            <span>Sin fotos adjuntas.</span>
+                            <span>Sin archivos adjuntos.</span>
                         </div>
                         <div class="bt-photo" *ngFor="let ev of evidencias; let i = index" (click)="verEvidencia(ev)">
-                            <img [src]="miniatura(ev)" [alt]="ev.nombre_original || 'evidencia'" />
+                            <img *ngIf="!esPdf(ev)" [src]="miniatura(ev)" [alt]="ev.nombre_original || 'evidencia'" />
+                            <div class="bt-doc-card" *ngIf="esPdf(ev)">
+                                <i class="fa fa-file-pdf"></i>
+                                <span>{{ ev.nombre_original || 'Documento PDF' }}</span>
+                            </div>
                             <button type="button" [disabled]="esCerrada"
                                 (click)="eliminarEvidencia(ev, i); $event.stopPropagation()">&times;</button>
                             <span>{{ formatearPeso(ev.peso_bytes) }}</span>
@@ -81,14 +85,19 @@
                 <section class="bt-section bt-todo">
                     <div class="bt-section-head">
                         <span><i class="fa fa-list-check"></i> Pendientes / To-Do</span>
-                        <span class="bt-counter">{{ kpis.tareasCompletadas }}/{{ kpis.tareasTotal }}</span>
+                        <div class="bt-section-actions">
+                            <span class="bt-counter">{{ kpis.tareasCompletadas }}/{{ kpis.tareasTotal }}</span>
+                            <button type="button" class="bt-mini-btn" [disabled]="esCerrada" (click)="abrirModalActividad()">
+                                <i class="fa fa-calendar-plus"></i> Programar
+                            </button>
+                        </div>
                     </div>
 
                     <div class="bt-todo-input">
                         <input type="text" [(ngModel)]="nuevaTarea" maxlength="250"
                             [disabled]="esCerrada" placeholder="Nuevo pendiente del día..."
                             (keyup.enter)="agregarTarea()" />
-                        <button type="button" [disabled]="esCerrada" (click)="agregarTarea()">
+                        <button type="button" [disabled]="esCerrada" title="Agregar To-Do" (click)="agregarTarea()">
                             <i class="fa fa-plus"></i>
                         </button>
                     </div>
@@ -98,17 +107,29 @@
                             <i class="fa fa-clipboard-check"></i>
                             <span>Sin pendientes registrados.</span>
                         </div>
-                        <div class="bt-todo-item" *ngFor="let tarea of tareas" [class.done]="tarea.completada">
-                            <input type="checkbox" [checked]="tarea.completada" [disabled]="esCerrada"
-                                (change)="toggleTarea(tarea)" />
-                            <div>
-                                <strong>{{ tarea.titulo }}</strong>
-                                <small *ngIf="tarea.fecha && tarea.fecha < fecha">Vencida desde {{ tarea.fecha }}</small>
-                                <small *ngIf="tarea.fecha === fecha">Para hoy</small>
-                            </div>
-                            <button type="button" [disabled]="esCerrada" (click)="eliminarTarea(tarea)">
-                                <i class="fa fa-trash"></i>
+
+                        <div class="bt-todo-group" *ngFor="let grupo of gruposTareas">
+                            <button type="button" class="bt-todo-group-head" [class.hoy]="grupo.esHoy"
+                                (click)="toggleGrupo(grupo.fecha)">
+                                <i class="fa" [ngClass]="esGrupoExpandido(grupo.fecha) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                                <i class="fa fa-clock"></i>
+                                <span>{{ grupo.etiqueta }}</span>
+                                <b>{{ grupo.tareas.length }}</b>
                             </button>
+
+                            <div class="bt-todo-group-body" *ngIf="esGrupoExpandido(grupo.fecha)">
+                                <div class="bt-todo-item" *ngFor="let tarea of grupo.tareas" [class.done]="tarea.completada">
+                                    <input type="checkbox" [checked]="tarea.completada" [disabled]="esCerrada"
+                                        (change)="toggleTarea(tarea)" />
+                                    <div>
+                                        <strong>{{ tarea.titulo }}</strong>
+                                        <small>{{ grupo.etiqueta }}</small>
+                                    </div>
+                                    <button type="button" [disabled]="esCerrada" (click)="eliminarTarea(tarea)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -123,12 +144,21 @@
                     <h3><i class="fa fa-chart-simple"></i> Panel del día</h3>
                     <p class="bt-hint">Resumen de la jornada.</p>
                 </div>
-                <span class="bt-panel-dot" [class.cerrada]="esCerrada"></span>
+                <span class="bt-panel-dot" [class.cerrada]="esCerrada" [class.reabierta]="esReabierta"></span>
             </div>
 
-            <div class="bt-status" [class.cerrada]="esCerrada">
+            <div class="bt-status" [class.cerrada]="esCerrada" [class.reabierta]="esReabierta">
                 <span>{{ estadoBitacora }}</span>
                 <small>{{ esCerrada ? 'Solo lectura' : 'Editable' }}</small>
+            </div>
+
+            <div class="bt-reopened-note" *ngIf="esReabierta">
+                <i class="fa fa-rotate-left"></i>
+                <div>
+                    <strong>Bitácora reabierta</strong>
+                    <span *ngIf="bitacora?.motivo_reapertura">{{ bitacora?.motivo_reapertura }}</span>
+                    <small *ngIf="bitacora?.veces_reabierta">Reaperturas: {{ bitacora?.veces_reabierta }}</small>
+                </div>
             </div>
 
             <div class="bt-kpis">
@@ -170,14 +200,40 @@
                 </div>
             </div>
 
-            <div class="bt-actions">
-                <button type="button" class="bt-btn full ghost" [disabled]="guardando || esCerrada" (click)="guardarBorrador()">
+            <div class="bt-actions" *ngIf="puedeEditar">
+                <button type="button" class="bt-btn full ghost" [disabled]="guardando" (click)="guardarBorrador()">
                     <i class="fa fa-floppy-disk"></i> {{ guardando ? 'Guardando...' : 'Guardar borrador' }}
                 </button>
-                <button type="button" class="bt-btn full dark" [disabled]="esCerrada || cerrando" (click)="cerrarBitacora()">
+                <button type="button" class="bt-btn full dark" [disabled]="cerrando" (click)="cerrarBitacora()">
                     <i class="fa fa-lock"></i> {{ cerrando ? 'Cerrando...' : 'Cerrar bitácora' }}
                 </button>
             </div>
+
+            <div class="bt-reopen-actions" *ngIf="esCerrada">
+                <div class="bt-reopen-note">
+                    <i class="fa fa-lock"></i>
+                    <span>Bitácora cerrada</span>
+                </div>
+                <button type="button" class="bt-btn full primary" *ngIf="puedeReabrirBitacora"
+                    [disabled]="procesandoReapertura" (click)="reabrirBitacora()">
+                    <i class="fa fa-lock-open"></i> {{ procesandoReapertura ? 'Reabriendo...' : 'Reabrir bitácora' }}
+                </button>
+                <button type="button" class="bt-btn full ghost" *ngIf="puedeSolicitarReapertura && !solicitudPendiente"
+                    [disabled]="procesandoReapertura" (click)="solicitarReapertura()">
+                    <i class="fa fa-paper-plane"></i> {{ procesandoReapertura ? 'Enviando...' : 'Solicitar reapertura' }}
+                </button>
+                <div class="bt-pending-request" *ngIf="solicitudPendiente">
+                    <i class="fa fa-hourglass-half"></i>
+                    <div>
+                        <strong>Solicitud pendiente</strong>
+                        <span>{{ solicitudPendiente.motivo }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="bt-btn full history" *ngIf="bitacora" (click)="abrirHistorial()">
+                <i class="fa fa-clock-rotate-left"></i> Ver historial
+            </button>
 
         </section>
     </aside>
@@ -186,3 +242,72 @@
 <div class="bt-modal-backdrop" *ngIf="imagenAmpliada" (click)="cerrarImagen()">
     <img [src]="imagenAmpliada" alt="evidencia ampliada" />
 </div>
+
+<p-dialog header="Programar actividad" [(visible)]="modalActividadVisible" [modal]="true"
+    [style]="{ width: '42rem' }" [draggable]="false" appendTo="body">
+    <div class="row g-3">
+        <div class="col-12">
+            <label class="form-label fw-semibold">Título de la actividad *</label>
+            <input pInputText [(ngModel)]="formActividad.titulo" maxlength="200"
+                placeholder="Ej: Inspección de extintores" class="w-100" />
+        </div>
+
+        <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Fecha *</label>
+            <p-calendar [(ngModel)]="formActividad.fecha" dateFormat="dd/mm/yy" [showIcon]="true"
+                [readonlyInput]="true" [style]="{ width: '100%' }"></p-calendar>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Hora *</label>
+            <p-calendar [(ngModel)]="formActividad.hora" [timeOnly]="true" [showIcon]="true"
+                [style]="{ width: '100%' }"></p-calendar>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Duración (minutos)</label>
+            <p-inputNumber [(ngModel)]="formActividad.duracion" [min]="15" [max]="480"
+                [showButtons]="true" [style]="{ width: '100%' }"></p-inputNumber>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Periodicidad</label>
+            <p-dropdown [options]="opcionesPeriodicidad" optionLabel="label" optionValue="value"
+                [(ngModel)]="formActividad.periodicidad" [style]="{ width: '100%' }"></p-dropdown>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label fw-semibold">Descripción</label>
+            <textarea pInputTextarea [(ngModel)]="formActividad.descripcion" rows="3" maxlength="500"
+                placeholder="Detalle de la actividad..." class="w-100"></textarea>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" icon="fa fa-times" severity="secondary"
+            (onClick)="cerrarModalActividad()"></p-button>
+        <p-button label="Programar actividad" icon="fa fa-calendar-plus"
+            [loading]="guardandoActividad" (onClick)="programarActividad()"></p-button>
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Historial de la bitácora" [(visible)]="modalHistorialVisible" [modal]="true"
+    [style]="{ width: '42rem' }" [draggable]="false" appendTo="body">
+    <div class="bt-history" *ngIf="eventos.length > 0">
+        <div class="bt-history-item" *ngFor="let evento of eventos">
+            <span class="bt-history-dot" [ngClass]="evento.accion"></span>
+            <div class="bt-history-content">
+                <strong>{{ formatearAccion(evento.accion) }}</strong>
+                <small>{{ evento.usuario_nombre || 'Usuario' }} · {{ formatearFechaEvento(evento.fecha_evento) }}</small>
+                <p *ngIf="evento.motivo">{{ evento.motivo }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bt-empty compact" *ngIf="eventos.length === 0">
+        <i class="fa fa-clock-rotate-left"></i>
+        <span>Sin eventos registrados.</span>
+    </div>
+    <ng-template pTemplate="footer">
+        <p-button label="Cerrar" icon="fa fa-times" severity="secondary" (onClick)="cerrarHistorial()"></p-button>
+    </ng-template>
+</p-dialog>

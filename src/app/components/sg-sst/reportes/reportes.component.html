@@ -1,0 +1,140 @@
+<div class="rp-wrap">
+    <header class="rp-header">
+        <div>
+            <span class="rp-eyebrow">Reportes SG-SST</span>
+            <h2><i class="fa fa-file-pdf"></i> Reporte de gestión documental</h2>
+            <p>Genera un informe en PDF o DOCX con las bitácoras, pendientes y evidencias del periodo.</p>
+        </div>
+        <span class="rp-client-badge"><i class="fa fa-building"></i> {{ nombreCliente }}</span>
+    </header>
+
+    <section class="rp-filters">
+        <div class="rp-field">
+            <label>Cliente</label>
+            <p-dropdown styleClass="rp-select" [options]="clientesOpciones" optionLabel="label"
+                optionValue="id_cliente" [ngModel]="idCliente" (ngModelChange)="onClienteChange($event)"
+                placeholder="Selecciona un cliente" [filter]="true" filterBy="label"
+                [style]="{ width: '100%' }" appendTo="body" scrollHeight="320px">
+            </p-dropdown>
+        </div>
+
+        <div class="rp-field">
+            <label>Grupo</label>
+            <p-dropdown styleClass="rp-select" [options]="gruposOpciones" optionLabel="label"
+                optionValue="id_tipo_grupo" [(ngModel)]="filtroGrupo" (ngModelChange)="onFiltroChange()"
+                [disabled]="!idCliente" [loading]="cargandoGrupos"
+                placeholder="Todos los grupos" [style]="{ width: '100%' }" appendTo="body" scrollHeight="320px">
+            </p-dropdown>
+        </div>
+
+        <div class="rp-field">
+            <label>Desde</label>
+            <p-calendar styleClass="rp-calendar" [ngModel]="fechaInicioDate"
+                (ngModelChange)="onFechaInicioChange($event)" dateFormat="dd/mm/yy"
+                [showIcon]="true" [readonlyInput]="true" [style]="{ width: '100%' }"
+                appendTo="body"></p-calendar>
+        </div>
+
+        <div class="rp-field">
+            <label>Hasta</label>
+            <p-calendar styleClass="rp-calendar" [ngModel]="fechaFinDate"
+                (ngModelChange)="onFechaFinChange($event)" dateFormat="dd/mm/yy"
+                [showIcon]="true" [readonlyInput]="true" [style]="{ width: '100%' }"
+                appendTo="body"></p-calendar>
+        </div>
+
+        <div class="rp-quick">
+            <button type="button" (click)="aplicarRango('hoy')">Hoy</button>
+            <button type="button" (click)="aplicarRango('semana')">Semana</button>
+            <button type="button" (click)="aplicarRango('mes')">Mes</button>
+            <button type="button" (click)="aplicarRango('mes-anterior')">Mes anterior</button>
+        </div>
+    </section>
+
+    <section class="rp-preview">
+        <div class="rp-preview-head">
+            <div class="rp-preview-title">
+                <h3>Resumen del reporte</h3>
+                <p>
+                    <i class="fa fa-layer-group"></i>
+                    <span>{{ etiquetaGrupo }}</span>
+                    <b>·</b>
+                    <i class="fa fa-calendar-day"></i>
+                    <span>{{ fechaInicio }} — {{ fechaFin }}</span>
+                </p>
+            </div>
+            <span class="rp-loading" *ngIf="cargandoPreview">
+                <i class="fa fa-rotate fa-spin"></i> Actualizando
+            </span>
+        </div>
+
+        <div class="rp-stats">
+            <article class="rp-stat days">
+                <span class="rp-stat-icon"><i class="fa fa-book-open"></i></span>
+                <div class="rp-stat-body">
+                    <span class="rp-stat-label">Días con bitácora</span>
+                    <strong class="rp-stat-value">{{ preview?.dias || 0 }}</strong>
+                    <small>Días documentados</small>
+                </div>
+            </article>
+
+            <article class="rp-stat evidence">
+                <span class="rp-stat-icon"><i class="fa fa-camera"></i></span>
+                <div class="rp-stat-body">
+                    <span class="rp-stat-label">Evidencias</span>
+                    <strong class="rp-stat-value">{{ preview?.evidencias || 0 }}</strong>
+                    <small>Archivos adjuntos</small>
+                </div>
+            </article>
+
+            <article class="rp-stat tasks">
+                <span class="rp-stat-icon"><i class="fa fa-list-check"></i></span>
+                <div class="rp-stat-body">
+                    <span class="rp-stat-label">Tareas</span>
+                    <strong class="rp-stat-value">{{ preview?.tareas || 0 }}</strong>
+                    <small>Pendientes registrados</small>
+                </div>
+            </article>
+
+            <article class="rp-stat activities">
+                <span class="rp-stat-icon"><i class="fa fa-circle-check"></i></span>
+                <div class="rp-stat-body">
+                    <span class="rp-stat-label">Actividades ejecutadas</span>
+                    <strong class="rp-stat-value">{{ preview?.actividades || 0 }}</strong>
+                    <small>Con soporte documental</small>
+                </div>
+            </article>
+        </div>
+
+        <div class="rp-warning" *ngIf="!rangoValido">
+            <i class="fa fa-triangle-exclamation"></i>
+            Selecciona un rango de fechas válido.
+        </div>
+
+        <div class="rp-actions-bar">
+            <span class="rp-actions-hint">
+                <i class="fa fa-circle-info"></i>
+                Elige el formato en el que deseas descargar el reporte.
+            </span>
+            <div class="rp-actions">
+                <button type="button" class="rp-btn pdf" [disabled]="!rangoValido || generandoPdf" (click)="generar('pdf')">
+                    <i class="fa fa-file-pdf"></i>
+                    {{ generandoPdf ? 'Generando PDF...' : 'Descargar PDF' }}
+                </button>
+                <button type="button" class="rp-btn docx" [disabled]="!rangoValido || generandoDocx" (click)="generar('docx')">
+                    <i class="fa fa-file-word"></i>
+                    {{ generandoDocx ? 'Generando DOCX...' : 'Descargar DOCX' }}
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="rp-note">
+        <i class="fa fa-circle-info"></i>
+        <p>
+            El reporte incluye el encabezado con el logo del cliente y el logo de Integral Soft, resumen ejecutivo,
+            bitácoras del periodo, pendientes, actividades ejecutadas y evidencias. Las imágenes se incrustan y los
+            PDF adjuntos se anexan al PDF final.
+        </p>
+    </section>
+</div>

@@ -1,0 +1,42 @@
+<div class="command-backdrop" *ngIf="abierto" (click)="onBackdropClick()">
+    <div class="command-panel" (click)="$event.stopPropagation()">
+        <div class="command-search">
+            <i class="fa fa-magnifying-glass"></i>
+            <input #searchInput type="text" [(ngModel)]="busqueda" (ngModelChange)="onBusquedaChange()"
+                placeholder="Buscar módulos, grupos o rutas..." autocomplete="off"
+                aria-label="Buscar módulos" />
+            <kbd>Esc</kbd>
+        </div>
+
+        <div class="command-results">
+            <div class="command-results-head">
+                <span>{{ busqueda ? 'Resultados' : 'Módulos disponibles' }}</span>
+                <small>{{ resultados.length }}</small>
+            </div>
+
+            <div class="command-empty" *ngIf="resultados.length === 0">
+                <i class="fa fa-magnifying-glass"></i>
+                <strong>Sin resultados</strong>
+                <span>Prueba con otro nombre o revisa la ruta del módulo.</span>
+            </div>
+
+            <button type="button" class="command-result" *ngFor="let resultado of resultados; let i = index; trackBy: trackByResultado"
+                [class.selected]="i === indiceSeleccionado"
+                (mouseenter)="indiceSeleccionado = i"
+                (click)="seleccionar(resultado)">
+                <span class="command-result-icon"><i [class]="resultado.icono"></i></span>
+                <span class="command-result-body">
+                    <strong>{{ resultado.label }}</strong>
+                    <small *ngIf="resultado.breadcrumb">{{ resultado.breadcrumb }}</small>
+                </span>
+                <i class="fa fa-arrow-turn-left command-result-enter"></i>
+            </button>
+        </div>
+
+        <footer class="command-footer">
+            <span><kbd>↑</kbd><kbd>↓</kbd> navegar</span>
+            <span><kbd>Enter</kbd> abrir</span>
+            <span><kbd>Esc</kbd> cerrar</span>
+        </footer>
+    </div>
+</div>

@@ -1,7 +1,7 @@
 .topbar {
     position: fixed;
     top: 0;
-    left: 260px;
+    left: 270px;
     right: 0;
     height: 64px;
     z-index: 1040;
@@ -122,6 +122,36 @@
     border-bottom: 1px solid #eef4f6;
     font-weight: 600;
     color: #1e293b;
+}
+
+.topbar-panel-header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.topbar-panel-refresh {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    font-size: 0.72rem;
+}
+
+.topbar-panel-refresh:hover {
+    color: #0d8aa6;
+    border-color: #99f6e4;
+    background: #f0fdfa;
+}
+
+.topbar-panel-refresh:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .topbar-panel-close {
@@ -416,4 +446,55 @@
     .topbar-panel-actions .p-button {
         flex: 1;
     }
+}
+
+/* Solicitudes de reapertura SG-SST */
+.topbar-panel-subtitle {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.3rem 0.2rem 0.55rem;
+    color: #0f766e;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.topbar-request {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.7rem 0.15rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.topbar-request:last-child {
+    border-bottom: 0;
+}
+
+.topbar-request .topbar-panel-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.topbar-request-reason {
+    display: block;
+    margin-top: 0.25rem;
+    padding: 0.3rem 0.45rem;
+    border-radius: 6px;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 0.67rem;
+    line-height: 1.35;
+}
+
+.topbar-request .topbar-panel-actions {
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 96px;
+}
+
+.topbar-request .topbar-panel-actions .p-button {
+    justify-content: center;
 }

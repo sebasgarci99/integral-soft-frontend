@@ -5,7 +5,7 @@
                 <h2><i class="fa fa-tags"></i> Tipos de grupo SG-SST</h2>
                 <span>{{ grupos.length }} grupo(s) registrado(s) para el cliente seleccionado</span>
             </div>
-            <button type="button" class="tg-btn primary" (click)="abrirCrear()">
+            <button type="button" class="tg-btn primary" *ngIf="puedeAdministrarGrupos" (click)="abrirCrear()">
                 <i class="fa fa-plus"></i> Nuevo grupo
             </button>
         </header>
@@ -23,6 +23,11 @@
             </div>
         </div>
 
+        <div class="tg-readonly-note" *ngIf="!puedeAdministrarGrupos">
+            <i class="fa fa-eye"></i>
+            Modo consulta: puedes ver y seleccionar grupos, pero no crear, editar ni inactivar.
+        </div>
+
         <div class="tg-loading" *ngIf="cargando">
             <i class="fa fa-spinner fa-spin"></i> Cargando grupos...
         </div>
@@ -31,7 +36,7 @@
             <i class="fa fa-tags"></i>
             <h3>Este cliente aún no tiene grupos SG-SST</h3>
             <p>Crea el primer grupo para poder usar agenda, bitácora y programador.</p>
-            <button type="button" class="tg-btn primary" (click)="abrirCrear()">Crear primer grupo</button>
+            <button type="button" class="tg-btn primary" *ngIf="puedeAdministrarGrupos" (click)="abrirCrear()">Crear primer grupo</button>
         </div>
 
         <div class="tg-empty" *ngIf="!cargando && grupos.length > 0 && gruposFiltrados.length === 0">
@@ -70,12 +75,15 @@
                     {{ grupo.estado === 'A' ? 'Activo' : 'Inactivo' }}
                 </span>
                 <div class="tg-actions">
-                    <button type="button" title="Editar" (click)="abrirEditar(grupo)">
-                        <i class="fa fa-pencil"></i>
-                    </button>
-                    <button type="button" title="Inactivar" class="danger" *ngIf="grupo.estado === 'A'" (click)="inactivar(grupo)">
-                        <i class="fa fa-ban"></i>
-                    </button>
+                    <ng-container *ngIf="puedeAdministrarGrupos">
+                        <button type="button" title="Editar" (click)="abrirEditar(grupo)">
+                            <i class="fa fa-pencil"></i>
+                        </button>
+                        <button type="button" title="Inactivar" class="danger" *ngIf="grupo.estado === 'A'" (click)="inactivar(grupo)">
+                            <i class="fa fa-ban"></i>
+                        </button>
+                    </ng-container>
+                    <span class="tg-readonly-label" *ngIf="!puedeAdministrarGrupos">Solo consulta</span>
                 </div>
             </div>
         </div>

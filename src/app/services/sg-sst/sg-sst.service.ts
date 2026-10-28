@@ -6,13 +6,16 @@ import { ApiResponse } from '../../interfaces/pqrs';
 import { SecureStorageService } from '../secure-storage.service';
 import {
     SgSstBitacora,
+    SgSstBitacoraEvento,
     SgSstBitacoraPayload,
     SgSstDiaDiligenciado,
     SgSstEvidencia,
     SgSstGrupo,
     SgSstInstancia,
     SgSstPanel,
+    SgSstReportePreview,
     SgSstResumen,
+    SgSstSolicitudReapertura,
     SgSstTarea
 } from '../../interfaces/sg-sst';
 
@@ -44,6 +47,16 @@ export class SgSstService {
             this.urlApp + this.urlAppAPI + endpoint,
             { ...base, ...extraBody },
             { headers }
+        );
+    }
+
+    private async postBlob(endpoint: string, extraBody: Record<string, unknown> = {}): Promise<Observable<Blob>> {
+        const headers = await this.getHeaders();
+        const base = await this.getBody();
+        return this.http.post(
+            this.urlApp + this.urlAppAPI + endpoint,
+            { ...base, ...extraBody },
+            { headers, responseType: 'blob' }
         );
     }
 
@@ -98,6 +111,30 @@ export class SgSstService {
 
     async cerrarBitacora(idCliente: number, idTipoGrupo: number, idBitacora: number): Promise<Observable<ApiResponse<SgSstBitacora>>> {
         return this.post('cerrarBitacora', { id_cliente: idCliente, id_tipo_grupo: idTipoGrupo, id_bitacora: idBitacora });
+    }
+
+    async solicitarReapertura(idCliente: number, idTipoGrupo: number, idBitacora: number, motivo: string): Promise<Observable<ApiResponse<SgSstSolicitudReapertura>>> {
+        return this.post('solicitarReapertura', { id_cliente: idCliente, id_tipo_grupo: idTipoGrupo, id_bitacora: idBitacora, motivo });
+    }
+
+    async reabrirBitacora(idCliente: number, idTipoGrupo: number, idBitacora: number, motivo: string): Promise<Observable<ApiResponse<SgSstBitacora>>> {
+        return this.post('reabrirBitacora', { id_cliente: idCliente, id_tipo_grupo: idTipoGrupo, id_bitacora: idBitacora, motivo });
+    }
+
+    async getEventosBitacora(idCliente: number, idTipoGrupo: number, idBitacora: number): Promise<Observable<ApiResponse<SgSstBitacoraEvento[]>>> {
+        return this.post('getEventosBitacora', { id_cliente: idCliente, id_tipo_grupo: idTipoGrupo, id_bitacora: idBitacora });
+    }
+
+    async getSolicitudesReapertura(): Promise<Observable<ApiResponse<SgSstSolicitudReapertura[]>>> {
+        return this.post('getSolicitudesReapertura', {});
+    }
+
+    async responderSolicitudReapertura(idSolicitud: number, decision: 'aprobar' | 'rechazar', motivoRespuesta?: string): Promise<Observable<ApiResponse<unknown>>> {
+        return this.post('responderSolicitudReapertura', {
+            id_solicitud: idSolicitud,
+            decision,
+            motivo_respuesta: motivoRespuesta || ''
+        });
     }
 
     async generarResumen(idCliente: number, idTipoGrupo: number, fecha: string): Promise<Observable<ApiResponse<SgSstResumen>>> {
@@ -159,5 +196,48 @@ export class SgSstService {
         evidencias?: { tipo?: string; base64?: string; url?: string; descripcion?: string }[];
     }): Promise<Observable<ApiResponse<{ instancia: SgSstInstancia }>>> {
         return this.post('ejecutarActividad', { id_cliente: idCliente, id_tipo_grupo: idTipoGrupo, ...data });
+    }
+
+    // Reportes
+    async getReportePreview(
+        idCliente: number,
+        idTipoGrupo: number | null,
+        fechaInicio: string,
+        fechaFin: string
+    ): Promise<Observable<ApiResponse<SgSstReportePreview>>> {
+        return this.post('reportes/preview', {
+            id_cliente: idCliente,
+            id_tipo_grupo: idTipoGrupo,
+            fecha_inicio: fechaInicio,
+            fecha_fin: fechaFin
+        });
+    }
+
+    async descargarReportePdf(
+        idCliente: number,
+        idTipoGrupo: number | null,
+        fechaInicio: string,
+        fechaFin: string
+    ): Promise<Observable<Blob>> {
+        return this.postBlob('reportes/pdf', {
+            id_cliente: idCliente,
+            id_tipo_grupo: idTipoGrupo,
+            fecha_inicio: fechaInicio,
+            fecha_fin: fechaFin
+        });
+    }
+
+    async descargarReporteDocx(
+        idCliente: number,
+        idTipoGrupo: number | null,
+        fechaInicio: string,
+        fechaFin: string
+    ): Promise<Observable<Blob>> {
+        return this.postBlob('reportes/docx', {
+            id_cliente: idCliente,
+            id_tipo_grupo: idTipoGrupo,
+            fecha_inicio: fechaInicio,
+            fecha_fin: fechaFin
+        });
     }
 }

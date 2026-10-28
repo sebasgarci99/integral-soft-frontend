@@ -7,12 +7,14 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { MenuItem } from 'primeng/api';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
 import Swal from 'sweetalert2';
 import { MenuService } from '../../services/menu/menu.service';
 import { SecureStorageService } from '../../services/secure-storage.service';
 import { ConsultorioService } from '../../services/consultorio/consultorio.service';
 import { EstadoSync, SyncRecoleccionService } from '../../services/offline/sync-recoleccion.service';
+import { SgSstService } from '../../services/sg-sst/sg-sst.service';
+import { SgSstSolicitudReapertura } from '../../interfaces/sg-sst';
 
 @Component({
     selector: 'app-topbar',
@@ -37,23 +39,27 @@ export class TopbarComponent implements OnInit, OnDestroy {
     pendientesCount = 0;
     notificacionesCount = 0;
     sincronizando = false;
+    solicitudesReapertura: SgSstSolicitudReapertura[] = [];
+    cargandoSolicitudes = false;
 
     // Diálogo de estado de sincronización
     mostrarDialogoSync = false;
     estadoSync: EstadoSync = { fase: 'inactivo', mensaje: '', enviados: 0, total: 0, error: null };
 
     private subs: Subscription[] = [];
+    private pollSolicitudes?: ReturnType<typeof setInterval>;
 
     constructor(
         private router: Router,
         private menuService: MenuService,
         private secureStorage: SecureStorageService,
         private syncRecoleccion: SyncRecoleccionService,
-        private consultorioService: ConsultorioService
+        private consultorioService: ConsultorioService,
+        private sgSstService: SgSstService
     ) {}
 
     get totalBadge(): number {
-        return this.pendientesCount + this.notificacionesCount;
+        return this.pendientesCount + this.notificacionesCount + this.solicitudesReapertura.length;
     }
 
     get syncEnProgreso(): boolean {
@@ -73,8 +79,12 @@ export class TopbarComponent implements OnInit, OnDestroy {
                 if (!data || !data.nombre_completo) return;
 
                 this.nombreCompleto = data.nombre_completo;
-                this.idRol = data.id_rol;
-                this.rolUsuario = this.obtenerNombreRol(data.id_rol);
+                this.idRol = String(data.id_rol ?? '');
+                this.rolUsuario = this.obtenerNombreRol(this.idRol);
+
+                if (String(data.id_rol) === '1') {
+                    this.cargarSolicitudesReapertura();
+                }
 
                 this.secureStorage.getItem('idUser').then(idUser => {
                     if (data.id_usuario != idUser) {
@@ -114,12 +124,17 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
         this.syncRecoleccion.actualizarContador();
 
+        this.pollSolicitudes = setInterval(() => {
+            if (this.idRol === '1') this.cargarSolicitudesReapertura();
+        }, 30000);
+
         // Precarga la lista de consultorios para poder registrar recolecciones sin internet.
         this.consultorioService.precachearConsultorios();
     }
 
     ngOnDestroy(): void {
         this.subs.forEach(s => s.unsubscribe());
+        if (this.pollSolicitudes) clearInterval(this.pollSolicitudes);
     }
 
     onAbrirSidebar(): void {
@@ -128,6 +143,7 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
     togglePanel(event: Event): void {
         event.stopPropagation();
+        if (this.idRol === '1') this.cargarSolicitudesReapertura();
         this.panelAbierto = !this.panelAbierto;
 
         if (this.panelAbierto) {
@@ -167,6 +183,76 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
     async descargarJson(): Promise<void> {
         await this.syncRecoleccion.descargarPendientesJson();
+    }
+
+    async cargarSolicitudesReapertura(): Promise<void> {
+        if (this.idRol !== '1' || this.cargandoSolicitudes) return;
+        this.cargandoSolicitudes = true;
+        try {
+            const observable = await this.sgSstService.getSolicitudesReapertura();
+            const res = await firstValueFrom(observable);
+            this.solicitudesReapertura = res.state === 'OK' ? (res.body || []) : [];
+        } catch {
+            this.solicitudesReapertura = [];
+        } finally {
+            this.cargandoSolicitudes = false;
+        }
+    }
+
+    async aprobarSolicitud(solicitud: SgSstSolicitudReapertura): Promise<void> {
+        const confirmacion = await Swal.fire({
+            title: '¿Reabrir bitácora?',
+            text: `${solicitud.cliente_nombre || 'Cliente'} · ${solicitud.grupo_codigo || ''} ${solicitud.grupo_nombre || ''}
+Motivo: ${solicitud.motivo}`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, reabrir',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#0f766e'
+        });
+        if (!confirmacion.isConfirmed) return;
+        try {
+            const observable = await this.sgSstService.responderSolicitudReapertura(solicitud.id_solicitud, 'aprobar');
+            const res = await firstValueFrom(observable);
+            if (res.state === 'OK') {
+                await this.cargarSolicitudesReapertura();
+                Swal.fire('Bitácora reabierta', 'La solicitud fue aprobada.', 'success');
+            } else {
+                Swal.fire('Atención', res.msg, 'warning');
+            }
+        } catch {
+            Swal.fire('Error', 'No se pudo aprobar la solicitud.', 'error');
+        }
+    }
+
+    async rechazarSolicitud(solicitud: SgSstSolicitudReapertura): Promise<void> {
+        const resultado = await Swal.fire({
+            title: 'Rechazar solicitud',
+            text: 'Indica el motivo del rechazo.',
+            input: 'textarea',
+            inputValidator: (value) => !value || value.trim().length < 5
+                ? 'El motivo debe tener al menos 5 caracteres.'
+                : null,
+            showCancelButton: true,
+            confirmButtonText: 'Rechazar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#dc2626'
+        });
+        if (!resultado.isConfirmed) return;
+        try {
+            const observable = await this.sgSstService.responderSolicitudReapertura(
+                solicitud.id_solicitud, 'rechazar', String(resultado.value || '').trim()
+            );
+            const res = await firstValueFrom(observable);
+            if (res.state === 'OK') {
+                await this.cargarSolicitudesReapertura();
+                Swal.fire('Solicitud rechazada', 'El solicitante podrá ver el motivo.', 'success');
+            } else {
+                Swal.fire('Atención', res.msg, 'warning');
+            }
+        } catch {
+            Swal.fire('Error', 'No se pudo rechazar la solicitud.', 'error');
+        }
     }
 
     async cerrarSesion(): Promise<void> {

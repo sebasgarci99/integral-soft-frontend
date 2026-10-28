@@ -2,13 +2,14 @@ import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TopbarComponent } from '../topbar/topbar.component';
+import { CommandPaletteComponent } from '../command-palette/command-palette.component';
 import { MenuService } from '../../services/menu/menu.service';
 import { TokenMonitorService } from '../../services/token-monitor.service';
 
 @Component({
     selector: 'app-layout',
     standalone: true,
-    imports: [RouterOutlet, SidebarComponent, TopbarComponent],
+    imports: [RouterOutlet, SidebarComponent, TopbarComponent, CommandPaletteComponent],
     templateUrl: './layout.component.html',
     styleUrl: './layout.component.css'
 })

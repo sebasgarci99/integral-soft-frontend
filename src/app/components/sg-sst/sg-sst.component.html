@@ -1,5 +1,6 @@
 <div class="sgsst-page">
 
+    <ng-container *ngIf="tabActiva !== 'reportes'">
     <header class="sgsst-header">
         <div class="sgsst-brand">
             <div class="sgsst-brand-icon"><i class="fa fa-shield-heart"></i></div>
@@ -128,10 +129,13 @@
 
             <div class="sgsst-calendar-legend">
                 <span><i style="background:#16a34a"></i> Cerrada</span>
+                <span><i style="background:#0ea5e9"></i> Reabierta</span>
                 <span><i style="background:#f59e0b"></i> Borrador con contenido</span>
             </div>
         </aside>
     </section>
+
+    </ng-container>
 
     <nav class="sgsst-tabs">
         <button type="button" class="sgsst-tab" [class.active]="tabActiva === 'panel'" (click)="cambiarTab('panel')">
@@ -142,6 +146,9 @@
         </button>
         <button type="button" class="sgsst-tab" [class.active]="tabActiva === 'programador'" (click)="cambiarTab('programador')">
             <i class="fa fa-calendar-days"></i><span>Agenda y Programador</span>
+        </button>
+        <button type="button" class="sgsst-tab" [class.active]="tabActiva === 'reportes'" (click)="cambiarTab('reportes')">
+            <i class="fa fa-file-pdf"></i><span>Reportes SG-SST</span>
         </button>
         <button type="button" class="sgsst-tab" [class.active]="tabActiva === 'tipos-grupos'" (click)="cambiarTab('tipos-grupos')">
             <i class="fa fa-tags"></i><span>Tipos de Grupo</span>
@@ -155,7 +162,7 @@
             <p>Para administrar los grupos necesitas elegir el cliente en la parte superior.</p>
         </div>
 
-        <div class="sgsst-empty" *ngIf="!contextoCompleto && tabActiva !== 'tipos-grupos'">
+        <div class="sgsst-empty" *ngIf="!contextoCompleto && tabActiva !== 'tipos-grupos' && tabActiva !== 'reportes'">
             <i class="fa fa-layer-group"></i>
             <h3>Selecciona cliente y grupo</h3>
             <p>El panel, la bitácora y el programador trabajan sobre un grupo específico.</p>
@@ -190,6 +197,15 @@
                 (datosActualizados)="onDatosActualizados()">
             </app-sgsst-programador>
         </ng-container>
+
+        <app-sgsst-reportes
+            *ngIf="tabActiva === 'reportes'"
+            [clientes]="clientes"
+            [idCliente]="idCliente"
+            [idTipoGrupo]="idTipoGrupo"
+            [nombreCliente]="nombreCliente"
+            (clienteChange)="onClienteChange($event)">
+        </app-sgsst-reportes>
 
         <app-sgsst-tipos-grupos
             *ngIf="tabActiva === 'tipos-grupos' && contextoCliente"

@@ -11,42 +11,49 @@
     </div>
 
     <!-- Menú de navegación -->
-    <div class="sidebar-nav-scroll">
-        <ul class="sidebar-menu" *ngIf="menuCargado" [@listStagger]>
+    <div class="sidebar-nav-scroll" (scroll)="cerrarFlyout()">
+        <button type="button" class="sidebar-search-trigger" *ngIf="menuCargado" (click)="abrirBuscador()">
+            <i class="fa fa-magnifying-glass"></i>
+            <span>Buscar módulo...</span>
+            <kbd>Ctrl K</kbd>
+        </button>
+
+        <ul class="sidebar-menu" *ngIf="menuCargado">
 
             <!-- Módulos directos -->
-            <li *ngFor="let item of modulosDirectos">
+            <li *ngFor="let item of modulosDirectos; trackBy: trackByModulo">
                 <a class="sidebar-link" [routerLink]="item.ruta" routerLinkActive="active"
-                    [routerLinkActiveOptions]="{ exact: true }" (click)="cerrarSidebarMovil()"
-                    (mouseenter)="onLinkHover($event)" (mousemove)="onLinkHover($event)" (mouseleave)="onLinkLeave($event)">
-                    <i [class]="item.icono"></i>
+                    [routerLinkActiveOptions]="{ exact: true }" (click)="cerrarSidebarMovil()">
+                    <span class="sidebar-icon"><i [class]="item.icono"></i></span>
                     <span>{{ item.modulo }}</span>
                 </a>
             </li>
 
-            <!-- Grupos colapsables -->
-            <li *ngFor="let grupo of modulosAgrupados"
+            <!-- Grupos -->
+            <li *ngFor="let grupo of modulosAgrupados; trackBy: trackByGrupo"
                 [class.sidebar-group-active]="isGrupoActivo(grupo)">
                 <a class="sidebar-link sidebar-group" role="button"
                     [class.sidebar-group-open]="isGrupoAbierto(grupo)"
-                    [attr.aria-expanded]="isGrupoAbierto(grupo)"
-                    (click)="toggleGrupo(grupo)"
-                    (mouseenter)="onLinkHover($event)" (mousemove)="onLinkHover($event)" (mouseleave)="onLinkLeave($event)">
+                    [class.sidebar-group-flyout]="isGrupoFlyout(grupo)"
+                    [attr.aria-expanded]="esEscritorio ? isGrupoFlyout(grupo) : isGrupoAbierto(grupo)"
+                    [attr.aria-haspopup]="esEscritorio ? 'true' : null"
+                    (click)="onGrupoClick(grupo, $event)">
                     <span class="sidebar-group-label">
-                        <i [class]="grupo.icono"></i>
+                        <span class="sidebar-icon"><i [class]="grupo.icono"></i></span>
                         <span>{{ grupo.modulo }}</span>
                     </span>
                     <i class="fa fa-chevron-down sidebar-chevron"></i>
                 </a>
 
-                <div class="sidebar-submenu-wrapper" *ngIf="isGrupoAbierto(grupo)" [@expandCollapse] [id]="getGrupoId(grupo.modulo)">
+                <!-- Acordeón solo en móvil -->
+                <div class="sidebar-submenu-wrapper" *ngIf="!esEscritorio && isGrupoAbierto(grupo)"
+                    [@expandCollapse] [id]="getGrupoId(grupo.modulo)">
                     <ul class="sidebar-submenu">
-                        <li *ngFor="let hijo of grupo.hijos">
+                        <li *ngFor="let hijo of grupo.hijos; trackBy: trackByModulo">
                             <a class="sidebar-link" *ngIf="hijo.ruta" [routerLink]="hijo.ruta"
                                 routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-                                (click)="cerrarSidebarMovil()"
-                                (mouseenter)="onLinkHover($event)" (mousemove)="onLinkHover($event)" (mouseleave)="onLinkLeave($event)">
-                                <i [class]="hijo.icono"></i>
+                                (click)="cerrarSidebarMovil()">
+                                <span class="sidebar-icon"><i [class]="hijo.icono"></i></span>
                                 <span>{{ hijo.modulo }}</span>
                             </a>
                         </li>
@@ -54,6 +61,33 @@
                 </div>
             </li>
 
+        </ul>
+    </div>
+
+    <!-- Submenú flotante de escritorio -->
+    <div class="sidebar-flyout" *ngIf="grupoFlyout"
+        [style.top.px]="flyoutTop" [style.left.px]="flyoutLeft"
+        (click)="$event.stopPropagation()">
+        <div class="sidebar-flyout-head">
+            <span class="sidebar-icon"><i [class]="grupoFlyout.icono"></i></span>
+            <div>
+                <strong>{{ grupoFlyout.modulo }}</strong>
+                <small>{{ grupoFlyout.hijos.length }} opciones</small>
+            </div>
+            <button type="button" class="sidebar-flyout-close" (click)="cerrarFlyout()" aria-label="Cerrar submenú">
+                <i class="fa fa-xmark"></i>
+            </button>
+        </div>
+
+        <ul class="sidebar-flyout-list">
+            <li *ngFor="let hijo of grupoFlyout.hijos; trackBy: trackByModulo">
+                <a *ngIf="hijo.ruta" class="sidebar-flyout-link" [routerLink]="hijo.ruta"
+                    routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+                    (click)="cerrarFlyout(); cerrarSidebarMovil()">
+                    <span class="sidebar-icon"><i [class]="hijo.icono"></i></span>
+                    <span>{{ hijo.modulo }}</span>
+                </a>
+            </li>
         </ul>
     </div>
 

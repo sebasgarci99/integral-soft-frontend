@@ -1,9 +1,10 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import Swal from 'sweetalert2';
 import { SgSstService } from '../../../services/sg-sst/sg-sst.service';
+import { SgSstPermissionsService } from '../../../services/sg-sst/sg-sst-permissions.service';
 import { SgSstGrupo } from '../../../interfaces/sg-sst';
 
 @Component({
@@ -13,7 +14,7 @@ import { SgSstGrupo } from '../../../interfaces/sg-sst';
     templateUrl: './tipos-grupos.component.html',
     styleUrl: './tipos-grupos.component.css'
 })
-export class SgSstTiposGruposComponent implements OnChanges {
+export class SgSstTiposGruposComponent implements OnInit, OnChanges {
 
     @Input() idCliente: number | null = null;
     @Output() gruposCambiados = new EventEmitter<void>();
@@ -28,6 +29,7 @@ export class SgSstTiposGruposComponent implements OnChanges {
     busqueda = '';
     filtroEstado: 'todos' | 'activos' | 'inactivos' = 'todos';
     busquedaIcono = '';
+    puedeAdministrarGrupos = false;
 
     readonly coloresRapidos = [
         '#0f766e', '#0284c7', '#7c3aed', '#db2777',
@@ -59,7 +61,15 @@ export class SgSstTiposGruposComponent implements OnChanges {
         { clase: 'fa fa-radiation', nombre: 'Radiación' }
     ];
 
-    constructor(private sgSstService: SgSstService) {}
+    constructor(
+        private sgSstService: SgSstService,
+        private permisos: SgSstPermissionsService
+    ) {}
+
+    async ngOnInit(): Promise<void> {
+        await this.permisos.cargar();
+        this.puedeAdministrarGrupos = this.permisos.puedeAdministrarGrupos;
+    }
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['idCliente']) {

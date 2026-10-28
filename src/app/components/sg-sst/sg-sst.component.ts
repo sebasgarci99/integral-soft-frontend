@@ -11,11 +11,12 @@ import { SgSstDiaDiligenciado, SgSstGrupo } from '../../interfaces/sg-sst';
 import { SgSstPanelDiaComponent } from './panel-dia/panel-dia.component';
 import { SgSstBitacoraComponent } from './bitacora/bitacora.component';
 import { SgSstProgramadorComponent } from './programador/programador.component';
+import { SgSstReportesComponent } from './reportes/reportes.component';
 import { SgSstTiposGruposComponent } from './tipos-grupos/tipos-grupos.component';
 
-type TabSgSst = 'panel' | 'bitacora' | 'programador' | 'tipos-grupos';
+type TabSgSst = 'panel' | 'bitacora' | 'programador' | 'reportes' | 'tipos-grupos';
 
-const TABS: TabSgSst[] = ['panel', 'bitacora', 'programador', 'tipos-grupos'];
+const TABS: TabSgSst[] = ['panel', 'bitacora', 'programador', 'reportes', 'tipos-grupos'];
 
 interface DiaCalendario {
     fecha: string;
@@ -35,6 +36,7 @@ interface DiaCalendario {
         SgSstPanelDiaComponent,
         SgSstBitacoraComponent,
         SgSstProgramadorComponent,
+        SgSstReportesComponent,
         SgSstTiposGruposComponent
     ],
     templateUrl: './sg-sst.component.html',
@@ -252,7 +254,9 @@ export class SgSstComponent implements OnInit, OnDestroy {
     colorDia(dia: DiaCalendario): string {
         const info = this.informacionDia(dia.fecha);
         if (!info) return 'transparent';
-        return info.estado === 'cerrada' ? '#16a34a' : '#f59e0b';
+        if (info.estado === 'cerrada') return '#16a34a';
+        if (info.estado === 'reabierta') return '#0ea5e9';
+        return '#f59e0b';
     }
 
     irHoy(): void {
@@ -278,13 +282,17 @@ export class SgSstComponent implements OnInit, OnDestroy {
         if (evento.tieneResumen) {
             if (existente) {
                 existente.tiene_resumen = true;
-                existente.estado = evento.estado === 'cerrada' ? 'cerrada' : 'borrador';
+                existente.estado = evento.estado === 'cerrada'
+                    ? 'cerrada'
+                    : evento.estado === 'reabierta' ? 'reabierta' : 'borrador';
             } else {
                 this.diasDiligenciados = [
                     ...this.diasDiligenciados,
                     {
                         fecha: evento.fecha,
-                        estado: evento.estado === 'cerrada' ? 'cerrada' : 'borrador',
+                        estado: evento.estado === 'cerrada'
+                            ? 'cerrada'
+                            : evento.estado === 'reabierta' ? 'reabierta' : 'borrador',
                         tiene_resumen: true,
                         evidencias: 0,
                         tareas: 0
