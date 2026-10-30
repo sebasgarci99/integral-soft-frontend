@@ -5,11 +5,51 @@ import { timeout } from 'rxjs/operators';
 
 import { enviroment } from '../../../enviroments/enviroment';
 import { SecureStorageService } from '../secure-storage.service';
-import { OfflineDbService } from './offline-db.service';
+import { OfflineDbService, OutboxRecoleccion } from './offline-db.service';
 import { NetworkService } from './network.service';
 
 const TIMEOUT_ENVIO_MS = 8000;
 const INTERVALO_SINCRONIZACION_MS = 60000;
+
+const CAMPOS_NUMERICOS = [
+    'aprovechables',
+    'no_aprovechables',
+    'biosanitarios',
+    'cortopunzantes',
+    'cortopunzantes_ng',
+    'cortopunzantes_k',
+    'anatomopatologicos',
+    'farmacos',
+    'chatarra_electronica',
+    'pilas',
+    'quimicos',
+    'iluminarias',
+    'aceites_usados',
+    'toneres',
+    'aprovechables_organicos',
+    'de_animales',
+    'corrosivos',
+    'explosivos',
+    'reactivos',
+    'toxicos',
+    'inflamables',
+    'radioactivos',
+    'bolsas_g',
+    'bolsas_b',
+    'bolsas_r',
+    'bolsas_n',
+    'dias_almacenamiento'
+];
+
+const CAMPOS_OPCIONALES = [
+    'pret_usado',
+    'tratamiento',
+    'hora_roja',
+    'hora_negra',
+    'dotacion_perso_adecuada',
+    'dotacion_pers_pseg_adecuada',
+    'blob_firma'
+];
 
 export type FaseSync = 'inactivo' | 'internet' | 'servidor' | 'enviando' | 'completado' | 'error';
 
@@ -24,6 +64,7 @@ export interface EstadoSync {
 export interface ResultadoEnvio {
     ok: boolean;
     motivo: string;
+    permanente?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -114,10 +155,22 @@ export class SyncRecoleccionService {
                 return { ok: true, motivo: '' };
             }
 
-            return { ok: false, motivo: respuesta?.msg || 'El servidor rechazó el registro.' };
+            const detalle = typeof respuesta?.body === 'string'
+                ? respuesta.body
+                : respuesta?.msg;
+
+            return {
+                ok: false,
+                motivo: detalle || 'El servidor rechazó el registro.',
+                permanente: true
+            };
         } catch (error) {
             const e = error as HttpErrorResponse;
             const nombreError = (error as any)?.name;
+            const cuerpoError: any = (e as any)?.error;
+            const detalle = typeof cuerpoError?.body === 'string'
+                ? cuerpoError.body
+                : cuerpoError?.msg;
 
             if (nombreError === 'TimeoutError' || e?.status === 0) {
                 return { ok: false, motivo: 'Sin respuesta del servidor (tiempo de espera agotado).' };
@@ -128,15 +181,56 @@ export class SyncRecoleccionService {
             if (e?.status === 429) {
                 return { ok: false, motivo: 'Demasiadas solicitudes al servidor. Intenta de nuevo en unos minutos.' };
             }
+            if (e?.status === 400 || e?.status === 409 || e?.status === 422) {
+                return {
+                    ok: false,
+                    motivo: detalle || `El registro fue rechazado (HTTP ${e.status}).`,
+                    permanente: true
+                };
+            }
             if (e?.status) {
-                return { ok: false, motivo: `Error del servidor (HTTP ${e.status}).` };
+                return { ok: false, motivo: detalle || `Error del servidor (HTTP ${e.status}).` };
             }
 
             return { ok: false, motivo: 'No se pudo conectar con el servidor.' };
         }
     }
 
-    /** Vacía la cola uno a uno. Ante el primer fallo se detiene y se reintenta luego. */
+    /**
+     * Normaliza payloads creados por versiones anteriores de la app.
+     * Algunos registros antiguos no traen "toneres" ni otros campos, y el
+     * backend rechazaba el envío con error 500.
+     */
+    private normalizarPayload(item: OutboxRecoleccion): Record<string, unknown> {
+        const payload: Record<string, unknown> = { ...(item.payload || {}) };
+        const numero = (valor: unknown): number => {
+            const n = Number(valor);
+            return Number.isFinite(n) ? n : 0;
+        };
+
+        for (const campo of CAMPOS_NUMERICOS) {
+            payload[campo] = numero(payload[campo]);
+        }
+
+        for (const campo of CAMPOS_OPCIONALES) {
+            if (payload[campo] === undefined || payload[campo] === '') {
+                payload[campo] = null;
+            }
+        }
+
+        const idConsultorio = Number(payload['id_consultorio']);
+        payload['id_consultorio'] = Number.isInteger(idConsultorio) && idConsultorio > 0
+            ? idConsultorio
+            : null;
+
+        payload['uuid_cliente'] = item.uuid_cliente;
+        payload['id_usuario'] = item.id_usuario || payload['id_usuario'] || 0;
+        payload['id_empresa'] = item.id_empresa || payload['id_empresa'] || 0;
+
+        return payload;
+    }
+
+    /** Vacía la cola uno a uno. Los errores de validación no bloquean los demás registros. */
     async sincronizarPendientes(): Promise<void> {
         if (this.sincronizando) { return; }
         this.sincronizando = true;
@@ -160,16 +254,26 @@ export class SyncRecoleccionService {
             this.emitir('servidor', 'Conectando con el servidor...', 0, total);
 
             let enviados = 0;
-            for (const item of pendientes) {
-                this.emitir('enviando', `Enviando registro ${enviados + 1} de ${total}...`, enviados, total);
+            let fallidos = 0;
 
-                const resultado = await this.enviarPayload(item.payload);
+            for (const item of pendientes) {
+                this.emitir('enviando', `Enviando registro ${enviados + fallidos + 1} de ${total}...`, enviados, total);
+
+                const payload = this.normalizarPayload(item);
+                const resultado = await this.enviarPayload(payload);
 
                 if (!resultado.ok) {
                     item.intentos += 1;
                     item.estado = 'PENDIENTE';
                     item.ultimo_error = resultado.motivo;
                     await this.offlineDb.actualizarOutbox(item);
+
+                    if (resultado.permanente) {
+                        fallidos++;
+                        console.warn(`[Sync recolección] Registro ${item.uuid_cliente} rechazado: ${resultado.motivo}`);
+                        continue;
+                    }
+
                     this.emitir('error', resultado.motivo, enviados, total, resultado.motivo);
                     return;
                 }
@@ -177,12 +281,22 @@ export class SyncRecoleccionService {
                 await this.offlineDb.eliminarDelOutbox(item.id_local);
                 enviados++;
 
-                if (enviados < total) {
-                    this.emitir('enviando', `Enviando registro ${enviados + 1} de ${total}...`, enviados, total);
+                if (enviados + fallidos < total) {
+                    this.emitir('enviando', `Enviando registro ${enviados + fallidos + 1} de ${total}...`, enviados, total);
                 }
             }
 
-            this.emitir('completado', `Sincronización completada. ${enviados} registro(s) enviado(s).`, enviados, total);
+            if (fallidos > 0) {
+                this.emitir(
+                    'error',
+                    `Sincronización completada con ${fallidos} registro(s) con error. Los demás se enviaron correctamente.`,
+                    enviados,
+                    total,
+                    `${fallidos} registro(s) requieren revisión.`
+                );
+            } else {
+                this.emitir('completado', `Sincronización completada. ${enviados} registro(s) enviado(s).`, enviados, total);
+            }
         } finally {
             this.sincronizando = false;
             await this.actualizarContador();
