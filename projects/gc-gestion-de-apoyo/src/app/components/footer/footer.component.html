@@ -1,0 +1,46 @@
+<footer class="footer">
+    <div class="container">
+        <div class="footer__top">
+            <div class="footer__brand">
+                <img [src]="site.marca.logoMarca" alt="" width="52" height="52">
+                <div>
+                    <strong>GC Gestión de Apoyo</strong>
+                    <p>Consultoría, cumplimiento y software a la medida.</p>
+                </div>
+            </div>
+
+            <nav class="footer__nav" aria-label="Enlaces del pie de página">
+                <a href="#marcas">Marcas</a>
+                <a href="#servicios">Servicios</a>
+                <a href="#metodo">Método</a>
+                <a href="#nosotros">Nosotros</a>
+                <a href="#software">Software</a>
+                <a href="#contacto">Contacto</a>
+            </nav>
+
+            <div class="footer__contact">
+                <a [href]="site.correoUrl">{{ site.correo }}</a>
+                <a
+                    [href]="site.contacts[0].whatsappUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    WhatsApp Carlos · {{ site.contacts[0].telefono }}
+                </a>
+                <a
+                    [href]="site.contacts[1].whatsappUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    WhatsApp Sebastián · {{ site.contacts[1].telefono }}
+                </a>
+            </div>
+        </div>
+
+        <div class="footer__bottom">
+            <span>© {{ anio }} GC Gestión de Apoyo · Integral Soft</span>
+            <span>Este sitio no recolecta datos personales.</span>
+            <span>Fotografías ilustrativas de Unsplash.</span>
+        </div>
+    </div>
+</footer>

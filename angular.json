@@ -132,6 +132,138 @@
           }
         }
       }
+    },
+    "gc-gestion-de-apoyo": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:class": {
+          "skipTests": true
+        },
+        "@schematics/angular:component": {
+          "skipTests": true
+        },
+        "@schematics/angular:directive": {
+          "skipTests": true
+        },
+        "@schematics/angular:guard": {
+          "skipTests": true
+        },
+        "@schematics/angular:interceptor": {
+          "skipTests": true
+        },
+        "@schematics/angular:pipe": {
+          "skipTests": true
+        },
+        "@schematics/angular:resolver": {
+          "skipTests": true
+        },
+        "@schematics/angular:service": {
+          "skipTests": true
+        }
+      },
+      "root": "projects/gc-gestion-de-apoyo",
+      "sourceRoot": "projects/gc-gestion-de-apoyo/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:application",
+          "options": {
+            "outputPath": "dist/gc-gestion-de-apoyo",
+            "index": "projects/gc-gestion-de-apoyo/src/index.html",
+            "browser": "projects/gc-gestion-de-apoyo/src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "projects/gc-gestion-de-apoyo/tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/gc-gestion-de-apoyo/public"
+              }
+            ],
+            "styles": [
+              "node_modules/@fontsource/fraunces/latin-400.css",
+              "node_modules/@fontsource/fraunces/latin-600.css",
+              "node_modules/@fontsource/fraunces/latin-700.css",
+              "node_modules/@fontsource/fraunces/latin-600-italic.css",
+              "node_modules/@fontsource/manrope/latin-400.css",
+              "node_modules/@fontsource/manrope/latin-500.css",
+              "node_modules/@fontsource/manrope/latin-600.css",
+              "node_modules/@fontsource/manrope/latin-700.css",
+              "projects/gc-gestion-de-apoyo/src/styles.css"
+            ],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "baseHref": "./",
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "1.6MB",
+                  "maximumError": "2.5MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "12kB",
+                  "maximumError": "20kB"
+                }
+              ],
+              "outputHashing": "all",
+              "sourceMap": false,
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              }
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "gc-gestion-de-apoyo:build:production"
+            },
+            "development": {
+              "buildTarget": "gc-gestion-de-apoyo:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "tsConfig": "projects/gc-gestion-de-apoyo/tsconfig.spec.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/gc-gestion-de-apoyo/public"
+              }
+            ],
+            "styles": [
+              "projects/gc-gestion-de-apoyo/src/styles.css"
+            ],
+            "scripts": []
+          }
+        }
+      }
     }
   },
   "cli": {

@@ -1,0 +1,47 @@
+<header class="nav" [class.nav--scrolled]="scrolled">
+    <div class="container nav__inner">
+        <a class="nav__brand" href="#inicio" (click)="cerrarMenu()" aria-label="GC Gestión de Apoyo, ir al inicio">
+            <img [src]="site.marca.logoMarca" alt="" width="46" height="46">
+            <span class="nav__brand-text">
+                <strong>GC</strong>
+                <small>Gestión de Apoyo</small>
+            </span>
+        </a>
+
+        <nav
+            id="menu-principal"
+            class="nav__links"
+            [class.nav__links--open]="menuAbierto"
+            aria-label="Navegación principal"
+        >
+            <a href="#marcas" (click)="cerrarMenu()">Marcas</a>
+            <a href="#servicios" (click)="cerrarMenu()">Servicios</a>
+            <a href="#metodo" (click)="cerrarMenu()">Método</a>
+            <a href="#nosotros" (click)="cerrarMenu()">Nosotros</a>
+            <a href="#software" (click)="cerrarMenu()">Software</a>
+            <a href="#contacto" (click)="cerrarMenu()">Contacto</a>
+            <a
+                class="nav__cta"
+                [href]="site.contacts[0].whatsappUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                (click)="cerrarMenu()"
+            >
+                Agendar
+            </a>
+        </nav>
+
+        <button
+            class="nav__toggle"
+            type="button"
+            (click)="toggleMenu()"
+            [attr.aria-expanded]="menuAbierto"
+            aria-controls="menu-principal"
+            [attr.aria-label]="menuAbierto ? 'Cerrar menú' : 'Abrir menú'"
+        >
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+</header>

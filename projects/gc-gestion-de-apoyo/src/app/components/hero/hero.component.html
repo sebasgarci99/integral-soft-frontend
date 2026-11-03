@@ -1,0 +1,93 @@
+<section class="hero" id="inicio">
+    <div class="hero__bg" aria-hidden="true">
+        <span class="hero__blob hero__blob--blue"></span>
+        <span class="hero__blob hero__blob--green"></span>
+        <span class="hero__grid"></span>
+    </div>
+
+    <div class="container hero__layout">
+        <div class="hero__copy">
+            <p class="hero__badge">
+                <span class="hero__dot"></span>
+                Consultoría certificada + software a la medida
+            </p>
+
+            <h1 class="hero__title">
+                Dos visiones.<br>
+                <span class="gradient-text hero__title-accent">Una sola fuerza.</span>
+            </h1>
+
+            <p class="hero__lead">
+                GC Gestión de Apoyo e Integral Soft unen experiencia certificada en SG-SST,
+                gestión ambiental y calidad en salud con tecnología que hace que los procesos
+                funcionen de verdad.
+            </p>
+
+            <div class="hero__actions">
+                <a
+                    class="btn btn--primary"
+                    [href]="whatsappPrincipal"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Agenda tu diagnóstico
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </a>
+                <a class="btn btn--ghost" href="#marcas">Conoce las dos marcas</a>
+            </div>
+
+            <ul class="hero__trust">
+                <li><span aria-hidden="true">✓</span> SG-SST · Ambiental · Salud</li>
+                <li><span aria-hidden="true">✓</span> Software a la medida</li>
+                <li><span aria-hidden="true">✓</span> Acompañamiento real</li>
+            </ul>
+        </div>
+
+        <div class="hero__stage">
+            <div class="hero__stage-glow" aria-hidden="true"></div>
+            <canvas #escena class="hero__canvas" aria-hidden="true"></canvas>
+            <div class="hero__ring" aria-hidden="true"></div>
+
+            <figure class="hero__photo">
+                <img
+                    [src]="site.fotos.hero"
+                    alt="Dos profesionales celebrando un resultado después de una reunión de trabajo"
+                >
+                <figcaption>Personas, procesos y tecnología</figcaption>
+            </figure>
+
+            <span class="hero__chip hero__chip--1">SG-SST</span>
+            <span class="hero__chip hero__chip--2">Software</span>
+            <span class="hero__chip hero__chip--3">Ambiental</span>
+
+            <div class="hero__mini-card">
+                <span class="hero__mini-icon" aria-hidden="true">✓</span>
+                <div>
+                    <strong>4 ejes</strong>
+                    <small>de consultoría</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container hero__stats">
+        <div>
+            <strong>04</strong>
+            <span>Ejes de consultoría</span>
+        </div>
+        <div>
+            <strong>02</strong>
+            <span>Marcas aliadas</span>
+        </div>
+        <div>
+            <strong>01</strong>
+            <span>Equipo de trabajo</span>
+        </div>
+        <div>
+            <strong>100%</strong>
+            <span>A la medida</span>
+        </div>
+    </div>
+</section>

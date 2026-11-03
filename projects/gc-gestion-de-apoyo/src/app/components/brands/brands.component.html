@@ -1,0 +1,110 @@
+<section class="section section--white" id="marcas">
+    <div class="container">
+        <header class="brands__header" appReveal>
+            <p class="eyebrow">La unión</p>
+            <h2 class="section-title">
+                Consultoría y tecnología,<br>
+                <span class="gradient-text">en el mismo equipo.</span>
+            </h2>
+            <p class="section-lead">
+                Dos marcas con el mismo objetivo: que tu empresa cumpla, opere mejor y
+                tenga las herramientas para sostenerlo en el tiempo.
+            </p>
+        </header>
+
+        <div class="brand-duo">
+            <article class="brand-card card" appTilt3d appReveal>
+                <div class="brand-card__media">
+                    <img
+                        [src]="site.fotos.consultoria"
+                        alt="Equipo de personas participando en una jornada de capacitación"
+                        loading="lazy"
+                    >
+                    <span class="brand-card__tag">Consultoría</span>
+                </div>
+
+                <div class="brand-card__body">
+                    <div class="brand-card__logo">
+                        <img [src]="site.marca.logoMarca" alt="" width="58" height="58">
+                    </div>
+
+                    <h3>GC Gestión de Apoyo</h3>
+                    <p>
+                        Acompañamiento técnico y cercano para implementar sistemas de gestión,
+                        cumplir la norma y ordenar la operación.
+                    </p>
+
+                    <ul class="brand-card__list">
+                        <li>SG-SST</li>
+                        <li>Gestión ambiental</li>
+                        <li>Calidad en salud</li>
+                        <li>Procesos internos</li>
+                    </ul>
+
+                    <footer class="brand-card__footer">
+                        <span class="brand-card__avatar">CG</span>
+                        <span>
+                            <strong>Carlos Andrés García</strong>
+                            <small>Consultor certificado</small>
+                        </span>
+                    </footer>
+                </div>
+            </article>
+
+            <div class="brand-duo__connector" aria-hidden="true">
+                <span>+</span>
+            </div>
+
+            <article class="brand-card card" appTilt3d appReveal>
+                <div class="brand-card__media">
+                    <img
+                        [src]="site.software.imagen"
+                        alt="Equipo de desarrollo conversando en una oficina moderna"
+                        loading="lazy"
+                    >
+                    <span class="brand-card__tag brand-card__tag--blue">Software</span>
+                </div>
+
+                <div class="brand-card__body">
+                    <div class="brand-card__logo brand-card__logo--wide">
+                        <img
+                            [src]="site.software.logo"
+                            alt="Logotipo de Integral Soft"
+                            loading="lazy"
+                        >
+                    </div>
+
+                    <h3>{{ site.software.nombre }}</h3>
+                    <p>
+                        Desarrollo de software a la medida para convertir procesos complejos
+                        en herramientas simples, medibles y seguras.
+                    </p>
+
+                    <ul class="brand-card__list brand-card__list--green">
+                        <li>Aplicaciones web</li>
+                        <li>Propiedades horizontales</li>
+                        <li>Sector salud</li>
+                        <li>Automatización</li>
+                    </ul>
+
+                    <footer class="brand-card__footer">
+                        <span class="brand-card__avatar brand-card__avatar--green">SG</span>
+                        <span>
+                            <strong>Juan Sebastián García</strong>
+                            <small>Desarrollo de software</small>
+                        </span>
+                    </footer>
+                </div>
+            </article>
+        </div>
+
+        <div class="brands__sectors" appReveal>
+            <span>Sectores que atendemos</span>
+            <ul>
+                @for (sector of site.sectores; track sector) {
+                    <li>{{ sector }}</li>
+                }
+            </ul>
+        </div>
+    </div>
+</section>

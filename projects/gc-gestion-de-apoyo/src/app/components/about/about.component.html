@@ -1,0 +1,71 @@
+<section class="section section--soft about" id="nosotros">
+    <div class="container about__layout">
+        <div class="about__visual" appReveal>
+            <div class="about__logo-card card">
+                <span class="about__glow" aria-hidden="true"></span>
+                <img
+                    [src]="site.marca.logoCompleto"
+                    alt="Logo oficial de GC Gestión de Apoyo y Verificación Integral"
+                >
+            </div>
+
+            <figure class="about__photo">
+                <img
+                    [src]="site.fotos.contacto"
+                    alt="Profesionales trabajando juntos en una reunión de asesoría"
+                    loading="lazy"
+                >
+            </figure>
+
+            <span class="about__chip about__chip--1">SG-SST</span>
+            <span class="about__chip about__chip--2">Gestión ambiental</span>
+        </div>
+
+        <div class="about__content" appReveal>
+            <p class="eyebrow">Quién te acompaña</p>
+            <h2 class="section-title">
+                Experiencia certificada,<br>
+                <span class="gradient-text">trato cercano.</span>
+            </h2>
+
+            <p class="about__lead">
+                Carlos Andrés García acompaña empresas en la implementación de sistemas
+                de gestión, el cumplimiento ambiental y el mejoramiento de la calidad en
+                salud. Su enfoque es simple: entender el negocio, priorizar lo importante
+                y dejar capacidades instaladas en el equipo.
+            </p>
+
+            <blockquote class="about__quote">
+                “La calidad no es un documento: es la forma en que tu empresa trabaja
+                todos los días.”
+            </blockquote>
+
+            <ul class="about__points">
+                <li>
+                    <span>01</span>
+                    Diagnóstico sin juicios, con foco en lo que realmente mueve la aguja.
+                </li>
+                <li>
+                    <span>02</span>
+                    Documentación útil y proporcionada al tamaño de tu empresa.
+                </li>
+                <li>
+                    <span>03</span>
+                    Acompañamiento hasta que el equipo pueda sostenerlo solo.
+                </li>
+            </ul>
+
+            <div class="about__actions">
+                <a
+                    class="btn btn--primary"
+                    [href]="carlos.whatsappUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Habla con Carlos
+                </a>
+                <a class="about__mail" [href]="site.correoUrl">{{ site.correo }}</a>
+            </div>
+        </div>
+    </div>
+</section>

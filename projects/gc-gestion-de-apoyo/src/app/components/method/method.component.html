@@ -1,0 +1,37 @@
+<section class="section section--white method" id="metodo">
+    <div class="container method__layout">
+        <header class="method__intro" appReveal>
+            <p class="eyebrow">Método</p>
+            <h2 class="section-title">
+                Un camino claro,<br>
+                <span class="gradient-text">sin improvisar.</span>
+            </h2>
+            <p class="section-lead">
+                No llegamos con una plantilla. Entendemos tu operación, priorizamos y
+                construimos una ruta que tu equipo pueda sostener.
+            </p>
+            <a class="btn btn--ghost method__cta" href="#contacto">Empezar ahora</a>
+
+            <figure class="method__photo">
+                <img
+                    [src]="site.fotos.proceso"
+                    alt="Profesional trabajando en la revisión de un proceso técnico"
+                    loading="lazy"
+                >
+                <figcaption>Acompañamiento en terreno, no solo documentos.</figcaption>
+            </figure>
+        </header>
+
+        <ol class="method__steps">
+            @for (paso of site.pasos; track paso.numero) {
+                <li class="method__step" appReveal>
+                    <span class="method__number">{{ paso.numero }}</span>
+                    <div class="method__body">
+                        <h3>{{ paso.titulo }}</h3>
+                        <p>{{ paso.descripcion }}</p>
+                    </div>
+                </li>
+            }
+        </ol>
+    </div>
+</section>

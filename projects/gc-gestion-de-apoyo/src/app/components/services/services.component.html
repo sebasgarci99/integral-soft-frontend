@@ -1,0 +1,92 @@
+<section class="section section--soft" id="servicios">
+    <div class="container">
+        <header class="services__header" appReveal>
+            <div>
+                <p class="eyebrow">Servicios</p>
+                <h2 class="section-title">
+                    Problemas reales,<br>
+                    <span class="gradient-text">soluciones concretas.</span>
+                </h2>
+                <p class="section-lead">
+                    Cada empresa tiene un punto de partida distinto. Por eso trabajamos con
+                    diagnóstico, prioridades claras y acompañamiento cercano.
+                </p>
+            </div>
+
+            <a
+                class="btn btn--ghost services__cta"
+                [href]="site.contacts[0].whatsappUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Hablemos de tu caso
+            </a>
+        </header>
+
+        <div class="services__grid">
+            @for (servicio of site.servicios; track servicio.id; let ultimo = $last; let indice = $index) {
+                <article
+                    class="service-card card"
+                    [class.service-card--wide]="ultimo"
+                    [style.--accent]="servicio.acento"
+                    appTilt3d
+                    appReveal
+                >
+                    <div class="service-card__media">
+                        <img
+                            [src]="servicio.imagen"
+                            [alt]="servicio.altImagen"
+                            loading="lazy"
+                        >
+                        <span class="service-card__index">0{{ indice + 1 }}</span>
+                        <span class="service-card__icon">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.7"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    [attr.d]="servicio.iconPath"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+                            </svg>
+                        </span>
+                    </div>
+
+                    <div class="service-card__body">
+                        <h3>{{ servicio.titulo }}</h3>
+                        <p>{{ servicio.descripcion }}</p>
+
+                        <ul class="service-card__items">
+                            @for (item of servicio.items; track item) {
+                                <li>{{ item }}</li>
+                            }
+                        </ul>
+
+                        @if (ultimo) {
+                            <a class="service-card__link" href="#software">
+                                Conoce Integral Soft
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        d="M5 12h14M13 6l6 6-6 6"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    />
+                                </svg>
+                            </a>
+                        }
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+</section>

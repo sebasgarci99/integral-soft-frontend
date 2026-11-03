@@ -1,0 +1,110 @@
+<section class="section section--white software" id="software">
+    <div class="container">
+        <div class="software__panel card">
+            <div class="software__content" appReveal>
+                <p class="eyebrow">Integral Soft</p>
+                <h2 class="section-title">
+                    Software que hace<br>
+                    <span class="gradient-text">que los procesos sucedan.</span>
+                </h2>
+                <p class="software__lead">
+                    La consultoría define el cómo. El software lo hace posible todos los
+                    días. Integral Soft construye herramientas a la medida para que la
+                    operación sea ordenada, trazable y medible.
+                </p>
+
+                <ul class="software__features">
+                    @for (feature of site.softwareFeatures; track feature.titulo) {
+                        <li>
+                            <span class="software__feature-mark" aria-hidden="true"></span>
+                            <h3>{{ feature.titulo }}</h3>
+                            <p>{{ feature.descripcion }}</p>
+                        </li>
+                    }
+                </ul>
+
+                <div class="software__actions">
+                    <a
+                        class="btn btn--primary"
+                        [href]="site.software.url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Visitar Integral Soft
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M7 17L17 7M9 7h8v8"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                        </svg>
+                    </a>
+                    <span class="software__author">
+                        Desarrollo por {{ site.software.autor }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="software__visual" appReveal>
+                <span class="software__blob" aria-hidden="true"></span>
+
+                <figure class="software__photo">
+                    <img
+                        [src]="site.fotos.equipo"
+                        alt="Equipo de personas trabajando con computadores en una oficina"
+                        loading="lazy"
+                    >
+                </figure>
+
+                <div class="software__mockup" appTilt3d>
+                    <div class="mockup__bar">
+                        <span class="mockup__dot"></span>
+                        <span class="mockup__dot"></span>
+                        <span class="mockup__dot"></span>
+                        <em>integral-soft / panel</em>
+                    </div>
+
+                    <div class="mockup__main">
+                        <div class="mockup__stats">
+                            <div class="mockup__stat">
+                                <small>Procesos activos</small>
+                                <strong>128</strong>
+                                <span>+12%</span>
+                            </div>
+                            <div class="mockup__stat">
+                                <small>Cumplimiento</small>
+                                <strong>94%</strong>
+                                <span>+6%</span>
+                            </div>
+                        </div>
+
+                        <div class="mockup__chart" aria-hidden="true">
+                            <span style="--h: 38%"></span>
+                            <span style="--h: 56%"></span>
+                            <span style="--h: 44%"></span>
+                            <span style="--h: 72%"></span>
+                            <span style="--h: 62%"></span>
+                            <span style="--h: 88%"></span>
+                            <span style="--h: 76%"></span>
+                            <span style="--h: 96%"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="software__badge">
+                    <img
+                        [src]="site.software.logo"
+                        alt="Logotipo de Integral Soft"
+                        loading="lazy"
+                    >
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
