@@ -264,6 +264,12 @@
                 [style]="{ width: '100%' }"></p-calendar>
         </div>
 
+        <div class="col-12 col-md-6" *ngIf="formActividad.periodicidad !== 'unica'">
+            <label class="form-label fw-semibold">Fecha fin *</label>
+            <p-calendar [(ngModel)]="formActividad.fechaFin" dateFormat="dd/mm/yy" [showIcon]="true"
+                [readonlyInput]="true" [style]="{ width: '100%' }"></p-calendar>
+        </div>
+
         <div class="col-12 col-md-6">
             <label class="form-label fw-semibold">Duración (minutos)</label>
             <p-inputNumber [(ngModel)]="formActividad.duracion" [min]="15" [max]="480"

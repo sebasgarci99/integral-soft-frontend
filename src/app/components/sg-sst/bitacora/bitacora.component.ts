@@ -21,6 +21,7 @@ import {
     SgSstTarea
 } from '../../../interfaces/sg-sst';
 import { procesarImagenEvidencia } from '../../../utils/image-compress.util';
+import { mensajeConfirmacionPeriodicidad, requiereFechaFin } from '../../../utils/periodicidad.util';
 
 interface GrupoTareas {
     fecha: string;
@@ -33,6 +34,7 @@ interface FormActividadRapida {
     titulo: string;
     descripcion: string;
     fecha: Date | null;
+    fechaFin: Date | null;
     hora: Date | null;
     duracion: number;
     periodicidad: string;
@@ -87,7 +89,10 @@ export class SgSstBitacoraComponent implements OnInit, OnChanges, OnDestroy {
         { label: 'Diaria', value: 'diaria' },
         { label: 'Semanal', value: 'semanal' },
         { label: 'Quincenal', value: 'quincenal' },
-        { label: 'Mensual', value: 'mensual' }
+        { label: 'Mensual', value: 'mensual' },
+        { label: 'Trimestral', value: 'trimestral' },
+        { label: 'Cuatrimestral', value: 'cuatrimestral' },
+        { label: 'Anual', value: 'anual' }
     ];
 
     cargando = false;
@@ -680,8 +685,33 @@ export class SgSstBitacoraComponent implements OnInit, OnChanges, OnDestroy {
             Swal.fire('Datos incompletos', 'Selecciona la fecha y la hora de la actividad.', 'warning');
             return;
         }
+        if (requiereFechaFin(this.formActividad.periodicidad, 'unica') && !this.formActividad.fechaFin) {
+            Swal.fire('Fecha fin requerida', 'Debes indicar la fecha fin para la periodicidad seleccionada.', 'warning');
+            return;
+        }
+        if (this.formActividad.fechaFin && this.formActividad.fechaFin < this.formActividad.fecha) {
+            Swal.fire('Fechas inválidas', 'La fecha fin no puede ser anterior a la fecha de inicio.', 'warning');
+            return;
+        }
+        if (this.formActividad.periodicidad !== 'unica') {
+            const confirmacion = await Swal.fire({
+                title: 'Confirmar programación',
+                text: mensajeConfirmacionPeriodicidad(
+                    this.formActividad.periodicidad,
+                    this.formActividad.fecha,
+                    this.formActividad.fechaFin
+                ),
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, programar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#0f766e'
+            });
+            if (!confirmacion.isConfirmed) return;
+        }
 
         const fechaISO = this.formatearISO(this.formActividad.fecha);
+        const fechaFinISO = this.formActividad.fechaFin ? this.formatearISO(this.formActividad.fechaFin) : null;
         const hora = `${String(this.formActividad.hora.getHours()).padStart(2, '0')}:${String(this.formActividad.hora.getMinutes()).padStart(2, '0')}`;
 
         this.guardandoActividad = true;
@@ -690,7 +720,7 @@ export class SgSstBitacoraComponent implements OnInit, OnChanges, OnDestroy {
                 titulo: this.formActividad.titulo.trim(),
                 descripcion: this.formActividad.descripcion || null,
                 fecha_inicio: fechaISO,
-                fecha_fin: this.formActividad.periodicidad === 'unica' ? fechaISO : null,
+                fecha_fin: this.formActividad.periodicidad === 'unica' ? fechaISO : fechaFinISO,
                 tipo_periodicidad: this.formActividad.periodicidad,
                 hora_default: hora,
                 duracion_minutos: this.formActividad.duracion || 60
@@ -720,6 +750,7 @@ export class SgSstBitacoraComponent implements OnInit, OnChanges, OnDestroy {
             titulo: '',
             descripcion: '',
             fecha,
+            fechaFin: null,
             hora,
             duracion: 60,
             periodicidad: 'unica'

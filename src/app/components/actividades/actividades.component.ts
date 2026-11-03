@@ -11,6 +11,8 @@ import {
     Usuario
 } from '../../interfaces/actividad';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import Swal from 'sweetalert2';
+import { mensajeConfirmacionPeriodicidad, requiereFechaFin } from '../../utils/periodicidad.util';
 import { HttpClientModule } from '@angular/common/http';
 
 import { TableModule } from 'primeng/table';
@@ -149,6 +151,9 @@ export class ActividadesComponent implements OnInit, AfterViewInit {
         { label: 'Semanal', value: 'semanal' },
         { label: 'Quincenal', value: 'quincenal' },
         { label: 'Mensual', value: 'mensual' },
+        { label: 'Trimestral', value: 'trimestral' },
+        { label: 'Cuatrimestral', value: 'cuatrimestral' },
+        { label: 'Anual', value: 'anual' },
         { label: 'Personalizada', value: 'personalizada' }
     ];
 
@@ -789,6 +794,38 @@ export class ActividadesComponent implements OnInit, AfterViewInit {
 
     async guardarActividad(): Promise<void> {
         if (!this.validarFormulario()) return;
+
+        const periodicidad = this.formData.tipo_periodicidad;
+        if (requiereFechaFin(periodicidad, 'diaria') && !this.formData.fecha_fin) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Fecha fin requerida',
+                detail: 'Debes indicar la fecha fin para la periodicidad seleccionada.'
+            });
+            return;
+        }
+        if (this.formData.fecha_fin && this.formData.fecha_fin < this.formData.fecha_inicio) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Fechas inválidas',
+                detail: 'La fecha fin no puede ser anterior a la fecha de inicio.'
+            });
+            return;
+        }
+        const confirmacion = await Swal.fire({
+            title: 'Confirmar programación',
+            text: mensajeConfirmacionPeriodicidad(
+                periodicidad,
+                this.formData.fecha_inicio,
+                this.formData.fecha_fin
+            ),
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, programar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#0f766e'
+        });
+        if (!confirmacion.isConfirmed) return;
 
         const dataToSend: any = {
             titulo: this.formData.titulo,

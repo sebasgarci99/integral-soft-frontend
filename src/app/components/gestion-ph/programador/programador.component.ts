@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import Swal from 'sweetalert2';
+import { mensajeConfirmacionPeriodicidad, requiereFechaFin } from '../../../utils/periodicidad.util';
 import { ActividadesService } from '../../../services/actividades/actividades.service';
 import { TiposGrupoService } from '../../../services/tipos-grupo/tipos-grupo.service';
 import { TipoGrupo } from '../../../interfaces/gestion-ph';
@@ -214,6 +215,31 @@ export class ProgramadorComponent implements OnInit, OnChanges {
             return;
         }
         if (this.guardando) return;
+
+        if (requiereFechaFin(this.form.tipo_periodicidad, 'unica') && !this.form.fecha_fin) {
+            Swal.fire('Fecha fin requerida', 'Debes indicar la fecha fin para la periodicidad seleccionada.', 'warning');
+            return;
+        }
+        if (this.form.fecha_fin && this.form.fecha_fin < this.form.fecha_inicio) {
+            Swal.fire('Fechas inválidas', 'La fecha fin no puede ser anterior a la fecha de inicio.', 'warning');
+            return;
+        }
+        if (this.form.tipo_periodicidad !== 'unica') {
+            const confirmacion = await Swal.fire({
+                title: 'Confirmar programación',
+                text: mensajeConfirmacionPeriodicidad(
+                    this.form.tipo_periodicidad,
+                    this.form.fecha_inicio,
+                    this.form.fecha_fin
+                ),
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, programar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#0f766e'
+            });
+            if (!confirmacion.isConfirmed) return;
+        }
 
         const esUnica = this.form.tipo_periodicidad === 'unica';
         const payload = {

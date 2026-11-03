@@ -189,8 +189,8 @@ export class SgSstTiposGruposComponent implements OnInit, OnChanges {
             } else {
                 Swal.fire('Atención', res.msg, 'warning');
             }
-        } catch {
-            Swal.fire('Error', 'No se pudo guardar el grupo.', 'error');
+        } catch (error: any) {
+            Swal.fire('Error', error?.error?.msg || 'No se pudo guardar el grupo.', 'error');
         } finally {
             this.guardando = false;
         }
@@ -218,8 +218,8 @@ export class SgSstTiposGruposComponent implements OnInit, OnChanges {
             } else {
                 Swal.fire('Atención', res.msg, 'warning');
             }
-        } catch {
-            Swal.fire('Error', 'No se pudo inactivar el grupo.', 'error');
+        } catch (error: any) {
+            Swal.fire('Error', error?.error?.msg || 'No se pudo inactivar el grupo.', 'error');
         }
     }
 
