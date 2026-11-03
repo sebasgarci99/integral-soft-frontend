@@ -471,3 +471,38 @@
         min-height: 560px;
     }
 }
+
+.pg-detail-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.pg-detail-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.pg-cancel-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.pg-btn.danger {
+    background: #dc2626;
+    color: #fff;
+}
+
+.pg-btn.danger-ghost {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.pg-btn.danger-ghost:hover {
+    background: #fee2e2;
+}

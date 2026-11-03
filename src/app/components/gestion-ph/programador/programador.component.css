@@ -598,3 +598,39 @@
     border-top: 1px solid var(--pr-border);
     background: #f8fafc;
 }
+
+.pr-detail-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.pr-detail-actions {
+    display: flex;
+    gap: 0.45rem;
+    margin-left: auto;
+}
+
+.pr-cancel-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.pr-btn-danger {
+    background: #dc2626;
+    color: #fff;
+    border: 0;
+}
+
+.pr-btn-danger-ghost {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.pr-btn-danger-ghost:hover {
+    background: #fee2e2;
+}

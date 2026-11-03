@@ -218,16 +218,27 @@
             </div>
         </div>
 
-        <div class="pr-modal-footer">
-            <button type="button" class="pr-btn pr-btn-ghost" (click)="cerrarDetalle()">Cerrar</button>
-            <button type="button" class="pr-btn pr-btn-amber" *ngIf="instanciaDetalle.estado === 'programada'"
-                (click)="iniciarActividad()">
-                <i class="fa fa-play"></i> Iniciar
-            </button>
-            <button type="button" class="pr-btn pr-btn-primary" *ngIf="instanciaDetalle.estado === 'iniciada'"
-                [disabled]="finalizando" (click)="finalizarActividad()">
-                <i class="fa fa-check"></i> {{ finalizando ? 'Finalizando...' : 'Finalizar' }}
-            </button>
+        <div class="pr-modal-footer pr-detail-footer">
+            <div class="pr-cancel-actions" *ngIf="puedeCancelarActividades && instanciaDetalle.estado !== 'completada'">
+                <button type="button" class="pr-btn pr-btn-danger-ghost" (click)="cancelarInstancia()">
+                    <i class="fa fa-calendar-xmark"></i> Cancelar instancia
+                </button>
+                <button type="button" class="pr-btn pr-btn-danger" *ngIf="instanciaDetalle.actividad?.id_actividad"
+                    (click)="cancelarSerie()">
+                    <i class="fa fa-trash"></i> Cancelar serie
+                </button>
+            </div>
+            <div class="pr-detail-actions">
+                <button type="button" class="pr-btn pr-btn-ghost" (click)="cerrarDetalle()">Cerrar</button>
+                <button type="button" class="pr-btn pr-btn-amber" *ngIf="instanciaDetalle.estado === 'programada'"
+                    (click)="iniciarActividad()">
+                    <i class="fa fa-play"></i> Iniciar
+                </button>
+                <button type="button" class="pr-btn pr-btn-primary" *ngIf="instanciaDetalle.estado === 'iniciada'"
+                    [disabled]="finalizando" (click)="finalizarActividad()">
+                    <i class="fa fa-check"></i> {{ finalizando ? 'Finalizando...' : 'Finalizar' }}
+                </button>
+            </div>
         </div>
     </div>
 </div>

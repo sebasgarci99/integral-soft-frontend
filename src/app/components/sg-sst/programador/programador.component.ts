@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import Swal from 'sweetalert2';
 import { mensajeConfirmacionPeriodicidad, requiereFechaFin } from '../../../utils/periodicidad.util';
 import { SgSstService } from '../../../services/sg-sst/sg-sst.service';
+import { SgSstPermissionsService } from '../../../services/sg-sst/sg-sst-permissions.service';
 import { SgSstInstancia } from '../../../interfaces/sg-sst';
 import { procesarImagenEvidencia } from '../../../utils/image-compress.util';
 
@@ -46,6 +47,7 @@ export class SgSstProgramadorComponent implements OnInit, OnChanges {
     instanciasMes: SgSstInstancia[] = [];
     fechaSeleccionada = '';
     cargando = false;
+    idRol = 0;
 
     modalVisible = false;
     guardando = false;
@@ -57,9 +59,13 @@ export class SgSstProgramadorComponent implements OnInit, OnChanges {
     evidencias: EvidenciaLocal[] = [];
     guardandoEjecucion = false;
 
-    constructor(private sgSstService: SgSstService) {}
+    constructor(
+        private sgSstService: SgSstService,
+        private permisos: SgSstPermissionsService
+    ) {}
 
-    ngOnInit(): void {
+    async ngOnInit(): Promise<void> {
+        this.idRol = await this.permisos.cargar();
         this.fechaSeleccionada = this.fecha || this.formatearISO(new Date());
         const base = this.parseFecha(this.fechaSeleccionada);
         this.mesActual = new Date(base.getFullYear(), base.getMonth(), 1);
@@ -321,6 +327,71 @@ export class SgSstProgramadorComponent implements OnInit, OnChanges {
             Swal.fire('Error', 'No se pudo guardar la ejecución.', 'error');
         } finally {
             this.guardandoEjecucion = false;
+        }
+    }
+
+    get puedeCancelarActividades(): boolean {
+        return this.permisos.puedeCancelarActividades;
+    }
+
+    async cancelarInstancia(): Promise<void> {
+        if (!this.instanciaDetalle || !this.idCliente || !this.idTipoGrupo || !this.puedeCancelarActividades) return;
+        const confirmacion = await Swal.fire({
+            title: '¿Cancelar esta instancia?',
+            text: 'Desaparecerá del calendario, pero no se borrarán evidencias ni historial.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, cancelar',
+            cancelButtonText: 'Volver',
+            confirmButtonColor: '#dc2626'
+        });
+        if (!confirmacion.isConfirmed) return;
+        try {
+            const observable = await this.sgSstService.eliminarInstancia(
+                this.idCliente, this.idTipoGrupo, this.instanciaDetalle.id_instancia
+            );
+            const res = await firstValueFrom(observable);
+            if (res.state === 'OK') {
+                this.cerrarDetalle();
+                await this.cargarMes();
+                this.datosActualizados.emit();
+                Swal.fire('Instancia cancelada', 'La ocurrencia se canceló correctamente.', 'success');
+            } else {
+                Swal.fire('Atención', res.msg, 'warning');
+            }
+        } catch (error: any) {
+            Swal.fire('Error', error?.error?.msg || 'No se pudo cancelar la instancia.', 'error');
+        }
+    }
+
+    async cancelarSerie(): Promise<void> {
+        const idActividad = this.instanciaDetalle?.actividad?.id_actividad;
+        if (!idActividad || !this.idCliente || !this.idTipoGrupo || !this.puedeCancelarActividades) return;
+        const confirmacion = await Swal.fire({
+            title: '¿Cancelar la actividad completa?',
+            text: 'Se cancelarán las ocurrencias pendientes. Las ejecutadas se conservarán en el historial.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, cancelar serie',
+            cancelButtonText: 'Volver',
+            confirmButtonColor: '#dc2626'
+        });
+        if (!confirmacion.isConfirmed) return;
+        try {
+            const observable = await this.sgSstService.eliminarActividad(
+                this.idCliente, this.idTipoGrupo, idActividad
+            );
+            const res = await firstValueFrom(observable);
+            if (res.state === 'OK') {
+                this.cerrarDetalle();
+                await this.cargarMes();
+                this.datosActualizados.emit();
+                Swal.fire('Actividad cancelada', 'La serie se canceló correctamente.', 'success');
+            } else {
+                Swal.fire('Atención', res.msg, 'warning');
+            }
+        } catch (error: any) {
+            Swal.fire('Error', error?.error?.msg || 'No se pudo cancelar la actividad.', 'error');
         }
     }
 

@@ -154,7 +154,8 @@
                                 <p-button icon="fa fa-edit" class="p-button-text p-button-sm" pTooltip="Editar"
                                     (onClick)="abrirFormulario(row)" />
                                 <p-button icon="fa fa-trash" class="p-button-text p-button-sm p-button-danger"
-                                    pTooltip="Eliminar" severity="danger"
+                                    *ngIf="puedeCancelarActividades"
+                                    pTooltip="Cancelar actividad" severity="danger"
                                     (onClick)="eliminarActividad(row.id_actividad)" />
                             </td>
                         </tr>
@@ -482,6 +483,9 @@
                     <p-button *ngIf="esHoy(fechaSeleccionada) && instanciaDetalleSeleccionada.estado === 'iniciada'"
                         label="Finalizar Actividad" icon="fa fa-check" severity="info"
                         (onClick)="abrirFinalizarDialog(instanciaDetalleSeleccionada)" />
+                    <p-button *ngIf="puedeCancelarActividades && instanciaDetalleSeleccionada.estado !== 'completada'"
+                        label="Cancelar instancia" icon="fa fa-calendar-xmark" severity="danger"
+                        (onClick)="eliminarInstancia(instanciaDetalleSeleccionada)" />
                 </div>
             </div>
         </div>

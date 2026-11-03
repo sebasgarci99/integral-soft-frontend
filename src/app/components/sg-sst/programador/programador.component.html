@@ -172,12 +172,23 @@
                 </div>
             </div>
         </div>
-        <footer>
-            <button type="button" class="pg-btn ghost" (click)="cerrarDetalle()">Cancelar</button>
-            <button type="button" class="pg-btn primary" [disabled]="guardandoEjecucion" (click)="guardarEjecucion()">
-                <i class="fa fa-check"></i>
-                {{ guardandoEjecucion ? 'Guardando...' : (instanciaDetalle.estado === 'completada' ? 'Actualizar ejecución' : 'Marcar ejecutado') }}
-            </button>
+        <footer class="pg-detail-footer">
+            <div class="pg-cancel-actions" *ngIf="puedeCancelarActividades && instanciaDetalle.estado !== 'completada'">
+                <button type="button" class="pg-btn danger-ghost" (click)="cancelarInstancia()">
+                    <i class="fa fa-calendar-xmark"></i> Cancelar instancia
+                </button>
+                <button type="button" class="pg-btn danger" *ngIf="instanciaDetalle.actividad?.id_actividad"
+                    (click)="cancelarSerie()">
+                    <i class="fa fa-trash"></i> Cancelar serie completa
+                </button>
+            </div>
+            <div class="pg-detail-actions">
+                <button type="button" class="pg-btn ghost" (click)="cerrarDetalle()">Cerrar</button>
+                <button type="button" class="pg-btn primary" [disabled]="guardandoEjecucion" (click)="guardarEjecucion()">
+                    <i class="fa fa-check"></i>
+                    {{ guardandoEjecucion ? 'Guardando...' : (instanciaDetalle.estado === 'completada' ? 'Actualizar ejecución' : 'Marcar ejecutado') }}
+                </button>
+            </div>
         </footer>
     </div>
 </div>

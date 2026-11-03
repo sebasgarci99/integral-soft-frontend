@@ -36,4 +36,8 @@ export class SgSstPermissionsService {
     get puedeSolicitarReapertura(): boolean {
         return this.idRol === 2 || this.idRol === 3;
     }
+
+    get puedeCancelarActividades(): boolean {
+        return this.idRol === 1 || this.idRol === 2;
+    }
 }

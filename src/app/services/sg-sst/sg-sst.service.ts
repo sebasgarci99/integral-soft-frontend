@@ -190,6 +190,14 @@ export class SgSstService {
         return this.post('crearActividad', { id_cliente: idCliente, id_tipo_grupo: idTipoGrupo, ...data });
     }
 
+    async eliminarActividad(idCliente: number, idTipoGrupo: number, idActividad: number): Promise<Observable<ApiResponse<string>>> {
+        return this.post('eliminarActividad', { id_cliente: idCliente, id_tipo_grupo: idTipoGrupo, id_actividad: idActividad });
+    }
+
+    async eliminarInstancia(idCliente: number, idTipoGrupo: number, idInstancia: number): Promise<Observable<ApiResponse<string>>> {
+        return this.post('eliminarInstancia', { id_cliente: idCliente, id_tipo_grupo: idTipoGrupo, id_instancia: idInstancia });
+    }
+
     async ejecutarActividad(idCliente: number, idTipoGrupo: number, data: {
         id_instancia: number;
         observaciones?: string;

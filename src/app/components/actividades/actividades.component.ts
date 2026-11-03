@@ -217,6 +217,10 @@ export class ActividadesComponent implements OnInit, AfterViewInit {
         return this.rolUsuario === 2;
     }
 
+    get puedeCancelarActividades(): boolean {
+        return this.rolUsuario === 1 || this.rolUsuario === 2;
+    }
+
     getHoraActual(): string {
         return this.horaActual.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
     }
@@ -882,7 +886,7 @@ export class ActividadesComponent implements OnInit, AfterViewInit {
         this.confirmService.confirm({
             icon: 'fa fa-exclamation-triangle',
             header: 'Eliminar actividad',
-            message: '¿Estás seguro de eliminar esta actividad?',
+            message: 'Se cancelarán las ocurrencias pendientes. Las ejecutadas se conservarán en el historial. ¿Continuar?',
             acceptLabel: 'Sí',
             rejectLabel: 'No',
             accept: async () => {
@@ -908,7 +912,7 @@ export class ActividadesComponent implements OnInit, AfterViewInit {
         this.confirmService.confirm({
             icon: 'fa fa-exclamation-triangle',
             header: 'Eliminar instancia',
-            message: `¿Estás seguro de eliminar la instancia del ${this.formatearFechaVisual(inst.fecha)}?`,
+            message: `¿Cancelar esta instancia del ${this.formatearFechaVisual(inst.fecha)}? No se borrarán evidencias ni historial.`,
             acceptLabel: 'Sí',
             rejectLabel: 'No',
             accept: async () => {
