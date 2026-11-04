@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,6 +23,7 @@ import { Equipo } from '../../interfaces/equipo';
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import Chart from 'chart.js/auto';
 
 @Component({
     selector: 'app-reg-temperatura',
@@ -47,8 +48,6 @@ import autoTable from 'jspdf-autotable';
     providers: [MessageService, ConfirmationService]
 })
 export class RegTemperaturaComponent implements OnInit {
-
-    @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
 
     registros: any[] = [];
     displayDialog: boolean = false;
@@ -373,12 +372,26 @@ export class RegTemperaturaComponent implements OnInit {
     }
 
     generarPdf() {
-        if (!this.fechaInicioPdf || !this.fechaFinPdf) return;
+        if (!this.fechaInicioPdf || !this.fechaFinPdf) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Seleccione la fecha inicial y la fecha final'
+            });
+            return;
+        }
 
         const fechaInicio = new Date(this.fechaInicioPdf);
         fechaInicio.setHours(0, 0, 0, 0);
         const fechaFin = new Date(this.fechaFinPdf);
         fechaFin.setHours(23, 59, 59, 999);
+
+        if (fechaInicio > fechaFin) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'La fecha inicial no puede ser mayor que la fecha final'
+            });
+            return;
+        }
 
         const registrosFiltrados = this.registros.filter(r => {
             const fecha = new Date(r.fecha_registro);
@@ -410,14 +423,13 @@ export class RegTemperaturaComponent implements OnInit {
 
         let currentY = 105;
 
-        const canvas = document.querySelector('canvas');
-        if (canvas) {
-            const imgData = canvas.toDataURL('image/png');
+        const imgData = this.generarImagenGrafica(registrosFiltrados);
+        if (imgData) {
             const imgWidth = pageWidth - 80;
-            const imgHeight = (canvas.height / canvas.width) * imgWidth;
+            const imgHeight = (360 / 1100) * imgWidth;
 
-            doc.addImage(imgData, 'PNG', 40, currentY, imgWidth, Math.min(imgHeight, 200));
-            currentY += Math.min(imgHeight, 200) + 15;
+            doc.addImage(imgData, 'PNG', 40, currentY, imgWidth, imgHeight);
+            currentY += imgHeight + 15;
         }
 
         autoTable(doc, {
@@ -454,6 +466,75 @@ export class RegTemperaturaComponent implements OnInit {
         const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
         const anio = fecha.getFullYear();
         return `${dia}-${mes}-${anio}`;
+    }
+
+    generarImagenGrafica(registros: any[]): string | null {
+        if (registros.length === 0) return null;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 1100;
+        canvas.height = 360;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return null;
+
+        const labels = registros.map(r =>
+            `${this.formatearFechaCorta(new Date(r.fecha_registro))} - ${r.horario || ''}`
+        );
+        const temperaturas = registros.map(r => Number(r.temperatura));
+
+        const config: any = {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Temperatura (°C)',
+                        data: temperaturas,
+                        fill: false,
+                        tension: 0,
+                        pointRadius: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: false,
+                animation: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Temperatura (°C)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Fecha'
+                        },
+                        ticks: {
+                            autoSkip: true,
+                            maxTicksLimit: 20,
+                            maxRotation: 90
+                        }
+                    }
+                }
+            }
+        };
+
+        const chart = new Chart(ctx, config);
+        chart.update('none');
+
+        const imagen = canvas.toDataURL('image/png');
+        chart.destroy();
+
+        return imagen;
     }
 
     public obtenerFechaHoraActualFormatoIso(

@@ -166,20 +166,20 @@
                 <p-dialog header="Descargar Reporte PDF" [(visible)]="displayPdfDialog" [modal]="true"
                     [style]="{ width: '28rem' }" [draggable]="false" appendTo="body">
 
-                    <div class="p-fluid grid p-formgrid" style="padding: 0rem 1rem;">
-                        <p-floatlabel variant="on" class="col-12 mt-3">
-                            <p-calendar name="fechaInicio" [(ngModel)]="fechaInicioPdf"
-                                dateFormat="yy-mm-dd" appendTo="body" required [showIcon]="true">
+                    <div *ngIf="displayPdfDialog" class="grid p-fluid p-formgrid" style="padding: 0rem 1rem;">
+                        <div class="col-12 mt-2">
+                            <label class="fw-bold d-block mb-2">Fecha Inicio</label>
+                            <p-calendar [(ngModel)]="fechaInicioPdf" dateFormat="yy-mm-dd"
+                                appendTo="body" [showIcon]="true" styleClass="w-100">
                             </p-calendar>
-                            <label>Fecha Inicio</label>
-                        </p-floatlabel>
+                        </div>
 
-                        <p-floatlabel variant="on" class="col-12 mt-3">
-                            <p-calendar name="fechaFin" [(ngModel)]="fechaFinPdf"
-                                dateFormat="yy-mm-dd" appendTo="body" required [showIcon]="true">
+                        <div class="col-12 mt-2">
+                            <label class="fw-bold d-block mb-2">Fecha Fin</label>
+                            <p-calendar [(ngModel)]="fechaFinPdf" dateFormat="yy-mm-dd"
+                                appendTo="body" [showIcon]="true" styleClass="w-100">
                             </p-calendar>
-                            <label>Fecha Fin</label>
-                        </p-floatlabel>
+                        </div>
                     </div>
 
                     <ng-template pTemplate="footer">
