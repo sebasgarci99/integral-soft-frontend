@@ -346,6 +346,13 @@
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
+                                    <p-dropdown [options]="opcionesRegimen" [(ngModel)]="formData.regimen"
+                                        [showClear]="true" appendTo="body" class="w-100"
+                                        [ngClass]="{ 'p-inputwrapper-filled': formData.regimen }"></p-dropdown>
+                                    <label>Régimen</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on" class="col-12 md:col-6 mt-3">
                                     <input pInputText [(ngModel)]="formData.tipo_poblacion" class="w-100" />
                                     <label>Tipo de población (Mestizos, indígenas, afrocolombianos, raizales y gitanos o
                                         Rom)</label>

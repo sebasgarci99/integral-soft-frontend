@@ -52,6 +52,17 @@
                             </div>
                         </div>
 
+                        <!-- Consulta de solicitudes en curso -->
+                        <div class="topbar-panel-section" *ngIf="consultandoSolicitudes">
+                            <div class="topbar-panel-item">
+                                <i class="fa fa-spinner fa-spin topbar-panel-icon"></i>
+                                <div class="topbar-panel-info">
+                                    <span class="titulo">Consultando solicitudes</span>
+                                    <span class="detalle">Tiempo transcurrido: {{ segundosConsulta }}s</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Solicitudes de reapertura -->
                         <div class="topbar-panel-section" *ngIf="solicitudesReapertura.length > 0">
                             <div class="topbar-panel-subtitle">
@@ -77,7 +88,7 @@
 
                         <!-- Notificaciones -->
                         <div class="topbar-panel-section">
-                            <div class="topbar-panel-empty" *ngIf="notificacionesCount === 0 && solicitudesReapertura.length === 0">
+                            <div class="topbar-panel-empty" *ngIf="notificacionesCount === 0 && solicitudesReapertura.length === 0 && !consultandoSolicitudes">
                                 <i class="fa fa-bell-slash"></i>
                                 <span>Sin notificaciones</span>
                             </div>

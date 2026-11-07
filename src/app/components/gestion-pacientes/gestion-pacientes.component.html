@@ -134,10 +134,19 @@
 
                                 <div class="col-12 d-md-flex d-sm-grid">
                                     <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
+                                        <p-dropdown [options]="opcionesRegimen" [(ngModel)]="formData.regimen"
+                                            [showClear]="true" appendTo="body" class="w-100"
+                                            [ngClass]="{ 'p-inputwrapper-filled': formData.regimen }"></p-dropdown>
+                                        <label>Régimen</label>
+                                    </p-floatlabel>
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
                                         <input pInputText [(ngModel)]="formData.tipo_poblacion" class="w-100" />
                                         <label>Tipo de población</label>
                                     </p-floatlabel>
-                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3">
+                                </div>
+
+                                <div class="col-12 d-md-flex d-sm-grid">
+                                    <p-floatlabel variant="on" class="col-lg-6 col-md-12 mt-3 me-2">
                                         <input pInputText [(ngModel)]="formData.nombre_acompanante" class="w-100" />
                                         <label>Acompañante</label>
                                     </p-floatlabel>

@@ -281,7 +281,10 @@ export class ReportesService {
     async obtenerReporteVacunacion(
         fechaInicio: String,
         fechaFin: String,
-        paciente: number | null
+        paciente: number | null,
+        sexo: string | null = null,
+        eps: string | null = null,
+        regimen: string | null = null
     ): Promise<Observable<any[]>> {
 
         const token = await this.secureStorage.getItem('token');
@@ -290,7 +293,10 @@ export class ReportesService {
         const body = {
             fecha_inicio: fechaInicio,
             fecha_fin: fechaFin,
-            paciente: paciente
+            paciente: paciente,
+            sexo: sexo,
+            eps: eps,
+            regimen: regimen
         };
 
         return this.http.post<any>(
@@ -308,7 +314,10 @@ export class ReportesService {
     async obtenerReporteVacunasAplicadas(
         fechaInicio: String,
         fechaFin: String,
-        vacuna: number | null
+        vacuna: number | null,
+        sexo: string | null = null,
+        eps: string | null = null,
+        regimen: string | null = null
     ): Promise<Observable<any[]>> {
 
         const token = await this.secureStorage.getItem('token');
@@ -317,11 +326,45 @@ export class ReportesService {
         const body = {
             fecha_inicio: fechaInicio,
             fecha_fin: fechaFin,
-            idVacuna: vacuna
+            idVacuna: vacuna,
+            sexo: sexo,
+            eps: eps,
+            regimen: regimen
         };
 
         return this.http.post<any>(
             `${this.urlApp}${this.urlAppAPI}getReporteVacunasAplicadas`,
+            body,
+            { headers }
+        ).pipe(
+            map(resp => resp.body)
+        );
+    }
+
+    /* ─────────────────────────────────────────────
+        LISTAR (GET) ─ getReporteVacunasPorEdad
+   ───────────────────────────────────────────── */
+    async obtenerReporteVacunasPorEdad(
+        fechaInicio: String,
+        fechaFin: String,
+        sexo: string | null,
+        edadMin: number | null,
+        edadMax: number | null
+    ): Promise<Observable<any[]>> {
+
+        const token = await this.secureStorage.getItem('token');
+
+        const headers = new HttpHeaders().set('authorization', `Bearer ${token}`);
+        const body = {
+            fecha_inicio: fechaInicio,
+            fecha_fin: fechaFin,
+            sexo: sexo,
+            edad_min: edadMin,
+            edad_max: edadMax
+        };
+
+        return this.http.post<any>(
+            `${this.urlApp}${this.urlAppAPI}getReporteVacunasPorEdad`,
             body,
             { headers }
         ).pipe(

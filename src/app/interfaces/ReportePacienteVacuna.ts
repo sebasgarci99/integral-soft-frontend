@@ -19,6 +19,7 @@ export interface ReportePacienteVacuna {
 }
 
 export interface VacunaDetalle {
+    numRegistro: number;
     vacuna: string;
     fechaVacuna: Date;
     lote: string;
@@ -35,6 +36,8 @@ export interface PacienteGrupo {
     sexo: string;
     telefono: string;
     email: string;
+    eps?: string;
+    regimen?: string;
     vacunas: VacunaDetalle[];
 }
 

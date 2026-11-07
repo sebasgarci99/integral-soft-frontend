@@ -41,13 +41,15 @@ export class TopbarComponent implements OnInit, OnDestroy {
     sincronizando = false;
     solicitudesReapertura: SgSstSolicitudReapertura[] = [];
     cargandoSolicitudes = false;
+    consultandoSolicitudes = false;
+    segundosConsulta = 0;
 
     // Diálogo de estado de sincronización
     mostrarDialogoSync = false;
     estadoSync: EstadoSync = { fase: 'inactivo', mensaje: '', enviados: 0, total: 0, error: null };
 
     private subs: Subscription[] = [];
-    private pollSolicitudes?: ReturnType<typeof setInterval>;
+    private timerConsulta?: ReturnType<typeof setInterval>;
 
     constructor(
         private router: Router,
@@ -81,10 +83,6 @@ export class TopbarComponent implements OnInit, OnDestroy {
                 this.nombreCompleto = data.nombre_completo;
                 this.idRol = String(data.id_rol ?? '');
                 this.rolUsuario = this.obtenerNombreRol(this.idRol);
-
-                if (String(data.id_rol) === '1') {
-                    this.cargarSolicitudesReapertura();
-                }
 
                 this.secureStorage.getItem('idUser').then(idUser => {
                     if (data.id_usuario != idUser) {
@@ -124,17 +122,13 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
         this.syncRecoleccion.actualizarContador();
 
-        this.pollSolicitudes = setInterval(() => {
-            if (this.idRol === '1') this.cargarSolicitudesReapertura();
-        }, 30000);
-
         // Precarga la lista de consultorios para poder registrar recolecciones sin internet.
         this.consultorioService.precachearConsultorios();
     }
 
     ngOnDestroy(): void {
         this.subs.forEach(s => s.unsubscribe());
-        if (this.pollSolicitudes) clearInterval(this.pollSolicitudes);
+        this.detenerTimerConsulta();
     }
 
     onAbrirSidebar(): void {
@@ -143,11 +137,14 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
     togglePanel(event: Event): void {
         event.stopPropagation();
-        if (this.idRol === '1') this.cargarSolicitudesReapertura();
-        this.panelAbierto = !this.panelAbierto;
+        const abriendo = !this.panelAbierto;
+        this.panelAbierto = abriendo;
 
-        if (this.panelAbierto) {
+        if (abriendo) {
             this.syncRecoleccion.actualizarContador();
+            if (this.idRol === '1') {
+                this.cargarSolicitudesReapertura();
+            }
         }
     }
 
@@ -187,7 +184,12 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
     async cargarSolicitudesReapertura(): Promise<void> {
         if (this.idRol !== '1' || this.cargandoSolicitudes) return;
+
         this.cargandoSolicitudes = true;
+        this.consultandoSolicitudes = true;
+        this.segundosConsulta = 0;
+        this.iniciarTimerConsulta();
+
         try {
             const observable = await this.sgSstService.getSolicitudesReapertura();
             const res = await firstValueFrom(observable);
@@ -196,6 +198,22 @@ export class TopbarComponent implements OnInit, OnDestroy {
             this.solicitudesReapertura = [];
         } finally {
             this.cargandoSolicitudes = false;
+            this.consultandoSolicitudes = false;
+            this.detenerTimerConsulta();
+        }
+    }
+
+    private iniciarTimerConsulta(): void {
+        this.detenerTimerConsulta();
+        this.timerConsulta = setInterval(() => {
+            this.segundosConsulta++;
+        }, 1000);
+    }
+
+    private detenerTimerConsulta(): void {
+        if (this.timerConsulta) {
+            clearInterval(this.timerConsulta);
+            this.timerConsulta = undefined;
         }
     }
 
@@ -303,6 +321,7 @@ Motivo: ${solicitud.motivo}`,
     }
 
     private ejecutarCierreSesion(): void {
+        this.detenerTimerConsulta();
         this.secureStorage.removeItem('token');
         this.secureStorage.removeItem('idUser');
         this.secureStorage.removeItem('idEmpresa');

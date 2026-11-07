@@ -86,6 +86,15 @@ export class PacientesComponent {
     formData: any = {};
     local_espaniol = { firstDayOfWeek: 1, dayNamesMin: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'], monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'] };
 
+    opcionesRegimen = [
+        { label: 'Contributivo', value: 'Contributivo' },
+        { label: 'Subsidiado', value: 'Subsidiado' },
+        { label: 'Especial', value: 'Especial' },
+        { label: 'Excepción', value: 'Excepción' },
+        { label: 'No afiliado', value: 'No afiliado' },
+        { label: 'Población pobre no asegurada', value: 'Población pobre no asegurada' }
+    ];
+
     constructor(
         private http: HttpClient,
         private messageService: MessageService,

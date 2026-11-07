@@ -203,6 +203,15 @@ export class GestionPacientesComponent implements OnInit {
         { label: 'Otro', value: 'O' }
     ];
 
+    opcionesRegimen = [
+        { label: 'Contributivo', value: 'Contributivo' },
+        { label: 'Subsidiado', value: 'Subsidiado' },
+        { label: 'Especial', value: 'Especial' },
+        { label: 'Excepción', value: 'Excepción' },
+        { label: 'No afiliado', value: 'No afiliado' },
+        { label: 'Población pobre no asegurada', value: 'Población pobre no asegurada' }
+    ];
+
     opcionesSiNo = [
         { label: 'Sí', value: true },
         { label: 'No', value: false }

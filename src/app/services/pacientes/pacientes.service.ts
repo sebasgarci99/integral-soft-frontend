@@ -94,6 +94,7 @@ export class PacientesService {
 
             // 3️⃣ Datos administrativos
             eps: data.eps,
+            regimen: data.regimen,
             tipo_poblacion: data.tipo_poblacion,
             nombre_acompanante: data.nombre_acompanante,
 
@@ -150,6 +151,7 @@ export class PacientesService {
 
             // 3️⃣ Datos administrativos
             eps: data.eps,
+            regimen: data.regimen,
             tipo_poblacion: data.tipo_poblacion,
             nombre_acompanante: data.nombre_acompanante,
 

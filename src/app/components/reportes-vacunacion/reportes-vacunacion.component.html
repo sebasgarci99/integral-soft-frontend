@@ -1,210 +1,310 @@
-<div class="flex-grow-1 p-4 dashboard">
-        <div class="card mt-2">
-            <div class="card-body">
-                <div class="component-header">
-                    <h3><i class="fa fa-chart-line"></i> Reportes de Vacunación</h3>
-                </div>
+<div class="rv-page flex-grow-1 p-4 dashboard">
+    <div class="rv-header card">
+        <div class="rv-header-content">
+            <div class="rv-header-icon">
+                <i class="fa fa-syringe"></i>
+            </div>
+            <div>
+                <span class="rv-eyebrow">Vacunación</span>
+                <h3>Reportes de Vacunación</h3>
+                <p>Consulta, filtra y exporta los registros de pacientes y vacunas aplicadas.</p>
+            </div>
+        </div>
+    </div>
 
-                <div class="card mt-2 p-3">
-                    <p-accordion [activeIndex]="0">
+    <div class="card mt-3 rv-card">
+        <div class="card-body">
+            <p-accordion [activeIndex]="0">
 
-                    <!-- ================================================= -->
-                    <!-- TAB: PACIENTES -->
-                    <!-- ================================================= -->
-                    <p-accordionTab header="Pacientes">
+                <!-- ================================================= -->
+                <!-- TAB: PACIENTES -->
+                <!-- ================================================= -->
+                <p-accordionTab header="Pacientes">
 
-                        <!-- ================= FILTROS ================= -->
-                        <div class="row mb-4">
-
-                            <div class="col-12 col-md-3 d-grid">
-                                <label>Fecha inicio</label>
+                    <div class="rv-filter-card">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6 col-lg-2">
+                                <label class="rv-label">Fecha inicio</label>
                                 <p-calendar [(ngModel)]="filtro.fechaInicio" dateFormat="yy-mm-dd" showIcon
-                                    appendTo="body">
+                                    appendTo="body" styleClass="w-100">
                                 </p-calendar>
                             </div>
 
-                            <div class="col-12 col-md-3 d-grid">
-                                <label>Fecha fin</label>
+                            <div class="col-12 col-md-6 col-lg-2">
+                                <label class="rv-label">Fecha fin</label>
                                 <p-calendar [(ngModel)]="filtro.fechaFin" dateFormat="yy-mm-dd" showIcon
-                                    appendTo="body">
+                                    appendTo="body" styleClass="w-100">
                                 </p-calendar>
                             </div>
 
-                            <div class="col-12 col-md-3 d-grid">
-                                <label>Paciente</label>
-                                <p-dropdown [options]="pacientes" [(ngModel)]="filtro.paciente"
+                            <div class="col-12 col-md-6 col-lg-2">
+                                <label class="rv-label">Paciente</label>
+                                <p-dropdown [options]="pacientesOpciones" [(ngModel)]="filtro.paciente"
                                     optionLabel="nombreCompleto" optionValue="key" placeholder="Seleccione paciente"
                                     appendTo="body" [checkmark]="true" [showClear]="true" [filter]="true"
-                                    filterBy="nombreCompleto">
+                                    filterBy="nombreCompleto" styleClass="w-100">
                                 </p-dropdown>
                             </div>
 
-                            <div class="col-12 col-md-2 d-flex gap-2 align-items-end">
-                                <button pButton icon="fa-solid fa-search" class="w-100" label="Generar"
-                                    (click)="generarReportePacientes()">
+                            <div class="col-12 col-md-6 col-lg-2">
+                                <label class="rv-label">Sexo</label>
+                                <p-dropdown [options]="opcionesSexo" [(ngModel)]="filtro.sexo" optionLabel="label"
+                                    optionValue="value" placeholder="Todos" appendTo="body" [showClear]="true"
+                                    styleClass="w-100">
+                                </p-dropdown>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-2">
+                                <label class="rv-label">EPS</label>
+                                <p-dropdown [options]="epsOpciones" [(ngModel)]="filtro.eps" placeholder="Todas"
+                                    appendTo="body" [showClear]="true" [filter]="true" styleClass="w-100">
+                                </p-dropdown>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-2">
+                                <label class="rv-label">Régimen</label>
+                                <p-dropdown [options]="opcionesRegimen" [(ngModel)]="filtro.regimen" optionLabel="label"
+                                    optionValue="value" placeholder="Todos" appendTo="body" [showClear]="true"
+                                    styleClass="w-100">
+                                </p-dropdown>
+                            </div>
+                        </div>
+
+                        <div class="rv-filter-actions">
+                            <div class="rv-quick">
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('mes', 'pacientes')">Mes actual</button>
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('mes-anterior', 'pacientes')">Mes anterior</button>
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('trimestre', 'pacientes')">Trimestre</button>
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('semestre', 'pacientes')">Semestre</button>
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('anio', 'pacientes')">Año actual</button>
+                            </div>
+
+                            <div class="d-flex gap-2 align-items-center flex-wrap">
+                                <button pButton icon="fa-solid fa-search" label="Consultar"
+                                    [loading]="cargandoPacientes" (click)="generarReportePacientes()">
                                 </button>
 
                                 <button pButton icon="fa-solid fa-file-excel" class="p-button-success"
-                                    [disabled]="!anioGrupos.length" (click)="exportarPacientesExcel()">
+                                    pTooltip="Exportar agrupado" [disabled]="!anioGrupos.length"
+                                    (click)="exportarPacientesExcel()">
                                 </button>
 
-                                <button pButton icon="fa-solid fa-file-excel" class="p-button-info"
-                                    [disabled]="!anioGrupos.length" (click)="exportarTodosRegistrosPacientesExcel()">
+                                <button pButton icon="fa-solid fa-table-list" class="p-button-info"
+                                    pTooltip="Exportar registros planos" [disabled]="!anioGrupos.length"
+                                    (click)="exportarTodosRegistrosPacientesExcel()">
                                 </button>
 
                                 <button pButton icon="fa-solid fa-file-pdf" class="p-button-danger"
-                                    [disabled]="!anioGrupos.length" (click)="exportarPacientesPdf()">
+                                    pTooltip="Exportar PDF" [disabled]="!anioGrupos.length"
+                                    (click)="exportarPacientesPdf()">
                                 </button>
                             </div>
-
                         </div>
+                    </div>
 
-                        <!-- ================= TABLA AÑOS ================= -->
-                        <p-table [value]="anioGrupos" dataKey="key" [expandedRowKeys]="expandedAnios"
-                            *ngIf="anioGrupos.length" styleClass="p-datatable-gridlines" stripedRows>
+                    <p-table [value]="anioGrupos" dataKey="key" [expandedRowKeys]="expandedAnios"
+                        *ngIf="anioGrupos.length" styleClass="p-datatable-gridlines rv-table" stripedRows
+                        [loading]="cargandoPacientes">
 
-                            <!-- Header Año -->
-                            <ng-template pTemplate="header">
-                                <tr>
-                                    <th style="width:3rem"></th>
-                                    <th>Año</th>
-                                    <th>Total pacientes</th>
-                                </tr>
-                            </ng-template>
-
-                            <!-- Body Año -->
-                            <ng-template pTemplate="body" let-anio let-expanded="expanded">
-                                <tr>
-                                    <td>
-                                        <button pButton pRipple [pRowToggler]="anio"
-                                            [icon]="expanded ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"
-                                            text>
-                                        </button>
-                                    </td>
-                                    <td>{{ anio.anio }}</td>
-                                    <td>{{ anio.pacientes.length }}</td>
-                                </tr>
-                            </ng-template>
-
-                            <!-- ========== EXPANSIÓN AÑO ========== -->
-                            <ng-template pTemplate="expandedrow" let-anio>
-                                <tr>
-                                    <td colspan="3">
-
-                                        <!-- ========== TABLA PACIENTES ========== -->
-                                        <p-table [value]="anio.pacientes" dataKey="key"
-                                            [expandedRowKeys]="expandedPacientes" size="small" stripedRows>
-
-                                            <!-- Header Paciente -->
-                                            <ng-template pTemplate="header">
-                                <tr>
-                                    <th style="width:3rem"></th>
-                                    <th>Paciente</th>
-                                    <th>Documento</th>
-                                    <th>Sexo</th>
-                                    <th>Teléfono</th>
-                                    <th>Email</th>
-                                </tr>
-                            </ng-template>
-
-                            <!-- Body Paciente -->
-                            <ng-template pTemplate="body" let-p let-expanded="expanded">
-                                <tr>
-                                    <td>
-                                        <button pButton pRipple [pRowToggler]="p"
-                                            [icon]="expanded ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"
-                                            text>
-                                        </button>
-                                    </td>
-                                    <td>{{ p.nombreCompleto }}</td>
-                                    <td>{{ p.documento }}</td>
-                                    <td>{{ p.sexo }}</td>
-                                    <td>{{ p.telefono }}</td>
-                                    <td>{{ p.email }}</td>
-                                </tr>
-                            </ng-template>
-
-                            <!-- ========== EXPANSIÓN PACIENTE ========== -->
-                            <ng-template pTemplate="expandedrow" let-p>
-                                <tr>
-                                    <td colspan="6">
-
-                                        <!-- ========== TABLA VACUNAS ========== -->
-                                        <p-table [value]="p.vacunas" size="small" stripedRows>
-
-                                            <ng-template pTemplate="header">
-                                <tr>
-                                    <th>Vacuna</th>
-                                    <th>Fecha</th>
-                                    <th>Lote</th>
-                                    <th>Dosis</th>
-                                    <th>Edad</th>
-                                    <th>Empresa/Entidad</th>
-                                    <th>Orden/Remisión</th>
-                                </tr>
-                            </ng-template>
-
-                            <ng-template pTemplate="body" let-v>
-                                <tr>
-                                    <td>{{ v.vacuna }}</td>
-                                    <td>{{ v.fechaVacuna | date:'yyyy-MM-dd' }}</td>
-                                    <td>{{ v.lote }}</td>
-                                    <td>{{ v.dosis }}</td>
-                                    <td>{{ v.edad }}</td>
-                                    <td>{{ v.empresa_entidad }}</td>
-                                    <td>{{ v.orden_remision }}</td>
-                                </tr>
-                            </ng-template>
-
-                        </p-table>
-
-                        </td>
-                        </tr>
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th style="width:3rem"></th>
+                                <th>Año</th>
+                                <th>Total pacientes</th>
+                            </tr>
                         </ng-template>
 
-                        </p-table>
-
-                        </td>
-                        </tr>
+                        <ng-template pTemplate="body" let-anio let-expanded="expanded">
+                            <tr>
+                                <td>
+                                    <button pButton pRipple [pRowToggler]="anio"
+                                        [icon]="expanded ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"
+                                        text>
+                                    </button>
+                                </td>
+                                <td>{{ anio.anio }}</td>
+                                <td>{{ anio.pacientes.length }}</td>
+                            </tr>
                         </ng-template>
 
-                        </p-table>
+                        <ng-template pTemplate="expandedrow" let-anio>
+                            <tr>
+                                <td colspan="3">
 
-                    </p-accordionTab>
+                                    <p-table [value]="anio.pacientes" dataKey="key"
+                                        [expandedRowKeys]="expandedPacientes" size="small" stripedRows>
 
-                    <!-- ================================================= -->
-                    <!-- TAB: VACUNACIÓN -->
-                    <!-- ================================================= -->
-                    <p-accordionTab header="Vacunación">
+                                        <ng-template pTemplate="header">
+                                            <tr>
+                                                <th style="width:3rem"></th>
+                                                <th>Paciente</th>
+                                                <th>Documento</th>
+                                                <th>Sexo</th>
+                                                <th>Teléfono</th>
+                                                <th>Email</th>
+                                                <th>EPS</th>
+                                                <th>Régimen</th>
+                                            </tr>
+                                        </ng-template>
 
-                        <!-- ================= FILTROS ================= -->
-                        <div class="row mb-4">
+                                        <ng-template pTemplate="body" let-p let-expanded="expanded">
+                                            <tr>
+                                                <td>
+                                                    <button pButton pRipple [pRowToggler]="p"
+                                                        [icon]="expanded ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"
+                                                        text>
+                                                    </button>
+                                                </td>
+                                                <td>{{ p.nombreCompleto }}</td>
+                                                <td>{{ p.documento }}</td>
+                                                <td>{{ p.sexo }}</td>
+                                                <td>{{ p.telefono }}</td>
+                                                <td>{{ p.email }}</td>
+                                                <td>{{ p.eps }}</td>
+                                                <td>{{ p.regimen }}</td>
+                                            </tr>
+                                        </ng-template>
 
-                            <div class="col-12 col-md-3 d-grid">
-                                <label>Fecha inicio</label>
+                                        <ng-template pTemplate="expandedrow" let-p>
+                                            <tr>
+                                                <td colspan="8">
+
+                                                    <p-table [value]="p.vacunas" size="small" stripedRows>
+
+                                                        <ng-template pTemplate="header">
+                                                            <tr>
+                                                                <th style="width:5rem">Registros</th>
+                                                                <th>Vacuna</th>
+                                                                <th>Fecha</th>
+                                                                <th>Lote</th>
+                                                                <th>Dosis</th>
+                                                                <th>Edad</th>
+                                                                <th>Empresa/Entidad</th>
+                                                                <th>Orden/Remisión</th>
+                                                            </tr>
+                                                        </ng-template>
+
+                                                        <ng-template pTemplate="body" let-v>
+                                                            <tr>
+                                                                <td><span class="rv-counter">{{ v.numRegistro }}</span></td>
+                                                                <td>{{ v.vacuna }}</td>
+                                                                <td>{{ v.fechaVacuna | date:'yyyy-MM-dd' }}</td>
+                                                                <td>{{ v.lote }}</td>
+                                                                <td>{{ v.dosis }}</td>
+                                                                <td>{{ v.edad }}</td>
+                                                                <td>{{ v.empresa_entidad }}</td>
+                                                                <td>{{ v.orden_remision }}</td>
+                                                            </tr>
+                                                        </ng-template>
+
+                                                    </p-table>
+
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+
+                                    </p-table>
+
+                                </td>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="footer">
+                            <tr>
+                                <td colspan="3">
+                                    <span class="rv-total-badge">
+                                        <i class="fa fa-list-ol"></i>
+                                        Total de registros: {{ totalRegistrosPacientes }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </ng-template>
+
+                    </p-table>
+
+                    <div class="rv-empty" *ngIf="!anioGrupos.length && !cargandoPacientes">
+                        <i class="fa fa-inbox"></i>
+                        <span>No hay datos para los filtros seleccionados.</span>
+                    </div>
+
+                </p-accordionTab>
+
+                <!-- ================================================= -->
+                <!-- TAB: VACUNACIÓN -->
+                <!-- ================================================= -->
+                <p-accordionTab header="Vacunación">
+
+                    <div class="rv-filter-card">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6 col-lg-2">
+                                <label class="rv-label">Fecha inicio</label>
                                 <p-calendar [(ngModel)]="filtroVac.fechaInicio" dateFormat="yy-mm-dd" showIcon
-                                    appendTo="body">
+                                    appendTo="body" styleClass="w-100">
                                 </p-calendar>
                             </div>
 
-                            <div class="col-12 col-md-3 d-grid">
-                                <label>Fecha fin</label>
+                            <div class="col-12 col-md-6 col-lg-2">
+                                <label class="rv-label">Fecha fin</label>
                                 <p-calendar [(ngModel)]="filtroVac.fechaFin" dateFormat="yy-mm-dd" showIcon
-                                    appendTo="body">
+                                    appendTo="body" styleClass="w-100">
                                 </p-calendar>
                             </div>
 
-                            <div class="col-12 col-md-3 d-grid">
-                                <label>Vacuna</label>
+                            <div class="col-12 col-md-6 col-lg-2">
+                                <label class="rv-label">Vacuna</label>
                                 <p-dropdown [options]="vacunas" [(ngModel)]="filtroVac.vacuna"
-                                    optionLabel="nombre_vacuna" optionValue="key" placeholder="Seleccione vacuna"
-                                    appendTo="body" [showClear]="true" [filter]="true" filterBy="nombre_vacuna">
+                                    optionLabel="nombre_vacuna" optionValue="key" placeholder="Todas"
+                                    appendTo="body" [showClear]="true" [filter]="true" filterBy="nombre_vacuna"
+                                    styleClass="w-100">
                                 </p-dropdown>
                             </div>
 
-                            <div class="col-12 col-md-3 d-flex gap-2 align-items-end">
-                                <button pButton label="Generar" icon="fa-solid fa-search" class="w-100"
-                                    (click)="generarReporteVacunacion()">
+                            <div class="col-12 col-md-6 col-lg-2">
+                                <label class="rv-label">Sexo</label>
+                                <p-dropdown [options]="opcionesSexo" [(ngModel)]="filtroVac.sexo" optionLabel="label"
+                                    optionValue="value" placeholder="Todos" appendTo="body" [showClear]="true"
+                                    styleClass="w-100">
+                                </p-dropdown>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-2">
+                                <label class="rv-label">EPS</label>
+                                <p-dropdown [options]="epsOpciones" [(ngModel)]="filtroVac.eps" placeholder="Todas"
+                                    appendTo="body" [showClear]="true" [filter]="true" styleClass="w-100">
+                                </p-dropdown>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-2">
+                                <label class="rv-label">Régimen</label>
+                                <p-dropdown [options]="opcionesRegimen" [(ngModel)]="filtroVac.regimen" optionLabel="label"
+                                    optionValue="value" placeholder="Todos" appendTo="body" [showClear]="true"
+                                    styleClass="w-100">
+                                </p-dropdown>
+                            </div>
+                        </div>
+
+                        <div class="rv-filter-actions">
+                            <div class="rv-quick">
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('mes', 'vacunacion')">Mes actual</button>
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('mes-anterior', 'vacunacion')">Mes anterior</button>
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('trimestre', 'vacunacion')">Trimestre</button>
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('semestre', 'vacunacion')">Semestre</button>
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('anio', 'vacunacion')">Año actual</button>
+                            </div>
+
+                            <div class="d-flex gap-2 align-items-center flex-wrap">
+                                <button pButton label="Consultar" icon="fa-solid fa-search"
+                                    [loading]="cargandoVacunacion" (click)="generarReporteVacunacion()">
                                 </button>
 
                                 <button pButton icon="fa-solid fa-file-excel" class="p-button-success"
@@ -215,123 +315,323 @@
                                     [disabled]="!vacunacionAnios.length" (click)="exportarVacunacionPdf()">
                                 </button>
                             </div>
+                        </div>
+                    </div>
 
+                    <p-table [value]="vacunacionAnios" dataKey="anio" [expandedRowKeys]="expandedVacAnios"
+                        *ngIf="vacunacionAnios.length" stripedRows styleClass="p-datatable-gridlines rv-table"
+                        [loading]="cargandoVacunacion">
+
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th style="width:3rem"></th>
+                                <th>Año</th>
+                                <th>Total Vacunas</th>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="body" let-anio let-expanded="expanded">
+                            <tr>
+                                <td>
+                                    <button pButton pRipple [pRowToggler]="anio"
+                                        [icon]="expanded ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"
+                                        text>
+                                    </button>
+                                </td>
+                                <td>{{ anio.anio }}</td>
+                                <td>{{ anio.vacunas.length }}</td>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="expandedrow" let-anio>
+                            <tr>
+                                <td colspan="3">
+
+                                    <p-table [value]="anio.vacunas" dataKey="nombre_vacuna"
+                                        [expandedRowKeys]="expandedVacunas" size="small" stripedRows>
+
+                                        <ng-template pTemplate="header">
+                                            <tr>
+                                                <th style="width:3rem"></th>
+                                                <th>Vacuna</th>
+                                                <th>Laboratorio</th>
+                                                <th>Dosis Parametrizadas</th>
+                                            </tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="body" let-vac let-expanded="expanded">
+                                            <tr>
+                                                <td>
+                                                    <button pButton pRipple [pRowToggler]="vac"
+                                                        [icon]="expanded ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"
+                                                        text>
+                                                    </button>
+                                                </td>
+                                                <td>{{ vac.nombre_vacuna }}</td>
+                                                <td>{{ vac.nombre_laboratorio }}</td>
+                                                <td>{{ vac.cantidad_dosis_parametrizada }}</td>
+                                            </tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="expandedrow" let-vac>
+                                            <tr>
+                                                <td colspan="4">
+
+                                                    <p-table [value]="vac.detalle" size="small" stripedRows>
+
+                                                        <ng-template pTemplate="header">
+                                                            <tr>
+                                                                <th style="width:5rem">Registros</th>
+                                                                <th>Mes</th>
+                                                                <th>Fecha Vacunación</th>
+                                                                <th>Lote</th>
+                                                                <th>Dosis Aplicada</th>
+                                                            </tr>
+                                                        </ng-template>
+
+                                                        <ng-template pTemplate="body" let-d>
+                                                            <tr>
+                                                                <td><span class="rv-counter">{{ d.numRegistro }}</span></td>
+                                                                <td>{{ d.mes_vacunacion }}</td>
+                                                                <td>{{ d.fecha_vacunacion | date:'yyyy-MM-dd' }}</td>
+                                                                <td>{{ d.lote_vacuna_aplicada }}</td>
+                                                                <td>{{ d.dosis_aplicada }}</td>
+                                                            </tr>
+                                                        </ng-template>
+
+                                                    </p-table>
+
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+
+                                    </p-table>
+
+                                </td>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="footer">
+                            <tr>
+                                <td colspan="3">
+                                    <span class="rv-total-badge">
+                                        <i class="fa fa-list-ol"></i>
+                                        Total de registros: {{ totalRegistrosVacunacion }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </ng-template>
+
+                    </p-table>
+
+                    <div class="rv-empty" *ngIf="!vacunacionAnios.length && !cargandoVacunacion">
+                        <i class="fa fa-inbox"></i>
+                        <span>No hay datos para los filtros seleccionados.</span>
+                    </div>
+
+                </p-accordionTab>
+
+                <!-- ================================================= -->
+                <!-- TAB: VACUNAS X EDAD -->
+                <!-- ================================================= -->
+                <p-accordionTab header="Vacunas x edad">
+
+                    <div class="rv-filter-card">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <label class="rv-label">Fecha inicio</label>
+                                <p-calendar [(ngModel)]="filtroEdad.fechaInicio" dateFormat="yy-mm-dd" showIcon
+                                    appendTo="body" styleClass="w-100">
+                                </p-calendar>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <label class="rv-label">Fecha fin</label>
+                                <p-calendar [(ngModel)]="filtroEdad.fechaFin" dateFormat="yy-mm-dd" showIcon
+                                    appendTo="body" styleClass="w-100">
+                                </p-calendar>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-2">
+                                <label class="rv-label">Sexo</label>
+                                <p-dropdown [options]="opcionesSexo" [(ngModel)]="filtroEdad.sexo" optionLabel="label"
+                                    optionValue="value" placeholder="Todos" appendTo="body" [showClear]="true"
+                                    styleClass="w-100">
+                                </p-dropdown>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-2">
+                                <label class="rv-label">
+                                    Edad
+                                    <button type="button" class="rv-info-btn" title="Cómo se calcula la edad"
+                                        (click)="mostrarInfoEdad = true">
+                                        <i class="fa fa-circle-info"></i>
+                                    </button>
+                                </label>
+                                <p-dropdown [options]="rangosEdad" [(ngModel)]="filtroEdad.edad" optionLabel="label"
+                                    placeholder="Todas" appendTo="body" [showClear]="true" styleClass="w-100">
+                                </p-dropdown>
+                            </div>
                         </div>
 
-                        <!-- ================= TABLA AÑOS ================= -->
-                        <p-table [value]="vacunacionAnios" dataKey="anio" [expandedRowKeys]="expandedVacAnios"
-                            *ngIf="vacunacionAnios.length" stripedRows styleClass="p-datatable-gridlines">
+                        <div class="rv-filter-actions">
+                            <div class="rv-quick">
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('mes', 'edad')">Mes actual</button>
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('mes-anterior', 'edad')">Mes anterior</button>
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('trimestre', 'edad')">Trimestre</button>
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('semestre', 'edad')">Semestre</button>
+                                <button type="button" class="rv-quick-btn"
+                                    (click)="aplicarRango('anio', 'edad')">Año actual</button>
+                            </div>
 
-                            <!-- Header Año -->
-                            <ng-template pTemplate="header">
-                                <tr>
-                                    <th style="width:3rem"></th>
-                                    <th>Año</th>
-                                    <th>Total Vacunas</th>
-                                </tr>
-                            </ng-template>
+                            <div class="d-flex gap-2 align-items-center flex-wrap">
+                                <button pButton label="Consultar" icon="fa-solid fa-search"
+                                    [loading]="cargandoEdad" (click)="generarReporteVacunasPorEdad()">
+                                </button>
 
-                            <!-- Body Año -->
-                            <ng-template pTemplate="body" let-anio let-expanded="expanded">
-                                <tr>
-                                    <td>
-                                        <button pButton pRipple [pRowToggler]="anio"
-                                            [icon]="expanded ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"
-                                            text>
-                                        </button>
-                                    </td>
-                                    <td>{{ anio.anio }}</td>
-                                    <td>{{ anio.vacunas.length }}</td>
-                                </tr>
-                            </ng-template>
+                                <button pButton icon="fa-solid fa-file-excel" class="p-button-success"
+                                    [disabled]="!vacunasPorEdad.length" (click)="exportarVacunasPorEdadExcel()">
+                                </button>
 
-                            <!-- ========== EXPANSIÓN AÑO ========== -->
-                            <ng-template pTemplate="expandedrow" let-anio>
-                                <tr>
-                                    <td colspan="3">
+                                <button pButton icon="fa-solid fa-file-pdf" class="p-button-danger"
+                                    [disabled]="!vacunasPorEdad.length" (click)="exportarVacunasPorEdadPdf()">
+                                </button>
 
-                                        <!-- ========== TABLA VACUNAS ========== -->
-                                        <p-table [value]="anio.vacunas" dataKey="nombre_vacuna"
-                                            [expandedRowKeys]="expandedVacunas" size="small" stripedRows>
+                                <button pButton icon="fa-solid fa-circle-info" label="Info"
+                                    class="p-button-help" pTooltip="Cómo se calcula la edad"
+                                    (click)="mostrarInfoEdad = true">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
-                                            <!-- Header Vacuna -->
-                                            <ng-template pTemplate="header">
-                                <tr>
-                                    <th style="width:3rem"></th>
-                                    <th>Vacuna</th>
-                                    <th>Laboratorio</th>
-                                    <th>Dosis Parametrizadas</th>
-                                </tr>
-                            </ng-template>
+                    <p-table [value]="vacunasPorEdad" *ngIf="vacunasPorEdad.length"
+                        styleClass="p-datatable-gridlines rv-table" stripedRows [loading]="cargandoEdad"
+                        [scrollable]="true" scrollDirection="horizontal">
 
-                            <!-- Body Vacuna -->
-                            <ng-template pTemplate="body" let-vac let-expanded="expanded">
-                                <tr>
-                                    <td>
-                                        <button pButton pRipple [pRowToggler]="vac"
-                                            [icon]="expanded ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"
-                                            text>
-                                        </button>
-                                    </td>
-                                    <td>{{ vac.nombre_vacuna }}</td>
-                                    <td>{{ vac.nombre_laboratorio }}</td>
-                                    <td>{{ vac.cantidad_dosis_parametrizada }}</td>
-                                </tr>
-                            </ng-template>
-
-                            <!-- ========== EXPANSIÓN VACUNA ========== -->
-                            <ng-template pTemplate="expandedrow" let-vac>
-                                <tr>
-                                    <td colspan="4">
-
-                                        <!-- ========== TABLA DETALLE ========== -->
-                                        <p-table [value]="vac.detalle" size="small" stripedRows>
-
-                                            <ng-template pTemplate="header">
-                                <tr>
-                                    <th>Mes</th>
-                                    <th>Fecha Vacunación</th>
-                                    <th>Lote</th>
-                                    <th>Dosis Aplicada</th>
-                                </tr>
-                            </ng-template>
-
-                            <ng-template pTemplate="body" let-d>
-                                <tr>
-                                    <td>{{ d.mes_vacunacion }}</td>
-                                    <td>{{ d.fecha_vacunacion | date:'yyyy-MM-dd' }}</td>
-                                    <td>{{ d.lote_vacuna_aplicada }}</td>
-                                    <td>{{ d.dosis_aplicada }}</td>
-                                </tr>
-                            </ng-template>
-
-                        </p-table>
-
-                        </td>
-                        </tr>
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th style="min-width:5rem">Registros</th>
+                                <th style="min-width:8rem">Fecha vacuna</th>
+                                <th style="min-width:11rem">Vacuna aplicada</th>
+                                <th style="min-width:8rem">Lote</th>
+                                <th style="min-width:12rem">Paciente</th>
+                                <th style="min-width:9rem">Documento</th>
+                                <th style="min-width:5rem">Edad</th>
+                                <th style="min-width:10rem">EPS</th>
+                                <th style="min-width:5rem">Sexo</th>
+                                <th style="min-width:12rem">Email</th>
+                            </tr>
                         </ng-template>
 
-                        </p-table>
-
-                        </td>
-                        </tr>
+                        <ng-template pTemplate="body" let-v>
+                            <tr>
+                                <td><span class="rv-counter">{{ v.numRegistro }}</span></td>
+                                <td>{{ v.fecha_vacuna | date:'yyyy-MM-dd' }}</td>
+                                <td>{{ v.vacuna_aplicada }}</td>
+                                <td>{{ v.lote }}</td>
+                                <td>{{ v.paciente }}</td>
+                                <td>{{ v.documento }}</td>
+                                <td>{{ v.edad }}</td>
+                                <td>{{ v.eps }}</td>
+                                <td>{{ v.sexo }}</td>
+                                <td>{{ v.email }}</td>
+                            </tr>
                         </ng-template>
 
-                        </p-table>
+                        <ng-template pTemplate="footer">
+                            <tr>
+                                <td colspan="10">
+                                    <span class="rv-total-badge">
+                                        <i class="fa fa-list-ol"></i>
+                                        Total de registros: {{ totalRegistrosEdad }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </ng-template>
 
-                    </p-accordionTab>
+                    </p-table>
 
-                    <!-- ================================================= -->
-                    <!-- TAB: OTROS -->
-                    <!-- ================================================= -->
-                    <p-accordionTab header="Otros reportes">
-                        <p class="text-muted">
-                            Sección reservada para futuros reportes de negocio.
-                        </p>
-                    </p-accordionTab>
+                    <div class="rv-empty" *ngIf="!vacunasPorEdad.length && !cargandoEdad">
+                        <i class="fa fa-inbox"></i>
+                        <span>No hay datos para los filtros seleccionados.</span>
+                    </div>
 
-                </p-accordion>
-                </div>
-            </div>
+                </p-accordionTab>
+
+                <!-- ================================================= -->
+                <!-- TAB: OTROS -->
+                <!-- ================================================= -->
+                <p-accordionTab header="Otros reportes">
+                    <p class="text-muted mb-0">
+                        Sección reservada para futuros reportes de negocio.
+                    </p>
+                </p-accordionTab>
+
+            </p-accordion>
         </div>
     </div>
+
+    <!-- ================================================= -->
+    <!-- INFO: CÁLCULO DE EDAD -->
+    <!-- ================================================= -->
+    <p-dialog header="¿Cómo se calcula la edad?" [(visible)]="mostrarInfoEdad" [modal]="true"
+        [style]="{ width: '640px' }" [breakpoints]="{ '960px': '92vw' }" [draggable]="false"
+        [resizable]="false">
+
+        <div class="rv-info">
+            <div class="rv-info-item">
+                <i class="fa fa-cake-candles"></i>
+                <div>
+                    <h6>Edad a la fecha de vacunación</h6>
+                    <p>
+                        La columna <strong>Edad</strong> muestra los años cumplidos del paciente
+                        <strong>el día en que se aplicó la vacuna</strong>, no la edad actual.
+                    </p>
+                    <code>EXTRACT(YEAR FROM AGE(fecha_vacunacion, fecha_nacimiento))</code>
+                </div>
+            </div>
+
+            <div class="rv-info-item">
+                <i class="fa fa-filter"></i>
+                <div>
+                    <h6>Filtro por rangos</h6>
+                    <p>
+                        Los rangos se aplican con el límite inferior incluido y el superior excluido:
+                        <strong>0 a 9</strong>, <strong>10 a 19</strong>, <strong>20 a 29</strong>, etc.
+                        Así una edad nunca cae en dos rangos.
+                    </p>
+                </div>
+            </div>
+
+            <div class="rv-info-item">
+                <i class="fa fa-list-ol"></i>
+                <div>
+                    <h6>¿Qué es un registro?</h6>
+                    <p>
+                        Cada fila es <strong>una vacuna aplicada</strong>. Si un paciente recibe
+                        3 vacunas en la misma atención, se contarán 3 registros. El total del
+                        footer es la cantidad de filas devueltas.
+                    </p>
+                </div>
+            </div>
+
+            <div class="rv-info-example">
+                <strong>Ejemplo:</strong>
+                paciente nacido el <strong>2010-05-15</strong>.
+                Si se vacunó el <strong>2020-05-14</strong>, tenía 9 años → cae en <strong>0 a 9</strong>.
+                Si se vacunó el <strong>2020-05-15</strong>, cumplió 10 años → cae en <strong>10 a 19</strong>.
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <button pButton label="Entendido" icon="fa-solid fa-check"
+                (click)="mostrarInfoEdad = false">
+            </button>
+        </ng-template>
+    </p-dialog>
+</div>

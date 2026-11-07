@@ -39,6 +39,7 @@ export interface GestionPaciente {
 
     // Datos admin
     eps?: string;
+    regimen?: string;
     tipo_poblacion?: string;
     nombre_acompanante?: string;
 }

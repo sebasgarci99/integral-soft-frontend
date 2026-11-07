@@ -9,6 +9,7 @@ export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
 
     const excluirDeLoader = url.includes('api/usuario/login')
         || url.includes('api/usuario/getinfouser')
+        || url.includes('api/sg-sst/getsolicitudesreapertura')
         || req.headers.has('x-offline-sync');
 
     if (excluirDeLoader) {
