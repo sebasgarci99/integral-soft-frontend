@@ -16,7 +16,8 @@ const projectRoot = resolve(scriptDir, '..');
 const mainBuild = join(projectRoot, 'dist', 'rh-soft', 'browser');
 const landingBuild = join(projectRoot, 'dist', 'gc-gestion-de-apoyo', 'browser');
 const deployTarget = join(projectRoot, 'dist', 'public_html');
-const landingTarget = join(deployTarget, 'gc-gestion-de-apoyo');
+const landingFolder = 'gc';
+const landingTarget = join(deployTarget, landingFolder);
 
 const run = (command) => {
     console.log(`\n▶ ${command}`);
@@ -85,8 +86,8 @@ try {
     console.log(`  base href app principal: ${mainBaseHref}`);
     console.log(`  base href landing: ${landingBaseHref}`);
     console.log('\n  Estructura:');
-    console.log('   /                     → app principal');
-    console.log('   /gc-gestion-de-apoyo/ → landing GC');
+    console.log('   /          → app principal');
+    console.log(`   /${landingFolder}/       → landing GC`);
     console.log('\n  Sube el contenido de dist/public_html a la carpeta public_html del host.');
     console.log('  Incluye los archivos ocultos .htaccess de la raíz y de la landing.');
 } catch (error) {
