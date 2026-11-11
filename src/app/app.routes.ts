@@ -40,6 +40,7 @@ import { MantenimientosComponent } from './components/mantenimientos/mantenimien
 import { PosComponent } from './components/pos/pos.component';
 import { VentasComponent } from './components/pos/ventas/ventas.component';
 import { ConfiguracionPosComponent } from './components/pos/configuracion/configuracion-pos.component';
+import { FactRipsComponent } from './components/fact-rips/fact-rips.component';
 
 export const routes: Routes = [
     { path: 'login', loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent) },
@@ -80,6 +81,12 @@ export const routes: Routes = [
             { path: 'pos', component: PosComponent },
             { path: 'pos/ventas', component: VentasComponent },
             { path: 'pos/configuracion', component: ConfiguracionPosComponent },
+            { path: 'fact_rips', redirectTo: 'fact_rips/dashboard', pathMatch: 'full' },
+            { path: 'fact_rips/dashboard', component: FactRipsComponent, data: { pestana: 'dashboard' } },
+            { path: 'fact_rips/facturar', component: FactRipsComponent, data: { pestana: 'facturar' } },
+            { path: 'fact_rips/historial', component: FactRipsComponent, data: { pestana: 'historial' } },
+            { path: 'fact_rips/reportes', component: FactRipsComponent, data: { pestana: 'reportes' } },
+            { path: 'fact_rips/configuracion', component: FactRipsComponent, data: { pestana: 'configuracion' } },
             { path: 'programacion_pacientes', component: ProgramacionPacientesComponent },
             { path: 'pqrs/propiedades', component: PropiedadesHorizontalesComponent },
             { path: 'pqrs/seguimiento', component: SeguimientoPqrsComponent },
