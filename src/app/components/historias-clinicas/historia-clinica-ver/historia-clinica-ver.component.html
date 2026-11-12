@@ -1,0 +1,285 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="container-fluid py-2">
+    <div class="hc-page-header">
+        <div class="hc-page-heading">
+            <button type="button" class="hc-back-link" (click)="volver()">
+                <i class="fa fa-arrow-left"></i> Volver a la historia clínica
+            </button>
+            <h3 class="hc-page-title">
+                <i class="fa fa-file-medical"></i>
+                {{ historia?.tipo_registro === 'CORRECCION' ? 'Nota de corrección' : 'Registro de historia clínica' }}
+            </h3>
+            <p class="hc-page-subtitle" *ngIf="historia">
+                {{ historia.especialidad }} · {{ formatoFecha(historia.fecha_atencion) }} · {{ historia.tipo_registro }}
+            </p>
+        </div>
+        <div class="hc-page-actions" *ngIf="historia">
+            <p-button label="PDF" icon="fa fa-file-pdf" severity="secondary" [outlined]="true"
+                styleClass="hc-page-action" (onClick)="descargarPdf('PUBLICO')"></p-button>
+            <p-button label="PDF privado" icon="fa fa-lock" severity="secondary" [outlined]="true"
+                styleClass="hc-page-action" (onClick)="descargarPdf('PRIVADO')"></p-button>
+            <p-button *ngIf="puedeCorregir" label="Nota de corrección" icon="fa fa-file-medical" severity="warn"
+                [outlined]="true" styleClass="hc-page-action" (onClick)="abrirCorreccion()"></p-button>
+            <p-button *ngIf="puedeAnular" label="Anular" icon="fa fa-ban" severity="danger"
+                [outlined]="true" styleClass="hc-page-action" (onClick)="anular()"></p-button>
+        </div>
+    </div>
+
+    <div class="card hc-patient-banner mb-3" *ngIf="historia">
+        <div class="card-body d-flex flex-wrap align-items-center gap-3">
+            <div class="hc-patient-avatar"><i class="fa fa-user"></i></div>
+            <div class="flex-grow-1">
+                <h4 class="mb-1">{{ historia.paciente_nombre_snapshot }}</h4>
+                <div class="d-flex flex-wrap gap-3 text-muted hc-patient-meta">
+                    <span><i class="fa fa-id-card"></i> {{ historia.paciente_documento_snapshot }}</span>
+                    <span *ngIf="historia.paciente_edad_snapshot"><i class="fa fa-cake-candles"></i> {{ historia.paciente_edad_snapshot }} años</span>
+                    <span><i class="fa fa-building"></i> {{ historia.empresa_snapshot }}</span>
+                </div>
+            </div>
+            <p-tag [value]="historia.estado" [severity]="getEstadoSeverity(historia.estado)"></p-tag>
+            <p-tag [value]="historia.tipo_registro" [severity]="getTipoSeverity(historia.tipo_registro)"></p-tag>
+        </div>
+    </div>
+
+    <div *ngIf="historia?.id_historia_origen" class="hc-note mb-3">
+        <i class="fa fa-link"></i>
+        Registro enlazado al historial del paciente. El registro original no se modificó.
+    </div>
+
+    <div *ngIf="cargando" class="text-center text-muted py-5">
+        <i class="fa fa-spinner fa-spin me-2"></i>Cargando registro...
+    </div>
+
+    <ng-container *ngIf="!cargando && historia">
+        <p-tabs [scrollable]="true" [(value)]="activeTab">
+            <p-tablist>
+                <p-tab [value]="0"><i class="fa fa-notes-medical me-1"></i> Registro</p-tab>
+                <p-tab [value]="1"><i class="fa fa-lock me-1"></i> Datos privados</p-tab>
+            </p-tablist>
+            <p-tabpanels>
+                <p-tabpanel [value]="0">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="hc-section-title"><i class="fa fa-id-card"></i> Datos generales</div>
+                            <div class="hc-read-grid">
+                                <div><span>Fecha</span><strong>{{ formatoFecha(historia.fecha_atencion) }}</strong></div>
+                                <div><span>Empresa</span><strong>{{ historia.empresa_snapshot }}</strong></div>
+                                <div><span>Documento</span><strong>{{ historia.paciente_documento_snapshot }}</strong></div>
+                                <div><span>Edad</span><strong>{{ historia.paciente_edad_snapshot }} años</strong></div>
+                                <div><span>Profesional</span><strong>{{ historia.profesional_nombre_snapshot }}</strong></div>
+                                <div><span>Registro profesional</span><strong>{{ historia.profesional_registro_snapshot }}</strong></div>
+                                <div class="span-2"><span>Motivo</span><strong>{{ historia.motivo || 'Sin motivo' }}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <div class="hc-section-title"><i class="fa fa-eye"></i> Antecedentes visuales</div>
+                            <p class="hc-read-text">{{ datos['antecedentes_visuales'] || 'Sin antecedentes registrados.' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <div class="hc-section-title"><i class="fa fa-table-cells-large"></i> 1. Agudeza visual</div>
+                            <div class="table-responsive">
+                                <table class="table hc-optometry-table align-middle">
+                                    <thead><tr><th>Visión</th><th>O.D.</th><th>O.I.</th><th>P.H.</th></tr></thead>
+                                    <tbody>
+                                        <tr><td><strong>Lejana</strong></td><td>{{ datos['av_vl_od'] || '—' }}</td><td>{{ datos['av_vl_oi'] || '—' }}</td><td>{{ datos['av_vl_ph'] || '—' }}</td></tr>
+                                        <tr><td><strong>Cercana</strong></td><td>{{ datos['av_vc_od'] || '—' }}</td><td>{{ datos['av_vc_oi'] || '—' }}</td><td>{{ datos['av_vc_ph'] || '—' }}</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="hc-section-title"><i class="fa fa-eye"></i> 2. Examen externo</div>
+                                    <p class="hc-read-text"><strong>O.D.:</strong> {{ datos['examen_externo_od'] || '—' }}</p>
+                                    <p class="hc-read-text"><strong>O.I.:</strong> {{ datos['examen_externo_oi'] || '—' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="hc-section-title"><i class="fa fa-circle-half-stroke"></i> 3. Oftalmoscopia</div>
+                                    <p class="hc-read-text"><strong>O.D.:</strong> {{ datos['oftalmoscopia_od'] || '—' }}</p>
+                                    <p class="hc-read-text"><strong>O.I.:</strong> {{ datos['oftalmoscopia_oi'] || '—' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <div class="hc-section-title"><i class="fa fa-arrows-left-right"></i> 4. Estado fórico</div>
+                            <div class="hc-read-grid">
+                                <div><span>Visión lejana</span><strong>{{ datos['estado_forico_vl'] || '—' }}</strong></div>
+                                <div><span>Visión cercana</span><strong>{{ datos['estado_forico_vc'] || '—' }}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <div class="card h-100"><div class="card-body">
+                                <div class="hc-section-title"><i class="fa fa-palette"></i> 5. Test de Ishihara</div>
+                                <p class="hc-read-text">{{ datos['ishihara'] || '—' }}</p>
+                            </div></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100"><div class="card-body">
+                                <div class="hc-section-title"><i class="fa fa-ruler"></i> 6. Test de profundidad</div>
+                                <p class="hc-read-text">{{ datos['profundidad'] || '—' }}</p>
+                            </div></div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <div class="hc-section-title"><i class="fa fa-glasses"></i> 7. Refracción</div>
+                            <div class="hc-read-grid">
+                                <div><span>O.D.</span><strong>{{ datos['refraccion_od'] || '—' }}</strong></div>
+                                <div><span>O.I.</span><strong>{{ datos['refraccion_oi'] || '—' }}</strong></div>
+                                <div><span>A.D. D</span><strong>{{ datos['refraccion_add'] || '—' }}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <div class="hc-section-title"><i class="fa fa-stethoscope"></i> 8. Diagnóstico</div>
+                            <div class="hc-read-grid">
+                                <div><span>O.D.</span><strong>{{ datos['diagnostico_od'] || '—' }}</strong></div>
+                                <div><span>O.I.</span><strong>{{ datos['diagnostico_oi'] || '—' }}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <div class="hc-section-title"><i class="fa fa-clipboard-list"></i> 9. Disposición</div>
+                            <p class="hc-read-text">{{ datos['disposicion'] || 'Sin disposición.' }}</p>
+                            <div class="hc-section-title mt-3"><i class="fa fa-comment-medical"></i> 10. Observación</div>
+                            <p class="hc-read-text">{{ datos['observacion'] || 'Sin observación.' }}</p>
+                            <div class="hc-section-title mt-3"><i class="fa fa-calendar-plus"></i> 11. Control</div>
+                            <p class="hc-read-text">{{ datos['control'] || 'Sin control definido.' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <div class="hc-section-title"><i class="fa fa-signature"></i> Firma del profesional</div>
+                            <div class="hc-signature-pad">
+                                <div class="hc-signature-watermark">DOCUMENTO ELECTRÓNICO · INTEGRAL-SOFT</div>
+                                <div class="hc-signature-line">{{ historia.profesional_nombre_snapshot }}</div>
+                                <strong>{{ historia.profesional_nombre_snapshot }}</strong>
+                                <small>{{ historia.profesional_documento_snapshot }} · {{ historia.profesional_registro_snapshot }}</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hc-note mt-3">
+                        <i class="fa fa-clock-rotate-left"></i>
+                        <span>
+                            Última modificación: {{ formatoFecha(historia.updated_at || historia.fecha_atencion) }} ·
+                            {{ historia.profesional_nombre_snapshot }}.
+                            Hash de integridad: {{ historia.hash_integridad || 'Pendiente' }}.
+                        </span>
+                    </div>
+                </p-tabpanel>
+
+                <p-tabpanel [value]="1">
+                    <div class="card hc-private-locked" *ngIf="!accessToken">
+                        <div class="card-body text-center">
+                            <div class="hc-empty-icon"><i class="fa fa-lock"></i></div>
+                            <h4>Datos privados del paciente</h4>
+                            <p class="text-muted">
+                                Solo ves las entradas privadas que tú creaste; el rol 1 ve todas.
+                                Cada registro conserva su propia entrada privada.
+                            </p>
+                            <div class="hc-note mb-3">
+                                <i class="fa fa-user-shield"></i>
+                                El acceso se registra en la auditoría.
+                            </div>
+                            <p-button label="Solicitar acceso" icon="fa fa-key" (onClick)="abrirDialogoPrivado()"></p-button>
+                        </div>
+                    </div>
+
+                    <div class="card" *ngIf="accessToken">
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2 pb-2 border-bottom">
+                                <h5 class="mb-0"><i class="fa fa-lock-open me-1 text-info"></i> Datos privados del paciente</h5>
+                                <p-button label="Bloquear ahora" icon="fa fa-lock" severity="secondary" [outlined]="true"
+                                    size="small" (onClick)="bloquearPrivado()"></p-button>
+                            </div>
+
+                            <div class="hc-note mb-3">
+                                <i class="fa fa-user-shield"></i>
+                                {{ esRol1 ? 'Rol 1: viendo todas las entradas privadas del paciente.' : 'Viendo solo las entradas privadas creadas por ti.' }}
+                            </div>
+
+                            <div *ngIf="privateLoading" class="text-center text-muted py-4">
+                                <i class="fa fa-spinner fa-spin me-2"></i>Cargando datos privados...
+                            </div>
+
+                            <div *ngIf="!privateLoading && privateEntries.length === 0" class="hc-note">
+                                <i class="fa fa-circle-info"></i> No hay entradas privadas visibles para este profesional.
+                            </div>
+
+                            <div class="hc-private-entry" *ngFor="let entry of privateEntries">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                    <p-tag [value]="formatoFecha(entry.fecha)" severity="info"></p-tag>
+                                    <strong>{{ entry.profesional }}</strong>
+                                    <p-tag *ngIf="entry.es_creador" value="Tu entrada" severity="success"></p-tag>
+                                    <p-tag *ngIf="!entry.es_creador" value="Otro profesional" severity="warn"></p-tag>
+                                    <p-tag [value]="entry.tipo_registro" severity="info"></p-tag>
+                                </div>
+                                <p><strong>Notas reservadas:</strong> {{ entry.datos['notas'] || 'Sin notas.' }}</p>
+                                <p><strong>Salud mental:</strong> {{ entry.datos['salud_mental'] || 'Sin datos.' }}</p>
+                                <p><strong>Salud sexual y reproductiva:</strong> {{ entry.datos['salud_sexual'] || 'Sin datos.' }}</p>
+                                <p><strong>Violencia:</strong> {{ entry.datos['violencia'] || 'Sin datos.' }}</p>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-3">
+                                <p-button label="PDF privado" icon="fa fa-file-pdf" severity="secondary" [outlined]="true"
+                                    (onClick)="descargarPdf('PRIVADO')"></p-button>
+                            </div>
+                        </div>
+                    </div>
+                </p-tabpanel>
+            </p-tabpanels>
+        </p-tabs>
+    </ng-container>
+</div>
+
+<p-dialog header="Nota de corrección" [(visible)]="correccionVisible" [modal]="true" [draggable]="false"
+    [style]="{ width: '32rem' }">
+    <p class="text-muted">
+        La nota de corrección se guarda como un registro nuevo enlazado al original. El registro original no se modifica.
+    </p>
+    <label class="form-label">Motivo / contenido de la corrección</label>
+    <textarea pInputTextarea [(ngModel)]="motivoCorreccion" rows="4" class="w-100" placeholder="Describe la corrección..."></textarea>
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="correccionVisible = false"></p-button>
+        <p-button label="Registrar nota" icon="fa fa-save" [loading]="guardandoCorreccion" (onClick)="guardarCorreccion()"></p-button>
+    </ng-template>
+</p-dialog>
+
+<app-hc-privacidad-dialog
+    [visible]="privateDialogVisible"
+    (visibleChange)="privateDialogVisible = $event"
+    [idPaciente]="historia?.id_paciente || null"
+    [idHistoria]="historia?.id_historia || null"
+    [correo]="permisos?.correo || null"
+    [correoConfigurado]="permisos?.correo_configurado || false"
+    (accesoConcedido)="onAccesoConcedido($event)">
+</app-hc-privacidad-dialog>

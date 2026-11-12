@@ -215,8 +215,9 @@
                 <div class="row d-flex">
                     <div class="col-lg-6 col-md-12">
                         <label class="form-label">Tipo de Periodicidad</label>
-                        <p-dropdown [options]="opcionesPeriodicidad" [(ngModel)]="formData.tipo_periodicidad"
-                            [style]="{'width': '100%'}">
+                        <p-dropdown [options]="opcionesPeriodicidad" optionLabel="label" optionValue="value"
+                            [(ngModel)]="formData.tipo_periodicidad" [style]="{'width': '100%'}"
+                            appendTo="body" scrollHeight="400px">
                         </p-dropdown>
                     </div>
                     <div class="col-lg-6 col-md-12">

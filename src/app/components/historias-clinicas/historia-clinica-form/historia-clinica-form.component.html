@@ -1,0 +1,399 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="container-fluid py-2 hc-form">
+    <div class="hc-page-header">
+        <div class="hc-page-heading">
+            <button type="button" class="hc-back-link" (click)="irAHistoria()">
+                <i class="fa fa-arrow-left"></i> Volver a la historia clínica
+            </button>
+            <h3 class="hc-page-title">
+                <i class="fa fa-file-medical"></i>
+                {{ esEdicion ? 'Editar registro de historia clínica' : 'Nuevo registro en la historia clínica' }}
+            </h3>
+            <p class="hc-page-subtitle">
+                Optometría · F-HC-03 · Se creará un registro independiente para esta fecha.
+            </p>
+        </div>
+    </div>
+
+    <div class="card hc-empty-card" *ngIf="accesoDenegado">
+        <div class="card-body text-center">
+            <div class="hc-empty-icon danger"><i class="fa fa-lock"></i></div>
+            <h4>Módulo no habilitado</h4>
+            <p class="text-muted">Tu usuario no tiene asignado el módulo de Historias Clínicas.</p>
+            <p-button label="Volver a pacientes" icon="fa fa-arrow-left" (onClick)="irAHistoria()"></p-button>
+        </div>
+    </div>
+
+    <ng-container *ngIf="!accesoDenegado">
+        <div class="card hc-patient-banner mb-3" *ngIf="paciente">
+            <div class="card-body d-flex flex-wrap align-items-center gap-3">
+                <div class="hc-patient-avatar"><i class="fa fa-user"></i></div>
+                <div class="flex-grow-1">
+                    <h4 class="mb-1">{{ paciente.nombres }} {{ paciente.apellidos }}</h4>
+                    <div class="d-flex flex-wrap gap-3 text-muted hc-patient-meta">
+                        <span><i class="fa fa-id-card"></i> {{ paciente.tipo_documento }} {{ paciente.numero_documento }}</span>
+                        <span *ngIf="paciente.fecha_nacimiento"><i class="fa fa-cake-candles"></i> {{ paciente.fecha_nacimiento | date:'dd/MM/yyyy' }}</span>
+                        <span><i class="fa fa-building"></i> {{ paciente.id_empresa ? 'Empresa en sesión' : '' }}</span>
+                    </div>
+                </div>
+                <p-tag value="Optometría" severity="info"></p-tag>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs hc-top-tabs mb-3">
+            <li class="nav-item">
+                <button class="nav-link" [class.active]="seccion === 'registro'" type="button" (click)="seccion = 'registro'">
+                    <i class="fa fa-notes-medical me-1"></i> Registro
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" [class.active]="seccion === 'privado'" type="button" (click)="seccion = 'privado'">
+                    <i class="fa fa-lock me-1"></i> Datos privados
+                </button>
+            </li>
+        </ul>
+
+        <div *ngIf="seccion === 'registro'">
+            <p-tabs [scrollable]="true" [(value)]="step">
+                <p-tablist>
+                    <p-tab [value]="0">1. Datos generales</p-tab>
+                    <p-tab [value]="1">2. Examen visual I</p-tab>
+                    <p-tab [value]="2">3. Examen visual II</p-tab>
+                    <p-tab [value]="3">4. Diagnóstico y plan</p-tab>
+                    <p-tab [value]="4">5. Firma y cierre</p-tab>
+                </p-tablist>
+                <p-tabpanels>
+                    <!-- PASO 1 -->
+                    <p-tabpanel [value]="0">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="hc-section-title"><i class="fa fa-id-card"></i> Datos generales</div>
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-4">
+                                        <p-floatlabel variant="on" class="w-100">
+                                            <p-calendar [(ngModel)]="form.fecha_atencion" dateFormat="yy-mm-dd"
+                                                [showIcon]="true" appendTo="body" class="w-100"></p-calendar>
+                                            <label>Fecha</label>
+                                        </p-floatlabel>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p-floatlabel variant="on" class="w-100">
+                                            <p-dropdown [options]="permisos?.especialidades || []" optionLabel="nombre"
+                                                optionValue="id_especialidad" [(ngModel)]="form.id_especialidad"
+                                                appendTo="body" class="w-100" [showClear]="false"></p-dropdown>
+                                            <label>Especialidad</label>
+                                        </p-floatlabel>
+                                    </div>
+                                    <div class="col-md-4 hc-selectbutton-field">
+                                        <label class="form-label">Tipo de registro</label>
+                                        <p-selectButton [options]="tiposRegistro" optionLabel="label" optionValue="value"
+                                            [(ngModel)]="form.tipo_registro" [allowEmpty]="false"></p-selectButton>
+                                    </div>
+                                    <div class="col-12">
+                                        <p-floatlabel variant="on" class="w-100">
+                                            <textarea pInputTextarea [(ngModel)]="form.motivo" rows="2" class="w-100"></textarea>
+                                            <label>Motivo de consulta *</label>
+                                        </p-floatlabel>
+                                    </div>
+                                </div>
+
+                                <div class="hc-section-title mt-3"><i class="fa fa-eye"></i> Antecedentes visuales</div>
+                                <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2">
+                                    <small class="text-muted">Puedes traer los antecedentes del último registro del paciente.</small>
+                                    <p-button label="Traer antecedentes" icon="fa fa-copy" severity="secondary" [outlined]="true"
+                                        size="small" (onClick)="cargarAntecedentes()"></p-button>
+                                </div>
+                                <textarea pInputTextarea [(ngModel)]="form.datos['antecedentes_visuales']" rows="3" class="w-100" placeholder="Antecedentes visuales, uso de lentes, cirugías, patologías..."></textarea>
+                            </div>
+                        </div>
+                    </p-tabpanel>
+
+                    <!-- PASO 2 -->
+                    <p-tabpanel [value]="1">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="hc-section-title"><i class="fa fa-table-cells-large"></i> 1. Agudeza visual</div>
+                                <div class="table-responsive">
+                                    <table class="table hc-optometry-table align-middle">
+                                        <thead>
+                                            <tr><th>Visión</th><th>O.D.</th><th>O.I.</th><th>P.H.</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Lejana</strong></td>
+                                                <td><input pInputText [(ngModel)]="form.datos['av_vl_od']" class="w-100" /></td>
+                                                <td><input pInputText [(ngModel)]="form.datos['av_vl_oi']" class="w-100" /></td>
+                                                <td><input pInputText [(ngModel)]="form.datos['av_vl_ph']" class="w-100" /></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Cercana</strong></td>
+                                                <td><input pInputText [(ngModel)]="form.datos['av_vc_od']" class="w-100" /></td>
+                                                <td><input pInputText [(ngModel)]="form.datos['av_vc_oi']" class="w-100" /></td>
+                                                <td><input pInputText [(ngModel)]="form.datos['av_vc_ph']" class="w-100" /></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="row g-3 mt-1">
+                                    <div class="col-md-6">
+                                        <div class="hc-section-title"><i class="fa fa-eye"></i> 2. Examen externo</div>
+                                        <label class="form-label">O.D.</label>
+                                        <textarea pInputTextarea [(ngModel)]="form.datos['examen_externo_od']" rows="2" class="w-100"></textarea>
+                                        <label class="form-label mt-2">O.I.</label>
+                                        <textarea pInputTextarea [(ngModel)]="form.datos['examen_externo_oi']" rows="2" class="w-100"></textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="hc-section-title"><i class="fa fa-circle-half-stroke"></i> 3. Oftalmoscopia</div>
+                                        <label class="form-label">O.D.</label>
+                                        <textarea pInputTextarea [(ngModel)]="form.datos['oftalmoscopia_od']" rows="2" class="w-100"></textarea>
+                                        <label class="form-label mt-2">O.I.</label>
+                                        <textarea pInputTextarea [(ngModel)]="form.datos['oftalmoscopia_oi']" rows="2" class="w-100"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </p-tabpanel>
+
+                    <!-- PASO 3 -->
+                    <p-tabpanel [value]="2">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="hc-section-title"><i class="fa fa-arrows-left-right"></i> 4. Estado fórico</div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Visión lejana</label>
+                                        <input pInputText [(ngModel)]="form.datos['estado_forico_vl']" class="w-100" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Visión cercana</label>
+                                        <input pInputText [(ngModel)]="form.datos['estado_forico_vc']" class="w-100" />
+                                    </div>
+                                </div>
+
+                                <div class="row g-3 mt-1">
+                                    <div class="col-md-6">
+                                        <div class="hc-section-title"><i class="fa fa-palette"></i> 5. Test de Ishihara</div>
+                                        <label class="form-label" for="ishihara-resultado">Resultado</label>
+                                        <p-dropdown inputId="ishihara-resultado" [options]="ishiharaOptions"
+                                            optionLabel="label" optionValue="value"
+                                            [(ngModel)]="form.datos['ishihara']" appendTo="body" class="w-100"></p-dropdown>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="hc-section-title"><i class="fa fa-ruler"></i> 6. Test de profundidad</div>
+                                        <input pInputText [(ngModel)]="form.datos['profundidad']" class="w-100" />
+                                    </div>
+                                </div>
+
+                                <div class="hc-section-title mt-3"><i class="fa fa-glasses"></i> 7. Refracción</div>
+                                <div class="table-responsive">
+                                    <table class="table hc-optometry-table align-middle">
+                                        <thead><tr><th>Ojo</th><th>Resultado</th></tr></thead>
+                                        <tbody>
+                                            <tr><td><strong>O.D.</strong></td><td><input pInputText [(ngModel)]="form.datos['refraccion_od']" class="w-100" /></td></tr>
+                                            <tr><td><strong>O.I.</strong></td><td><input pInputText [(ngModel)]="form.datos['refraccion_oi']" class="w-100" /></td></tr>
+                                            <tr><td><strong>A.D. D</strong></td><td><input pInputText [(ngModel)]="form.datos['refraccion_add']" class="w-100" /></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </p-tabpanel>
+
+                    <!-- PASO 4 -->
+                    <p-tabpanel [value]="3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="hc-section-title"><i class="fa fa-stethoscope"></i> 8. Diagnóstico</div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <p-floatlabel variant="on" class="w-100">
+                                            <input pInputText [(ngModel)]="form.datos['diagnostico_od']" class="w-100" />
+                                            <label>O.D. · CIE-10</label>
+                                        </p-floatlabel>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p-floatlabel variant="on" class="w-100">
+                                            <input pInputText [(ngModel)]="form.datos['diagnostico_oi']" class="w-100" />
+                                            <label>O.I. · CIE-10</label>
+                                        </p-floatlabel>
+                                    </div>
+                                </div>
+
+                                <div class="hc-section-title mt-3"><i class="fa fa-clipboard-list"></i> 9. Disposición</div>
+                                <textarea pInputTextarea [(ngModel)]="form.datos['disposicion']" rows="2" class="w-100"></textarea>
+
+                                <p-accordion [multiple]="true" class="mt-3">
+                                    <p-accordionTab header="10. Observación">
+                                        <textarea pInputTextarea [(ngModel)]="form.datos['observacion']" rows="3" class="w-100"></textarea>
+                                    </p-accordionTab>
+                                    <p-accordionTab header="11. Control">
+                                        <textarea pInputTextarea [(ngModel)]="form.datos['control']" rows="2" class="w-100"></textarea>
+                                    </p-accordionTab>
+                                </p-accordion>
+                            </div>
+                        </div>
+                    </p-tabpanel>
+
+                    <!-- PASO 5 -->
+                    <p-tabpanel [value]="4">
+                        <div class="row g-3">
+                            <div class="col-lg-7">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                            <h5 class="mb-0"><i class="fa fa-list-check me-1 text-info"></i> Resumen del registro</h5>
+                                            <p-tag value="Paso 5 de 5" severity="info"></p-tag>
+                                        </div>
+                                        <div class="hc-summary-grid">
+                                            <div><span>Paciente</span><strong>{{ paciente?.nombres }} {{ paciente?.apellidos }}</strong></div>
+                                            <div><span>Documento</span><strong>{{ paciente?.tipo_documento }} {{ paciente?.numero_documento }}</strong></div>
+                                            <div><span>Tipo de registro</span><strong>{{ form.tipo_registro }}</strong></div>
+                                            <div><span>Fecha</span><strong>{{ formatoFecha(form.fecha_atencion) }}</strong></div>
+                                            <div><span>Profesional</span><strong>{{ nombreProfesional }}</strong></div>
+                                            <div><span>Registro profesional</span><strong>{{ registroProfesional }}</strong></div>
+                                            <div class="span-2"><span>Diagnóstico</span><strong>{{ form.datos['diagnostico_od'] || 'Sin diagnóstico' }}</strong></div>
+                                        </div>
+                                        <div class="hc-note mt-3">
+                                            <i class="fa fa-lock"></i>
+                                            Al finalizar, el registro queda bloqueado. Si necesitas corregirlo, se crea una nota de corrección enlazada.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-5">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="hc-section-title"><i class="fa fa-signature"></i> Firma del profesional</div>
+                                        <div class="row g-2">
+                                            <div class="col-12">
+                                                <label class="form-label">Nombre</label>
+                                                <input pInputText [value]="nombreProfesional" readonly class="w-100" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">C.C.</label>
+                                                <input pInputText [value]="documentoProfesional" readonly class="w-100" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Registro</label>
+                                                <input pInputText [value]="registroProfesional" readonly class="w-100" />
+                                            </div>
+                                        </div>
+                                        <div class="hc-signature-pad">
+                                            <div class="hc-signature-watermark">DOCUMENTO ELECTRÓNICO · INTEGRAL-SOFT</div>
+                                            <div class="hc-signature-line">{{ nombreProfesional }}</div>
+                                            <small>Firma digital registrada en el perfil del usuario</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </p-tabpanel>
+                </p-tabpanels>
+            </p-tabs>
+
+            <div class="hc-progress-wrap">
+                <div class="hc-progress-head">
+                    <span class="hc-progress-label"><i class="fa fa-list-check"></i> Progreso del registro</span>
+                    <span class="hc-progress-value">{{ progreso }}%</span>
+                </div>
+                <p-progressBar [value]="progreso" [showValue]="false" styleClass="hc-wizard-progress"></p-progressBar>
+            </div>
+
+            <div class="hc-form-footer">
+                <p-button label="Anterior" icon="fa fa-arrow-left" severity="secondary" [outlined]="true"
+                    [disabled]="step === 0" (onClick)="anterior()"></p-button>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="text-muted hc-step-text">Paso {{ step + 1 }} de {{ pasos.length }}</span>
+                    <p-button label="Guardar borrador" icon="fa fa-floppy-disk" severity="secondary" [outlined]="true"
+                        [loading]="guardando" (onClick)="guardarBorrador()"></p-button>
+                    <p-button *ngIf="step < pasos.length - 1" label="Siguiente" icon="fa fa-arrow-right"
+                        iconPos="right" (onClick)="siguiente()"></p-button>
+                    <p-button *ngIf="step === pasos.length - 1" label="Finalizar y firmar" icon="fa fa-signature"
+                        [loading]="finalizando" (onClick)="finalizar()"></p-button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DATOS PRIVADOS -->
+        <div *ngIf="seccion === 'privado'">
+            <div class="card hc-private-locked" *ngIf="!accessToken">
+                <div class="card-body text-center">
+                    <div class="hc-empty-icon"><i class="fa fa-lock"></i></div>
+                    <h4>Datos privados de este registro</h4>
+                    <p class="text-muted">
+                        La información privada se guarda por paciente y por cada registro.
+                        Solo ves tus propias entradas; el rol 1 ve todas.
+                    </p>
+                    <div class="hc-note mb-3">
+                        <i class="fa fa-user-shield"></i>
+                        El acceso se registra en la auditoría con fecha, usuario e IP.
+                    </div>
+                    <p-button label="Solicitar acceso" icon="fa fa-key" (onClick)="abrirDialogoPrivado()"></p-button>
+                </div>
+            </div>
+
+            <div class="card" *ngIf="accessToken">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2 pb-2 border-bottom">
+                        <h5 class="mb-0"><i class="fa fa-lock-open me-1 text-info"></i> Datos privados de este registro</h5>
+                        <p-button label="Bloquear ahora" icon="fa fa-lock" severity="secondary" [outlined]="true"
+                            size="small" (onClick)="bloquearPrivado()"></p-button>
+                    </div>
+
+                    <div class="hc-note mb-3">
+                        <i class="fa fa-shield-halved"></i>
+                        Sesión privada activa. Los datos se ocultan al bloquear o al expirar.
+                    </div>
+
+                    <label class="form-label">Notas reservadas del profesional</label>
+                    <textarea pInputTextarea [(ngModel)]="privateForm.notas" rows="3" class="w-100 mb-2"></textarea>
+
+                    <div class="hc-section-title"><i class="fa fa-brain"></i> Salud mental</div>
+                    <textarea pInputTextarea [(ngModel)]="privateForm.salud_mental" rows="2" class="w-100 mb-2"></textarea>
+
+                    <div class="hc-section-title"><i class="fa fa-heart-pulse"></i> Salud sexual y reproductiva</div>
+                    <textarea pInputTextarea [(ngModel)]="privateForm.salud_sexual" rows="2" class="w-100 mb-2"></textarea>
+
+                    <div class="hc-section-title"><i class="fa fa-hand"></i> Violencia</div>
+                    <textarea pInputTextarea [(ngModel)]="privateForm.violencia" rows="2" class="w-100 mb-2"></textarea>
+
+                    <div class="d-flex gap-2 flex-wrap mt-3">
+                        <p-button label="Guardar entrada privada" icon="fa fa-lock" [loading]="privateGuardando"
+                            (onClick)="guardarPrivado()"></p-button>
+                    </div>
+
+                    <div class="hc-section-title mt-4"><i class="fa fa-clock-rotate-left"></i> Entradas privadas visibles</div>
+                    <div *ngIf="privateLoading" class="text-muted py-3 text-center"><i class="fa fa-spinner fa-spin me-2"></i>Cargando...</div>
+                    <div *ngIf="!privateLoading && privateEntries.length === 0" class="hc-note">
+                        <i class="fa fa-circle-info"></i> No hay entradas privadas visibles.
+                    </div>
+                    <div class="hc-private-entry" *ngFor="let entry of privateEntries">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                            <p-tag [value]="formatoFecha(entry.fecha)" severity="info"></p-tag>
+                            <strong>{{ entry.profesional }}</strong>
+                            <p-tag *ngIf="entry.es_creador" value="Tu entrada" severity="success"></p-tag>
+                            <p-tag *ngIf="!entry.es_creador" value="Otro profesional" severity="warn"></p-tag>
+                        </div>
+                        <p><strong>Notas reservadas:</strong> {{ entry.datos['notas'] || 'Sin notas.' }}</p>
+                        <p><strong>Salud mental:</strong> {{ entry.datos['salud_mental'] || 'Sin datos.' }}</p>
+                        <p><strong>Salud sexual y reproductiva:</strong> {{ entry.datos['salud_sexual'] || 'Sin datos.' }}</p>
+                        <p><strong>Violencia:</strong> {{ entry.datos['violencia'] || 'Sin datos.' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</div>
+
+<app-hc-privacidad-dialog
+    [visible]="privateDialogVisible"
+    (visibleChange)="privateDialogVisible = $event"
+    [idPaciente]="idPaciente"
+    [idHistoria]="idHistoria"
+    [correo]="permisos?.correo || null"
+    [correoConfigurado]="permisos?.correo_configurado || false"
+    (accesoConcedido)="onAccesoConcedido($event)">
+</app-hc-privacidad-dialog>

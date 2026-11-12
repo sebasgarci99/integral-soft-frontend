@@ -1,0 +1,227 @@
+.hc-patient-banner {
+    border-left: 4px solid #3da1b8;
+}
+
+.hc-patient-avatar {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    border-radius: 50%;
+    background: #eef7fa;
+    color: #3da1b8;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    border: 2px solid #d5eef4;
+}
+
+.hc-patient-banner h4 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.hc-patient-meta {
+    font-size: .78rem;
+}
+
+.hc-patient-meta i {
+    color: #3da1b8;
+    margin-right: 3px;
+}
+
+.hc-section-title {
+    font-size: .8rem;
+    font-weight: 800;
+    color: #0b7f99;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #eef2f6;
+    margin-bottom: 10px;
+}
+
+.hc-section-title i {
+    margin-right: 4px;
+}
+
+.hc-read-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px 20px;
+}
+
+.hc-read-grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.hc-read-grid .span-2 {
+    grid-column: span 2;
+}
+
+.hc-read-grid span {
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.hc-read-grid strong {
+    font-size: .86rem;
+    color: #1e293b;
+}
+
+.hc-read-text {
+    font-size: .88rem;
+    color: #334155;
+    line-height: 1.55;
+    margin: 0 0 4px;
+}
+
+.hc-optometry-table thead th {
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #475569;
+    background: #fbfdfe;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.hc-optometry-table tbody td {
+    font-size: .88rem;
+}
+
+.hc-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: #f1f9fc;
+    border-left: 3px solid #3da1b8;
+    border-radius: 0 8px 8px 0;
+    padding: 8px 12px;
+    font-size: .78rem;
+    color: #475569;
+    line-height: 1.45;
+}
+
+.hc-note i {
+    color: #3da1b8;
+    margin-top: 2px;
+}
+
+.hc-signature-pad {
+    position: relative;
+    margin-top: 16px;
+    padding-top: 28px;
+    border-top: 1px dashed #cbd5e1;
+    text-align: center;
+    overflow: hidden;
+}
+
+.hc-signature-line {
+    width: 240px;
+    max-width: 100%;
+    margin: 0 auto 4px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #334155;
+    font-family: 'Segoe Script', 'Brush Script MT', cursive;
+    font-size: 1.35rem;
+    color: #1e293b;
+    position: relative;
+    z-index: 1;
+}
+
+.hc-signature-pad small {
+    display: block;
+    position: relative;
+    z-index: 1;
+    color: #64748b;
+    font-size: .7rem;
+}
+
+.hc-signature-pad strong {
+    display: block;
+    position: relative;
+    z-index: 1;
+    color: #1e293b;
+    font-size: .8rem;
+}
+
+.hc-signature-watermark {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    transform: rotate(-18deg);
+    font-size: 1.2rem;
+    font-weight: 900;
+    letter-spacing: .1em;
+    color: rgba(13, 138, 166, .075);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.hc-empty-icon {
+    width: 66px;
+    height: 66px;
+    margin: 0 auto 4px;
+    border-radius: 50%;
+    background: #eef7fa;
+    color: #0d8aa6;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    box-shadow: 0 8px 20px rgba(13, 138, 166, .12);
+}
+
+.hc-private-locked .card-body {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+.hc-private-locked h4 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.hc-private-entry {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    background: #fff;
+}
+
+.hc-private-entry p {
+    margin: 0 0 4px;
+    font-size: .8rem;
+    color: #334155;
+    line-height: 1.45;
+}
+
+.hc-private-entry p:last-child {
+    margin-bottom: 0;
+}
+
+:host ::ng-deep .p-tabs .p-tablist-tab-list {
+    justify-content: flex-start;
+}
+
+@media (max-width: 767.98px) {
+    .hc-read-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hc-read-grid .span-2 {
+        grid-column: span 1;
+    }
+
+    .hc-page-title {
+        font-size: 1.15rem;
+    }
+}

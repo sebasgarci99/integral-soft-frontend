@@ -1,10 +1,13 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import SignaturePad from 'signature_pad';
 import { forkJoin } from 'rxjs';
 
 import { GestionPacientesService } from '../../services/gestion-pacientes/gestion-pacientes.service';
+import { HistoriasClinicasService } from '../../services/historias-clinicas/historias-clinicas.service';
+import { HcPermisos } from '../../interfaces/historias-clinicas';
 import { GestionPaciente, GestionPacienteConsentimiento, GestionPacienteHistorico, TipoConsentimientoOption, ProcedimientoRiesgo } from '../../interfaces/gestion-pacientes';
 
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
@@ -17,7 +20,6 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { PaginatorModule } from 'primeng/paginator';
 import { FloatLabelModule } from 'primeng/floatlabel';
-import { TabMenuModule } from 'primeng/tabmenu';
 import { DropdownModule } from 'primeng/dropdown';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { CalendarModule } from 'primeng/calendar';
@@ -44,7 +46,6 @@ import { normalizarTelefono } from '../../utils/telefono.util';
         ConfirmDialogModule,
         PaginatorModule,
         FloatLabelModule,
-        TabMenuModule,
         DropdownModule,
         RadioButtonModule,
         CalendarModule,
@@ -66,6 +67,7 @@ export class GestionPacientesComponent implements OnInit {
     private firmaPadFull: SignaturePad | null = null;
 
     pacientes: GestionPaciente[] = [];
+    permisosHc: HcPermisos | null = null;
     tiposConsentimiento: TipoConsentimientoOption[] = [];
     tiposConsentimientoBorrador: TipoConsentimientoOption[] = [];
     tiposConsentimientoOficial: TipoConsentimientoOption[] = [];
@@ -231,12 +233,29 @@ export class GestionPacientesComponent implements OnInit {
     constructor(
         private gestionPacientesService: GestionPacientesService,
         private messageService: MessageService,
-        private confirmService: ConfirmationService
+        private confirmService: ConfirmationService,
+        private router: Router,
+        private hcService: HistoriasClinicasService
     ) { }
 
     async ngOnInit(): Promise<void> {
         this.activeItem = this.tabs[0];
-        await this.cargarCatalogos();
+        await Promise.all([this.cargarCatalogos(), this.cargarPermisosHc()]);
+    }
+
+    private async cargarPermisosHc(): Promise<void> {
+        try {
+            (await this.hcService.obtenerPermisos()).subscribe({
+                next: permisos => { this.permisosHc = permisos; },
+                error: () => { this.permisosHc = null; }
+            });
+        } catch {
+            this.permisosHc = null;
+        }
+    }
+
+    irAHistoriaClinica(row: any): void {
+        this.router.navigate(['/historias_clinicas/paciente', row.id_paciente]);
     }
 
     private async cargarCatalogos(): Promise<void> {

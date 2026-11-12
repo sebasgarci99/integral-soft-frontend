@@ -1,0 +1,308 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="container-fluid py-2">
+    <div class="hc-page-header">
+        <div class="hc-page-heading hc-page-heading--full">
+            <button type="button" class="hc-back-link" (click)="irAPacientes()">
+                <i class="fa fa-arrow-left"></i> Volver a pacientes
+            </button>
+            <div class="hc-title-line">
+                <h3 class="hc-page-title"><i class="fa fa-stethoscope"></i> Historia clínica</h3>
+                <div class="hc-page-actions" *ngIf="idPaciente && !accesoDenegado && permisos?.habilitado">
+                    <p-button label="Nuevo registro en la historia clínica" icon="fa fa-plus"
+                        styleClass="hc-page-action hc-new-record-btn" [loading]="abriendoRegistro"
+                        [disabled]="abriendoRegistro" (onClick)="nuevoRegistro()"></p-button>
+                </div>
+            </div>
+            <p class="hc-page-subtitle">
+                Cada visita es un registro independiente. Los registros anteriores no se modifican.
+            </p>
+        </div>
+    </div>
+
+    <!-- Sin paciente seleccionado -->
+    <div class="card hc-empty-card" *ngIf="!idPaciente && !accesoDenegado">
+        <div class="card-body text-center">
+            <div class="hc-empty-icon"><i class="fa fa-magnifying-glass"></i></div>
+            <h4>Selecciona un paciente para ver su historia clínica</h4>
+            <p class="text-muted">La selección se realiza desde <strong>Gestión de Pacientes</strong>. Abre el paciente y pulsa <strong>Ir a historia clínica</strong>.</p>
+            <p-button label="Ir a Gestión de Pacientes" icon="fa fa-users" (onClick)="irAPacientes()"></p-button>
+            <div class="hc-note mt-3">
+                <i class="fa fa-circle-info"></i>
+                No se selecciona ningún paciente automáticamente.
+            </div>
+        </div>
+    </div>
+
+    <!-- Sin permiso -->
+    <div class="card hc-empty-card" *ngIf="accesoDenegado">
+        <div class="card-body text-center">
+            <div class="hc-empty-icon danger"><i class="fa fa-lock"></i></div>
+            <h4>Módulo no habilitado</h4>
+            <p class="text-muted">Tu usuario no tiene asignado el módulo de Historias Clínicas. El botón tampoco aparece en la gestión de pacientes.</p>
+            <p-button label="Volver a pacientes" icon="fa fa-arrow-left" (onClick)="irAPacientes()"></p-button>
+        </div>
+    </div>
+
+    <ng-container *ngIf="idPaciente && !accesoDenegado">
+        <div class="card hc-patient-banner mb-3" *ngIf="paciente">
+            <div class="card-body d-flex flex-wrap align-items-center gap-3">
+                <div class="hc-patient-avatar"><i class="fa fa-user"></i></div>
+                <div class="flex-grow-1">
+                    <h4 class="mb-1">{{ paciente.nombres }} {{ paciente.apellidos }}</h4>
+                    <div class="d-flex flex-wrap gap-3 text-muted hc-patient-meta">
+                        <span><i class="fa fa-id-card"></i> {{ paciente.tipo_documento }} {{ paciente.numero_documento }}</span>
+                        <span *ngIf="paciente.fecha_nacimiento"><i class="fa fa-cake-candles"></i> {{ paciente.fecha_nacimiento | date:'dd/MM/yyyy' }}</span>
+                        <span *ngIf="paciente.eps"><i class="fa fa-shield-halved"></i> {{ paciente.eps }} · {{ paciente.regimen }}</span>
+                    </div>
+                </div>
+                <p-button label="Cambiar paciente" icon="fa fa-arrow-right-arrow-left"
+                    styleClass="hc-change-patient-btn" (onClick)="irAPacientes()"></p-button>
+            </div>
+        </div>
+
+        <p-tabs [scrollable]="true" [(value)]="activeTab">
+            <p-tablist>
+                <p-tab [value]="0"><i class="fa fa-notes-medical me-1"></i> Historia clínica</p-tab>
+                <p-tab [value]="1"><i class="fa fa-lock me-1"></i> Datos privados</p-tab>
+            </p-tablist>
+            <p-tabpanels>
+                <p-tabpanel [value]="0">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="hc-info-collapse" [class.open]="mostrarInfo">
+                                <button type="button" class="hc-info-toggle" (click)="toggleInfo()" [attr.aria-expanded]="mostrarInfo">
+                                    <span class="hc-info-toggle-label">
+                                        <i class="fa fa-circle-info"></i>
+                                        <span>Información importante</span>
+                                    </span>
+                                    <i class="fa fa-chevron-down hc-info-chevron"></i>
+                                </button>
+                                <div class="hc-info-content" *ngIf="mostrarInfo">
+                                    <p>Cada visita es un registro independiente. Un control o una corrección no sobrescriben los registros anteriores.</p>
+                                </div>
+                            </div>
+
+                            <div class="hc-stats-grid">
+                                <div class="hc-stat-card total">
+                                    <div class="hc-stat-icon"><i class="fa fa-notes-medical"></i></div>
+                                    <div><span>Total registros</span><strong>{{ historias.length }}</strong></div>
+                                </div>
+                                <div class="hc-stat-card borradores">
+                                    <div class="hc-stat-icon"><i class="fa fa-pen-to-square"></i></div>
+                                    <div><span>Borradores</span><strong>{{ totalBorradores }}</strong></div>
+                                </div>
+                                <div class="hc-stat-card finalizadas">
+                                    <div class="hc-stat-icon"><i class="fa fa-circle-check"></i></div>
+                                    <div><span>Finalizadas</span><strong>{{ totalFinalizadas }}</strong></div>
+                                </div>
+                                <div class="hc-stat-card correcciones">
+                                    <div class="hc-stat-icon"><i class="fa fa-file-medical"></i></div>
+                                    <div><span>Correcciones</span><strong>{{ totalCorrecciones }}</strong></div>
+                                </div>
+                            </div>
+
+                            <div class="hc-table-topline">
+                                <span class="hc-table-caption"><i class="fa fa-arrow-down-wide-short me-1"></i> Más recientes primero</span>
+                            </div>
+
+                            <p-table [value]="historias" [loading]="cargando" [paginator]="historias.length > 8"
+                                [rows]="8" dataKey="id_historia" styleClass="p-datatable-sm hc-table">
+                                <ng-template pTemplate="header">
+                                    <tr>
+                                        <th style="width: 28%">Fecha y tipo</th>
+                                        <th style="width: 18%">Profesional</th>
+                                        <th style="width: 22%">Diagnóstico / motivo</th>
+                                        <th style="width: 14%">Estado</th>
+                                        <th style="width: 18%; text-align: center">Acciones</th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-h>
+                                    <tr>
+                                        <td>
+                                            <div class="hc-reg-card">
+                                                <span class="hc-reg-accent"></span>
+                                                <div class="hc-reg-content">
+                                                    <div class="hc-reg-date">
+                                                        <i class="fa fa-calendar-day"></i>
+                                                        <strong>{{ formatoFecha(h.fecha_atencion) }}</strong>
+                                                        <span class="hc-reg-id">HC-{{ h.id_historia }}</span>
+                                                    </div>
+                                                    <div class="hc-reg-badges">
+                                                        <span class="hc-tipo-badge">
+                                                            <i class="fa" [ngClass]="getTipoIcon(h.tipo_registro)"></i>
+                                                            {{ h.tipo_registro }}
+                                                        </span>
+                                                        <span class="hc-especialidad-badge">
+                                                            <i class="fa fa-stethoscope"></i>
+                                                            {{ h.especialidad }}
+                                                        </span>
+                                                    </div>
+                                                    <small class="hc-linked" *ngIf="h.id_historia_origen">
+                                                        <i class="fa fa-link"></i>
+                                                        Enlazado al registro #{{ h.id_historia_origen }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="hc-prof-cell">
+                                                <div class="hc-prof-avatar">{{ getIniciales(h) }}</div>
+                                                <div>
+                                                    <strong>{{ getProfesional(h) }}</strong>
+                                                    <span *ngIf="h.profesional_registro_snapshot">
+                                                        <i class="fa fa-id-badge"></i> {{ h.profesional_registro_snapshot }}
+                                                    </span>
+                                                    <span *ngIf="!h.profesional_registro_snapshot">Profesional tratante</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="hc-diag-cell">
+                                                <span class="hc-diag-icon"><i class="fa fa-notes-medical"></i></span>
+                                                <div>
+                                                    <strong *ngIf="h.diagnostico_principal">{{ h.diagnostico_principal }}</strong>
+                                                    <span class="hc-muted" *ngIf="!h.diagnostico_principal">Sin diagnóstico registrado</span>
+                                                    <small *ngIf="h.motivo">
+                                                        <i class="fa fa-comment-medical"></i> {{ h.motivo }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="hc-estado-cell">
+                                                <p-tag [value]="h.estado" [severity]="getEstadoSeverity(h.estado)"
+                                                    [icon]="getEstadoIcon(h.estado)"></p-tag>
+                                                <small class="hc-estado-date" *ngIf="h.estado === 'FINALIZADA' && h.finalizada_at">
+                                                    <i class="fa fa-check"></i> {{ formatoFecha(h.finalizada_at) }}
+                                                </small>
+                                                <small class="hc-estado-date danger" *ngIf="h.estado === 'ANULADA' && h.motivo_anulacion">
+                                                    <i class="fa fa-ban"></i> {{ h.motivo_anulacion }}
+                                                </small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex justify-content-center gap-1 hc-actions-cell">
+                                                <p-button icon="fa fa-eye" [text]="true" size="small" styleClass="hc-action-view"
+                                                    pTooltip="Ver registro" tooltipPosition="top" (onClick)="verRegistro(h)"></p-button>
+                                                <p-button icon="fa fa-file-pdf" [text]="true" size="small" styleClass="hc-action-pdf"
+                                                    pTooltip="Descargar PDF" tooltipPosition="top" (onClick)="descargarPdf(h)"></p-button>
+                                                <p-button *ngIf="h.estado === 'BORRADOR'" icon="fa fa-pen" [text]="true"
+                                                    size="small" styleClass="hc-action-edit" pTooltip="Continuar borrador"
+                                                    tooltipPosition="top" (onClick)="editarBorrador(h)"></p-button>
+                                                <p-button *ngIf="h.estado === 'FINALIZADA'" icon="fa fa-file-medical"
+                                                    [text]="true" size="small" styleClass="hc-action-correct"
+                                                    pTooltip="Nota de corrección" tooltipPosition="top"
+                                                    (onClick)="abrirCorreccion(h)"></p-button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="emptymessage">
+                                    <tr>
+                                        <td colspan="5">
+                                            <div class="hc-table-empty">
+                                                <div class="hc-table-empty-icon"><i class="fa fa-folder-open"></i></div>
+                                                <strong>Este paciente aún no tiene registros</strong>
+                                                <span>Crea el primer registro de historia clínica para comenzar.</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </div>
+                    </div>
+                </p-tabpanel>
+
+                <p-tabpanel [value]="1">
+                    <div class="card hc-private-locked" *ngIf="!accessToken">
+                        <div class="card-body text-center">
+                            <div class="hc-empty-icon"><i class="fa fa-lock"></i></div>
+                            <h4>Datos privados del paciente</h4>
+                            <p class="text-muted">
+                                La información privada se guarda por paciente y por registro.
+                                Solo ves las entradas que tú creaste; el rol 1 ve todas.
+                            </p>
+                            <div class="hc-note mb-3">
+                                <i class="fa fa-user-shield"></i>
+                                Cada acceso queda registrado con fecha, usuario e IP.
+                            </div>
+                            <p-button label="Solicitar acceso" icon="fa fa-key" (onClick)="abrirDialogoPrivado()"></p-button>
+                        </div>
+                    </div>
+
+                    <div class="card" *ngIf="accessToken">
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2 pb-2 border-bottom">
+                                <h5 class="mb-0"><i class="fa fa-lock-open me-1 text-info"></i> Datos privados del paciente</h5>
+                                <p-button label="Bloquear ahora" icon="fa fa-lock" severity="secondary" [outlined]="true"
+                                    size="small" (onClick)="bloquearPrivado()"></p-button>
+                            </div>
+
+                            <div class="hc-note mb-3">
+                                <i class="fa fa-user-shield"></i>
+                                {{ permisos?.rol === 1 ? 'Rol 1: viendo todas las entradas privadas del paciente.' : 'Viendo solo las entradas privadas creadas por ti.' }}
+                            </div>
+
+                            <div *ngIf="privateLoading" class="text-center text-muted py-4">
+                                <i class="fa fa-spinner fa-spin me-2"></i>Cargando datos privados...
+                            </div>
+
+                            <div *ngIf="!privateLoading && privateEntries.length === 0" class="hc-note">
+                                <i class="fa fa-circle-info"></i>
+                                No hay entradas privadas visibles para este profesional.
+                            </div>
+
+                            <div class="hc-private-entry" *ngFor="let entry of privateEntries">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                    <p-tag [value]="formatoFecha(entry.fecha)" severity="info"></p-tag>
+                                    <strong>{{ entry.profesional }}</strong>
+                                    <p-tag *ngIf="entry.es_creador" value="Tu entrada" severity="success"></p-tag>
+                                    <p-tag *ngIf="!entry.es_creador" value="Otro profesional" severity="warn"></p-tag>
+                                    <p-tag [value]="entry.tipo_registro" severity="info"></p-tag>
+                                </div>
+                                <p><strong>Notas reservadas:</strong> {{ entry.datos['notas'] || 'Sin notas.' }}</p>
+                                <p><strong>Salud mental:</strong> {{ entry.datos['salud_mental'] || 'Sin datos.' }}</p>
+                                <p><strong>Salud sexual y reproductiva:</strong> {{ entry.datos['salud_sexual'] || 'Sin datos.' }}</p>
+                                <p><strong>Violencia:</strong> {{ entry.datos['violencia'] || 'Sin datos.' }}</p>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-3" *ngIf="historias.length > 0">
+                                <p-button label="PDF privado" icon="fa fa-file-pdf" severity="secondary" [outlined]="true"
+                                    (onClick)="descargarPdf(historias[0], 'PRIVADO')"></p-button>
+                            </div>
+                        </div>
+                    </div>
+                </p-tabpanel>
+            </p-tabpanels>
+        </p-tabs>
+    </ng-container>
+</div>
+
+<p-dialog header="Nota de corrección" [(visible)]="correccionVisible" [modal]="true" [draggable]="false"
+    [style]="{ width: '32rem' }">
+    <p class="text-muted">
+        La nota de corrección se guarda como un registro nuevo enlazado al original. El registro original no se modifica.
+    </p>
+    <div class="hc-note mb-2" *ngIf="historiaCorreccion">
+        <i class="fa fa-file-medical"></i>
+        Registro del {{ formatoFecha(historiaCorreccion.fecha_atencion) }} · {{ historiaCorreccion.profesional_nombre_snapshot }}
+    </div>
+    <label class="form-label">Motivo / contenido de la corrección</label>
+    <textarea pInputTextarea [(ngModel)]="motivoCorreccion" rows="4" class="w-100" placeholder="Describe la corrección..."></textarea>
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="correccionVisible = false"></p-button>
+        <p-button label="Registrar nota" icon="fa fa-save" [loading]="guardandoCorreccion" (onClick)="guardarCorreccion()"></p-button>
+    </ng-template>
+</p-dialog>
+
+<app-hc-privacidad-dialog
+    [visible]="privateDialogVisible"
+    (visibleChange)="privateDialogVisible = $event"
+    [idPaciente]="idPaciente"
+    [idHistoria]="idHistoriaPrivada"
+    [correo]="permisos?.correo || null"
+    [correoConfigurado]="permisos?.correo_configurado || false"
+    (accesoConcedido)="onAccesoConcedido($event)">
+</app-hc-privacidad-dialog>

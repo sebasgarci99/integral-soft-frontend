@@ -173,6 +173,7 @@ export class SgSstTiposGruposComponent implements OnInit, OnChanges {
                 color: this.form.color || null,
                 icono: this.form.icono || null,
                 descripcion: this.form.descripcion || null,
+                texto_predefinido: String(this.form.texto_predefinido || '').trim() || null,
                 prioridad: this.form.prioridad ?? 3
             };
 
@@ -230,6 +231,7 @@ export class SgSstTiposGruposComponent implements OnInit, OnChanges {
             color: '#0f766e',
             icono: 'fa fa-layer-group',
             descripcion: '',
+            texto_predefinido: '',
             prioridad: 3,
             estado: 'A'
         };

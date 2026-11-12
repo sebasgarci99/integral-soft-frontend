@@ -52,7 +52,13 @@
                     [modal]="true" [style]="{ width: '47rem', 'max-height': '85vh', height: '82%' }"
                     [contentStyle]="{ 'overflow-y': 'auto' }" [draggable]="false">
                     <!-- <p-steps [model]="steps" [activeIndex]="current" styleClass="mb-4"></p-steps> -->
-                    <p-tabMenu [model]="steps" [(activeItem)]="activeItem" [scrollable]="true" styleClass="mb-4"></p-tabMenu>
+                    <ul class="nav nav-tabs form-tabs mb-4">
+                        <li class="nav-item" *ngFor="let step of steps; let i = index">
+                            <button type="button" class="nav-link" [class.active]="current === i" (click)="current = i">
+                                <i [class]="step.icon"></i> {{ step.label }}
+                            </button>
+                        </li>
+                    </ul>
 
                     <ng-container [ngSwitch]="current">
                         <!-- Paso 1: Datos personales -->
