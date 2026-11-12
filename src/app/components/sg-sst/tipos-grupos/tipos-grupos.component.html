@@ -63,6 +63,9 @@
                         <span class="tg-code">{{ grupo.codigo }}</span>
                         <strong>{{ grupo.nombre }}</strong>
                         <small *ngIf="grupo.descripcion">{{ grupo.descripcion }}</small>
+                        <small class="tg-predefined-chip" *ngIf="grupo.texto_predefinido" [title]="grupo.texto_predefinido">
+                            <i class="fa fa-file-lines"></i> Texto predefinido
+                        </small>
                     </div>
                 </div>
                 <span class="tg-color">
@@ -172,8 +175,17 @@
             </div>
 
             <label>Descripción</label>
-            <textarea rows="3" [(ngModel)]="form.descripcion" maxlength="250"
+            <textarea class="tg-textarea" rows="3" [(ngModel)]="form.descripcion" maxlength="250"
                 placeholder="Alcance o responsabilidad del grupo..."></textarea>
+
+            <label>Texto predefinido para la bitácora</label>
+            <textarea class="tg-textarea tg-textarea-lg" rows="5" [(ngModel)]="form.texto_predefinido"
+                maxlength="4000"
+                placeholder="Texto que se sugerirá cargar en el resumen de la bitácora de este grupo..."></textarea>
+            <div class="tg-help">
+                <i class="fa fa-circle-info"></i>
+                Opcional. Máximo 4000 caracteres. En la bitácora aparecerá un botón para cargarlo al resumen del día.
+            </div>
         </div>
         <footer>
             <button type="button" class="tg-btn ghost" (click)="cerrarModal()">Cancelar</button>

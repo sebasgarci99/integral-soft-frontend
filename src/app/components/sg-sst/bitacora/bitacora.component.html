@@ -44,7 +44,21 @@
                         <span *ngIf="etiquetaGuardado">{{ etiquetaGuardado }}</span>
                     </span>
                 </div>
-                <textarea rows="7" [(ngModel)]="resumen" [disabled]="esCerrada"
+                <div class="bt-predefined-note" *ngIf="textoPredefinido && !esCerrada">
+                    <div class="bt-predefined-info">
+                        <span class="bt-predefined-icon"><i class="fa fa-file-lines"></i></span>
+                        <div>
+                            <strong>Este grupo tiene un texto predefinido</strong>
+                            <span>Puedes cargarlo y continuar escribiendo sobre él.</span>
+                        </div>
+                    </div>
+                    <button type="button" class="bt-btn secondary" [disabled]="textoPredefinidoCargado"
+                        (click)="cargarTextoPredefinido()">
+                        <i class="fa" [ngClass]="textoPredefinidoCargado ? 'fa-circle-check' : 'fa-download'"></i>
+                        {{ textoPredefinidoCargado ? 'Texto cargado' : 'Cargar texto' }}
+                    </button>
+                </div>
+                <textarea #resumenTextarea rows="7" [(ngModel)]="resumen" [disabled]="esCerrada"
                     (ngModelChange)="onResumenChange($event)"
                     (blur)="flush()"
                     placeholder="Redacta el detalle de la jornada o usa 'Compilar resumen del día'. El texto se guarda automáticamente mientras escribes."></textarea>
@@ -279,7 +293,8 @@
         <div class="col-12 col-md-6">
             <label class="form-label fw-semibold">Periodicidad</label>
             <p-dropdown [options]="opcionesPeriodicidad" optionLabel="label" optionValue="value"
-                [(ngModel)]="formActividad.periodicidad" [style]="{ width: '100%' }"></p-dropdown>
+                [(ngModel)]="formActividad.periodicidad" [style]="{ width: '100%' }"
+                appendTo="body" scrollHeight="400px"></p-dropdown>
         </div>
 
         <div class="col-12">

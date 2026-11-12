@@ -16,7 +16,6 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { PaginatorModule } from 'primeng/paginator';
 import { FloatLabelModule } from 'primeng/floatlabel';
-import { TabMenuModule } from 'primeng/tabmenu';
 import { DropdownModule } from 'primeng/dropdown';
 import { RadioButton } from 'primeng/radiobutton';
 
@@ -45,7 +44,6 @@ import { normalizarTelefono } from '../../utils/telefono.util';
         ReactiveFormsModule,
         CalendarModule,
         StepsModule,
-        TabMenuModule,
         RadioButton
     ],
     templateUrl: './pacientes.component.html',

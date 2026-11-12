@@ -41,6 +41,9 @@ import { PosComponent } from './components/pos/pos.component';
 import { VentasComponent } from './components/pos/ventas/ventas.component';
 import { ConfiguracionPosComponent } from './components/pos/configuracion/configuracion-pos.component';
 import { FactRipsComponent } from './components/fact-rips/fact-rips.component';
+import { HistoriasClinicasComponent } from './components/historias-clinicas/historias-clinicas.component';
+import { HistoriaClinicaFormComponent } from './components/historias-clinicas/historia-clinica-form/historia-clinica-form.component';
+import { HistoriaClinicaVerComponent } from './components/historias-clinicas/historia-clinica-ver/historia-clinica-ver.component';
 
 export const routes: Routes = [
     { path: 'login', loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent) },
@@ -70,6 +73,11 @@ export const routes: Routes = [
             { path: 'actas/responsables', component: ResponsablesSstComponent },
             { path: 'info-usuario', component: InfoUsuarioComponent },
             { path: 'gestion_pacientes', component: GestionPacientesComponent },
+            { path: 'historias_clinicas/paciente/:idPaciente', component: HistoriasClinicasComponent },
+            { path: 'historias_clinicas/nuevo/:idPaciente', component: HistoriaClinicaFormComponent },
+            { path: 'historias_clinicas/editar/:idHistoria', component: HistoriaClinicaFormComponent },
+            { path: 'historias_clinicas/ver/:idHistoria', component: HistoriaClinicaVerComponent },
+            { path: 'historias_clinicas', component: HistoriasClinicasComponent },
             { path: 'equipos', component: EquiposComponent },
             { path: 'inventario', component: InventarioComponent },
             { path: 'inventario/productos', component: ProductosComponent },

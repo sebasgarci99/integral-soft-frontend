@@ -5,6 +5,7 @@ export interface SgSstGrupo {
     color?: string | null;
     icono?: string | null;
     descripcion?: string | null;
+    texto_predefinido?: string | null;
     prioridad: number;
     estado?: 'A' | 'I';
     id_cliente?: number | null;
@@ -175,6 +176,7 @@ export interface SgSstBitacoraPayload {
     instancias: SgSstInstancia[];
     eventos: SgSstBitacoraEvento[];
     solicitud_pendiente: SgSstSolicitudReapertura | null;
+    texto_predefinido?: string | null;
 }
 
 export interface SgSstResumen {

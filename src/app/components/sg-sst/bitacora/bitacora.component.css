@@ -216,6 +216,61 @@
     background: #fff;
 }
 
+.bt-predefined-note {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.35rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #cde9ee;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f7fdfc 0%, #eefbf8 100%);
+}
+
+.bt-predefined-info {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+}
+
+.bt-predefined-icon {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #dcfce7;
+    color: #0f766e;
+    font-size: 0.85rem;
+}
+
+.bt-predefined-info strong {
+    display: block;
+    font-size: 0.78rem;
+    color: #134e4a;
+}
+
+.bt-predefined-info span {
+    display: block;
+    font-size: 0.68rem;
+    line-height: 1.35;
+    color: #64748b;
+}
+
+.bt-btn.secondary {
+    background: #ffffff;
+    color: #0f766e;
+    border: 1px solid #cde9ee;
+}
+
+.bt-btn.secondary:hover:not(:disabled) {
+    background: #f0fdfa;
+}
+
 .bt-char-count {
     align-self: flex-end;
     font-size: 0.6rem;

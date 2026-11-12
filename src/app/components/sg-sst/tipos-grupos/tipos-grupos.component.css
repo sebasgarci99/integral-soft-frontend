@@ -233,6 +233,27 @@
     white-space: nowrap;
 }
 
+.tg-predefined-chip {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 0.3rem;
+    margin-top: 0.12rem;
+    padding: 0.12rem 0.45rem;
+    border: 1px solid #d5eef4;
+    border-radius: 999px;
+    background: #f0fbfd;
+    color: #0b7f99 !important;
+    font-size: 0.64rem !important;
+    font-weight: 700;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.tg-predefined-chip i {
+    font-size: 0.58rem;
+}
+
 .tg-color {
     display: inline-flex;
     align-items: center;
@@ -324,8 +345,8 @@
 }
 
 .tg-modal {
-    width: min(620px, 100%);
-    max-height: 92vh;
+    width: min(720px, 100%);
+    max-height: 94vh;
     background: #fff;
     border-radius: 18px;
     overflow: hidden;
@@ -358,7 +379,13 @@
     display: flex;
     flex-direction: column;
     gap: 0.55rem;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
+}
+
+.tg-modal-body > * {
+    flex: 0 0 auto;
 }
 
 .tg-preview {
@@ -419,11 +446,37 @@
     background: #fff;
 }
 
+.tg-modal textarea {
+    min-height: 92px;
+    resize: vertical;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.tg-modal textarea.tg-textarea-lg {
+    min-height: 144px;
+}
+
 .tg-modal input:focus,
 .tg-modal select:focus,
 .tg-modal textarea:focus {
     border-color: #0f766e;
     box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+}
+
+.tg-help {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-top: -0.15rem;
+    color: #64748b;
+    font-size: 0.72rem;
+    line-height: 1.4;
+}
+
+.tg-help i {
+    color: #0f766e;
+    margin-top: 0.1rem;
 }
 
 .tg-grid-2 {

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Observable, Subject, Subscription, debounceTime, defer, distinctUntilChanged, firstValueFrom, from, map, merge, of, switchMap } from 'rxjs';
@@ -20,6 +20,7 @@ import {
     SgSstInstancia,
     SgSstTarea
 } from '../../../interfaces/sg-sst';
+import { insertarTextoPredefinido } from '../../../utils/bitacora-texto.util';
 import { procesarImagenEvidencia } from '../../../utils/image-compress.util';
 import { mensajeConfirmacionPeriodicidad, requiereFechaFin } from '../../../utils/periodicidad.util';
 
@@ -67,11 +68,14 @@ export class SgSstBitacoraComponent implements OnInit, OnChanges, OnDestroy {
     @Output() datosActualizados = new EventEmitter<void>();
     @Output() guardadoSilencioso = new EventEmitter<{ fecha: string; tieneResumen: boolean; estado: string }>();
 
+    @ViewChild('resumenTextarea') resumenTextarea?: ElementRef<HTMLTextAreaElement>;
+
     bitacora: SgSstBitacora | null = null;
     evidencias: SgSstEvidencia[] = [];
     tareas: SgSstTarea[] = [];
     instancias: SgSstInstancia[] = [];
     resumen = '';
+    textoPredefinido = '';
     nuevaTarea = '';
     idRol = 0;
     eventos: SgSstBitacoraEvento[] = [];
@@ -212,6 +216,11 @@ export class SgSstBitacoraComponent implements OnInit, OnChanges, OnDestroy {
         return this.permisos.puedeSolicitarReapertura;
     }
 
+    get textoPredefinidoCargado(): boolean {
+        const texto = this.textoPredefinido.trim();
+        return !!texto && this.resumen.trim().startsWith(texto);
+    }
+
     get etiquetaGuardado(): string {
         switch (this.estadoGuardado) {
             case 'guardando': return '';
@@ -266,6 +275,7 @@ export class SgSstBitacoraComponent implements OnInit, OnChanges, OnDestroy {
                 this.eventos = res.body.eventos || [];
                 this.solicitudPendiente = res.body.solicitud_pendiente || null;
                 this.resumen = this.bitacora?.resumen || '';
+                this.textoPredefinido = String(res.body.texto_predefinido || '').trim();
                 this.ultimoTextoGuardado = this.resumen;
             } else {
                 this.limpiar();
@@ -286,6 +296,36 @@ export class SgSstBitacoraComponent implements OnInit, OnChanges, OnDestroy {
         if (!this.resumenListo || this.esCerrada) return;
         this.estadoGuardado = 'guardando';
         this.cambiosResumen.next(valor);
+    }
+
+    cargarTextoPredefinido(): void {
+        const texto = this.textoPredefinido.trim();
+        if (!texto || this.esCerrada) return;
+
+        this.resumen = insertarTextoPredefinido(this.resumen, texto);
+
+        // No se autoguarda: el usuario decide cuándo guardar o compilar.
+        this.ultimoTextoGuardado = this.resumen;
+        this.estadoGuardado = 'idle';
+        this.enfocarResumen();
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Texto cargado',
+            text: 'Puedes editarlo y guardar la bitácora cuando quieras.',
+            timer: 1600,
+            showConfirmButton: false
+        });
+    }
+
+    private enfocarResumen(): void {
+        setTimeout(() => {
+            const el = this.resumenTextarea?.nativeElement;
+            if (!el) return;
+            el.focus();
+            const pos = el.value.length;
+            el.setSelectionRange(pos, pos);
+        }, 0);
     }
 
     flush(): void {
@@ -930,6 +970,7 @@ export class SgSstBitacoraComponent implements OnInit, OnChanges, OnDestroy {
         this.eventos = [];
         this.solicitudPendiente = null;
         this.resumen = '';
+        this.textoPredefinido = '';
         this.ultimoTextoGuardado = '';
     }
 
