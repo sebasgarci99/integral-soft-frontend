@@ -56,3 +56,59 @@
         height: 88% !important;
     }
 }
+
+/* Gráfica de temperatura */
+.chart-card {
+    max-width: 760px;
+    height: 380px;
+    margin: 0 auto;
+    padding: 0.75rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-title {
+    margin: 0 0 0.25rem;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #334155;
+    letter-spacing: 0.4px;
+}
+
+.chart-card ::ng-deep p-chart {
+    display: block;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100% !important;
+}
+
+.chart-card ::ng-deep p-chart > div {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-card ::ng-deep canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-empty {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 767.98px) {
+    .chart-card {
+        height: 340px;
+    }
+}

@@ -61,6 +61,9 @@ export class RegTemperaturaComponent implements OnInit {
 
     registrosMesActual: any[] = [];
 
+    readonly CHART_PDF_W = 900;
+    readonly CHART_PDF_H = 380;
+
     sedes: Sede[] = [];
     areas: Area[] = [];
     equipos: Equipo[] = [];
@@ -160,56 +163,203 @@ export class RegTemperaturaComponent implements OnInit {
         this.construirGrafica();
     }
 
+    get tituloGrafica(): string {
+        const fecha = this.registrosMesActual.length
+            ? new Date(this.registrosMesActual[0].fecha_registro)
+            : new Date();
+
+        const meses = [
+            'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+            'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+        ];
+
+        const mes = fecha.getMonth() + 1;
+        const anio = fecha.getFullYear();
+
+        return `Datos de temperatura ${meses[mes - 1]} (${mes} / ${anio})`;
+    }
+
     construirGrafica() {
-        const labels: string[] = [];
-        const temperaturas: number[] = [];
-
-        this.registrosMesActual.forEach(r => {
-            const fecha = new Date(r.fecha_registro);
-
-            const dia = fecha.getDate().toString().padStart(2, '0');
-            const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
-            const anio = fecha.getFullYear();
-
-            labels.push(`${dia}/${mes}/${anio} - ${r.horario}`);
-            temperaturas.push(Number(r.temperatura));
-        });
+        const { etiquetas, manana, tarde } = this.agruparTemperaturasPorDia(this.registrosMesActual);
 
         this.chartData = {
-            labels,
-            datasets: [
-                {
-                    label: 'Temperatura (°C)',
-                    data: temperaturas,
-                    fill: false,
-                    tension: 0
-                }
-            ]
+            labels: etiquetas,
+            datasets: this.crearDatasetsTemperatura(manana, tarde)
         };
 
-        this.chartOptions = {
+        this.chartOptions = this.opcionesGraficaTemperatura(
+            false,
+            this.calcularRangoEjeY(manana, tarde)
+        );
+    }
+
+    private agruparTemperaturasPorDia(registros: any[]): {
+        etiquetas: string[];
+        manana: (number | null)[];
+        tarde: (number | null)[];
+    } {
+        const acumulado = new Map<string, { fecha: Date; manana: number[]; tarde: number[] }>();
+
+        registros.forEach(r => {
+            const fecha = new Date(r.fecha_registro);
+            if (isNaN(fecha.getTime())) { return; }
+
+            const clave = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+
+            if (!acumulado.has(clave)) {
+                acumulado.set(clave, { fecha, manana: [], tarde: [] });
+            }
+
+            const grupo = acumulado.get(clave)!;
+            const valor = Number(r.temperatura);
+            if (r.temperatura === null || r.temperatura === undefined || isNaN(valor)) { return; }
+
+            const horario = String(r.horario || '').trim().toLowerCase();
+            if (horario.startsWith('ma') || horario === 'am') {
+                grupo.manana.push(valor);
+            } else if (horario.startsWith('ta') || horario === 'pm') {
+                grupo.tarde.push(valor);
+            }
+        });
+
+        const claves = Array.from(acumulado.keys()).sort((a, b) => {
+            return acumulado.get(a)!.fecha.getTime() - acumulado.get(b)!.fecha.getTime();
+        });
+
+        const promedio = (valores: number[]): number | null => {
+            if (!valores.length) { return null; }
+            const suma = valores.reduce((acc, v) => acc + v, 0);
+            return Math.round((suma / valores.length) * 100) / 100;
+        };
+
+        return {
+            etiquetas: claves.map(clave => {
+                const fecha = acumulado.get(clave)!.fecha;
+                return `${String(fecha.getDate()).padStart(2, '0')}/${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+            }),
+            manana: claves.map(clave => promedio(acumulado.get(clave)!.manana)),
+            tarde: claves.map(clave => promedio(acumulado.get(clave)!.tarde))
+        };
+    }
+
+    private calcularRangoEjeY(
+        manana: (number | null)[],
+        tarde: (number | null)[]
+    ): { min: number; max: number } | null {
+        const valores = [...manana, ...tarde].filter(
+            (valor): valor is number => valor !== null
+        );
+
+        if (!valores.length) { return null; }
+
+        const minDato = Math.min(...valores);
+        const maxDato = Math.max(...valores);
+
+        return {
+            min: Math.floor((minDato - 3) / 2) * 2,
+            max: Math.ceil((maxDato + 3) / 2) * 2
+        };
+    }
+
+    private crearDatasetsTemperatura(manana: (number | null)[], tarde: (number | null)[]): any[] {
+        return [
+            {
+                label: 'Mañana',
+                data: manana,
+                borderColor: '#1f6fb2',
+                backgroundColor: '#1f6fb2',
+                pointBorderColor: '#1f6fb2',
+                pointBackgroundColor: '#1f6fb2',
+                pointStyle: 'rectRot',
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                borderWidth: 2,
+                fill: false,
+                tension: 0,
+                spanGaps: false
+            },
+            {
+                label: 'Tarde',
+                data: tarde,
+                borderColor: '#8ec5e8',
+                backgroundColor: '#8ec5e8',
+                pointBorderColor: '#8ec5e8',
+                pointBackgroundColor: '#8ec5e8',
+                pointStyle: 'rect',
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                borderWidth: 2,
+                fill: false,
+                tension: 0,
+                spanGaps: false
+            }
+        ];
+    }
+
+    private opcionesGraficaTemperatura(
+        paraPdf: boolean,
+        rangoY: { min: number; max: number } | null
+    ): any {
+        const opciones: any = {
             responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
             plugins: {
                 legend: {
                     display: true,
-                    position: 'top'
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 10,
+                        boxHeight: 10
+                    }
                 }
             },
             scales: {
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Temperatura (°C)'
-                    }
-                },
                 x: {
                     title: {
                         display: true,
-                        text: 'Fecha'
+                        text: 'Día'
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(15, 23, 42, 0.08)'
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: paraPdf ? 18 : 12,
+                        maxRotation: paraPdf ? 45 : 0,
+                        minRotation: 0
+                    }
+                },
+                y: {
+                    min: rangoY?.min,
+                    max: rangoY?.max,
+                    title: {
+                        display: true,
+                        text: 'Temperatura (°C)'
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(15, 23, 42, 0.08)'
+                    },
+                    ticks: {
+                        stepSize: 2,
+                        precision: 0
                     }
                 }
             }
         };
+
+        if (paraPdf) {
+            opciones.responsive = false;
+            opciones.animation = false;
+        }
+
+        return opciones;
     }
 
     cargarHorarios() {
@@ -426,7 +576,7 @@ export class RegTemperaturaComponent implements OnInit {
         const imgData = this.generarImagenGrafica(registrosFiltrados);
         if (imgData) {
             const imgWidth = pageWidth - 80;
-            const imgHeight = (360 / 1100) * imgWidth;
+            const imgHeight = (this.CHART_PDF_H / this.CHART_PDF_W) * imgWidth;
 
             doc.addImage(imgData, 'PNG', 40, currentY, imgWidth, imgHeight);
             currentY += imgHeight + 15;
@@ -472,60 +622,30 @@ export class RegTemperaturaComponent implements OnInit {
         if (registros.length === 0) return null;
 
         const canvas = document.createElement('canvas');
-        canvas.width = 1100;
-        canvas.height = 360;
+        canvas.width = this.CHART_PDF_W;
+        canvas.height = this.CHART_PDF_H;
 
         const ctx = canvas.getContext('2d');
         if (!ctx) return null;
 
-        const labels = registros.map(r =>
-            `${this.formatearFechaCorta(new Date(r.fecha_registro))} - ${r.horario || ''}`
-        );
-        const temperaturas = registros.map(r => Number(r.temperatura));
+        const { etiquetas, manana, tarde } = this.agruparTemperaturasPorDia(registros);
+
+        const datasets = this.crearDatasetsTemperatura(manana, tarde).map(dataset => ({
+            ...dataset,
+            pointRadius: 4,
+            pointHoverRadius: 4
+        }));
 
         const config: any = {
             type: 'line',
             data: {
-                labels,
-                datasets: [
-                    {
-                        label: 'Temperatura (°C)',
-                        data: temperaturas,
-                        fill: false,
-                        tension: 0,
-                        pointRadius: 2
-                    }
-                ]
+                labels: etiquetas,
+                datasets
             },
-            options: {
-                responsive: false,
-                animation: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    }
-                },
-                scales: {
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Temperatura (°C)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Fecha'
-                        },
-                        ticks: {
-                            autoSkip: true,
-                            maxTicksLimit: 20,
-                            maxRotation: 90
-                        }
-                    }
-                }
-            }
+            options: this.opcionesGraficaTemperatura(
+                true,
+                this.calcularRangoEjeY(manana, tarde)
+            )
         };
 
         const chart = new Chart(ctx, config);
