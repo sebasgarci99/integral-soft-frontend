@@ -401,9 +401,27 @@ export class RegTemperaturaComponent implements OnInit {
         if (!idSede || !idEquipo) return;
 
         (await this.registroService.obtenerRegistros(idSede, idEquipo)).subscribe((res) => {
-            this.registros = res;
+            this.registros = [...res]
+                .sort((a, b) => {
+                    return new Date(b.fecha_registro).getTime() - new Date(a.fecha_registro).getTime();
+                })
+                .map(registro => ({
+                    ...registro,
+                    fecha_busqueda: this.construirTextoBusquedaFecha(registro.fecha_registro)
+                }));
             this.cargarRegistrosMesActualGrafica();
         });
+    }
+
+    private construirTextoBusquedaFecha(fechaRegistro: string | Date): string {
+        const fecha = new Date(fechaRegistro);
+        if (isNaN(fecha.getTime())) { return ''; }
+
+        const dia = String(fecha.getDate()).padStart(2, '0');
+        const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+        const anio = fecha.getFullYear();
+
+        return `${dia}-${mes}-${anio} ${dia}/${mes}/${anio} ${anio}-${mes}-${dia}`;
     }
 
     abrirFormulario() {
@@ -452,7 +470,7 @@ export class RegTemperaturaComponent implements OnInit {
             ...this.formData,
             id_sede: this.sedeSeleccionada?.id_sede,
             id_equipo: this.equipoSeleccionado?.id_equipo,
-            fecha: this.obtenerFechaHoraActualFormatoIso(this.formData.fecha)
+            fecha: this.formData.fecha.toISOString()
         };
 
         if (this.modoEdicion && this.registroEditando) {

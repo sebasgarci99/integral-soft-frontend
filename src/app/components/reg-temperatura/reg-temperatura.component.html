@@ -52,13 +52,13 @@
                     </div>
 
                     <!-- Buscador derecha -->
-                    <input #gbInput pInputText type="text" class="ms-auto" placeholder="Buscar..."
+                    <input #gbInput pInputText type="text" class="ms-auto" placeholder="Buscar por día, responsable, horario..."
                         (input)="tabla.filterGlobal(gbInput.value, 'contains')" />
                 </div>
 
                 <!-- Tabla -->
                 <p-table #tabla [value]="registros" [paginator]="true" [rows]="10" responsiveLayout="scroll"
-                    [globalFilterFields]="['responsable','horario','tipo_medida','id_area']" stripedRows>
+                    [globalFilterFields]="['responsable','horario','tipo_medida','id_area','fecha_busqueda']" stripedRows>
 
                     <ng-template pTemplate="header">
                         <tr>
