@@ -103,6 +103,8 @@ export interface Stock {
     cantidad: number;
     lote?: string;
     fecha_vencimiento?: string;
+    categoria?: string | null;
+    grupo?: string | null;
     Producto?: Producto;
     Sede?: Sede;
     dias_vencimiento?: number;
@@ -129,6 +131,8 @@ export interface KardexRow {
     id_movimiento: number;
     numero_documento: string;
     fecha_movimiento: string;
+    id_sede: number;
+    sede_nombre: string | null;
     tipo_codigo: string;
     tipo_nombre: string;
     documento_referencia: string;
@@ -147,7 +151,7 @@ export interface KardexRow {
 }
 
 export interface KardexResponse {
-    producto: { id_producto: number; codigo: string; nombre: string };
+    producto: { id_producto: number; codigo: string; nombre: string; categoria?: string | null; grupo?: string | null };
     saldo_actual: { cantidad: number; costo_total: number; costo_unitario: number | null };
     movimientos: KardexRow[];
 }
@@ -157,6 +161,8 @@ export interface StockBajo {
     codigo: string;
     nombre: string;
     unidad: string;
+    categoria?: string | null;
+    grupo?: string | null;
     stock_minimo: number;
     stock_maximo: number;
     cantidad_total: number;

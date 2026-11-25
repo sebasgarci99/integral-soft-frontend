@@ -60,6 +60,9 @@ export class ClienteService {
             nombre_contacto: data.nombre_contacto,
             comentarios_observaciones: data.comentarios_observaciones,
             logo_base64: data.logo_base64,
+            arl: data.arl ?? null,
+            riesgo_arl: data.riesgo_arl ?? null,
+            rango_empleados: data.rango_empleados ?? null,
             estado: 'A',
             id_usuario: idUser,
             id_empresa: idEmpresa
@@ -96,6 +99,9 @@ export class ClienteService {
             nombre_contacto: data.nombre_contacto,
             comentarios_observaciones: data.comentarios_observaciones,
             logo_base64: data.logo_base64,
+            arl: data.arl ?? null,
+            riesgo_arl: data.riesgo_arl ?? null,
+            rango_empleados: data.rango_empleados ?? null,
             estado: data.estado || 'A',
             id_usuario: idUser,
             id_empresa: idEmpresa
@@ -103,6 +109,34 @@ export class ClienteService {
 
         return this.http.post<any>(
             this.urlApp + this.urlAppAPI + 'actualizarCliente',
+            body,
+            {
+                headers: headersWS,
+            }
+        );
+    }
+
+    async actualizarInfoArl(
+        idCliente: number,
+        data: { arl?: string | null; riesgo_arl?: number | null; rango_empleados?: string | null }
+    ): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
+
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+
+        const body = {
+            id_cliente: Number(idCliente),
+            arl: data.arl ?? null,
+            riesgo_arl: data.riesgo_arl ?? null,
+            rango_empleados: data.rango_empleados ?? null,
+            id_usuario: Number(idUser),
+            id_empresa: Number(idEmpresa)
+        };
+
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'actualizarInfoArl',
             body,
             {
                 headers: headersWS,

@@ -1,0 +1,384 @@
+<div class="ie-form-page">
+    <div class="ie-card ie-loading" *ngIf="cargando">
+        <i class="fa fa-spinner fa-spin"></i> Cargando inspección...
+    </div>
+
+    <ng-container *ngIf="!cargando">
+        <div class="ie-card ie-form-head">
+            <div class="ie-crumbs">
+                <button type="button" (click)="volverAlHub()"><i class="fa fa-shield-heart"></i> SG-SST</button>
+                <i class="fa fa-chevron-right"></i>
+                <button type="button" (click)="volverLista()">{{ opcionId === 'inspeccion-extintores' ? 'Inspección de extintores' : 'Estándar' }}</button>
+                <i class="fa fa-chevron-right"></i>
+                <span class="ie-current">{{ esNuevo ? 'Nueva' : 'Editar' }} inspección</span>
+            </div>
+            <div class="ie-form-head-main">
+                <span class="ie-form-icon"><i class="fa fa-fire-extinguisher"></i></span>
+                <div class="ie-form-titles">
+                    <h1>{{ esNuevo ? 'Nueva' : 'Editar' }} inspección de extintores</h1>
+                    <p>{{ nombreCliente }} · Formato F-GA-02 · Versión Feb-25</p>
+                </div>
+                <span class="ie-badge" [ngClass]="form.estado">
+                    {{ form.estado === 'cerrada' ? 'Cerrada' : 'Borrador' }}
+                </span>
+                <button type="button" class="ie-btn ie-btn-ghost" data-testid="volver-lista" (click)="volverLista()">
+                    <i class="fa fa-arrow-left"></i> Volver
+                </button>
+            </div>
+        </div>
+
+        <div class="ie-stepper">
+            <button type="button" *ngFor="let nombrePaso of pasos; let i = index"
+                class="ie-step" [class.active]="paso === i + 1" [class.done]="paso > i + 1"
+                [attr.data-testid]="'paso-' + (i + 1)"
+                (click)="irPaso(i + 1)">
+                <span class="ie-step-n">{{ paso > i + 1 ? '✓' : i + 1 }}</span>
+                <span class="ie-step-label">{{ nombrePaso }}</span>
+            </button>
+        </div>
+
+        <div class="ie-card" *ngIf="paso === 1">
+            <div class="ie-card-head">
+                <h3><i class="fa fa-clipboard-list"></i> Datos de la inspección</h3>
+                <span class="ie-muted">La fecha se reporta como mes y año, igual al formato.</span>
+            </div>
+
+            <div class="ie-grid-form">
+                <label class="ie-field">
+                    <span>Mes del registro *</span>
+                    <input type="month" [(ngModel)]="form.mesISO">
+                </label>
+                <label class="ie-field">
+                    <span>Fecha exacta *</span>
+                    <input type="date" [(ngModel)]="form.fecha">
+                </label>
+
+                <label class="ie-field ie-span2">
+                    <span>Nombre de quien inspecciona *</span>
+                    <input type="text" data-testid="inspector" [(ngModel)]="form.inspector" placeholder="Escribe el nombre completo">
+                </label>
+
+                <label class="ie-field">
+                    <span>Cargo *</span>
+                    <input type="text" [(ngModel)]="form.cargo">
+                </label>
+                <label class="ie-field">
+                    <span>Ciudad *</span>
+                    <input type="text" [(ngModel)]="form.ciudad">
+                </label>
+
+                <label class="ie-field ie-span2">
+                    <span>Dirección</span>
+                    <input type="text" [(ngModel)]="form.direccion">
+                </label>
+                <label class="ie-field">
+                    <span>Teléfono</span>
+                    <input type="text" [(ngModel)]="form.telefono">
+                </label>
+                <label class="ie-field">
+                    <span>Cliente (bloqueado)</span>
+                    <input type="text" [value]="nombreCliente" readonly>
+                </label>
+
+                <div class="ie-field ie-span2" data-testid="responsable-sg-sst">
+                    <span>Responsable SG-SST</span>
+                    <p-dropdown
+                        styleClass="ie-pdropdown"
+                        panelStyleClass="ie-pdropdown-panel"
+                        [options]="responsablesOpciones"
+                        optionLabel="label"
+                        optionValue="id"
+                        [ngModel]="responsableSeleccionadoId"
+                        (ngModelChange)="onResponsableChange($event)"
+                        placeholder="Selecciona el responsable SG-SST"
+                        [filter]="true"
+                        filterBy="label"
+                        [showClear]="true"
+                        appendTo="body"
+                        scrollHeight="280px"
+                        [style]="{ width: '100%' }">
+                    </p-dropdown>
+                    <small class="ie-help">
+                        La firma del reporte será la del responsable SG-SST seleccionado.
+                        <ng-container *ngIf="responsables.length === 0"> No hay responsables registrados; podrás firmar en pantalla.</ng-container>
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="ie-card" *ngIf="paso === 2">
+            <div class="ie-ext-toolbar">
+                <div>
+                    <h3>Extintores de la inspección</h3>
+                    <small class="ie-muted">
+                        {{ form.extintores.length }} registrados ·
+                        {{ faltantesFoto === 0 ? 'todos con foto' : faltantesFoto + ' sin foto' }}
+                    </small>
+                </div>
+                <button type="button" class="ie-soft-action" data-testid="agregar-extintor" (click)="agregarExtintor()">
+                    <span class="ie-soft-action-icon"><i class="fa fa-plus"></i></span> Agregar extintor
+                </button>
+            </div>
+
+            <div class="ie-empty" *ngIf="form.extintores.length === 0">
+                <i class="fa fa-fire-extinguisher"></i>
+                <h3>Sin extintores</h3>
+                <p>Agrega al menos un extintor para continuar.</p>
+            </div>
+
+            <div class="ie-ext" *ngFor="let extintor of form.extintores; let i = index"
+                [attr.data-testid]="'extintor-' + i">
+                <button type="button" class="ie-ext-head" (click)="toggleExtintor(i)">
+                    <span class="ie-ext-no">{{ i + 1 }}</span>
+                    <span class="ie-ext-title">
+                        <strong>{{ extintor.tipo || 'Extintor' }}</strong>
+                        <small>{{ extintor.ubicacion || 'Sin ubicación' }}</small>
+                    </span>
+                    <span class="ie-mini" [class.ok]="extintor.foto" [class.bad]="!extintor.foto">
+                        {{ extintor.foto ? 'Foto' : 'Sin foto' }}
+                    </span>
+                    <i class="fa fa-chevron-down ie-ext-chev" [class.rot]="!estaColapsado(i)"></i>
+                </button>
+
+                <div class="ie-ext-body" *ngIf="!estaColapsado(i)">
+                    <h4 class="ie-subtitle"><i class="fa fa-tag"></i> Identificación del extintor</h4>
+
+                    <div class="ie-grid-ext">
+                        <label class="ie-field" [class.invalid]="campoInvalido(extintor, 'tipo')"
+                            [attr.data-testid]="'extintor-' + i + '-tipo'">
+                            <span>Tipo *</span>
+                            <p-dropdown
+                                styleClass="ie-pdropdown"
+                                panelStyleClass="ie-pdropdown-panel"
+                                [options]="tiposExtintor"
+                                [(ngModel)]="extintor.tipo"
+                                appendTo="body"
+                                scrollHeight="220px"
+                                [style]="{ width: '100%' }">
+                            </p-dropdown>
+                            <small class="ie-error" *ngIf="campoInvalido(extintor, 'tipo')">Selecciona el tipo.</small>
+                        </label>
+
+                        <label class="ie-field" [class.invalid]="campoInvalido(extintor, 'ubicacion')"
+                            [attr.data-testid]="'extintor-' + i + '-ubicacion'">
+                            <span>Ubicación *</span>
+                            <input type="text" [(ngModel)]="extintor.ubicacion" placeholder="Ej: Recepción">
+                            <small class="ie-error" *ngIf="campoInvalido(extintor, 'ubicacion')">Escribe la ubicación.</small>
+                        </label>
+
+                        <label class="ie-field" [class.invalid]="campoInvalido(extintor, 'capacidad')"
+                            [attr.data-testid]="'extintor-' + i + '-capacidad'">
+                            <span>Capacidad *</span>
+                            <div class="ie-inline">
+                                <input type="number" min="1" [(ngModel)]="extintor.capacidad" placeholder="10">
+                                <p-dropdown
+                                    styleClass="ie-pdropdown"
+                                    panelStyleClass="ie-pdropdown-panel"
+                                    [options]="unidades"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    [(ngModel)]="extintor.unidad"
+                                    appendTo="body"
+                                    [style]="{ width: '100px' }">
+                                </p-dropdown>
+                            </div>
+                            <small class="ie-error" *ngIf="campoInvalido(extintor, 'capacidad')">Escribe la capacidad.</small>
+                        </label>
+
+                        <label class="ie-field">
+                            <span>Fecha próxima recarga</span>
+                            <input type="date" [(ngModel)]="extintor.fecha_proxima_recarga">
+                        </label>
+                        <label class="ie-field">
+                            <span>Proveedor</span>
+                            <input type="text" [(ngModel)]="extintor.proveedor" placeholder="Nombre del proveedor">
+                        </label>
+                    </div>
+
+                    <h4 class="ie-subtitle"><i class="fa fa-camera"></i> Foto del extintor</h4>
+                    <div class="ie-foto-block" [attr.data-testid]="'extintor-' + i + '-foto'">
+                        <label class="ie-foto-drop" *ngIf="!extintor.foto">
+                            <input type="file" accept="image/*" capture="environment" hidden
+                                [attr.data-testid]="'extintor-' + i + '-foto-input'"
+                                (change)="onFoto($event, extintor)">
+                            <i class="fa" [ngClass]="procesandoFoto ? 'fa-spinner fa-spin' : 'fa-camera'"></i>
+                            <strong>Subir foto del extintor *</strong>
+                            <span>Obligatoria · se comprime automáticamente al subir</span>
+                        </label>
+
+                        <div class="ie-foto-prev" *ngIf="extintor.foto">
+                            <img [src]="rutaImagen(extintor)" alt="Foto del extintor">
+                            <div class="ie-foto-meta">
+                                <strong>Foto cargada</strong>
+                                <small>{{ formatearPeso(extintor.foto.peso_bytes) }} · comprimida a 1280 px · JPEG 55%</small>
+                            </div>
+                            <div class="ie-foto-btns">
+                                <label class="ie-btn ie-btn-ghost">
+                                    Reemplazar
+                                    <input type="file" accept="image/*" capture="environment" hidden
+                                        [attr.data-testid]="'extintor-' + i + '-foto-input'"
+                                        (change)="onFoto($event, extintor)">
+                                </label>
+                                <button type="button" class="ie-btn ie-btn-danger" (click)="eliminarFoto(extintor)">
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="ie-subtitle"><i class="fa fa-list-check"></i> Criterios de inspección</h4>
+                    <div class="ie-crit-grid">
+                        <section class="ie-crit-section" *ngFor="let grupo of gruposCriterios">
+                            <h5>{{ grupo }}</h5>
+                            <div class="ie-crit-row" *ngFor="let criterio of criteriosDeGrupo(grupo)">
+                                <span class="ie-crit-label">{{ criterio.label }}</span>
+                                <div class="ie-seg">
+                                    <button type="button" *ngFor="let valor of valoresCriterio"
+                                        class="ie-seg-btn"
+                                        [ngClass]="[claseValor(valor), extintor.criterios[criterio.key] === valor ? 'on' : '']"
+                                        (click)="setCriterio(extintor, criterio, valor)">{{ valor }}</button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="ie-ext-foot">
+                        <button type="button" class="ie-btn ie-btn-danger" (click)="eliminarExtintor(i)">
+                            <i class="fa fa-trash"></i> Eliminar extintor
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ie-card" *ngIf="paso === 3">
+            <div class="ie-card-head">
+                <h3><i class="fa fa-clipboard-list"></i> Observaciones</h3>
+                <span class="ie-muted">Texto precargado editable</span>
+            </div>
+            <label class="ie-field">
+                <span>Observaciones de la inspección</span>
+                <textarea rows="7" [(ngModel)]="form.observaciones"></textarea>
+            </label>
+        </div>
+
+        <div class="ie-card" *ngIf="paso === 3">
+            <div class="ie-card-head">
+                <h3><i class="fa fa-pen"></i> Firma del Responsable SG-SST</h3>
+                <span class="ie-muted">Se toma del responsable seleccionado</span>
+            </div>
+
+            <div class="ie-responsable" *ngIf="responsableActual as responsable">
+                <strong>{{ responsable.nombre }}</strong>
+                <small>{{ responsable.profesion || form.cargo }}</small>
+                <small *ngIf="responsable.cedula">C.C. {{ responsable.cedula }}</small>
+            </div>
+
+            <ng-container *ngIf="modoFirma === 'guardada' && form.firma_base64; else firmaDibujada">
+                <div class="ie-firma-guardada" data-testid="firma-guardada">
+                    <img [src]="form.firma_base64" alt="Firma del responsable SG-SST">
+                </div>
+                <div class="ie-firma-actions">
+                    <button type="button" class="ie-btn ie-btn-ghost" data-testid="firmar-pantalla" (click)="firmarEnPantalla()">
+                        <i class="fa fa-pen"></i> Firmar en pantalla
+                    </button>
+                </div>
+            </ng-container>
+
+            <ng-template #firmaDibujada>
+                <div class="ie-canvas-wrap">
+                    <canvas #firmaCanvas data-testid="firma-canvas"></canvas>
+                </div>
+                <div class="ie-firma-actions">
+                    <button type="button" class="ie-btn ie-btn-ghost" (click)="limpiarFirma()">Limpiar firma</button>
+                    <button type="button" class="ie-btn ie-btn-ghost" *ngIf="responsableActual?.firma_base64"
+                        (click)="usarFirmaGuardada()">
+                        Usar firma guardada
+                    </button>
+                </div>
+            </ng-template>
+        </div>
+
+        <div class="ie-card" *ngIf="paso === 4">
+            <div class="ie-card-head">
+                <h3><i class="fa fa-clipboard-check"></i> Revisión de la inspección</h3>
+            </div>
+
+            <div class="ie-review-tiles">
+                <div class="ie-tile"><span>Extintores</span><strong>{{ form.extintores.length }}</strong></div>
+                <div class="ie-tile"><span>Fotos</span><strong>{{ totalFotos }} / {{ form.extintores.length }}</strong></div>
+                <div class="ie-tile"><span>Peso en BD</span><strong>{{ formatearPeso(pesoTotal) }}</strong></div>
+            </div>
+
+            <div class="ie-alert" [ngClass]="faltantesFoto > 0 ? 'warn' : 'ok'">
+                <i class="fa" [ngClass]="faltantesFoto > 0 ? 'fa-triangle-exclamation' : 'fa-circle-check'"></i>
+                <span *ngIf="faltantesFoto > 0">
+                    Falta la foto de {{ faltantesFoto }} extintor(es). Para cerrar la inspección todas las fotos son obligatorias.
+                </span>
+                <span *ngIf="faltantesFoto === 0">
+                    Todas las fotos están cargadas. La inspección puede cerrarse y generar el PDF.
+                </span>
+            </div>
+
+            <div class="ie-alert warn" *ngIf="!form.firma_base64">
+                <i class="fa fa-circle-info"></i>
+                <span>La firma está vacía. Puedes cerrar sin firma, pero se recomienda capturarla.</span>
+            </div>
+
+            <div class="ie-table-wrap">
+                <table class="ie-review-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tipo</th>
+                            <th>Ubicación</th>
+                            <th>Capacidad</th>
+                            <th>Criterios</th>
+                            <th>Foto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let extintor of form.extintores; let i = index">
+                            <td>{{ i + 1 }}</td>
+                            <td>{{ extintor.tipo }}</td>
+                            <td>{{ extintor.ubicacion || '—' }}</td>
+                            <td>{{ extintor.capacidad }} {{ extintor.unidad }}</td>
+                            <td>{{ hallazgos(extintor) }}</td>
+                            <td>
+                                <span class="ie-ok" *ngIf="extintor.foto"><i class="fa fa-check"></i> {{ formatearPeso(extintor.foto.peso_bytes) }}</span>
+                                <span class="ie-bad" *ngIf="!extintor.foto"><i class="fa fa-xmark"></i> Falta</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="ie-actions-bar">
+            <button type="button" class="ie-btn ie-btn-ghost" data-testid="atras"
+                [disabled]="paso === 1 || guardando" (click)="irPaso(paso - 1)">
+                <i class="fa fa-arrow-left"></i> Atrás
+            </button>
+            <div class="ie-actions-right">
+                <button type="button" class="ie-btn ie-btn-ghost" data-testid="guardar-borrador"
+                    [disabled]="guardando" (click)="guardar('borrador')">
+                    Guardar borrador
+                </button>
+                <button type="button" class="ie-soft-action" data-testid="vista-pdf"
+                    *ngIf="paso === 4" [disabled]="guardando" (click)="verPdf()">
+                    <span class="ie-soft-action-icon"><i class="fa fa-file-pdf"></i></span> Vista previa PDF
+                </button>
+                <button type="button" class="ie-btn ie-btn-primary" data-testid="siguiente"
+                    *ngIf="paso < 4" (click)="irPaso(paso + 1)">
+                    Siguiente <i class="fa fa-arrow-right"></i>
+                </button>
+                <button type="button" class="ie-btn ie-btn-primary" data-testid="cerrar-inspeccion"
+                    *ngIf="paso === 4" [disabled]="guardando" (click)="guardar('cerrada')">
+                    <i class="fa fa-check"></i> Cerrar inspección
+                </button>
+            </div>
+        </div>
+    </ng-container>
+</div>
+
+<p-toast position="top-right"></p-toast>

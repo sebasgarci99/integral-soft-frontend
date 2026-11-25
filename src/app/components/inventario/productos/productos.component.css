@@ -1,5 +1,5 @@
-.text-success { color: #16a34a; }
-.text-muted { color: #9ca3af; }
+.text-success { color: #15803d; }
+.text-muted { color: #94a3b8; }
 
 .grupos-cards-container {
     padding: 0.75rem 0;
@@ -7,56 +7,84 @@
 
 .grupo-card {
     position: relative;
-    min-width: 140px;
-    padding: 1.25rem 1rem;
+    min-width: 150px;
+    padding: 1.35rem 1.1rem 1.15rem;
     border: none;
-    border-radius: 1rem;
+    border-radius: 1.1rem;
     background: #ffffff;
     color: #ffffff;
     text-align: center;
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
     overflow: hidden;
+    isolation: isolate;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, filter 0.25s ease;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
 }
 
 .grupo-card::before {
     content: '';
     position: absolute;
     inset: 0;
-    opacity: 0.12;
-    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.9), transparent 60%);
+    background: radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.35), transparent 55%);
+    pointer-events: none;
+    opacity: 1;
+}
+
+.grupo-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -80%;
+    width: 45%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.55s ease;
     pointer-events: none;
 }
 
 .grupo-card:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-    filter: brightness(1.05);
+    transform: translateY(-5px);
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.22);
+    filter: brightness(1.04);
 }
 
+.grupo-card:hover::after { left: 130%; }
+
 .grupo-card.selected {
-    outline: 3px solid rgba(255, 255, 255, 0.9);
+    transform: translateY(-5px);
+    box-shadow: 0 0 0 3px #ffffff, 0 0 0 6px #3da1b8, 0 16px 30px rgba(15, 23, 42, 0.22);
+}
+
+.grupo-card:focus-visible {
+    outline: 3px solid #3da1b8;
     outline-offset: 3px;
-    transform: translateY(-4px) scale(1.03);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
-    filter: brightness(1.08);
 }
 
 .grupo-card-icon {
     position: relative;
-    font-size: 2.25rem;
-    margin-bottom: 0.75rem;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.2rem;
+    height: 3.2rem;
+    margin: 0 auto 0.7rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    font-size: 1.4rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .grupo-card-label {
     position: relative;
     font-size: 0.95rem;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 0.02em;
     line-height: 1.25;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    max-width: 140px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    max-width: 150px;
+    margin: 0 auto;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -64,29 +92,53 @@
 
 .grupo-card-count {
     position: relative;
-    margin-top: 0.75rem;
+    margin-top: 0.7rem;
 }
 
 .badge-grupo {
     display: inline-block;
-    padding: 0.25rem 0.6rem;
+    padding: 0.24rem 0.65rem;
     border-radius: 999px;
-    background-color: rgba(255, 255, 255, 0.25);
+    background: rgba(15, 23, 42, 0.22);
     color: #ffffff;
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.28);
     backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.grupo-gradient-1 { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
-.grupo-gradient-2 { background: linear-gradient(135deg, #134e5e 0%, #71b280 100%); }
-.grupo-gradient-3 { background: linear-gradient(135deg, #5e1a2e 0%, #a83f5b 100%); }
-.grupo-gradient-4 { background: linear-gradient(135deg, #3a1c71 0%, #d76d77 100%); }
-.grupo-gradient-5 { background: linear-gradient(135deg, #232526 0%, #414345 100%); }
-.grupo-gradient-6 { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); }
-.grupo-gradient-7 { background: linear-gradient(135deg, #000428 0%, #004e92 100%); }
-.grupo-gradient-8 { background: linear-gradient(135deg, #29323c 0%, #485563 100%); }
+.grupo-card-check {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #0b7f99;
+    font-size: 0.7rem;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    animation: grupoPop 0.2s ease both;
+}
+
+@keyframes grupoPop {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.grupo-gradient-1 { background: linear-gradient(135deg, #0b7f99 0%, #3da1b8 100%); }
+.grupo-gradient-2 { background: linear-gradient(135deg, #005f99 0%, #2b8cc4 100%); }
+.grupo-gradient-3 { background: linear-gradient(135deg, #0e7490 0%, #22b8cf 100%); }
+.grupo-gradient-4 { background: linear-gradient(135deg, #0f766e 0%, #2dd4bf 100%); }
+.grupo-gradient-5 { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+.grupo-gradient-6 { background: linear-gradient(135deg, #1e293b 0%, #475569 100%); }
+.grupo-gradient-7 { background: linear-gradient(135deg, #064e5c 0%, #0d8aa6 100%); }
+.grupo-gradient-8 { background: linear-gradient(135deg, #0369a1 0%, #38bdf8 100%); }
 
 .empty-state {
     display: flex;
@@ -94,14 +146,14 @@
     align-items: center;
     justify-content: center;
     padding: 3rem 1rem;
-    color: #6c757d;
+    color: #64748b;
     text-align: center;
 }
 
 .empty-state i {
     font-size: 2.5rem;
     margin-bottom: 0.75rem;
-    color: #adb5bd;
+    color: #3da1b8;
 }
 
 .badge-medicamento { background-color: #e0f2fe; color: #0369a1; }
@@ -115,4 +167,3 @@
 :host ::ng-deep .p-tabview-nav {
     font-size: 0.95rem;
 }
-

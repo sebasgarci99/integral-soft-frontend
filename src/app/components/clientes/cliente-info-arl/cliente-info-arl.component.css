@@ -1,0 +1,97 @@
+.arl-wrap {
+    padding: 0.5rem 0;
+}
+
+.arl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.arl-header h4 {
+    margin: 0 0 0.35rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.arl-header h4 i {
+    margin-right: 0.4rem;
+    color: #0f766e;
+}
+
+.arl-header p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.arl-search {
+    margin-bottom: 1rem;
+    max-width: 26rem;
+}
+
+.arl-search input {
+    width: 100%;
+}
+
+.arl-cliente-nombre {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.arl-cliente-comercial {
+    color: #64748b;
+}
+
+.arl-dialog-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.arl-cliente-resumen {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.arl-cliente-resumen i {
+    font-size: 1.2rem;
+    color: #0f766e;
+}
+
+.arl-cliente-resumen div {
+    display: flex;
+    flex-direction: column;
+}
+
+.arl-cliente-resumen small {
+    color: #64748b;
+}
+
+.arl-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.arl-field label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #334155;
+}
+
+.arl-help {
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+.arl-field :is(.p-dropdown, .p-select) {
+    width: 100%;
+}

@@ -20,7 +20,7 @@ import {
     SgSstInstancia,
     SgSstTarea
 } from '../../../interfaces/sg-sst';
-import { insertarTextoPredefinido } from '../../../utils/bitacora-texto.util';
+import { insertarTextoPredefinido, normalizarVinetas } from '../../../utils/bitacora-texto.util';
 import { procesarImagenEvidencia } from '../../../utils/image-compress.util';
 import { mensajeConfirmacionPeriodicidad, requiereFechaFin } from '../../../utils/periodicidad.util';
 
@@ -96,6 +96,7 @@ export class SgSstBitacoraComponent implements OnInit, OnChanges, OnDestroy {
         { label: 'Mensual', value: 'mensual' },
         { label: 'Trimestral', value: 'trimestral' },
         { label: 'Cuatrimestral', value: 'cuatrimestral' },
+        { label: 'Semestral', value: 'semestral' },
         { label: 'Anual', value: 'anual' }
     ];
 
@@ -275,7 +276,7 @@ export class SgSstBitacoraComponent implements OnInit, OnChanges, OnDestroy {
                 this.eventos = res.body.eventos || [];
                 this.solicitudPendiente = res.body.solicitud_pendiente || null;
                 this.resumen = this.bitacora?.resumen || '';
-                this.textoPredefinido = String(res.body.texto_predefinido || '').trim();
+                this.textoPredefinido = normalizarVinetas(res.body.texto_predefinido || '').trim();
                 this.ultimoTextoGuardado = this.resumen;
             } else {
                 this.limpiar();

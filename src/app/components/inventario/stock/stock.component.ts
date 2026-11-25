@@ -38,9 +38,16 @@ export class StockComponent implements OnInit {
     }
 
     async cargarSedes() {
-        this.sedes = [
-            { id_sede: 1, nombre: 'Sede Principal' }
-        ];
+        (await this.inventarioService.getSedes()).subscribe({
+            next: (res) => {
+                if (res.state === 'OK') {
+                    this.sedes = res.body || [];
+                }
+            },
+            error: () => {
+                this.messageService.add({ severity: 'error', summary: 'Error al cargar las sedes.' });
+            }
+        });
     }
 
     async cargarStock() {
@@ -65,16 +72,38 @@ export class StockComponent implements OnInit {
         this.cargarStock();
     }
 
-    getColorClass(color: string | null | undefined): string {
-        if (!color) return '';
-        const map: Record<string, string> = {
-            'ROJO': 'semaforo-rojo',
-            'AMARILLO': 'semaforo-amarillo',
-            'NARANJA': 'semaforo-naranja',
-            'VERDE': 'semaforo-verde',
-            'GRIS': 'semaforo-gris'
-        };
-        return map[color] || '';
+    get totalRegistros(): number {
+        return this.stocks.length;
+    }
+
+    get totalProductos(): number {
+        return new Set(this.stocks.map(s => s.id_producto)).size;
+    }
+
+    get totalUnidades(): number {
+        return this.stocks.reduce((sum, s) => sum + Number(s.cantidad || 0), 0);
+    }
+
+    get registrosStockBajo(): number {
+        return this.stocks.filter(s => s.stock_bajo).length;
+    }
+
+    estadoVencimiento(row: Stock): { texto: string; clase: string } {
+        const dias = row.dias_vencimiento;
+
+        if (dias === null || dias === undefined) {
+            return { texto: 'Sin vencimiento', clase: 'inv-estado-neutro' };
+        }
+        if (dias <= 0) {
+            return { texto: 'Vencido', clase: 'inv-estado-vencido' };
+        }
+        if (dias <= 30) {
+            return { texto: 'Por vencer', clase: 'inv-estado-critico' };
+        }
+        if (dias <= 90) {
+            return { texto: 'Próximo', clase: 'inv-estado-alerta' };
+        }
+        return { texto: 'Vigente', clase: 'inv-estado-ok' };
     }
 
     formatearFecha(valor: string | Date | null | undefined): string {

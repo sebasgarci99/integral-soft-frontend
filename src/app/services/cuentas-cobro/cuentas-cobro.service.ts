@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { CuentaCobro, CuentasCobroResponse } from '../../interfaces/cuenta-cobro';
+import { CuentaCobro, CuentaCobroGenerada, CuentasCobroResponse } from '../../interfaces/cuenta-cobro';
 import { enviroment } from '../../../enviroments/enviroment';
 import { SecureStorageService } from '../secure-storage.service';
 
@@ -172,6 +172,37 @@ export class CuentasCobroService {
                 }
                 return [];
             })
+        );
+    }
+
+    async getCuentasGeneradas(idCuentaCobro: number): Promise<Observable<CuentaCobroGenerada[]>> {
+        const token = await this.secureStorage.getItem('token');
+        const idUser = await this.secureStorage.getItem('idUser');
+        const idEmpresa = await this.secureStorage.getItem('idEmpresa');
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'getCuentasGeneradas',
+            { id_cuenta_cobro: idCuentaCobro, id_usuario: idUser, id_empresa: idEmpresa },
+            { headers: headersWS }
+        ).pipe(
+            map(response => {
+                if (response && Array.isArray(response.body)) {
+                    return response.body as CuentaCobroGenerada[];
+                }
+                return [];
+            })
+        );
+    }
+
+    async descargarCuentaCobro(id: number): Promise<Observable<any>> {
+        const token = await this.secureStorage.getItem('token');
+        const headersWS = new HttpHeaders().set('authorization', `Bearer ${token}`);
+
+        return this.http.post<any>(
+            this.urlApp + this.urlAppAPI + 'descargarCuentaCobro',
+            { id: Number(id) },
+            { headers: headersWS }
         );
     }
 }

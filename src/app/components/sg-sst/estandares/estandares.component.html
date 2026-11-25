@@ -1,0 +1,87 @@
+<div class="est-shell">
+    <header class="est-head">
+        <span class="est-head-icon"><i class="fa fa-shield-heart"></i></span>
+        <div class="est-head-text">
+            <span class="est-eyebrow">SG-SST</span>
+            <h2>Estándares del Sistema de Gestión de la Seguridad</h2>
+            <p>Selecciona un grupo de estándares para consultar sus opciones y gestionar los registros del cliente.</p>
+        </div>
+        <span class="est-chip">
+            <i class="fa fa-layer-group"></i> {{ grupos.length }} grupos · {{ totalOpciones }} opciones
+        </span>
+    </header>
+
+    <div class="est-grid">
+        <button type="button" class="est-card" *ngFor="let grupo of grupos"
+            [class.est-card-active]="drawerVisible && grupoActivo?.id === grupo.id"
+            [style.background]="'linear-gradient(135deg, ' + grupo.colorDesde + ' 0%, ' + grupo.colorHasta + ' 100%)'"
+            (click)="abrirGrupo(grupo)">
+            <span class="est-card-icon"><i [class]="grupo.icono"></i></span>
+            <strong class="est-card-title">{{ grupo.nombre }}</strong>
+            <span class="est-card-chip">{{ numeroOpciones(grupo) }}</span>
+        </button>
+    </div>
+</div>
+
+<p-drawer [(visible)]="drawerVisible" position="right" [fullScreen]="esMovil"
+    [style]="{ width: '460px' }" styleClass="est-drawer">
+
+    <ng-template pTemplate="header">
+        <div class="est-drawer-head" *ngIf="grupoActivo as grupo">
+            <span class="est-drawer-icon"
+                [style.background]="'linear-gradient(135deg, ' + grupo.colorDesde + ' 0%, ' + grupo.colorHasta + ' 100%)'">
+                <i [class]="grupo.icono"></i>
+            </span>
+            <div class="est-drawer-titles">
+                <strong>{{ grupo.nombre }}</strong>
+                <small>{{ numeroOpciones(grupo) }}</small>
+            </div>
+        </div>
+    </ng-template>
+
+    <div class="est-drawer-body" *ngIf="grupoActivo as grupo">
+        <p class="est-desc">{{ grupo.descripcion }}</p>
+
+        <section class="est-section">
+            <div class="est-section-head">
+                <h4><i class="fa fa-list-ul"></i> Opciones</h4>
+                <span class="est-count">{{ grupo.opciones.length }}</span>
+            </div>
+
+            <div class="est-options" *ngIf="grupo.opciones.length > 0; else sinOpciones">
+                <button type="button" class="est-option" *ngFor="let opcion of grupo.opciones"
+                    [class.est-option-selected]="opcionSeleccionadaId === opcion.id"
+                    (click)="seleccionarOpcion(opcion)">
+                    <span class="est-option-radio"></span>
+                    <span class="est-option-icon"><i [class]="opcion.icono"></i></span>
+                    <span class="est-option-text">
+                        <strong>{{ opcion.nombre }}</strong>
+                        <small *ngIf="opcion.descripcion">{{ opcion.descripcion }}</small>
+                    </span>
+                </button>
+            </div>
+
+            <ng-template #sinOpciones>
+                <div class="est-empty">
+                    <i class="fa fa-inbox"></i>
+                    <p>Aún no hay opciones registradas para este grupo.</p>
+                </div>
+            </ng-template>
+        </section>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="est-drawer-footer">
+            <span class="est-hint" aria-live="polite">
+                {{ opcionSeleccionada ? opcionSeleccionada.nombre : 'Selecciona una opción para continuar' }}
+            </span>
+            <div class="est-drawer-btns">
+                <button type="button" class="est-btn est-btn-ghost" (click)="cerrarDrawer()">Cancelar</button>
+                <button type="button" class="est-btn est-btn-primary" [disabled]="!opcionSeleccionada" (click)="ir()">
+                    Ir <i class="fa fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </ng-template>
+
+</p-drawer>

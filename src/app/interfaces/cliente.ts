@@ -12,6 +12,9 @@ export interface Cliente {
     nombre_contacto: string;
     comentarios_observaciones: string;
     logo_base64?: string;
+    arl?: string | null;
+    riesgo_arl?: number | null;
+    rango_empleados?: string | null;
     estado: string;
     id_usuario?: number;
     id_empresa?: number;

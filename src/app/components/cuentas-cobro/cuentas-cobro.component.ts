@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 
 import { CuentasCobroService } from '../../services/cuentas-cobro/cuentas-cobro.service';
 import { ClienteService } from '../../services/cliente/cliente.service';
-import { CuentaCobro, Cliente, LogTarea } from '../../interfaces/cuenta-cobro';
+import { CuentaCobro, CuentaCobroGenerada, Cliente, LogTarea } from '../../interfaces/cuenta-cobro';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
 
@@ -61,7 +61,12 @@ export class CuentasCobroComponent implements OnInit {
     displayDialog: boolean = false;
     displayEditDialog: boolean = false;
     displayLogDialog: boolean = false;
+    displayGeneradasDialog: boolean = false;
     logTareas: LogTarea[] = [];
+    cuentasGeneradas: CuentaCobroGenerada[] = [];
+    maestraSeleccionada: CuentaCobro | null = null;
+    cargandoGeneradas: boolean = false;
+    filtroGeneradas: string = '';
     selectedCuentaPeriodicidad: any = null;
     editFormData: any = {};
     isAccountBase: boolean = false;
@@ -86,7 +91,8 @@ export class CuentasCobroComponent implements OnInit {
         { label: 'Diaria', value: 'diaria' },
         { label: 'Semanal', value: 'semanal' },
         { label: 'Quincenal', value: 'quincenal' },
-        { label: 'Mensual', value: 'mensual' }
+        { label: 'Mensual', value: 'mensual' },
+        { label: 'Semestral', value: 'semestral' }
     ];
 
     opcionesDiaSemana = [
@@ -108,18 +114,55 @@ export class CuentasCobroComponent implements OnInit {
 
     opcionesTipoCuenta = [
         { label: 'Todas', value: 'todas' },
-        { label: 'Base (programadas)', value: 'base' },
-        { label: 'Generadas', value: 'generadas' }
+        { label: 'Programadas', value: 'programadas' },
+        { label: 'Sin programar', value: 'sin_programar' }
     ];
 
     get cuentasFiltradas(): CuentaCobro[] {
-        if (this.filtroTipoCuenta === 'base') {
+        if (this.filtroTipoCuenta === 'programadas') {
             return this.cuentasCobro.filter(cuenta => !!cuenta.info_periodicidad);
         }
-        if (this.filtroTipoCuenta === 'generadas') {
-            return this.cuentasCobro.filter(cuenta => !!cuenta.es_editable && !cuenta.info_periodicidad);
+        if (this.filtroTipoCuenta === 'sin_programar') {
+            return this.cuentasCobro.filter(cuenta => !cuenta.info_periodicidad);
         }
         return this.cuentasCobro;
+    }
+
+    get totalCuentas(): number {
+        return this.cuentasCobro.length;
+    }
+
+    get totalProgramadas(): number {
+        return this.cuentasCobro.filter(cuenta => !!cuenta.info_periodicidad).length;
+    }
+
+    get totalSinProgramar(): number {
+        return this.cuentasCobro.filter(cuenta => !cuenta.info_periodicidad).length;
+    }
+
+    get totalGeneradas(): number {
+        return this.cuentasCobro.reduce((total, cuenta) => total + (cuenta.total_generadas || 0), 0);
+    }
+
+    get generadasEnviadas(): number {
+        return this.cuentasGeneradas.filter(generada => generada.email_enviado).length;
+    }
+
+    get generadasNoEnviadas(): number {
+        return this.cuentasGeneradas.filter(generada => !generada.email_enviado).length;
+    }
+
+    get cuentasGeneradasFiltradas(): CuentaCobroGenerada[] {
+        const termino = this.filtroGeneradas.trim().toLowerCase();
+        if (!termino) {
+            return this.cuentasGeneradas;
+        }
+        return this.cuentasGeneradas.filter(generada =>
+            String(generada.id_cuenta_cobro).includes(termino)
+            || generada.estado_tarea.toLowerCase().includes(termino)
+            || (generada.mensaje_error || '').toLowerCase().includes(termino)
+            || (generada.email_enviado ? 'enviado' : 'sin enviar').includes(termino)
+        );
     }
 
     steps = [
@@ -206,7 +249,7 @@ export class CuentasCobroComponent implements OnInit {
 
         if (this.formData.configurar_periodicidad) {
             dataToSend.periodicidad = this.formData.periodicidad;
-            dataToSend.dia_del_mes = this.formData.periodicidad === 'mensual' ? this.formData.dia_del_mes : null;
+            dataToSend.dia_del_mes = ['mensual', 'semestral'].includes(this.formData.periodicidad) ? this.formData.dia_del_mes : null;
             dataToSend.dia_semana = this.formData.periodicidad === 'semanal' ? this.formData.dia_semana : null;
             dataToSend.hora_ejecucion = this.formData.hora_ejecucion ? this.formData.hora_ejecucion.getHours() : 8;
         }
@@ -285,51 +328,37 @@ export class CuentasCobroComponent implements OnInit {
         });
     }
 
-    async generarPdf(id: number): Promise<void> {
-        (await this.cuentasCobroService.generarDocumento(id)).subscribe({
+    async descargarCuentaCobro(row: { id_cuenta_cobro: number }): Promise<void> {
+        (await this.cuentasCobroService.descargarCuentaCobro(row.id_cuenta_cobro)).subscribe({
             next: (res: any) => {
-                let response = JSON.parse(res);
-                if (response.state == 'OK') {
-                    const html = response.body.html;
-
-                    const cssPrint = `
-                        @page {
-                            margin: 15mm;
-                            size: auto;
-                        }
-                        body {
-                            margin: 0;
-                            padding: 0;
-                        }
-                    `;
-
-                    const htmlCompleto = `
-                        <html>
-                        <head>
-                            <style>${cssPrint}</style>
-                        </head>
-                        <body>${html}</body>
-                        </html>
-                    `;
-
-                    const ventana = window.open('', '_blank');
-                    if (ventana) {
-                        ventana.document.write(htmlCompleto);
-                        ventana.document.close();
-                        ventana.onload = () => {
-                            setTimeout(() => {
-                                ventana.print();
-                            }, 500);
-                        };
-                    }
+                if (res?.state === 'OK' && res.body?.pdf_base64) {
+                    this.descargarBase64(
+                        res.body.pdf_base64,
+                        res.body.nombre_archivo || `CuentaCobro_${row.id_cuenta_cobro}.pdf`
+                    );
                 } else {
-                    this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el documento.' });
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: res?.msg || 'No se pudo generar el documento.' });
                 }
             },
-            error: (err: any) => {
+            error: () => {
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el documento.' });
             }
         });
+    }
+
+    private descargarBase64(base64: string, nombreArchivo: string, mime: string = 'application/pdf'): void {
+        const byteCharacters = atob(base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const blob = new Blob([new Uint8Array(byteNumbers)], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = nombreArchivo;
+        enlace.click();
+        URL.revokeObjectURL(url);
     }
 
     formatearValor(valor: string | number): string {
@@ -468,7 +497,7 @@ export class CuentasCobroComponent implements OnInit {
                         const configData = {
                             id_cuenta_cobro: this.editFormData.id_cuenta_cobro,
                             periodicidad: this.editFormData.periodicidad,
-                            dia_del_mes: this.editFormData.periodicidad === 'mensual' ? this.editFormData.dia_del_mes : null,
+                            dia_del_mes: ['mensual', 'semestral'].includes(this.editFormData.periodicidad) ? this.editFormData.dia_del_mes : null,
                             dia_semana: this.editFormData.periodicidad === 'semanal' ? this.editFormData.dia_semana : null,
                             hora_ejecucion: this.editFormData.hora_ejecucion ? this.editFormData.hora_ejecucion.getHours() : 8,
                             activo: this.editFormData.activo,
@@ -508,7 +537,7 @@ export class CuentasCobroComponent implements OnInit {
         });
     }
 
-    confirmarReenvio(row: CuentaCobro) {
+    confirmarReenvio(row: { id_cuenta_cobro?: number; nombre_cliente?: string; correo_cliente?: string; aplica_archivos_adjuntos?: string }) {
         const aplicaAdjuntos = row.aplica_archivos_adjuntos === 'S';
         const mensajeAdjuntos = aplicaAdjuntos
             ? ' y sus archivos adjuntos'
@@ -525,6 +554,9 @@ export class CuentasCobroComponent implements OnInit {
                     next: (res: any) => {
                         if (res.state === 'OK') {
                             this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cuenta de cobro reenviada exitosamente.' });
+                            if (this.displayGeneradasDialog && this.maestraSeleccionada?.id_cuenta_cobro) {
+                                this.cargarGeneradas(this.maestraSeleccionada.id_cuenta_cobro);
+                            }
                         } else {
                             this.messageService.add({ severity: 'error', summary: 'Error', detail: res.msg || 'No se pudo reenviar la cuenta de cobro.' });
                         }
@@ -540,6 +572,50 @@ export class CuentasCobroComponent implements OnInit {
 
     cerrarEditDialog() {
         this.displayEditDialog = false;
+    }
+
+    async abrirGeneradas(row: CuentaCobro): Promise<void> {
+        if (!row?.id_cuenta_cobro) return;
+        this.maestraSeleccionada = row;
+        this.cuentasGeneradas = [];
+        this.filtroGeneradas = '';
+        this.displayGeneradasDialog = true;
+        await this.cargarGeneradas(row.id_cuenta_cobro);
+    }
+
+    async cargarGeneradas(idCuentaCobro: number): Promise<void> {
+        this.cargandoGeneradas = true;
+        (await this.cuentasCobroService.getCuentasGeneradas(idCuentaCobro)).subscribe({
+            next: (data) => {
+                this.cuentasGeneradas = data;
+                this.cargandoGeneradas = false;
+            },
+            error: () => {
+                this.cargandoGeneradas = false;
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar las cuentas generadas.' });
+            }
+        });
+    }
+
+    cerrarGeneradas(): void {
+        this.displayGeneradasDialog = false;
+        this.maestraSeleccionada = null;
+        this.cuentasGeneradas = [];
+        this.filtroGeneradas = '';
+    }
+
+    async verLogGenerada(gen: CuentaCobroGenerada): Promise<void> {
+        this.selectedCuentaPeriodicidad = this.maestraSeleccionada?.info_periodicidad || null;
+
+        (await this.cuentasCobroService.obtenerLogTareas(gen.id_cuenta_cobro)).subscribe({
+            next: (data: any) => {
+                this.logTareas = data;
+                this.displayLogDialog = true;
+            },
+            error: () => {
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo obtener el log de envíos.' });
+            }
+        });
     }
 
     async verLogTareas(row: CuentaCobro): Promise<void> {
@@ -587,6 +663,7 @@ export class CuentasCobroComponent implements OnInit {
                 break;
             case 'quincenal': texto = 'Quincenal (días 1 y 15)'; break;
             case 'mensual': texto = `Mensual (día ${periodicidad.dia_del_mes})`; break;
+            case 'semestral': texto = `Semestral (día ${periodicidad.dia_del_mes})`; break;
             default: texto = 'Personalizada';
         }
         return texto;

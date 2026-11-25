@@ -153,6 +153,7 @@ export class ActividadesComponent implements OnInit, AfterViewInit {
         { label: 'Mensual', value: 'mensual' },
         { label: 'Trimestral', value: 'trimestral' },
         { label: 'Cuatrimestral', value: 'cuatrimestral' },
+        { label: 'Semestral', value: 'semestral' },
         { label: 'Anual', value: 'anual' },
         { label: 'Personalizada', value: 'personalizada' }
     ];

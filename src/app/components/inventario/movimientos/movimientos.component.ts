@@ -16,7 +16,7 @@ import { BadgeModule } from 'primeng/badge';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { InventarioService } from '../../../services/inventario/inventario.service';
-import { Movimiento, TipoMovimiento, Producto, Sede, Stock } from '../../../interfaces/inventario';
+import { Movimiento, TipoMovimiento, Producto, Sede, Stock, Grupo, Categoria, DetalleMovimiento } from '../../../interfaces/inventario';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, forkJoin } from 'rxjs';
 import { parseDateSinTimezone, formatDateLocal } from '../../../utils/fecha.util';
 
@@ -48,6 +48,17 @@ export class MovimientosComponent implements OnInit {
     productosFiltrados: Producto[] = [];
     buscandoProductos: boolean = false;
     private busquedaProductos$ = new Subject<string>();
+
+    grupos: Grupo[] = [];
+    categorias: Categoria[] = [];
+
+    displayBuscadorProducto: boolean = false;
+    busquedaProducto: string = '';
+    filtroGrupoBusqueda: number | null = null;
+    filtroCategoriaBusqueda: number | null = null;
+    productosBusqueda: Producto[] = [];
+    cargandoBusqueda: boolean = false;
+    private debounceBusquedaProducto: any = null;
 
     fechaDesde: Date | null = null;
     fechaHasta: Date | null = null;
@@ -85,14 +96,16 @@ export class MovimientosComponent implements OnInit {
 
     async cargarDatos() {
         try {
-            const [tipos$, productos$, sedes$] = await Promise.all([
+            const [tipos$, productos$, sedes$, grupos$, categorias$] = await Promise.all([
                 this.inventarioService.getTiposMovimiento(),
                 this.inventarioService.getProductos(),
-                this.inventarioService.getSedes()
+                this.inventarioService.getSedes(),
+                this.inventarioService.getGrupos(),
+                this.inventarioService.getCategorias()
             ]);
 
-            forkJoin([tipos$, productos$, sedes$]).subscribe({
-                next: ([resTipos, resProductos, resSedes]) => {
+            forkJoin([tipos$, productos$, sedes$, grupos$, categorias$]).subscribe({
+                next: ([resTipos, resProductos, resSedes, resGrupos, resCategorias]) => {
                     if (resTipos.state === 'OK') {
                         this.tiposMovimiento = resTipos.body || [];
                     }
@@ -103,6 +116,14 @@ export class MovimientosComponent implements OnInit {
 
                     if (resSedes.state === 'OK') {
                         this.sedes = resSedes.body || [];
+                    }
+
+                    if (resGrupos.state === 'OK') {
+                        this.grupos = (resGrupos.body || []).filter(g => g.estado === 'A');
+                    }
+
+                    if (resCategorias.state === 'OK') {
+                        this.categorias = (resCategorias.body || []).filter(c => c.estado === 'A');
                     }
 
                     this.cargarMovimientos();
@@ -168,8 +189,9 @@ export class MovimientosComponent implements OnInit {
             fecha_movimiento: new Date(),
             detalle: []
         };
-        this.detalleItems = [this.crearDetalleVacio()];
+        this.detalleItems = [];
         this.activeAccordionIndex = 0;
+        this.displayBuscadorProducto = false;
         this.displayDialog = true;
     }
 
@@ -187,15 +209,8 @@ export class MovimientosComponent implements OnInit {
         };
     }
 
-    agregarDetalle() {
-        this.detalleItems.push(this.crearDetalleVacio());
-    }
-
     eliminarDetalle(index: number) {
         this.detalleItems.splice(index, 1);
-        if (this.detalleItems.length === 0) {
-            this.detalleItems.push(this.crearDetalleVacio());
-        }
     }
 
     onTipoMovimientoChange() {
@@ -214,6 +229,78 @@ export class MovimientosComponent implements OnInit {
             item.fecha_vencimiento = null;
             item.loteSeleccionado = null;
         });
+    }
+
+    get categoriasFiltradasBusqueda(): Categoria[] {
+        if (!this.filtroGrupoBusqueda) return this.categorias;
+        return this.categorias.filter(c => c.id_grupo_producto === this.filtroGrupoBusqueda);
+    }
+
+    abrirBuscadorProducto() {
+        this.displayBuscadorProducto = true;
+        this.busquedaProducto = '';
+        this.filtroGrupoBusqueda = null;
+        this.filtroCategoriaBusqueda = null;
+        this.buscarProductosModal();
+    }
+
+    onBusquedaProductoInput() {
+        if (this.debounceBusquedaProducto) {
+            clearTimeout(this.debounceBusquedaProducto);
+        }
+        this.debounceBusquedaProducto = setTimeout(() => this.buscarProductosModal(), 300);
+    }
+
+    onGrupoBusquedaChange() {
+        this.filtroCategoriaBusqueda = null;
+        this.buscarProductosModal();
+    }
+
+    onCategoriaBusquedaChange() {
+        this.buscarProductosModal();
+    }
+
+    async buscarProductosModal() {
+        this.cargandoBusqueda = true;
+        const filtros: Record<string, unknown> = {};
+        if (this.busquedaProducto?.trim()) filtros['buscar'] = this.busquedaProducto.trim();
+        if (this.filtroCategoriaBusqueda) {
+            filtros['id_categoria'] = this.filtroCategoriaBusqueda;
+        } else if (this.filtroGrupoBusqueda) {
+            filtros['id_grupo'] = this.filtroGrupoBusqueda;
+        }
+
+        (await this.inventarioService.getProductos(filtros)).subscribe({
+            next: (res) => {
+                this.cargandoBusqueda = false;
+                this.productosBusqueda = res.state === 'OK' ? (res.body || []) : [];
+            },
+            error: () => {
+                this.cargandoBusqueda = false;
+                this.productosBusqueda = [];
+            }
+        });
+    }
+
+    async agregarProductoDesdeBusqueda(producto: Producto) {
+        let item = this.detalleItems.find(d => !d.id_producto);
+        if (!item) {
+            item = this.crearDetalleVacio();
+            this.detalleItems.push(item);
+        }
+
+        item.productoSeleccionado = producto;
+        item.id_producto = producto.id_producto;
+        item.cantidad = item.cantidad || 1;
+        item.lote = '';
+        item.fecha_vencimiento = null;
+        item.lotesDisponibles = [];
+        item.loteSeleccionado = null;
+
+        this.displayBuscadorProducto = false;
+
+        const index = this.detalleItems.indexOf(item);
+        await this.cargarLotes(item, index);
     }
 
     buscarProducto(event: any) {
@@ -313,6 +400,16 @@ export class MovimientosComponent implements OnInit {
         return codigo;
     }
 
+    obtenerCategoriasMovimiento(row: Movimiento): string {
+        const detalles = row.Detalles || [];
+        const nombres = Array.from(new Set(
+            detalles
+                .map(d => d.Producto?.Categoria?.nombre)
+                .filter((n): n is string => !!n)
+        ));
+        return nombres.length ? nombres.join(', ') : '—';
+    }
+
     obtenerSedeNombre(idSede?: number): string {
         if (!idSede) return '—';
         return this.sedes.find(s => s.id_sede === idSede)?.nombre || '—';
@@ -324,6 +421,32 @@ export class MovimientosComponent implements OnInit {
 
     obtenerTotalProductos(): number {
         return this.detalleItems.filter((item) => item.id_producto).length;
+    }
+
+    get totalDetalleProductos(): number {
+        return this.movimientoSeleccionado?.Detalles?.length || 0;
+    }
+
+    get totalDetalleUnidades(): number {
+        return (this.movimientoSeleccionado?.Detalles || [])
+            .reduce((sum, det) => sum + (Number(det.cantidad) || 0), 0);
+    }
+
+    get totalDetalleValor(): number {
+        return (this.movimientoSeleccionado?.Detalles || [])
+            .reduce((sum, det) => sum + this.subtotalDetalle(det), 0);
+    }
+
+    subtotalDetalle(det: DetalleMovimiento): number {
+        return (Number(det.cantidad) || 0) * (Number(det.costo_unitario) || 0);
+    }
+
+    get pasoEncabezadoCompleto(): boolean {
+        return !!(this.formData?.id_tipo_movimiento && this.formData?.id_sede && this.formData?.fecha_movimiento);
+    }
+
+    get pasoProductosCompleto(): boolean {
+        return this.detalleItems.length > 0 && this.detalleItems.every(item => !this.itemTieneError(item));
     }
 
     itemTieneError(item: any): string | null {

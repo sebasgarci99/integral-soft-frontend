@@ -1,9 +1,17 @@
-<div class="flex-grow-1 p-4 dashboard">
-    <div class="card mt-2">
+<div class="flex-grow-1 p-4 dashboard inv-page">
+    <div class="card mt-2 inv-card">
         <div class="card-body">
-            <div class="component-header">
-                <h3><i class="fa fa-cube"></i> Catálogo de Productos</h3>
-                <p-button label="Nuevo Producto" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" styleClass="btn-nuevo" [disabled]="!selectedGrupo" />
+            <div class="inv-header">
+                <div class="inv-header-titulo">
+                    <span class="inv-header-icono"><i class="fa fa-cube"></i></span>
+                    <div>
+                        <h3>Catálogo de Productos</h3>
+                        <p class="inv-subtitulo">Selecciona un grupo y administra sus productos.</p>
+                    </div>
+                </div>
+                <div class="inv-acciones">
+                    <p-button label="Nuevo Producto" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" styleClass="btn-nuevo" [disabled]="!selectedGrupo" />
+                </div>
             </div>
 
             <div class="grupos-cards-container mb-3">
@@ -12,6 +20,9 @@
                         [class]="obtenerClaseGradiente(i)"
                         [class.selected]="selectedGrupo?.id_grupo_producto === grupo.id_grupo_producto"
                         (click)="seleccionarGrupo(grupo)" role="button" tabindex="0">
+                        <span class="grupo-card-check" *ngIf="selectedGrupo?.id_grupo_producto === grupo.id_grupo_producto">
+                            <i class="fa fa-check"></i>
+                        </span>
                         <div class="grupo-card-icon">
                             <i [class]="grupo.icono || 'fa fa-cube'"></i>
                         </div>
@@ -45,6 +56,7 @@
 
             <div class="position-relative">
                 <p-table *ngIf="selectedGrupo" #tablaProductos [value]="productos" [paginator]="true" [rows]="10" responsiveLayout="scroll"
+                    styleClass="inv-table"
                     [globalFilterFields]="['codigo', 'nombre', 'Categoria.nombre', 'Categoria.Grupo.nombre']" stripedRows>
                     <ng-template pTemplate="header">
                         <tr>
@@ -62,10 +74,10 @@
                     </ng-template>
                     <ng-template pTemplate="body" let-row>
                         <tr>
-                            <td>{{ row.codigo }}</td>
-                            <td>{{ row.nombre }}</td>
-                            <td>{{ row.Categoria?.Grupo?.nombre }}</td>
-                            <td>{{ row.Categoria?.nombre }}</td>
+                            <td><code class="inv-codigo">{{ row.codigo }}</code></td>
+                            <td><span class="inv-nombre">{{ row.nombre }}</span></td>
+                            <td><span class="inv-tag inv-tag-grupo">{{ row.Categoria?.Grupo?.nombre || '—' }}</span></td>
+                            <td><span class="inv-tag inv-tag-categoria">{{ row.Categoria?.nombre || '—' }}</span></td>
                             <td>{{ row.stock_minimo }}</td>
                             <td>{{ row.stock_maximo }}</td>
                             <td><i class="fa" [ngClass]="row.maneja_lote ? 'fa-check text-success' : 'fa-times text-muted'"></i></td>
@@ -80,8 +92,11 @@
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                         <tr>
-                            <td colspan="10" class="text-center text-muted p-4">
-                                <i class="fa fa-inbox me-2"></i> No se encontraron productos
+                            <td colspan="10">
+                                <div class="inv-vacio">
+                                    <i class="fa fa-inbox"></i>
+                                    <span>No se encontraron productos</span>
+                                </div>
                             </td>
                         </tr>
                     </ng-template>
@@ -89,9 +104,13 @@
             </div>
 
             <p-dialog header="{{ isEdit ? 'Editar' : 'Nuevo' }} Producto" [(visible)]="displayDialog"
-                *ngIf="displayDialog" [modal]="true" [style]="{ width: '58rem' }" [draggable]="false" appendTo="body">
+                *ngIf="displayDialog" [modal]="true" [style]="{ width: '58rem' }" [draggable]="false" appendTo="body"
+                styleClass="inv-dialog">
                 <p-accordion [activeIndex]="0">
-                    <p-accordionTab header="General" leftIcon="fa fa-info-circle">
+                    <p-accordionTab>
+                        <ng-template pTemplate="header">
+                            <span class="inv-tab-header"><i class="fa fa-info-circle"></i> General</span>
+                        </ng-template>
                         <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
                             <div class="col-12 d-md-flex d-sm-grid">
                                 <div class="col-lg-6 col-md-12 mt-2 me-2">
@@ -155,7 +174,10 @@
                         </div>
                     </p-accordionTab>
 
-                    <p-accordionTab header="Precios e IVA" leftIcon="fa fa-tag">
+                    <p-accordionTab>
+                        <ng-template pTemplate="header">
+                            <span class="inv-tab-header"><i class="fa fa-tag"></i> Precios e IVA</span>
+                        </ng-template>
                         <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
                             <div class="col-12 d-md-flex d-sm-grid">
                                 <div class="col-lg-6 col-md-12 mt-2 me-2">
@@ -198,7 +220,10 @@
                         </div>
                     </p-accordionTab>
 
-                    <p-accordionTab header="Información regulatoria de los medicamentos" leftIcon="fa fa-pills" *ngIf="esPerfilMedicamento()">
+                    <p-accordionTab *ngIf="esPerfilMedicamento()">
+                        <ng-template pTemplate="header">
+                            <span class="inv-tab-header"><i class="fa fa-pills"></i> Información regulatoria de los medicamentos</span>
+                        </ng-template>
                         <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
                             <div class="col-12 d-md-flex d-sm-grid">
                                 <div class="col-lg-6 col-md-12 mt-2 me-2">
@@ -231,7 +256,10 @@
                         </div>
                     </p-accordionTab>
 
-                    <p-accordionTab header="Información regulatoria de los dispositivos médicos" leftIcon="fa fa-heart-pulse" *ngIf="esPerfilDispositivo()">
+                    <p-accordionTab *ngIf="esPerfilDispositivo()">
+                        <ng-template pTemplate="header">
+                            <span class="inv-tab-header"><i class="fa fa-heart-pulse"></i> Información regulatoria de los dispositivos médicos</span>
+                        </ng-template>
                         <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
                             <div class="col-12 d-md-flex d-sm-grid">
                                 <div class="col-lg-6 col-md-12 mt-2 me-2">
@@ -268,7 +296,10 @@
                         </div>
                     </p-accordionTab>
 
-                    <p-accordionTab header="Información regulatoria de los reactivos de diagnóstico in vitro" leftIcon="fa fa-flask" *ngIf="esPerfilReactivo()">
+                    <p-accordionTab *ngIf="esPerfilReactivo()">
+                        <ng-template pTemplate="header">
+                            <span class="inv-tab-header"><i class="fa fa-flask"></i> Información regulatoria de los reactivos de diagnóstico in vitro</span>
+                        </ng-template>
                         <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
                             <div class="col-12 d-md-flex d-sm-grid">
                                 <div class="col-lg-6 col-md-12 mt-2 me-2">

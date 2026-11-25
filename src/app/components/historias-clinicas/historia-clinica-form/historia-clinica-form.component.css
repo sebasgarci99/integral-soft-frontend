@@ -390,7 +390,8 @@
 }
 
 :host ::ng-deep .hc-form .p-inputtext,
-:host ::ng-deep .hc-form .p-inputtextarea {
+:host ::ng-deep .hc-form .p-inputtextarea,
+:host ::ng-deep .hc-form .p-textarea {
     width: 100%;
     border: 1px solid #dbe5ea;
     border-radius: 10px;
@@ -404,18 +405,21 @@
 }
 
 :host ::ng-deep .hc-form .p-inputtext:enabled:hover,
-:host ::ng-deep .hc-form .p-inputtextarea:enabled:hover {
+:host ::ng-deep .hc-form .p-inputtextarea:enabled:hover,
+:host ::ng-deep .hc-form .p-textarea:enabled:hover {
     border-color: #b9dfe8;
 }
 
 :host ::ng-deep .hc-form .p-inputtext:enabled:focus,
-:host ::ng-deep .hc-form .p-inputtextarea:enabled:focus {
+:host ::ng-deep .hc-form .p-inputtextarea:enabled:focus,
+:host ::ng-deep .hc-form .p-textarea:enabled:focus {
     border-color: #3da1b8;
     box-shadow: 0 0 0 3px rgba(61, 161, 184, 0.14);
     outline: none;
 }
 
-:host ::ng-deep .hc-form textarea.p-inputtextarea {
+:host ::ng-deep .hc-form textarea.p-inputtextarea,
+:host ::ng-deep .hc-form textarea.p-textarea {
     min-height: 88px;
     line-height: 1.5;
     resize: vertical;
@@ -502,4 +506,118 @@
     color: #64748b;
     font-size: 0.72rem;
     font-weight: 600;
+}
+
+
+/* Escala tipográfica HC: 20 / 14 / 12 */
+.hc-empty-card h4,
+.hc-private-locked h4 {
+    font-size: var(--hc-font-lg);
+}
+
+.hc-empty-card p,
+.hc-private-locked p,
+.hc-note,
+.hc-private-entry p,
+.card h5 {
+    font-size: var(--hc-font-md);
+}
+
+.hc-patient-banner h4 {
+    font-size: var(--hc-font-md);
+}
+
+.hc-patient-meta,
+.hc-progress-label,
+.hc-step-text,
+.hc-summary-grid span,
+.hc-signature-pad small,
+.hc-optometry-table thead th {
+    font-size: var(--hc-font-xs);
+}
+
+.hc-progress-value,
+.hc-summary-grid strong,
+.hc-optometry-table tbody td {
+    font-size: var(--hc-font-md);
+}
+
+.hc-signature-line,
+.hc-signature-watermark {
+    font-size: var(--hc-font-lg);
+}
+
+.hc-section-title {
+    font-size: var(--hc-font-md);
+}
+
+.hc-top-tabs .nav-link {
+    font-size: var(--hc-font-md);
+}
+
+.hc-form small {
+    font-size: var(--hc-font-xs);
+}
+
+:host ::ng-deep .hc-form .p-inputtext,
+:host ::ng-deep .hc-form .p-inputtextarea,
+:host ::ng-deep .hc-form .p-textarea,
+:host ::ng-deep .hc-form .p-dropdown-label,
+:host ::ng-deep .hc-form .p-selectbutton .p-button,
+:host ::ng-deep .hc-form .hc-optometry-table .p-inputtext {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .hc-form .p-floatlabel label,
+:host ::ng-deep .hc-form .form-label {
+    font-size: var(--hc-font-xs);
+}
+
+:host ::ng-deep .p-tag {
+    font-size: var(--hc-font-xs);
+}
+
+:host ::ng-deep .p-button {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-tab {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .hc-form .p-accordion .p-accordion-header .p-accordion-header-link,
+:host ::ng-deep .hc-form .p-accordion .p-accordion-header {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-dialog .p-dialog-title {
+    font-size: var(--hc-font-lg);
+}
+
+:host ::ng-deep .p-dialog .p-dialog-content {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-dialog .form-label {
+    font-size: var(--hc-font-xs);
+}
+
+:host ::ng-deep .p-dialog .p-inputtextarea,
+:host ::ng-deep .p-dialog .p-textarea {
+    font-size: var(--hc-font-md);
+}
+
+
+:host ::ng-deep .p-tabs .p-tablist-tab-list li .p-tab {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-dialog .p-dialog-header .p-dialog-title {
+    font-size: var(--hc-font-lg);
+}
+
+:host ::ng-deep .hc-form .p-select-label,
+:host ::ng-deep .hc-form .p-togglebutton,
+:host ::ng-deep .hc-form .p-togglebutton-label {
+    font-size: var(--hc-font-md);
 }

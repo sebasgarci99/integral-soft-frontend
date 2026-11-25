@@ -1,39 +1,66 @@
-<div class="flex-grow-1 p-4 dashboard">
-    <div class="card mt-2">
+<div class="flex-grow-1 p-4 dashboard inv-page">
+    <div class="card mt-2 inv-card">
         <div class="card-body">
-            <div class="component-header">
-                <h3><i class="fa fa-file-alt"></i> Kardex de Inventario</h3>
+            <div class="inv-header">
+                <div class="inv-header-titulo">
+                    <span class="inv-header-icono"><i class="fa fa-file-alt"></i></span>
+                    <div>
+                        <h3>Kardex de Inventario</h3>
+                        <p class="inv-subtitulo">Historial de entradas y salidas por producto y sede.</p>
+                    </div>
+                </div>
             </div>
 
-            <div class="row mb-3">
-                <div class="col-md-4">
+            <div class="inv-filtros">
+                <div class="inv-filtro">
+                    <label>Producto</label>
                     <p-dropdown [(ngModel)]="selectedProducto" [options]="productos" optionLabel="nombre"
                         placeholder="Seleccionar producto" [filter]="true" filterBy="nombre,codigo"
                         class="w-100" appendTo="body" [ngClass]="{ 'p-inputwrapper-filled': selectedProducto }">
                     </p-dropdown>
                 </div>
-                <div class="col-md-2">
+                <div class="inv-filtro">
+                    <label>Sede</label>
+                    <p-dropdown [(ngModel)]="selectedSede" [options]="sedes" optionLabel="nombre"
+                        placeholder="Todas las sedes" [showClear]="true" class="w-100" appendTo="body">
+                    </p-dropdown>
+                </div>
+                <div class="inv-filtro">
+                    <label>Desde</label>
                     <p-calendar [(ngModel)]="fechaDesde" dateFormat="yy-mm-dd" [showIcon]="true"
-                        placeholder="Desde" styleClass="w-100" appendTo="body" />
+                        placeholder="Fecha desde" styleClass="w-100" appendTo="body" />
                 </div>
-                <div class="col-md-2">
+                <div class="inv-filtro">
+                    <label>Hasta</label>
                     <p-calendar [(ngModel)]="fechaHasta" dateFormat="yy-mm-dd" [showIcon]="true"
-                        placeholder="Hasta" styleClass="w-100" appendTo="body" />
+                        placeholder="Fecha hasta" styleClass="w-100" appendTo="body" />
                 </div>
-                <div class="col-md-2">
-                    <p-button label="Buscar" icon="fa fa-search" severity="info" (onClick)="buscarKardex()" [loading]="loadingKardex" />
+                <div class="inv-filtro kardex-accion">
+                    <label>&nbsp;</label>
+                    <p-button label="Consultar" icon="fa fa-search" severity="info"
+                        (onClick)="buscarKardex()" [loading]="loadingKardex" styleClass="w-100" />
                 </div>
             </div>
 
-            <div *ngIf="kardexData" class="mb-3">
-                <div class="card bg-light">
-                    <div class="card-body py-2">
-                        <strong>Producto:</strong> {{ kardexData.producto.codigo }} - {{ kardexData.producto.nombre }} |
-                        <strong>Saldo Actual:</strong> {{ kardexData.saldo_actual.cantidad }}
-                        <span *ngIf="kardexData.saldo_actual.costo_unitario"> |
-                            Costo Unit: ${{ kardexData.saldo_actual.costo_unitario | number:'1.0-2' }}</span>
-                        <span *ngIf="kardexData.saldo_actual.costo_total"> |
-                            Valor Total: ${{ kardexData.saldo_actual.costo_total | number:'1.0-2' }}</span>
+            <div *ngIf="kardexData" class="inv-panel kardex-resumen mb-3">
+                <div class="kardex-resumen-cabecera">
+                    <span class="inv-codigo">{{ kardexData.producto.codigo }}</span>
+                    <span class="inv-nombre">{{ kardexData.producto.nombre }}</span>
+                    <span class="inv-tag inv-tag-grupo" *ngIf="kardexData.producto.grupo">{{ kardexData.producto.grupo }}</span>
+                    <span class="inv-tag inv-tag-categoria" *ngIf="kardexData.producto.categoria">{{ kardexData.producto.categoria }}</span>
+                </div>
+                <div class="kardex-saldos">
+                    <div class="kardex-saldo">
+                        <span class="kardex-saldo-label">Saldo actual</span>
+                        <span class="kardex-saldo-valor">{{ kardexData.saldo_actual.cantidad }}</span>
+                    </div>
+                    <div class="kardex-saldo" *ngIf="kardexData.saldo_actual.costo_unitario">
+                        <span class="kardex-saldo-label">Costo unitario</span>
+                        <span class="kardex-saldo-valor">${{ kardexData.saldo_actual.costo_unitario | number:'1.0-2' }}</span>
+                    </div>
+                    <div class="kardex-saldo" *ngIf="kardexData.saldo_actual.costo_total">
+                        <span class="kardex-saldo-label">Valor total</span>
+                        <span class="kardex-saldo-valor">${{ kardexData.saldo_actual.costo_total | number:'1.0-2' }}</span>
                     </div>
                 </div>
             </div>
@@ -50,10 +77,12 @@
                     </div>
                 </div>
 
-                <p-table [value]="movimientos" [paginator]="true" [rows]="15" responsiveLayout="scroll" stripedRows>
+                <p-table [value]="movimientos" [paginator]="true" [rows]="15" responsiveLayout="scroll"
+                    styleClass="inv-table" stripedRows>
                     <ng-template pTemplate="header">
                         <tr>
                             <th>Fecha</th>
+                            <th>Sede</th>
                             <th>Tipo</th>
                             <th>N° Documento</th>
                             <th>Doc. Ref.</th>
@@ -68,25 +97,29 @@
                     <ng-template pTemplate="body" let-row>
                         <tr>
                             <td>{{ row.fecha_movimiento }}</td>
+                            <td>{{ row.sede_nombre || '—' }}</td>
                             <td>
-                                <span class="badge" [ngClass]="getSigno(row.tipo_codigo) === 'entrada' ? 'badge-entrada' : 'badge-salida'">
+                                <span class="inv-tag" [ngClass]="getSigno(row.tipo_codigo) === 'entrada' ? 'inv-tag-green' : 'inv-tag-red'">
                                     {{ row.tipo_codigo }}
                                 </span>
                             </td>
-                            <td>{{ row.numero_documento }}</td>
+                            <td><span class="inv-codigo">{{ row.numero_documento }}</span></td>
                             <td>{{ row.documento_referencia || '—' }}</td>
                             <td class="text-end">{{ row.entrada_cantidad || '—' }}</td>
                             <td class="text-end">{{ row.entrada_costo_total ? (row.entrada_costo_total | number:'1.0-2') : '—' }}</td>
                             <td class="text-end">{{ row.salida_cantidad || '—' }}</td>
                             <td class="text-end">{{ row.salida_costo_total ? (row.salida_costo_total | number:'1.0-2') : '—' }}</td>
-                            <td class="text-end"><strong>{{ row.saldo_cantidad }}</strong></td>
-                            <td class="text-end"><strong>{{ row.saldo_costo_total ? (row.saldo_costo_total | number:'1.0-2') : '—' }}</strong></td>
+                            <td class="text-end"><span class="inv-cantidad">{{ row.saldo_cantidad }}</span></td>
+                            <td class="text-end"><span class="inv-cantidad">{{ row.saldo_costo_total ? (row.saldo_costo_total | number:'1.0-2') : '—' }}</span></td>
                         </tr>
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                         <tr>
-                            <td colspan="10" class="text-center text-muted p-4">
-                                <i class="fa fa-inbox me-2"></i> No se encontraron movimientos para el producto y rango seleccionados
+                            <td colspan="11">
+                                <div class="inv-vacio">
+                                    <i class="fa fa-inbox"></i>
+                                    <span>No se encontraron movimientos para el producto y rango seleccionados</span>
+                                </div>
                             </td>
                         </tr>
                     </ng-template>

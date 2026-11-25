@@ -12,12 +12,13 @@
                 </div>
 
                 <p-table #tablaClientes [value]="clientes" [paginator]="true" [rows]="10" responsiveLayout="scroll"
-                    [globalFilterFields]="['numero_identificacion', 'nombre_razon_social', 'nombre_comercial', 'telefono', 'correo_electronico', 'estado']" stripedRows>
+                    [globalFilterFields]="['numero_identificacion', 'nombre_razon_social', 'nombre_comercial', 'telefono', 'correo_electronico', 'arl', 'estado']" stripedRows>
                     <ng-template pTemplate="header">
                         <tr>
                             <th>Identificación</th>
                             <th>Nombre / Razón Social</th>
                             <th>Nombre Comercial</th>
+                            <th>ARL</th>
                             <th>Teléfono</th>
                             <th>Correo Electrónico</th>
                             <th>Estado</th>
@@ -29,6 +30,7 @@
                             <td>{{ row.numero_identificacion }}</td>
                             <td>{{ row.nombre_razon_social }}</td>
                             <td>{{ row.nombre_comercial }}</td>
+                            <td>{{ resumenArl(row) }}</td>
                             <td>{{ row.telefono }}</td>
                             <td>{{ row.correo_electronico }}</td>
                             <td>{{ row.estado }}</td>
@@ -140,6 +142,35 @@
                                     class="w-100"></textarea>
                                 <label>Comentarios / Observaciones</label>
                             </p-floatlabel>
+
+                            <div class="col-12 mt-3">
+                                <p-panel header="Información ARL (opcional)" [toggleable]="true" [collapsed]="true">
+                                    <div class="grid p-formgrid">
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">ARL</label>
+                                            <input pInputText formControlName="arl" class="w-100" maxlength="150"
+                                                placeholder="Ej: Sura, Positiva, Colmena..." />
+                                        </div>
+                                        <div class="col-12 mt-3" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                                            <div style="flex: 1 1 180px; min-width: 0;">
+                                                <label class="form-label fw-semibold">Riesgo ARL</label>
+                                                <p-dropdown [options]="riesgosArl" optionLabel="label" optionValue="value"
+                                                    formControlName="riesgo_arl" placeholder="Selecciona la clase"
+                                                    [showClear]="true" class="w-100" appendTo="body"></p-dropdown>
+                                            </div>
+                                            <div style="flex: 1 1 180px; min-width: 0;">
+                                                <label class="form-label fw-semibold">Número de empleados</label>
+                                                <p-dropdown [options]="rangosEmpleados" optionLabel="label" optionValue="value"
+                                                    formControlName="rango_empleados" placeholder="Selecciona el rango"
+                                                    [showClear]="true" class="w-100" appendTo="body"></p-dropdown>
+                                            </div>
+                                        </div>
+                                        <small class="col-12 mt-2 text-muted">
+                                            Clases I a V según la clasificación de riesgo ARL (Decreto 1607 de 2002).
+                                        </small>
+                                    </div>
+                                </p-panel>
+                            </div>
 
                             <div class="col-12 mt-3">
                                 <label class="form-label fw-semibold">Logo del cliente</label>

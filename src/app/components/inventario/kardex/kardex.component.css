@@ -1,4 +1,51 @@
-.badge { padding: 0.25rem 0.65rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
-.badge-entrada { background-color: #dcfce7; color: #16a34a; }
-.badge-salida { background-color: #fee2e2; color: #dc2626; }
 .text-end { text-align: right; }
+
+.kardex-accion {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.kardex-resumen {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.kardex-resumen-cabecera {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.kardex-saldos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.75rem;
+}
+
+.kardex-saldo {
+    display: flex;
+    flex-direction: column;
+}
+
+.kardex-saldo-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.kardex-saldo-valor {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #005f99;
+}
+
+@media (max-width: 768px) {
+    .kardex-resumen { flex-direction: column; align-items: flex-start; }
+}

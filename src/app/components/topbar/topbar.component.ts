@@ -11,7 +11,6 @@ import { Subscription, firstValueFrom } from 'rxjs';
 import Swal from 'sweetalert2';
 import { MenuService } from '../../services/menu/menu.service';
 import { SecureStorageService } from '../../services/secure-storage.service';
-import { ConsultorioService } from '../../services/consultorio/consultorio.service';
 import { EstadoSync, SyncRecoleccionService } from '../../services/offline/sync-recoleccion.service';
 import { SgSstService } from '../../services/sg-sst/sg-sst.service';
 import { SgSstSolicitudReapertura } from '../../interfaces/sg-sst';
@@ -56,7 +55,6 @@ export class TopbarComponent implements OnInit, OnDestroy {
         private menuService: MenuService,
         private secureStorage: SecureStorageService,
         private syncRecoleccion: SyncRecoleccionService,
-        private consultorioService: ConsultorioService,
         private sgSstService: SgSstService
     ) {}
 
@@ -121,9 +119,6 @@ export class TopbarComponent implements OnInit, OnDestroy {
         );
 
         this.syncRecoleccion.actualizarContador();
-
-        // Precarga la lista de consultorios para poder registrar recolecciones sin internet.
-        this.consultorioService.precachearConsultorios();
     }
 
     ngOnDestroy(): void {

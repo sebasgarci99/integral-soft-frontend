@@ -27,7 +27,23 @@ export interface CuentaCobro {
     activo?: boolean;
     info_periodicidad?: Periodicidad;
     es_editable?: boolean;
+    total_generadas?: number;
     aplica_archivos_adjuntos?: string;
+}
+
+export interface CuentaCobroGenerada {
+    id_cuenta_cobro: number;
+    descripcion_servicio: string;
+    valor_cobrar: number;
+    fecha_emision: string;
+    estado: string;
+    nombre_cliente: string;
+    correo_cliente: string | null;
+    fecha_generacion: string;
+    estado_tarea: 'EXITOSA' | 'FALLIDA' | 'REENVIO';
+    email_enviado: boolean;
+    mensaje_error: string | null;
+    aplica_archivos_adjuntos: string;
 }
 
 export interface CuentasCobroResponse {

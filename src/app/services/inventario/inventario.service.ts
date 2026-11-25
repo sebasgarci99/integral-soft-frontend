@@ -45,8 +45,8 @@ export class InventarioService {
         return this.post<ApiResponse<Producto[]>>('getProductos', filtros);
     }
 
-    async buscarProductos(buscar: string): Promise<Observable<ApiResponse<Producto[]>>> {
-        return this.post<ApiResponse<Producto[]>>('getProductos', { buscar });
+    async buscarProductos(buscar: string, filtros: Record<string, unknown> = {}): Promise<Observable<ApiResponse<Producto[]>>> {
+        return this.post<ApiResponse<Producto[]>>('getProductos', { buscar, ...filtros });
     }
 
     async getLotesPorProductoYSede(id_producto: number, id_sede: number): Promise<Observable<ApiResponse<any[]>>> {

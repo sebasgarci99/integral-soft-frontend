@@ -1,35 +1,44 @@
-<div class="flex-grow-1 p-4 dashboard">
-    <div class="card mt-2">
+<div class="flex-grow-1 p-4 dashboard inv-page">
+    <div class="card mt-2 inv-card">
         <div class="card-body">
-            <div class="component-header">
-                <h3><i class="fa fa-exchange-alt"></i> Movimientos de Inventario</h3>
-                <p-button label="Nuevo Movimiento" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" styleClass="btn-nuevo" />
+            <div class="inv-header">
+                <div class="inv-header-titulo">
+                    <span class="inv-header-icono"><i class="fa fa-exchange-alt"></i></span>
+                    <div>
+                        <h3>Movimientos de Inventario</h3>
+                        <p class="inv-subtitulo">Registra y consulta entradas, salidas y transferencias.</p>
+                    </div>
+                </div>
+                <div class="inv-acciones">
+                    <p-button label="Nuevo Movimiento" icon="fa fa-plus" severity="info" (onClick)="abrirFormulario()" styleClass="btn-nuevo" />
+                </div>
             </div>
 
-            <div class="row mb-3">
-                <div class="col-md-3">
-                    <label class="form-label">Fecha Desde</label>
+            <div class="inv-filtros">
+                <div class="inv-filtro">
+                    <label>Fecha desde</label>
                     <p-calendar [(ngModel)]="fechaDesde" dateFormat="yy-mm-dd" [showIcon]="true"
                         placeholder="Fecha desde" styleClass="w-100" appendTo="body" />
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Fecha Hasta</label>
+                <div class="inv-filtro">
+                    <label>Fecha hasta</label>
                     <p-calendar [(ngModel)]="fechaHasta" dateFormat="yy-mm-dd" [showIcon]="true"
                         placeholder="Fecha hasta" styleClass="w-100" appendTo="body" />
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <p-button label="Filtrar" icon="fa fa-search" severity="info" (onClick)="filtrarPorFechas()" />
+                <div class="inv-filtro d-flex align-items-end">
+                    <p-button label="Filtrar" icon="fa fa-search" severity="info" (onClick)="filtrarPorFechas()" styleClass="w-100" />
                 </div>
             </div>
 
             <div class="position-relative">
-                <p-table [value]="movimientos" [paginator]="true" [rows]="10" responsiveLayout="scroll" stripedRows>
+                <p-table [value]="movimientos" [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="inv-table" stripedRows>
                     <ng-template pTemplate="header">
                         <tr>
                             <th>N° Documento</th>
                             <th>Fecha</th>
                             <th>Tipo</th>
                             <th>Sede</th>
+                            <th>Categorías</th>
                             <th>Doc. Referencia</th>
                             <th>Estado</th>
                             <th>Acciones</th>
@@ -37,17 +46,18 @@
                     </ng-template>
                     <ng-template pTemplate="body" let-row>
                         <tr>
-                            <td><strong>{{ row.numero_documento }}</strong></td>
+                            <td><span class="inv-codigo">{{ row.numero_documento }}</span></td>
                             <td>{{ row.fecha_movimiento }}</td>
                             <td>
-                                <span class="badge" [ngClass]="row.TipoMovimiento?.signo === 1 ? 'badge-entrada' : 'badge-salida'">
+                                <span class="inv-tag" [ngClass]="row.TipoMovimiento?.signo === 1 ? 'inv-tag-green' : 'inv-tag-red'">
                                     {{ obtenerNombreTipoMovimientoLista(row) }}
                                 </span>
                             </td>
                             <td>{{ row.Sede?.nombre }}</td>
+                            <td>{{ obtenerCategoriasMovimiento(row) }}</td>
                             <td>{{ row.documento_referencia || '—' }}</td>
                             <td>
-                                <span class="badge" [ngClass]="row.estado === 'A' ? 'badge-active' : 'badge-inactive'">
+                                <span class="inv-estado" [ngClass]="row.estado === 'A' ? 'inv-estado-ok' : 'inv-estado-neutro'">
                                     {{ row.estado === 'A' ? 'Activo' : 'Anulado' }}
                                 </span>
                             </td>
@@ -59,8 +69,11 @@
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                         <tr>
-                            <td colspan="7" class="text-center text-muted p-4">
-                                <i class="fa fa-inbox me-2"></i> No se encontraron movimientos
+                            <td colspan="8">
+                                <div class="inv-vacio">
+                                    <i class="fa fa-inbox"></i>
+                                    <span>No se encontraron movimientos</span>
+                                </div>
                             </td>
                         </tr>
                     </ng-template>
@@ -68,10 +81,57 @@
             </div>
 
             <p-dialog header="Registrar Movimiento" [(visible)]="displayDialog" *ngIf="displayDialog"
-                [modal]="true" [style]="{ width: '62rem' }" [draggable]="false" appendTo="body">
+                [modal]="true" [style]="{ width: '64rem', maxWidth: '96vw' }" [draggable]="false" appendTo="body"
+                styleClass="inv-dialog">
 
-                <p-accordion [activeIndex]="activeAccordionIndex" (onOpen)="activeAccordionIndex = $event.index">
-                    <p-accordionTab header="1. Encabezado del movimiento">
+                <div class="mov-intro">
+                    <span class="mov-intro-icono"><i class="fa fa-exchange-alt"></i></span>
+                    <div>
+                        <div class="mov-intro-titulo">Completa el movimiento paso a paso</div>
+                        <div class="mov-intro-texto">Define el encabezado, agrega los productos y revisa el resumen antes de guardar.</div>
+                    </div>
+                </div>
+
+                <div class="mov-stepper">
+                    <button type="button" class="mov-step" [class.mov-step-activo]="activeAccordionIndex === 0"
+                        [class.mov-step-completo]="pasoEncabezadoCompleto" (click)="activeAccordionIndex = 0">
+                        <span class="mov-step-badge">
+                            <i class="fa fa-check" *ngIf="pasoEncabezadoCompleto && activeAccordionIndex !== 0"></i>
+                            <span *ngIf="!(pasoEncabezadoCompleto && activeAccordionIndex !== 0)">1</span>
+                        </span>
+                        <span class="mov-step-info">
+                            <span class="mov-step-titulo">Encabezado</span>
+                            <span class="mov-step-sub">Tipo, sede y fecha</span>
+                        </span>
+                    </button>
+                    <span class="mov-step-linea"></span>
+                    <button type="button" class="mov-step" [class.mov-step-activo]="activeAccordionIndex === 1"
+                        [class.mov-step-completo]="pasoProductosCompleto" (click)="activeAccordionIndex = 1">
+                        <span class="mov-step-badge">
+                            <i class="fa fa-check" *ngIf="pasoProductosCompleto && activeAccordionIndex !== 1"></i>
+                            <span *ngIf="!(pasoProductosCompleto && activeAccordionIndex !== 1)">2</span>
+                        </span>
+                        <span class="mov-step-info">
+                            <span class="mov-step-titulo">Productos</span>
+                            <span class="mov-step-sub">{{ obtenerTotalProductos() }} agregado(s)</span>
+                        </span>
+                    </button>
+                    <span class="mov-step-linea"></span>
+                    <button type="button" class="mov-step" [class.mov-step-activo]="activeAccordionIndex === 2"
+                        (click)="activeAccordionIndex = 2">
+                        <span class="mov-step-badge">3</span>
+                        <span class="mov-step-info">
+                            <span class="mov-step-titulo">Resumen</span>
+                            <span class="mov-step-sub">Confirma y guarda</span>
+                        </span>
+                    </button>
+                </div>
+
+                <p-accordion [(activeIndex)]="activeAccordionIndex">
+                    <p-accordionTab>
+                        <ng-template pTemplate="header">
+                            <span class="mov-tab-header"><i class="fa fa-clipboard-list"></i> 1. Encabezado del movimiento</span>
+                        </ng-template>
                         <div class="p-fluid grid p-formgrid" style="padding: 0.5rem 0.5rem;">
                             <div class="col-12 d-md-flex d-sm-grid">
                                 <div class="col-lg-4 col-md-12 mt-2 me-2">
@@ -115,9 +175,20 @@
                         </div>
                     </p-accordionTab>
 
-                    <p-accordionTab header="2. Productos ({{ obtenerTotalProductos() }} ítems, {{ obtenerTotalUnidades() }} unidades)">
+                    <p-accordionTab>
+                        <ng-template pTemplate="header">
+                            <span class="mov-tab-header"><i class="fa fa-box"></i> 2. Productos ({{ obtenerTotalProductos() }} ítems, {{ obtenerTotalUnidades() }} unidades)</span>
+                        </ng-template>
                         <div class="detalle-toolbar mb-3">
-                            <p-button label="Agregar Producto" icon="fa fa-plus" severity="secondary" (onClick)="agregarDetalle()" />
+                            <div class="detalle-toolbar-info">
+                                <span class="detalle-toolbar-icono"><i class="fa fa-cart-plus"></i></span>
+                                <div>
+                                    <div class="detalle-toolbar-titulo">Agregar productos</div>
+                                    <div class="detalle-toolbar-texto">Busca y agrega uno a uno. Puedes combinar grupo, categoría y texto.</div>
+                                </div>
+                            </div>
+                            <p-button label="Buscar y agregar producto" icon="fa fa-search" severity="info"
+                                (onClick)="abrirBuscadorProducto()" />
                         </div>
 
                         <p-table [value]="detalleItems" responsiveLayout="scroll" stripedRows>
@@ -149,8 +220,8 @@
                                             [delay]="300">
                                             <ng-template let-prod pTemplate="item">
                                                 <div class="producto-item">
-                                                    <div class="fw-bold">{{ prod.codigo }} — {{ prod.nombre }}</div>
-                                                    <div class="text-muted small">
+                                                    <div class="producto-titulo">{{ prod.codigo }} — {{ prod.nombre }}</div>
+                                                    <div class="producto-meta">
                                                         {{ prod.Categoria?.Grupo?.nombre }} / {{ prod.Categoria?.nombre }} — {{ prod.UnidadMedida?.abreviatura }}
                                                         <span *ngIf="prod.maneja_lote || prod.maneja_vencimiento">
                                                             <i class="fa fa-barcode ms-1" *ngIf="prod.maneja_lote"></i>
@@ -226,7 +297,10 @@
                         </p-table>
                     </p-accordionTab>
 
-                    <p-accordionTab header="3. Resumen y confirmación">
+                    <p-accordionTab>
+                        <ng-template pTemplate="header">
+                            <span class="mov-tab-header"><i class="fa fa-check-circle"></i> 3. Resumen y confirmación</span>
+                        </ng-template>
                         <div class="resumen-orden">
                             <div class="resumen-cuadros">
                                 <div class="resumen-cuadro resumen-cuadro-tipo">
@@ -340,44 +414,238 @@
                 </p-accordion>
 
                 <ng-template pTemplate="footer">
-                    <div class="flex justify-content-end gap-2">
-                        <p-button label="Cancelar" class="m-2" icon="fa fa-times" severity="secondary" (onClick)="displayDialog = false" [disabled]="loadingGuardar" />
-                        <p-button label="Guardar" class="m-2" icon="fa fa-check" severity="info" (onClick)="guardar()" [loading]="loadingGuardar" />
+                    <div class="mov-footer">
+                        <div class="mov-footer-resumen">
+                            <span><i class="fa fa-box me-1"></i>{{ obtenerTotalProductos() }} producto(s)</span>
+                            <span><i class="fa fa-layer-group me-1"></i>{{ obtenerTotalUnidades() }} unidad(es)</span>
+                        </div>
+                        <div class="mov-footer-acciones">
+                            <p-button label="Cancelar" icon="fa fa-times" severity="secondary" (onClick)="displayDialog = false" [disabled]="loadingGuardar" />
+                            <p-button label="Guardar movimiento" icon="fa fa-check" severity="info" (onClick)="guardar()" [loading]="loadingGuardar" />
+                        </div>
                     </div>
                 </ng-template>
             </p-dialog>
 
             <p-dialog header="Detalle del Movimiento" [(visible)]="displayDetalle" [modal]="true"
-                [style]="{ width: '50rem' }" [draggable]="false" appendTo="body">
+                [style]="{ width: '60rem', maxWidth: '96vw' }" [draggable]="false" appendTo="body"
+                styleClass="inv-dialog">
                 <div *ngIf="movimientoSeleccionado">
-                    <div class="row mb-3">
-                        <div class="col-6"><strong>N° Documento:</strong> {{ movimientoSeleccionado.numero_documento }}</div>
-                        <div class="col-6"><strong>Fecha:</strong> {{ movimientoSeleccionado.fecha_movimiento }}</div>
-                        <div class="col-6"><strong>Tipo:</strong> {{ movimientoSeleccionado.TipoMovimiento?.nombre }}</div>
-                        <div class="col-6"><strong>Sede:</strong> {{ movimientoSeleccionado.Sede?.nombre }}</div>
-                        <div class="col-12"><strong>Observación:</strong> {{ movimientoSeleccionado.observacion || '—' }}</div>
+                    <div class="detalle-hero">
+                        <div class="detalle-hero-principal">
+                            <span class="detalle-hero-icono"><i class="fa fa-file-invoice"></i></span>
+                            <div>
+                                <span class="detalle-hero-doc">{{ movimientoSeleccionado.numero_documento }}</span>
+                                <span class="detalle-hero-fecha"><i class="fa fa-calendar-alt me-1"></i>{{ movimientoSeleccionado.fecha_movimiento }}</span>
+                            </div>
+                        </div>
+                        <div class="detalle-hero-badges">
+                            <span class="inv-tag" [ngClass]="movimientoSeleccionado.TipoMovimiento?.signo === 1 ? 'inv-tag-green' : 'inv-tag-red'">
+                                <i class="fa fa-exchange-alt me-1"></i>{{ movimientoSeleccionado.TipoMovimiento?.nombre || '—' }}
+                            </span>
+                            <span class="inv-estado" [ngClass]="movimientoSeleccionado.estado === 'A' ? 'inv-estado-ok' : 'inv-estado-neutro'">
+                                {{ movimientoSeleccionado.estado === 'A' ? 'Activo' : 'Anulado' }}
+                            </span>
+                        </div>
                     </div>
-                    <p-table [value]="movimientoSeleccionado.Detalles || []" stripedRows>
+
+                    <div class="detalle-info">
+                        <div class="detalle-info-item">
+                            <span class="detalle-info-icono"><i class="fa fa-warehouse"></i></span>
+                            <div>
+                                <span class="detalle-info-label">Sede origen</span>
+                                <span class="detalle-info-valor">{{ movimientoSeleccionado.Sede?.nombre || '—' }}</span>
+                            </div>
+                        </div>
+                        <div class="detalle-info-item" *ngIf="movimientoSeleccionado.SedeDestino">
+                            <span class="detalle-info-icono"><i class="fa fa-arrow-right"></i></span>
+                            <div>
+                                <span class="detalle-info-label">Sede destino</span>
+                                <span class="detalle-info-valor">{{ movimientoSeleccionado.SedeDestino.nombre }}</span>
+                            </div>
+                        </div>
+                        <div class="detalle-info-item" *ngIf="movimientoSeleccionado.documento_referencia">
+                            <span class="detalle-info-icono"><i class="fa fa-file-alt"></i></span>
+                            <div>
+                                <span class="detalle-info-label">Doc. referencia</span>
+                                <span class="detalle-info-valor">{{ movimientoSeleccionado.documento_referencia }}</span>
+                            </div>
+                        </div>
+                        <div class="detalle-info-item detalle-info-item-completo">
+                            <span class="detalle-info-icono"><i class="fa fa-comment"></i></span>
+                            <div>
+                                <span class="detalle-info-label">Observación</span>
+                                <span class="detalle-info-valor">{{ movimientoSeleccionado.observacion || 'Sin observación' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detalle-stats">
+                        <div class="detalle-stat">
+                            <span class="detalle-stat-label">Productos</span>
+                            <span class="detalle-stat-valor">{{ totalDetalleProductos }}</span>
+                        </div>
+                        <div class="detalle-stat">
+                            <span class="detalle-stat-label">Unidades</span>
+                            <span class="detalle-stat-valor">{{ totalDetalleUnidades | number }}</span>
+                        </div>
+                        <div class="detalle-stat">
+                            <span class="detalle-stat-label">Valor total</span>
+                            <span class="detalle-stat-valor">${{ totalDetalleValor | number:'1.0-2' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="detalle-tabla-titulo">
+                        <i class="fa fa-boxes-stacked"></i> Productos del movimiento
+                    </div>
+
+                    <p-table [value]="movimientoSeleccionado.Detalles || []" styleClass="inv-table" stripedRows>
                         <ng-template pTemplate="header">
                             <tr>
                                 <th>Producto</th>
-                                <th>Cantidad</th>
-                                <th>Costo Unit.</th>
+                                <th>Grupo</th>
+                                <th>Categoría</th>
+                                <th class="text-end">Cantidad</th>
+                                <th class="text-end">Costo Unit.</th>
+                                <th class="text-end">Subtotal</th>
                                 <th>Lote</th>
                                 <th>Vencimiento</th>
                             </tr>
                         </ng-template>
                         <ng-template pTemplate="body" let-det>
                             <tr>
-                                <td>{{ det.Producto?.nombre }}</td>
-                                <td>{{ det.cantidad }}</td>
-                                <td>{{ det.costo_unitario || '—' }}</td>
-                                <td>{{ det.lote || '—' }}</td>
+                                <td>
+                                    <span class="detalle-producto">{{ det.Producto?.nombre }}</span>
+                                    <span class="detalle-producto-codigo" *ngIf="det.Producto?.codigo">{{ det.Producto?.codigo }}</span>
+                                </td>
+                                <td><span class="inv-tag inv-tag-grupo">{{ det.Producto?.Categoria?.Grupo?.nombre || '—' }}</span></td>
+                                <td><span class="inv-tag inv-tag-categoria">{{ det.Producto?.Categoria?.nombre || '—' }}</span></td>
+                                <td class="text-end"><span class="inv-cantidad">{{ det.cantidad | number }}</span></td>
+                                <td class="text-end">{{ det.costo_unitario ? ('$' + (det.costo_unitario | number:'1.0-2')) : '—' }}</td>
+                                <td class="text-end"><span class="inv-cantidad">${{ subtotalDetalle(det) | number:'1.0-2' }}</span></td>
+                                <td><span class="inv-sin-dato">{{ det.lote || '—' }}</span></td>
                                 <td>{{ formatearFecha(det.fecha_vencimiento) }}</td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="8">
+                                    <div class="inv-vacio">
+                                        <i class="fa fa-inbox"></i>
+                                        <span>Este movimiento no tiene productos registrados</span>
+                                    </div>
+                                </td>
                             </tr>
                         </ng-template>
                     </p-table>
                 </div>
+
+                <ng-template pTemplate="footer">
+                    <div class="detalle-footer">
+                        <div class="detalle-footer-resumen">
+                            <span><i class="fa fa-box me-1"></i>{{ totalDetalleProductos }} producto(s)</span>
+                            <span><i class="fa fa-layer-group me-1"></i>{{ totalDetalleUnidades | number }} unidad(es)</span>
+                            <span *ngIf="totalDetalleValor > 0"><i class="fa fa-coins me-1"></i>${{ totalDetalleValor | number:'1.0-2' }}</span>
+                        </div>
+                        <p-button label="Cerrar" icon="fa fa-times" severity="secondary" (onClick)="displayDetalle = false" />
+                    </div>
+                </ng-template>
+            </p-dialog>
+
+            <p-dialog header="Buscar y agregar producto" [(visible)]="displayBuscadorProducto" [modal]="true"
+                [style]="{ width: '62rem', maxWidth: '95vw' }" [draggable]="false" appendTo="body"
+                styleClass="inv-dialog">
+                <p class="buscador-descripcion">
+                    Filtra por grupo o categoría y escribe para encontrar el producto. Luego pulsa
+                    <strong>Agregar</strong> para sumarlo al movimiento.
+                </p>
+
+                <div class="buscador-filtros">
+                    <div class="buscador-filtro">
+                        <label>Grupo</label>
+                        <p-dropdown [options]="grupos" [(ngModel)]="filtroGrupoBusqueda" optionLabel="nombre"
+                            optionValue="id_grupo_producto" placeholder="Todos los grupos" [showClear]="true"
+                            [filter]="true" (onChange)="onGrupoBusquedaChange()" appendTo="body" />
+                    </div>
+                    <div class="buscador-filtro">
+                        <label>Categoría</label>
+                        <p-dropdown [options]="categoriasFiltradasBusqueda" [(ngModel)]="filtroCategoriaBusqueda"
+                            optionLabel="nombre" optionValue="id_categoria_producto" placeholder="Todas las categorías"
+                            [showClear]="true" [filter]="true" (onChange)="onCategoriaBusquedaChange()" appendTo="body" />
+                    </div>
+                    <div class="buscador-filtro buscador-filtro-texto">
+                        <label>Buscar</label>
+                        <div class="buscador-input">
+                            <i class="fa fa-search"></i>
+                            <input pInputText type="text" [(ngModel)]="busquedaProducto"
+                                (input)="onBusquedaProductoInput()"
+                                placeholder="Código, nombre o código de barras" class="w-100" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buscador-resumen">
+                    <i class="fa fa-list-ul me-2"></i>
+                    <span>{{ productosBusqueda.length }} producto(s) encontrado(s)</span>
+                </div>
+
+                <div class="buscador-resultados position-relative">
+                    <div *ngIf="cargandoBusqueda" class="buscador-cargando">
+                        <p-progressSpinner [style]="{ width: '32px', height: '32px' }" strokeWidth="4"></p-progressSpinner>
+                    </div>
+
+                    <p-table [value]="productosBusqueda" [paginator]="true" [rows]="8"
+                        responsiveLayout="scroll" stripedRows>
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th class="buscador-th">Código</th>
+                                <th class="buscador-th">Producto</th>
+                                <th class="buscador-th">Grupo</th>
+                                <th class="buscador-th">Categoría</th>
+                                <th class="buscador-th">Unidad</th>
+                                <th class="buscador-th" style="width: 7rem;"></th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-prod>
+                            <tr class="buscador-row">
+                                <td class="buscador-td"><code class="buscador-codigo">{{ prod.codigo }}</code></td>
+                                <td class="buscador-td"><span class="buscador-nombre">{{ prod.nombre }}</span></td>
+                                <td class="buscador-td">
+                                    <span [class.buscador-tag]="!!prod.Categoria?.Grupo?.nombre"
+                                        [class.buscador-tag-grupo]="!!prod.Categoria?.Grupo?.nombre">
+                                        {{ prod.Categoria?.Grupo?.nombre || '—' }}
+                                    </span>
+                                </td>
+                                <td class="buscador-td">
+                                    <span [class.buscador-tag]="!!prod.Categoria?.nombre"
+                                        [class.buscador-tag-categoria]="!!prod.Categoria?.nombre">
+                                        {{ prod.Categoria?.nombre || '—' }}
+                                    </span>
+                                </td>
+                                <td class="buscador-td">{{ prod.UnidadMedida?.abreviatura || '—' }}</td>
+                                <td class="buscador-td text-end">
+                                    <p-button label="Agregar" icon="fa fa-plus" size="small" severity="info"
+                                        (onClick)="agregarProductoDesdeBusqueda(prod)" />
+                                </td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="6">
+                                    <div class="buscador-vacio">
+                                        <i class="fa fa-inbox"></i>
+                                        <span>No se encontraron productos con los filtros seleccionados</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+
+                <ng-template pTemplate="footer">
+                    <p-button label="Cerrar" icon="fa fa-times" severity="secondary"
+                        (onClick)="displayBuscadorProducto = false" />
+                </ng-template>
             </p-dialog>
         </div>
     </div>

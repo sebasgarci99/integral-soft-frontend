@@ -93,3 +93,44 @@
     font-size: 1.15rem;
     font-weight: 700;
 }
+
+
+/* Escala tipográfica HC: 20 / 14 / 12 */
+.hc-otp-body h4 {
+    font-size: var(--hc-font-lg);
+}
+
+.hc-info-box strong,
+.hc-warning,
+.hc-error {
+    font-size: var(--hc-font-md);
+}
+
+.hc-info-box span {
+    font-size: var(--hc-font-xs);
+}
+
+:host ::ng-deep .p-inputotp-input {
+    font-size: var(--hc-font-lg);
+}
+
+:host ::ng-deep .p-dialog .p-dialog-title {
+    font-size: var(--hc-font-lg);
+}
+
+:host ::ng-deep .p-dialog .p-dialog-content {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-button {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-tag {
+    font-size: var(--hc-font-xs);
+}
+
+
+:host ::ng-deep .p-dialog .p-dialog-header .p-dialog-title {
+    font-size: var(--hc-font-lg);
+}

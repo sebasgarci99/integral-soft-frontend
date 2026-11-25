@@ -36,6 +36,8 @@ import { ReportesPqrsComponent } from './components/pqrs/reportes-pqrs/reportes-
 import { CalculoEmpleadoComponent } from './components/calculo-empleado/calculo-empleado.component';
 import { GestionPhComponent } from './components/gestion-ph/gestion-ph.component';
 import { SgSstComponent } from './components/sg-sst/sg-sst.component';
+import { InspeccionExtintoresListaComponent } from './components/sg-sst/inspeccion-extintores/lista/inspeccion-extintores-lista.component';
+import { InspeccionExtintoresFormularioComponent } from './components/sg-sst/inspeccion-extintores/formulario/inspeccion-extintores-formulario.component';
 import { MantenimientosComponent } from './components/mantenimientos/mantenimientos.component';
 import { PosComponent } from './components/pos/pos.component';
 import { VentasComponent } from './components/pos/ventas/ventas.component';
@@ -67,10 +69,10 @@ export const routes: Routes = [
             { path: 'cuentas_cobro', component: CuentasCobroComponent },
             { path: 'actividades', component: ActividadesComponent },
             { path: 'archivos_cobro', component: ArchivosCobroComponent },
-            { path: 'actas', component: ActasComponent },
-            { path: 'actas/nueva', component: ActaFormularioComponent },
-            { path: 'actas/editar/:id', component: ActaFormularioComponent },
-            { path: 'actas/responsables', component: ResponsablesSstComponent },
+            { path: 'actas', redirectTo: 'gestion-sg-sst/actas', pathMatch: 'full' },
+            { path: 'actas/nueva', redirectTo: 'gestion-sg-sst/actas/nueva', pathMatch: 'full' },
+            { path: 'actas/editar/:id', redirectTo: 'gestion-sg-sst/actas/editar/:id', pathMatch: 'full' },
+            { path: 'actas/responsables', redirectTo: 'gestion-sg-sst/actas/responsables', pathMatch: 'full' },
             { path: 'info-usuario', component: InfoUsuarioComponent },
             { path: 'gestion_pacientes', component: GestionPacientesComponent },
             { path: 'historias_clinicas/paciente/:idPaciente', component: HistoriasClinicasComponent },
@@ -105,10 +107,13 @@ export const routes: Routes = [
             { path: 'gestion_ph/:tab', component: GestionPhComponent },
             { path: 'gestion-sg-sst', redirectTo: 'gestion-sg-sst/panel', pathMatch: 'full' },
             { path: 'gestion-sg-sst/agenda', redirectTo: 'gestion-sg-sst/programador', pathMatch: 'full' },
-            { path: 'gestion-sg-sst/actas', redirectTo: 'actas', pathMatch: 'full' },
-            { path: 'gestion-sg-sst/actas/nueva', redirectTo: 'actas/nueva', pathMatch: 'full' },
-            { path: 'gestion-sg-sst/actas/editar/:id', redirectTo: 'actas/editar/:id', pathMatch: 'full' },
-            { path: 'gestion-sg-sst/actas/responsables', redirectTo: 'actas/responsables', pathMatch: 'full' },
+            { path: 'gestion-sg-sst/actas/nueva', component: ActaFormularioComponent, pathMatch: 'full' },
+            { path: 'gestion-sg-sst/actas/editar/:id', component: ActaFormularioComponent, pathMatch: 'full' },
+            { path: 'gestion-sg-sst/actas/responsables', component: ResponsablesSstComponent, pathMatch: 'full' },
+            { path: 'gestion-sg-sst/actas', component: ActasComponent, pathMatch: 'full' },
+            { path: 'gestion-sg-sst/estandares/:grupoId/:opcionId/nuevo', component: InspeccionExtintoresFormularioComponent, pathMatch: 'full' },
+            { path: 'gestion-sg-sst/estandares/:grupoId/:opcionId/editar/:idRegistro', component: InspeccionExtintoresFormularioComponent, pathMatch: 'full' },
+            { path: 'gestion-sg-sst/estandares/:grupoId/:opcionId', component: InspeccionExtintoresListaComponent, pathMatch: 'full' },
             { path: 'gestion-sg-sst/:tab', component: SgSstComponent },
             { path: 'mantenimientos', component: MantenimientosComponent },
         ]

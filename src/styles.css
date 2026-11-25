@@ -15,6 +15,9 @@
     --border-medium: #e2e8f0;
     --bg-light: #f1f5f9;
     --bg-page: #f8f9fa;
+    --hc-font-xs: 0.75rem;
+    --hc-font-md: 0.875rem;
+    --hc-font-lg: 1.25rem;
 }
 
 /* --- Cards globales --- */
@@ -304,7 +307,7 @@
     background: linear-gradient(135deg, #f7fbfc 0%, #eaf8fc 100%);
     color: #0b7f99;
     font-family: inherit;
-    font-size: 0.8rem;
+    font-size: var(--hc-font-xs);
     font-weight: 700;
     line-height: 1.2;
     text-decoration: none;
@@ -352,7 +355,7 @@
     margin: 0 0 0.2rem;
     color: #1e293b;
     font-family: inherit;
-    font-size: 1.3rem;
+    font-size: var(--hc-font-lg);
     font-weight: 800;
     line-height: 1.25;
 }
@@ -366,7 +369,7 @@
     margin: 0;
     color: #64748b;
     font-family: inherit;
-    font-size: 0.82rem;
+    font-size: var(--hc-font-xs);
     line-height: 1.4;
 }
 
@@ -381,7 +384,7 @@
 .hc-page-action.p-button {
     padding: 0.55rem 1rem;
     border-radius: 10px;
-    font-size: 0.85rem;
+    font-size: var(--hc-font-md);
     font-weight: 600;
 }
 
@@ -396,7 +399,7 @@
     border-radius: 999px;
     background: linear-gradient(135deg, #f4fcff 0%, #e2f6fb 100%) !important;
     color: #0b7f99 !important;
-    font-size: 0.86rem;
+    font-size: var(--hc-font-md);
     font-weight: 700;
     letter-spacing: 0;
     box-shadow: 0 3px 10px rgba(13, 138, 166, 0.08);
@@ -477,7 +480,7 @@
     border-radius: 999px;
     background: linear-gradient(135deg, #ffffff 0%, #f2fbfd 100%) !important;
     color: #0b7f99 !important;
-    font-size: 0.78rem;
+    font-size: var(--hc-font-md);
     font-weight: 700;
     letter-spacing: 0;
     box-shadow: 0 2px 8px rgba(13, 138, 166, 0.05);
@@ -574,10 +577,6 @@
 @media (max-width: 767.98px) {
     .hc-page-header {
         padding: 0.2rem 0.25rem 0.75rem;
-    }
-
-    .hc-page-title {
-        font-size: 1.15rem;
     }
 
     .hc-page-actions {
@@ -817,10 +816,376 @@
     max-width: 95vw !important;
 }
 
+/* Desplegables del módulo de inspección de extintores */
+.ie-pdropdown-panel .p-dropdown-item,
+.ie-pdropdown-panel .p-dropdown-empty-message,
+.ie-pdropdown-panel .p-dropdown-header .p-dropdown-filter {
+    font-size: 1rem;
+}
+
 /* Diálogos del POS en móvil: sin desbordes y con menos padding */
 @media (max-width: 640px) {
     .pos-modal { width: 96vw !important; max-width: 96vw !important; }
     .pos-modal .p-dialog-content { padding: .75rem 1rem !important; }
     .pos-modal .p-dialog-header { padding: .85rem 1rem !important; }
     .p-dialog .p-dialog-content { padding: 1rem !important; }
+}
+
+/* --- Tipografía de paneles PrimeNG de Historias Clínicas --- */
+.hc-dropdown-panel .p-select-option,
+.hc-dropdown-panel .p-dropdown-item {
+    font-size: var(--hc-font-md);
+}
+
+/* ============================================= */
+/* INVENTARIO - Sistema visual (marca Integral)  */
+/* Paleta: #005f99 / #3da1b8 / #0d8aa6           */
+/* ============================================= */
+.inv-page { animation: invFadeIn 0.3s ease both; }
+
+.inv-card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 95, 153, 0.08);
+    overflow: hidden;
+}
+
+.inv-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid #e6f2f6;
+}
+
+.inv-header-titulo { display: flex; align-items: center; gap: 0.85rem; }
+
+.inv-header-icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+    border-radius: 0.9rem;
+    background: linear-gradient(135deg, #005f99, #3da1b8);
+    color: #ffffff;
+    font-size: 1.25rem;
+    box-shadow: 0 8px 16px rgba(0, 95, 153, 0.35);
+}
+
+.inv-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.inv-subtitulo {
+    margin: 0;
+    font-size: 0.87rem;
+    color: var(--text-muted);
+}
+
+.inv-acciones { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+
+.inv-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.inv-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1rem 1.1rem;
+    border-radius: 0.85rem;
+    border: 1px solid #e6f2f6;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 95, 153, 0.05);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    animation: invFadeUp 0.35s ease both;
+}
+
+.inv-stat:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(0, 95, 153, 0.12); }
+
+.inv-stat:nth-child(2) { animation-delay: 0.05s; }
+.inv-stat:nth-child(3) { animation-delay: 0.1s; }
+.inv-stat:nth-child(4) { animation-delay: 0.15s; }
+
+.inv-stat-icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    flex-shrink: 0;
+    border-radius: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.inv-stat-valor { display: block; font-size: 1.4rem; font-weight: 700; color: var(--text-dark); line-height: 1.1; }
+.inv-stat-label { display: block; font-size: 0.82rem; color: var(--text-muted); }
+
+.inv-stat-teal .inv-stat-icono { background: #e2f6fb; color: #0d8aa6; }
+.inv-stat-blue .inv-stat-icono { background: #e6f0fa; color: #005f99; }
+.inv-stat-green .inv-stat-icono { background: #dcfce7; color: #15803d; }
+.inv-stat-amber .inv-stat-icono { background: #fef3c7; color: #b45309; }
+.inv-stat-red .inv-stat-icono { background: #fee2e2; color: #b91c1c; }
+
+.inv-filtros {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: #f6fbfd;
+    border: 1px solid #e2f2f7;
+    border-radius: 0.85rem;
+}
+
+.inv-filtro label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-medium);
+}
+
+.inv-input { position: relative; }
+
+.inv-input > i {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.inv-input input { width: 100%; padding-left: 2.4rem; }
+
+.inv-panel {
+    padding: 1rem;
+    border: 1px solid #e2f2f7;
+    border-radius: 0.85rem;
+    background: #f6fbfd;
+}
+
+.inv-table .p-datatable-thead > tr > th {
+    background: #f2f9fb;
+    color: #3f6b78;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border: none;
+    border-bottom: 2px solid #d7ebf1;
+    padding: 0.85rem;
+}
+
+.inv-table .p-datatable-tbody > tr > td {
+    border: none;
+    border-bottom: 1px solid #eef6f8;
+    padding: 0.7rem 0.85rem;
+    font-size: 0.88rem;
+    color: var(--text-medium);
+    vertical-align: middle;
+}
+
+.inv-table .p-datatable-tbody > tr { transition: background 0.15s ease; }
+.inv-table .p-datatable-tbody > tr:hover { background: #f2f9fb !important; }
+
+.inv-tag {
+    display: inline-block;
+    padding: 0.18rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.inv-tag-grupo { background: #e2f6fb; color: #0b7f99; }
+.inv-tag-categoria { background: #e6f0fa; color: #005f99; }
+.inv-tag-teal { background: #e2f6fb; color: #0b7f99; }
+.inv-tag-blue { background: #e6f0fa; color: #005f99; }
+.inv-tag-green { background: #dcfce7; color: #15803d; }
+.inv-tag-amber { background: #fef3c7; color: #b45309; }
+.inv-tag-red { background: #fee2e2; color: #b91c1c; }
+.inv-tag-gray { background: #f1f5f9; color: #64748b; }
+
+.inv-codigo {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.4rem;
+    background: #eef6f8;
+    color: #0b7f99;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.inv-nombre { font-size: 0.9rem; font-weight: 600; color: var(--text-dark); }
+.inv-sin-dato { font-size: 0.88rem; color: #94a3b8; }
+.inv-cantidad { font-size: 0.92rem; font-weight: 700; color: #0f172a; }
+.inv-cantidad-cero { color: #b91c1c; }
+
+.inv-estado {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.22rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.inv-estado::before {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: currentColor;
+    margin-right: 0.4rem;
+}
+
+.inv-estado-ok { background: #dcfce7; color: #15803d; }
+.inv-estado-alerta { background: #fef3c7; color: #b45309; }
+.inv-estado-critico { background: #ffedd5; color: #c2410c; }
+.inv-estado-vencido { background: #fee2e2; color: #b91c1c; }
+.inv-estado-neutro { background: #f1f5f9; color: #64748b; }
+
+.inv-row-bajo { background: #fffbeb !important; }
+.inv-row-vencido { background: #fef2f2 !important; }
+
+.inv-vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 2.5rem 1rem;
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+
+.inv-vacio > i { font-size: 1.8rem; }
+
+@keyframes invFadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes invFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+    .inv-header { flex-direction: column; align-items: stretch; }
+    .inv-filtros { grid-template-columns: 1fr; }
+}
+
+/* ============================================= */
+/* Diálogos de Inventario (montados en body)     */
+/* ============================================= */
+.inv-dialog .p-dialog-header {
+    background: linear-gradient(135deg, #005f99, #3da1b8) !important;
+    color: #ffffff !important;
+    padding: 1rem 1.25rem;
+}
+
+.inv-dialog .p-dialog-header .p-dialog-title {
+    color: #ffffff !important;
+    font-weight: 700;
+    font-size: 1.15rem;
+}
+
+.inv-dialog .p-dialog-header .p-dialog-close-button {
+    background: transparent !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+.inv-dialog .p-dialog-header .p-dialog-close-button .p-button-icon,
+.inv-dialog .p-dialog-header .p-dialog-close-button svg,
+.inv-dialog .p-dialog-header .p-dialog-header-close-icon,
+.inv-dialog .p-dialog-header .p-dialog-header-icon {
+    color: #ffffff !important;
+    fill: currentColor;
+}
+
+.inv-dialog .p-dialog-header .p-dialog-close-button:hover,
+.inv-dialog .p-dialog-header .p-dialog-close-button:focus,
+.inv-dialog .p-dialog-header .p-dialog-close-button:focus-visible,
+.inv-dialog .p-dialog-header .p-dialog-close-button:active {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35) !important;
+}
+
+.inv-dialog .p-dialog-header .p-dialog-close-button:hover .p-button-icon,
+.inv-dialog .p-dialog-header .p-dialog-close-button:hover svg,
+.inv-dialog .p-dialog-header .p-dialog-close-button:focus .p-button-icon,
+.inv-dialog .p-dialog-header .p-dialog-close-button:focus svg {
+    color: #ffffff !important;
+}
+
+.inv-dialog .p-dialog-content {
+    padding: 1rem 1.25rem 0.5rem;
+}
+
+.inv-dialog .p-dialog-footer {
+    border-top: 1px solid #eef6f8;
+    padding: 0.85rem 1.25rem;
+}
+
+.inv-dialog .p-accordion .p-accordionpanel {
+    border: none !important;
+    background: transparent !important;
+}
+
+.inv-dialog .p-accordion .p-accordionpanel > .p-accordionheader {
+    background: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #e2f2f7 !important;
+    border-radius: 0.7rem !important;
+    padding: 0.85rem 1rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.15rem;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.inv-dialog .p-accordion .p-accordionpanel > .p-accordionheader:hover {
+    background: #f6fbfd !important;
+    border-color: #c9e6ee !important;
+}
+
+.inv-dialog .p-accordion .p-accordionpanel.p-accordionpanel-active > .p-accordionheader {
+    background: #eef9fc !important;
+    color: #0b7f99 !important;
+    border-color: #b9dfe8 !important;
+}
+
+.inv-dialog .p-accordion .p-accordionheader-toggle-icon {
+    color: inherit !important;
+}
+
+.inv-dialog .p-accordion .p-accordioncontent-content {
+    padding: 0.85rem 0.5rem 0.25rem !important;
+}
+
+.inv-tab-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.inv-tab-header i {
+    color: #0b7f99;
+    font-size: 0.95rem;
 }

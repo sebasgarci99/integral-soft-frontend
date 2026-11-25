@@ -13,10 +13,11 @@ import { SgSstBitacoraComponent } from './bitacora/bitacora.component';
 import { SgSstProgramadorComponent } from './programador/programador.component';
 import { SgSstReportesComponent } from './reportes/reportes.component';
 import { SgSstTiposGruposComponent } from './tipos-grupos/tipos-grupos.component';
+import { SgSstEstandaresComponent } from './estandares/estandares.component';
 
-type TabSgSst = 'panel' | 'bitacora' | 'programador' | 'reportes' | 'tipos-grupos';
+type TabSgSst = 'panel' | 'bitacora' | 'programador' | 'reportes' | 'tipos-grupos' | 'sg-sst';
 
-const TABS: TabSgSst[] = ['panel', 'bitacora', 'programador', 'reportes', 'tipos-grupos'];
+const TABS: TabSgSst[] = ['panel', 'bitacora', 'programador', 'reportes', 'tipos-grupos', 'sg-sst'];
 
 interface DiaCalendario {
     fecha: string;
@@ -37,7 +38,8 @@ interface DiaCalendario {
         SgSstBitacoraComponent,
         SgSstProgramadorComponent,
         SgSstReportesComponent,
-        SgSstTiposGruposComponent
+        SgSstTiposGruposComponent,
+        SgSstEstandaresComponent
     ],
     templateUrl: './sg-sst.component.html',
     styleUrl: './sg-sst.component.css'
@@ -132,10 +134,24 @@ export class SgSstComponent implements OnInit, OnDestroy {
             const observable = await this.clienteService.obtenerDatosClientes();
             const clientes = await firstValueFrom(observable);
             this.clientes = clientes || [];
+            this.restaurarClienteGuardado();
         } catch {
             this.clientes = [];
         } finally {
             this.cargandoClientes = false;
+        }
+    }
+
+    private restaurarClienteGuardado(): void {
+        const guardado = Number(localStorage.getItem('sgsst_idCliente'));
+        if (!guardado) return;
+        const existe = this.clientes.some(cliente => cliente.id_cliente === guardado);
+        if (!existe) {
+            localStorage.removeItem('sgsst_idCliente');
+            return;
+        }
+        if (!this.idCliente) {
+            this.onClienteChange(guardado);
         }
     }
 
@@ -163,6 +179,11 @@ export class SgSstComponent implements OnInit, OnDestroy {
 
     async onClienteChange(idCliente: number | null): Promise<void> {
         this.idCliente = idCliente ? Number(idCliente) : null;
+        if (this.idCliente) {
+            localStorage.setItem('sgsst_idCliente', String(this.idCliente));
+        } else {
+            localStorage.removeItem('sgsst_idCliente');
+        }
         this.idTipoGrupo = null;
         this.diasDiligenciados = [];
         this.mesCalendario = new Date(this.parseFecha(this.fecha).getFullYear(), this.parseFecha(this.fecha).getMonth(), 1);

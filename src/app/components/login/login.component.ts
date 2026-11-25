@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { LoginService } from '../../services/login/login.service';
 import { MenuService } from '../../services/menu/menu.service';
 import { SecureStorageService } from '../../services/secure-storage.service';
+import { ConsultorioService } from '../../services/consultorio/consultorio.service';
 
 import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
@@ -77,6 +78,7 @@ export class LoginComponent implements OnInit {
         private loginService: LoginService,
         private menuService: MenuService,
         private secureStorage: SecureStorageService,
+        private consultorioService: ConsultorioService,
         private particlesService: NgParticlesService
     ) {
         this.formLogin = this.form.group({
@@ -143,6 +145,7 @@ export class LoginComponent implements OnInit {
                 }
 
                 this.menuService.cargarModulos();
+                void this.consultorioService.precachearConsultorios();
                 this.router.navigate(['/home']);
             },
             error: (error: HttpErrorResponse) => {

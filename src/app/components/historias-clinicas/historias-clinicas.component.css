@@ -546,3 +546,101 @@
         padding: 1.5rem 1rem;
     }
 }
+
+
+/* Escala tipográfica HC: 20 / 14 / 12 */
+.hc-empty-card h4,
+.hc-private-locked h4 {
+    font-size: var(--hc-font-lg);
+}
+
+.hc-empty-card p,
+.hc-private-locked p,
+.hc-note,
+.hc-info-toggle,
+.hc-info-content,
+.hc-private-entry p,
+.card h5 {
+    font-size: var(--hc-font-md);
+}
+
+.hc-patient-banner h4 {
+    font-size: var(--hc-font-md);
+}
+
+.hc-patient-meta,
+.hc-table-caption,
+.hc-reg-id,
+.hc-tipo-badge,
+.hc-especialidad-badge,
+.hc-linked,
+.hc-prof-avatar,
+.hc-prof-cell span,
+.hc-diag-cell .hc-muted,
+.hc-diag-cell small,
+.hc-estado-date,
+.hc-stat-card span,
+.hc-table-empty span {
+    font-size: var(--hc-font-xs);
+}
+
+.hc-reg-date,
+.hc-prof-cell strong,
+.hc-diag-cell strong,
+.hc-table-empty strong {
+    font-size: var(--hc-font-md);
+}
+
+.hc-stat-card strong {
+    font-size: var(--hc-font-lg);
+}
+
+.hc-table {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .hc-table .p-datatable-thead > tr > th {
+    font-size: var(--hc-font-xs);
+}
+
+:host ::ng-deep .p-tag {
+    font-size: var(--hc-font-xs);
+}
+
+:host ::ng-deep .p-button {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-tab {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-dialog .p-dialog-title {
+    font-size: var(--hc-font-lg);
+}
+
+:host ::ng-deep .p-dialog .p-dialog-content {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-dialog .form-label {
+    font-size: var(--hc-font-xs);
+}
+
+:host ::ng-deep .p-dialog .p-inputtextarea,
+:host ::ng-deep .p-dialog .p-textarea {
+    font-size: var(--hc-font-md);
+}
+
+
+:host ::ng-deep .hc-estado-cell .p-tag {
+    font-size: var(--hc-font-xs);
+}
+
+:host ::ng-deep .p-tabs .p-tablist-tab-list li .p-tab {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-dialog .p-dialog-header .p-dialog-title {
+    font-size: var(--hc-font-lg);
+}

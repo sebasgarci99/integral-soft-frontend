@@ -1,68 +1,144 @@
-<div class="flex-grow-1 p-4 dashboard">
-    <div class="card mt-2">
+<div class="flex-grow-1 p-4 dashboard inv-page">
+    <div class="card mt-2 inv-card">
         <div class="card-body">
-            <div class="component-header">
-                <h3><i class="fa fa-warehouse"></i> Stock por Sede</h3>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <p-dropdown [options]="sedes" [(ngModel)]="selectedSede" placeholder="Todas las sedes"
-                        optionLabel="nombre" [showClear]="true" (onChange)="onSedeChange()" class="w-100" appendTo="body" />
+            <div class="inv-header">
+                <div class="inv-header-titulo">
+                    <span class="inv-header-icono"><i class="fa fa-warehouse"></i></span>
+                    <div>
+                        <h3>Stock por Sede</h3>
+                        <p class="inv-subtitulo">Consulta existencias, lotes y vencimientos por sede.</p>
+                    </div>
+                </div>
+                <div class="inv-acciones">
+                    <p-button label="Actualizar" icon="fa fa-sync" severity="secondary" (onClick)="cargarStock()" styleClass="btn-nuevo" />
                 </div>
             </div>
 
-            <div class="search-bar">
-                <input #gbInput pInputText type="text" (input)="tablaStock.filterGlobal(gbInput.value, 'contains')"
-                    placeholder="Buscar por producto, lote, sede..." />
+            <div class="inv-stats">
+                <div class="inv-stat inv-stat-teal">
+                    <span class="inv-stat-icono"><i class="fa fa-cube"></i></span>
+                    <div>
+                        <span class="inv-stat-valor">{{ totalProductos }}</span>
+                        <span class="inv-stat-label">Productos</span>
+                    </div>
+                </div>
+                <div class="inv-stat inv-stat-blue">
+                    <span class="inv-stat-icono"><i class="fa fa-boxes-stacked"></i></span>
+                    <div>
+                        <span class="inv-stat-valor">{{ totalRegistros }}</span>
+                        <span class="inv-stat-label">Registros</span>
+                    </div>
+                </div>
+                <div class="inv-stat inv-stat-green">
+                    <span class="inv-stat-icono"><i class="fa fa-layer-group"></i></span>
+                    <div>
+                        <span class="inv-stat-valor">{{ totalUnidades | number }}</span>
+                        <span class="inv-stat-label">Unidades en stock</span>
+                    </div>
+                </div>
+                <div class="inv-stat inv-stat-amber">
+                    <span class="inv-stat-icono"><i class="fa fa-exclamation-triangle"></i></span>
+                    <div>
+                        <span class="inv-stat-valor">{{ registrosStockBajo }}</span>
+                        <span class="inv-stat-label">Stock bajo</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="inv-filtros">
+                <div class="inv-filtro">
+                    <label>Sede</label>
+                    <p-dropdown [options]="sedes" [(ngModel)]="selectedSede" placeholder="Todas las sedes"
+                        optionLabel="nombre" [showClear]="true" (onChange)="onSedeChange()" class="w-100" appendTo="body" />
+                </div>
+                <div class="inv-filtro">
+                    <label>Buscar</label>
+                    <div class="inv-input">
+                        <i class="fa fa-search"></i>
+                        <input #gbInput pInputText type="text"
+                            (input)="tablaStock.filterGlobal(gbInput.value, 'contains')"
+                            placeholder="Producto, código, lote o sede..." />
+                    </div>
+                </div>
             </div>
 
             <div class="position-relative">
                 <p-table #tablaStock [value]="stocks" [paginator]="true" [rows]="15" responsiveLayout="scroll"
-                    [globalFilterFields]="['Producto.nombre', 'Producto.codigo', 'lote', 'Sede.nombre']" stripedRows>
+                    styleClass="inv-table"
+                    [globalFilterFields]="['Producto.nombre', 'Producto.codigo', 'Producto.Categoria.nombre', 'Producto.Categoria.Grupo.nombre', 'lote', 'Sede.nombre']"
+                    stripedRows>
                     <ng-template pTemplate="header">
                         <tr>
                             <th>Código</th>
                             <th>Producto</th>
+                            <th>Grupo</th>
+                            <th>Categoría</th>
                             <th>Sede</th>
-                            <th>Cantidad</th>
+                            <th class="text-end">Cantidad</th>
                             <th>Unidad</th>
                             <th>Lote</th>
                             <th>Vencimiento</th>
                             <th>Días Rest.</th>
                             <th>Estado</th>
-                            <th>Stock Bajo</th>
+                            <th>Stock</th>
                         </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-row>
-                        <tr [ngClass]="{ 'row-stock-bajo': row.stock_bajo }">
-                            <td>{{ row.Producto?.codigo }}</td>
-                            <td>{{ row.Producto?.nombre }}</td>
-                            <td>{{ row.Sede?.nombre }}</td>
-                            <td><strong>{{ row.cantidad }}</strong></td>
-                            <td>{{ row.Producto?.UnidadMedida?.abreviatura }}</td>
-                            <td>{{ row.lote || '—' }}</td>
+                        <tr class="inv-row"
+                            [ngClass]="{
+                                'inv-row-vencido': row.dias_vencimiento !== null && row.dias_vencimiento !== undefined && row.dias_vencimiento <= 0,
+                                'inv-row-bajo': row.stock_bajo
+                            }">
+                            <td><code class="inv-codigo">{{ row.Producto?.codigo || '—' }}</code></td>
+                            <td><span class="inv-nombre">{{ row.Producto?.nombre }}</span></td>
+                            <td>
+                                <span class="inv-tag inv-tag-grupo" *ngIf="row.Producto?.Categoria?.Grupo?.nombre; else sinGrupo">
+                                    {{ row.Producto?.Categoria?.Grupo?.nombre }}
+                                </span>
+                                <ng-template #sinGrupo><span class="inv-sin-dato">—</span></ng-template>
+                            </td>
+                            <td>
+                                <span class="inv-tag inv-tag-categoria" *ngIf="row.Producto?.Categoria?.nombre; else sinCategoria">
+                                    {{ row.Producto?.Categoria?.nombre }}
+                                </span>
+                                <ng-template #sinCategoria><span class="inv-sin-dato">—</span></ng-template>
+                            </td>
+                            <td><span class="inv-sin-dato"><i class="fa fa-location-dot me-1"></i>{{ row.Sede?.nombre || '—' }}</span></td>
+                            <td class="text-end">
+                                <span class="inv-cantidad" [ngClass]="{ 'inv-cantidad-cero': (row.cantidad || 0) <= 0 }">
+                                    {{ row.cantidad | number }}
+                                </span>
+                            </td>
+                            <td>{{ row.Producto?.UnidadMedida?.abreviatura || '—' }}</td>
+                            <td><span class="inv-sin-dato">{{ row.lote || '—' }}</span></td>
                             <td>{{ formatearFecha(row.fecha_vencimiento) }}</td>
                             <td>
-                                <span *ngIf="row.dias_vencimiento !== null">{{ row.dias_vencimiento }} días</span>
-                                <span *ngIf="row.dias_vencimiento === null">—</span>
-                            </td>
-                            <td>
-                                <span *ngIf="row.color_semaforo" class="badge" [ngClass]="getColorClass(row.color_semaforo)">
-                                    {{ row.color_semaforo }}
+                                <span *ngIf="row.dias_vencimiento !== null && row.dias_vencimiento !== undefined"
+                                    class="inv-tag" [ngClass]="estadoVencimiento(row).clase">
+                                    {{ row.dias_vencimiento }} días
                                 </span>
-                                <span *ngIf="!row.color_semaforo">—</span>
+                                <span *ngIf="row.dias_vencimiento === null || row.dias_vencimiento === undefined"
+                                    class="inv-sin-dato">—</span>
                             </td>
                             <td>
-                                <i *ngIf="row.stock_bajo" class="fa fa-exclamation-triangle text-warning"></i>
-                                <i *ngIf="!row.stock_bajo" class="fa fa-check text-success"></i>
+                                <span class="inv-estado" [ngClass]="estadoVencimiento(row).clase">
+                                    {{ estadoVencimiento(row).texto }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="inv-estado" [ngClass]="row.stock_bajo ? 'inv-estado-vencido' : 'inv-estado-ok'">
+                                    {{ row.stock_bajo ? 'Bajo' : 'OK' }}
+                                </span>
                             </td>
                         </tr>
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                         <tr>
-                            <td colspan="10" class="text-center text-muted p-4">
-                                <i class="fa fa-inbox me-2"></i> No se encontraron registros de stock
+                            <td colspan="12">
+                                <div class="inv-vacio">
+                                    <i class="fa fa-inbox"></i>
+                                    <span>No se encontraron registros de stock</span>
+                                </div>
                             </td>
                         </tr>
                     </ng-template>

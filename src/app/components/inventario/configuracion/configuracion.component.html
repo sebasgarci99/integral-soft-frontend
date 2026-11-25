@@ -1,8 +1,14 @@
-<div class="flex-grow-1 p-4 dashboard">
-    <div class="card mt-2">
+<div class="flex-grow-1 p-4 dashboard inv-page">
+    <div class="card mt-2 inv-card">
         <div class="card-body">
-            <div class="component-header">
-                <h3><i class="fa fa-cog"></i> Configuración de Inventario</h3>
+            <div class="inv-header">
+                <div class="inv-header-titulo">
+                    <span class="inv-header-icono"><i class="fa fa-cog"></i></span>
+                    <div>
+                        <h3>Configuración de Inventario</h3>
+                        <p class="inv-subtitulo">Administra grupos, categorías, unidades y semáforos.</p>
+                    </div>
+                </div>
             </div>
 
             <p-tabs [(value)]="activeTab" [scrollable]="true">
@@ -19,7 +25,7 @@
                             <p-button label="Nuevo Grupo" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('grupo')" />
                         </div>
                         <div class="position-relative">
-                            <p-table [value]="grupos" [paginator]="true" [rows]="10" stripedRows>
+                            <p-table [value]="grupos" [paginator]="true" [rows]="10" styleClass="inv-table" stripedRows>
                                 <ng-template pTemplate="header">
                                     <tr><th>Icono</th><th>Nombre</th><th>Descripción</th><th>Acciones</th></tr>
                                 </ng-template>
@@ -48,7 +54,7 @@
                             <p-button label="Nueva Categoría" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('categoria')" />
                         </div>
                         <div class="position-relative">
-                            <p-table [value]="categorias" [paginator]="true" [rows]="10" stripedRows>
+                            <p-table [value]="categorias" [paginator]="true" [rows]="10" styleClass="inv-table" stripedRows>
                                 <ng-template pTemplate="header">
                                     <tr><th>Nombre</th><th>Grupo</th><th>Descripción</th><th>Acciones</th></tr>
                                 </ng-template>
@@ -77,7 +83,7 @@
                             <p-button label="Nueva Unidad" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('unidad')" />
                         </div>
                         <div class="position-relative">
-                            <p-table [value]="unidades" [paginator]="true" [rows]="10" stripedRows>
+                            <p-table [value]="unidades" [paginator]="true" [rows]="10" styleClass="inv-table" stripedRows>
                                 <ng-template pTemplate="header">
                                     <tr><th>Nombre</th><th>Abreviatura</th><th>Acciones</th></tr>
                                 </ng-template>
@@ -105,7 +111,7 @@
                             <p-button label="Nuevo Tipo" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('tipo_movimiento')" />
                         </div>
                         <div class="position-relative">
-                            <p-table [value]="tiposMovimiento" [paginator]="true" [rows]="10" stripedRows>
+                            <p-table [value]="tiposMovimiento" [paginator]="true" [rows]="10" styleClass="inv-table" stripedRows>
                                 <ng-template pTemplate="header">
                                     <tr><th>Código</th><th>Nombre</th><th>Signo</th><th>Acciones</th></tr>
                                 </ng-template>
@@ -134,7 +140,7 @@
                             <p-button label="Nueva Configuración" icon="fa fa-plus" severity="info" (onClick)="abrirDialog('semaforo')" />
                         </div>
                         <div class="position-relative">
-                            <p-table [value]="semaforos" [paginator]="true" [rows]="10" stripedRows>
+                            <p-table [value]="semaforos" [paginator]="true" [rows]="10" styleClass="inv-table" stripedRows>
                                 <ng-template pTemplate="header">
                                     <tr><th>Orden</th><th>Nombre</th><th>Días Min</th><th>Días Max</th><th>Color</th><th>Acciones</th></tr>
                                 </ng-template>
@@ -163,7 +169,8 @@
             </p-tabs>
 
             <p-dialog header="{{ isEdit ? 'Editar' : 'Nuevo' }}" [(visible)]="displayDialog" *ngIf="displayDialog"
-                [modal]="true" [style]="{ width: '40rem' }" [draggable]="false" appendTo="body">
+                [modal]="true" [style]="{ width: '40rem' }" [draggable]="false" appendTo="body"
+                styleClass="inv-dialog">
                 <div class="p-fluid" style="padding: 0rem 1rem;">
                     <div *ngIf="dialogType === 'grupo'">
                         <div class="mt-3">

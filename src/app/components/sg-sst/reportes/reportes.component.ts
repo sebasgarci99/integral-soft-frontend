@@ -193,7 +193,7 @@ export class SgSstReportesComponent implements OnInit, OnChanges {
                 : await this.sgSstService.descargarReporteDocx(this.idCliente, this.filtroGrupo, this.fechaInicio, this.fechaFin);
 
             const blob = await firstValueFrom(observable);
-            const nombre = `Reporte_SG-SST_${this.fechaInicio}_${this.fechaFin}.${tipo}`;
+            const nombre = `Reporte_Gestion_Integral_${this.fechaInicio}_${this.fechaFin}.${tipo}`;
             saveAs(blob, nombre);
         } catch {
             Swal.fire('Error', `No se pudo generar el ${tipo.toUpperCase()}.`, 'error');

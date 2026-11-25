@@ -10,7 +10,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { CalendarModule } from 'primeng/calendar';
 import { MessageService } from 'primeng/api';
 import { InventarioService } from '../../../services/inventario/inventario.service';
-import { Producto, KardexRow, KardexResponse } from '../../../interfaces/inventario';
+import { Producto, KardexRow, KardexResponse, Sede } from '../../../interfaces/inventario';
 import { parseDateSinTimezone, formatDateLocal } from '../../../utils/fecha.util';
 
 @Component({
@@ -26,6 +26,8 @@ export class KardexComponent implements OnInit {
 
     productos: Producto[] = [];
     selectedProducto: Producto | null = null;
+    sedes: Sede[] = [];
+    selectedSede: Sede | null = null;
     fechaDesde: Date | null = null;
     fechaHasta: Date | null = null;
 
@@ -41,6 +43,17 @@ export class KardexComponent implements OnInit {
 
     ngOnInit(): void {
         this.cargarProductos();
+        this.cargarSedes();
+    }
+
+    async cargarSedes() {
+        (await this.inventarioService.getSedes()).subscribe({
+            next: (res) => {
+                if (res.state === 'OK') {
+                    this.sedes = res.body || [];
+                }
+            }
+        });
     }
 
     async cargarProductos() {
@@ -70,7 +83,7 @@ export class KardexComponent implements OnInit {
 
         (await this.inventarioService.getKardexProducto(
             this.selectedProducto.id_producto,
-            undefined,
+            this.selectedSede?.id_sede,
             fechaInicio,
             fechaFin
         )).subscribe({
@@ -95,7 +108,8 @@ export class KardexComponent implements OnInit {
     }
 
     getSigno(tipo: string): string {
+        const valor = (tipo || '').toUpperCase();
         const entradas = ['ENT', 'DEV', 'TRA_E', 'AJU'];
-        return entradas.includes(tipo) ? 'entrada' : 'salida';
+        return entradas.some(e => valor.includes(e)) ? 'entrada' : 'salida';
     }
 }

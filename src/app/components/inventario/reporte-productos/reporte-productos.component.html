@@ -1,74 +1,75 @@
-<div class="flex-grow-1 p-4 dashboard">
-    <div class="card mt-2">
+<div class="flex-grow-1 p-4 dashboard inv-page">
+    <div class="card mt-2 inv-card">
         <div class="card-body">
-            <div class="component-header">
-                <h3><i class="fa fa-file-alt"></i> Reporte General de Productos</h3>
-                <div>
-                    <p-button label="Imprimir" icon="fa fa-print" severity="secondary" (onClick)="imprimir()" styleClass="me-2" />
-                    <p-button label="Limpiar Filtros" icon="fa fa-times" severity="secondary" (onClick)="limpiarFiltros()" />
+            <div class="inv-header">
+                <div class="inv-header-titulo">
+                    <span class="inv-header-icono"><i class="fa fa-file-alt"></i></span>
+                    <div>
+                        <h3>Reporte General de Productos</h3>
+                        <p class="inv-subtitulo">Analiza stock, vencimientos y categorías del inventario.</p>
+                    </div>
+                </div>
+                <div class="inv-acciones">
+                    <p-button label="Imprimir" icon="fa fa-print" severity="secondary" (onClick)="imprimir()" styleClass="btn-nuevo" />
+                    <p-button label="Limpiar Filtros" icon="fa fa-times" severity="secondary" (onClick)="limpiarFiltros()" styleClass="btn-nuevo" />
                 </div>
             </div>
 
-            <div class="row mt-3">
-                <div class="col-md-3">
-                    <div class="card stat-card">
-                        <div class="stat-icon bg-primary-subtle"><i class="fa fa-cubes text-primary"></i></div>
-                        <div class="stat-info">
-                            <h4>{{ totalProductos }}</h4>
-                            <span>Total Productos</span>
-                        </div>
+            <div class="inv-stats">
+                <div class="inv-stat inv-stat-teal">
+                    <span class="inv-stat-icono"><i class="fa fa-cubes"></i></span>
+                    <div>
+                        <span class="inv-stat-valor">{{ totalProductos }}</span>
+                        <span class="inv-stat-label">Total productos</span>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card stat-card">
-                        <div class="stat-icon bg-success-subtle"><i class="fa fa-box text-success"></i></div>
-                        <div class="stat-info">
-                            <h4>{{ totalStock | number }}</h4>
-                            <span>Stock Total</span>
-                        </div>
+                <div class="inv-stat inv-stat-blue">
+                    <span class="inv-stat-icono"><i class="fa fa-box"></i></span>
+                    <div>
+                        <span class="inv-stat-valor">{{ totalStock | number }}</span>
+                        <span class="inv-stat-label">Stock total</span>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card stat-card">
-                        <div class="stat-icon bg-warning-subtle"><i class="fa fa-arrow-down text-warning"></i></div>
-                        <div class="stat-info">
-                            <h4>{{ productosStockBajo }}</h4>
-                            <span>Stock Bajo</span>
-                        </div>
+                <div class="inv-stat inv-stat-amber">
+                    <span class="inv-stat-icono"><i class="fa fa-arrow-down"></i></span>
+                    <div>
+                        <span class="inv-stat-valor">{{ productosStockBajo }}</span>
+                        <span class="inv-stat-label">Stock bajo</span>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card stat-card">
-                        <div class="stat-icon bg-danger-subtle"><i class="fa fa-clock text-danger"></i></div>
-                        <div class="stat-info">
-                            <h4>{{ productosProximosVencer }}</h4>
-                            <span>Próximos a Vencer</span>
-                        </div>
+                <div class="inv-stat inv-stat-red">
+                    <span class="inv-stat-icono"><i class="fa fa-clock"></i></span>
+                    <div>
+                        <span class="inv-stat-valor">{{ productosProximosVencer }}</span>
+                        <span class="inv-stat-label">Próximos a vencer</span>
                     </div>
                 </div>
             </div>
 
-            <div class="row mt-3 mb-3">
-                <div class="col-md-3">
-                    <label class="form-label">Grupo</label>
+            <div class="inv-filtros">
+                <div class="inv-filtro">
+                    <label>Grupo</label>
                     <p-dropdown [options]="grupos" [(ngModel)]="selectedGrupo" placeholder="Todos los grupos"
                         optionLabel="nombre" [showClear]="true" (onChange)="onGrupoChange()" class="w-100" appendTo="body" />
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Categoría</label>
+                <div class="inv-filtro">
+                    <label>Categoría</label>
                     <p-dropdown [options]="categorias" [(ngModel)]="selectedCategoria" placeholder="Todas las categorías"
                         optionLabel="nombre" [showClear]="true" (onChange)="cargarReporte()" class="w-100" appendTo="body"
                         [disabled]="!selectedGrupo" />
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Estado</label>
+                <div class="inv-filtro">
+                    <label>Estado</label>
                     <p-dropdown [options]="opcionesEstado" [(ngModel)]="filtroEstado" optionLabel="label" optionValue="value"
                         (onChange)="cargarReporte()" class="w-100" appendTo="body" />
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Buscar</label>
-                    <input pInputText type="text" [(ngModel)]="textoBusqueda" (input)="cargarReporte()"
-                        placeholder="Código, nombre, categoría..." class="w-100" />
+                <div class="inv-filtro">
+                    <label>Buscar</label>
+                    <div class="inv-input">
+                        <i class="fa fa-search"></i>
+                        <input pInputText type="text" [(ngModel)]="textoBusqueda" (input)="cargarReporte()"
+                            placeholder="Código, nombre, categoría..." />
+                    </div>
                 </div>
             </div>
 
@@ -85,6 +86,7 @@
                 </div>
 
                 <p-table [value]="getProductosFiltrados()" [paginator]="true" [rows]="20" responsiveLayout="scroll"
+                    styleClass="inv-table"
                     [globalFilterFields]="['codigo', 'nombre', 'Categoria.nombre', 'Categoria.Grupo.nombre']"
                     [sortField]="'nombre'" [sortOrder]="1" stripedRows>
                     <ng-template pTemplate="header">
@@ -102,37 +104,35 @@
                         </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-row>
-                        <tr [ngClass]="{ 'row-stock-bajo': row.stock_bajo, 'row-sin-stock': (row.cantidad_total || 0) === 0 }">
-                            <td><code>{{ row.codigo }}</code></td>
-                            <td>{{ row.nombre }}</td>
-                            <td>{{ row.Categoria?.Grupo?.nombre || '—' }}</td>
-                            <td>{{ row.Categoria?.nombre || '—' }}</td>
+                        <tr [ngClass]="{ 'inv-row-bajo': row.stock_bajo }">
+                            <td><code class="inv-codigo">{{ row.codigo }}</code></td>
+                            <td><span class="inv-nombre">{{ row.nombre }}</span></td>
+                            <td><span class="inv-tag inv-tag-grupo">{{ row.Categoria?.Grupo?.nombre || '—' }}</span></td>
+                            <td><span class="inv-tag inv-tag-categoria">{{ row.Categoria?.nombre || '—' }}</span></td>
                             <td>{{ row.UnidadMedida?.abreviatura || '—' }}</td>
+                            <td class="text-end"><span class="inv-cantidad" [ngClass]="{ 'inv-cantidad-cero': (row.cantidad_total || 0) === 0 }">{{ row.cantidad_total | number }}</span></td>
+                            <td class="text-end">{{ row.stock_minimo || '—' }}</td>
+                            <td class="text-end">{{ row.stock_maximo || '—' }}</td>
                             <td>
-                                <strong [ngClass]="{
-                                    'text-danger': row.stock_bajo,
-                                    'text-success': !row.stock_bajo && (row.cantidad_total || 0) > 0
-                                }">{{ row.cantidad_total | number }}</strong>
-                            </td>
-                            <td>{{ row.stock_minimo || '—' }}</td>
-                            <td>{{ row.stock_maximo || '—' }}</td>
-                            <td>
-                                <span *ngIf="row.color_semaforo" class="badge" [ngClass]="getColorClass(row.color_semaforo)">
+                                <span *ngIf="row.color_semaforo" class="inv-tag" [ngClass]="getColorClass(row.color_semaforo)">
                                     {{ row.color_semaforo }}
                                 </span>
-                                <span *ngIf="!row.color_semaforo" class="text-muted">—</span>
+                                <span *ngIf="!row.color_semaforo" class="inv-sin-dato">—</span>
                             </td>
                             <td>
-                                <i *ngIf="row.stock_bajo" class="fa fa-exclamation-triangle text-warning" title="Stock bajo el mínimo"></i>
-                                <i *ngIf="!row.stock_bajo && (row.cantidad_total || 0) > 0" class="fa fa-check text-success"></i>
-                                <span *ngIf="(row.cantidad_total || 0) === 0" class="badge badge-sin-stock">Sin Stock</span>
+                                <span class="inv-estado" [ngClass]="row.stock_bajo ? 'inv-estado-vencido' : ((row.cantidad_total || 0) === 0 ? 'inv-estado-neutro' : 'inv-estado-ok')">
+                                    {{ row.stock_bajo ? 'Bajo' : ((row.cantidad_total || 0) === 0 ? 'Sin stock' : 'OK') }}
+                                </span>
                             </td>
                         </tr>
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                         <tr>
-                            <td colspan="10" class="text-center p-4 text-muted">
-                                No se encontraron productos con los filtros seleccionados
+                            <td colspan="10">
+                                <div class="inv-vacio">
+                                    <i class="fa fa-inbox"></i>
+                                    <span>No se encontraron productos con los filtros seleccionados</span>
+                                </div>
                             </td>
                         </tr>
                     </ng-template>

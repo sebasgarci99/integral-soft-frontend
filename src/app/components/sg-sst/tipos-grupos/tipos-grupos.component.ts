@@ -6,6 +6,7 @@ import Swal from 'sweetalert2';
 import { SgSstService } from '../../../services/sg-sst/sg-sst.service';
 import { SgSstPermissionsService } from '../../../services/sg-sst/sg-sst-permissions.service';
 import { SgSstGrupo } from '../../../interfaces/sg-sst';
+import { normalizarVinetas } from '../../../utils/bitacora-texto.util';
 
 @Component({
     selector: 'app-sgsst-tipos-grupos',
@@ -110,6 +111,14 @@ export class SgSstTiposGruposComponent implements OnInit, OnChanges {
         this.form.color = color;
     }
 
+    normalizarTextoPredefinido(): void {
+        const actual = String(this.form.texto_predefinido || '');
+        const normalizado = normalizarVinetas(actual);
+        if (normalizado !== actual) {
+            this.form.texto_predefinido = normalizado;
+        }
+    }
+
     fondoIcono(color?: string | null): string {
         const valor = color || '#0f766e';
         return /^#[0-9a-f]{6}$/i.test(valor) ? `${valor}1f` : '#f1f5f9';
@@ -173,7 +182,7 @@ export class SgSstTiposGruposComponent implements OnInit, OnChanges {
                 color: this.form.color || null,
                 icono: this.form.icono || null,
                 descripcion: this.form.descripcion || null,
-                texto_predefinido: String(this.form.texto_predefinido || '').trim() || null,
+                texto_predefinido: normalizarVinetas(this.form.texto_predefinido).trim() || null,
                 prioridad: this.form.prioridad ?? 3
             };
 

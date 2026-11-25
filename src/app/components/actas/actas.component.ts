@@ -162,7 +162,7 @@ export class ActasComponent implements OnInit, OnChanges {
     }
 
     private get rutaBase(): string {
-        return this.embebido ? '/gestion-sg-sst/actas' : '/actas';
+        return this.router.url.startsWith('/gestion-sg-sst') ? '/gestion-sg-sst/actas' : '/actas';
     }
 
     filtrarClientes(event: any): void {

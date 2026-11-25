@@ -18,6 +18,7 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { SelectModule } from 'primeng/select';
 import { InputTextarea } from 'primeng/inputtextarea';
 import { DropdownModule } from 'primeng/dropdown';
+import { PanelModule } from 'primeng/panel';
 
 @Component({
     selector: 'app-clientes',
@@ -37,7 +38,8 @@ import { DropdownModule } from 'primeng/dropdown';
         InputTextModule,
         SelectModule,
         InputTextarea,
-        DropdownModule
+        DropdownModule,
+        PanelModule
     ],
     templateUrl: './clientes.component.html',
     styleUrls: ['./clientes.component.css'],
@@ -56,6 +58,20 @@ export class ClientesComponent implements OnInit {
         { label: 'NIT', value: 'NIT' },
         { label: 'Cédula de Extranjería', value: 'CE' },
         { label: 'Pasaporte', value: 'PA' }
+    ];
+
+    riesgosArl = [
+        { label: 'Clase I (0.522%)', value: 1 },
+        { label: 'Clase II (1.044%)', value: 2 },
+        { label: 'Clase III (2.436%)', value: 3 },
+        { label: 'Clase IV (4.36%)', value: 4 },
+        { label: 'Clase V (6.96%)', value: 5 }
+    ];
+
+    rangosEmpleados = [
+        { label: '0 a 10 empleados', value: '0-10' },
+        { label: '11 a 50 empleados', value: '11-50' },
+        { label: '51 o más empleados', value: '51+' }
     ];
 
     constructor(
@@ -78,6 +94,9 @@ export class ClientesComponent implements OnInit {
             nombre_contacto: ['', [Validators.maxLength(255)]],
             comentarios_observaciones: ['', [Validators.maxLength(1000)]],
             logo_base64: [null],
+            arl: [null, [Validators.maxLength(150)]],
+            riesgo_arl: [null],
+            rango_empleados: [null],
             estado: ['A']
         });
     }
@@ -131,6 +150,18 @@ export class ClientesComponent implements OnInit {
     eliminarLogo(): void {
         this.logoPreview = null;
         this.clienteForm.patchValue({ logo_base64: null });
+    }
+
+    etiquetaRiesgoCorta(valor: number | null | undefined): string {
+        const clases = ['Clase I', 'Clase II', 'Clase III', 'Clase IV', 'Clase V'];
+        return valor && valor >= 1 && valor <= 5 ? clases[valor - 1] : '';
+    }
+
+    resumenArl(cliente: Cliente): string {
+        const arl = cliente.arl?.trim();
+        if (!arl) return 'Sin definir';
+        const riesgo = this.etiquetaRiesgoCorta(cliente.riesgo_arl);
+        return riesgo ? `${arl} · ${riesgo}` : arl;
     }
 
     borrarCliente(id: number) {

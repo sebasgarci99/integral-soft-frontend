@@ -8,6 +8,7 @@ export interface ImagenComprimida {
 
 export interface OpcionesCompresion {
     maxWidth?: number;
+    maxLado?: number;
     calidad?: number;
     thumbWidth?: number;
     thumbCalidad?: number;
@@ -45,6 +46,18 @@ const redimensionar = (img: HTMLImageElement, maxWidth: number, calidad: number)
     return canvas.toDataURL('image/jpeg', calidad);
 };
 
+const redimensionarPorLado = (img: HTMLImageElement, maxLado: number, calidad: number): string => {
+    const canvas = document.createElement('canvas');
+    const ladoMayor = Math.max(img.width, img.height);
+    const scale = Math.min(1, maxLado / ladoMayor);
+    canvas.width = Math.max(1, Math.round(img.width * scale));
+    canvas.height = Math.max(1, Math.round(img.height * scale));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('No se pudo crear el contexto de dibujo.');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', calidad);
+};
+
 /**
  * Comprime una imagen a JPEG devolviendo el data URL completo.
  * Mantiene la firma histórica usada en los módulos PQRS.
@@ -63,14 +76,19 @@ export const procesarImagenEvidencia = async (
 ): Promise<ImagenComprimida> => {
     const {
         maxWidth = 1600,
+        maxLado = 0,
         calidad = 0.6,
         thumbWidth = 240,
         thumbCalidad = 0.5
     } = opciones;
 
     const img = await cargarImagen(file);
-    const dataUrl = redimensionar(img, maxWidth, calidad);
-    const thumbDataUrl = redimensionar(img, thumbWidth, thumbCalidad);
+    const dataUrl = maxLado > 0
+        ? redimensionarPorLado(img, maxLado, calidad)
+        : redimensionar(img, maxWidth, calidad);
+    const thumbDataUrl = maxLado > 0
+        ? redimensionarPorLado(img, thumbWidth, thumbCalidad)
+        : redimensionar(img, thumbWidth, thumbCalidad);
     const base64 = limpiarBase64(dataUrl);
     const thumbBase64 = limpiarBase64(thumbDataUrl);
 

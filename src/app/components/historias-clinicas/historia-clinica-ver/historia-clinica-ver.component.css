@@ -221,7 +221,82 @@
         grid-column: span 1;
     }
 
-    .hc-page-title {
-        font-size: 1.15rem;
-    }
+}
+
+
+/* Escala tipográfica HC: 20 / 14 / 12 */
+.hc-private-locked h4 {
+    font-size: var(--hc-font-lg);
+}
+
+.hc-note,
+.hc-private-locked p,
+.hc-private-entry p,
+.hc-read-text,
+.card h5 {
+    font-size: var(--hc-font-md);
+}
+
+.hc-patient-banner h4 {
+    font-size: var(--hc-font-md);
+}
+
+.hc-patient-meta,
+.hc-read-grid span,
+.hc-signature-pad small,
+.hc-optometry-table thead th {
+    font-size: var(--hc-font-xs);
+}
+
+.hc-read-grid strong,
+.hc-signature-pad strong,
+.hc-optometry-table tbody td {
+    font-size: var(--hc-font-md);
+}
+
+.hc-signature-line,
+.hc-signature-watermark {
+    font-size: var(--hc-font-lg);
+}
+
+.hc-section-title {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-tag {
+    font-size: var(--hc-font-xs);
+}
+
+:host ::ng-deep .p-button {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-tab {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-dialog .p-dialog-title {
+    font-size: var(--hc-font-lg);
+}
+
+:host ::ng-deep .p-dialog .p-dialog-content {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-dialog .form-label {
+    font-size: var(--hc-font-xs);
+}
+
+:host ::ng-deep .p-dialog .p-inputtextarea,
+:host ::ng-deep .p-dialog .p-textarea {
+    font-size: var(--hc-font-md);
+}
+
+
+:host ::ng-deep .p-tabs .p-tablist-tab-list li .p-tab {
+    font-size: var(--hc-font-md);
+}
+
+:host ::ng-deep .p-dialog .p-dialog-header .p-dialog-title {
+    font-size: var(--hc-font-lg);
 }

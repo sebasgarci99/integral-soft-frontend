@@ -2,7 +2,7 @@
     <section class="tg-card">
         <header class="tg-head">
             <div>
-                <h2><i class="fa fa-tags"></i> Tipos de grupo SG-SST</h2>
+                <h2><i class="fa fa-tags"></i> Tipos de grupo</h2>
                 <span>{{ grupos.length }} grupo(s) registrado(s) para el cliente seleccionado</span>
             </div>
             <button type="button" class="tg-btn primary" *ngIf="puedeAdministrarGrupos" (click)="abrirCrear()">
@@ -34,7 +34,7 @@
 
         <div class="tg-empty" *ngIf="!cargando && grupos.length === 0">
             <i class="fa fa-tags"></i>
-            <h3>Este cliente aún no tiene grupos SG-SST</h3>
+            <h3>Este cliente aún no tiene grupos</h3>
             <p>Crea el primer grupo para poder usar agenda, bitácora y programador.</p>
             <button type="button" class="tg-btn primary" *ngIf="puedeAdministrarGrupos" (click)="abrirCrear()">Crear primer grupo</button>
         </div>
@@ -96,7 +96,7 @@
 <div class="tg-modal-backdrop" *ngIf="modalVisible">
     <div class="tg-modal">
         <header>
-            <h3>{{ edicion ? 'Editar grupo' : 'Nuevo grupo SG-SST' }}</h3>
+            <h3>{{ edicion ? 'Editar grupo' : 'Nuevo grupo' }}</h3>
             <button type="button" class="tg-close" (click)="cerrarModal()">&times;</button>
         </header>
         <div class="tg-modal-body">
@@ -180,11 +180,11 @@
 
             <label>Texto predefinido para la bitácora</label>
             <textarea class="tg-textarea tg-textarea-lg" rows="5" [(ngModel)]="form.texto_predefinido"
-                maxlength="4000"
+                maxlength="4000" (blur)="normalizarTextoPredefinido()"
                 placeholder="Texto que se sugerirá cargar en el resumen de la bitácora de este grupo..."></textarea>
             <div class="tg-help">
                 <i class="fa fa-circle-info"></i>
-                Opcional. Máximo 4000 caracteres. En la bitácora aparecerá un botón para cargarlo al resumen del día.
+                Opcional. Máximo 4000 caracteres. En la bitácora aparecerá un botón para cargarlo al resumen del día. Las líneas que inicien con * o - se convertirán en viñetas (•).
             </div>
         </div>
         <footer>

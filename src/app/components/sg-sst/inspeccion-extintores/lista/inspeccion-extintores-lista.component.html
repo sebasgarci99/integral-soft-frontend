@@ -1,0 +1,162 @@
+<div class="ie-page">
+
+    <ng-container *ngIf="!esExtintores">
+        <div class="ie-card ie-head">
+            <div class="ie-crumbs">
+                <button type="button" (click)="volverAlHub()"><i class="fa fa-shield-heart"></i> SG-SST</button>
+                <i class="fa fa-chevron-right"></i>
+                <span>{{ grupo?.nombre }}</span>
+                <i class="fa fa-chevron-right"></i>
+                <span class="ie-current">{{ tituloOpcion }}</span>
+            </div>
+            <div class="ie-head-main">
+                <span class="ie-head-icon"
+                    [style.background]="grupo ? 'linear-gradient(135deg, ' + grupo.colorDesde + ' 0%, ' + grupo.colorHasta + ' 100%)' : null">
+                    <i [class]="opcion?.icono"></i>
+                </span>
+                <div class="ie-head-titles">
+                    <h1>{{ tituloOpcion }}</h1>
+                    <p>{{ opcion?.descripcion || 'Este estándar aún no tiene un formulario definido.' }}</p>
+                </div>
+                <div class="ie-head-actions">
+                    <button type="button" class="ie-btn ie-btn-ghost" (click)="volverAlHub()">
+                        <i class="fa fa-arrow-left"></i> Volver
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="ie-card ie-placeholder">
+            <i class="fa fa-screwdriver-wrench"></i>
+            <h2>En construcción</h2>
+            <p>Esta opción del estándar aún no tiene formulario.</p>
+            <small>Aquí se cargará el formulario, los registros y la generación de documentos de esta opción.</small>
+        </div>
+    </ng-container>
+
+    <ng-container *ngIf="esExtintores">
+        <div class="ie-card ie-head">
+            <div class="ie-crumbs">
+                <button type="button" (click)="volverAlHub()"><i class="fa fa-shield-heart"></i> SG-SST</button>
+                <i class="fa fa-chevron-right"></i>
+                <span>{{ grupo?.nombre }}</span>
+                <i class="fa fa-chevron-right"></i>
+                <span class="ie-current">{{ tituloOpcion }}</span>
+            </div>
+            <div class="ie-head-main">
+                <span class="ie-head-icon"><i class="fa fa-fire-extinguisher"></i></span>
+                <div class="ie-head-titles">
+                    <h1>{{ tituloOpcion }}</h1>
+                    <div class="ie-chips">
+                        <span class="ie-tag"><i class="fa fa-building"></i> {{ nombreCliente }}</span>
+                        <span class="ie-tag"><i class="fa fa-file"></i> F-GA-02 · Feb-25</span>
+                        <span class="ie-tag"><i class="fa fa-clipboard-check"></i> {{ grupo?.nombre }}</span>
+                    </div>
+                </div>
+                <div class="ie-head-actions">
+                    <button type="button" class="ie-btn ie-btn-ghost" (click)="volverAlHub()">
+                        <i class="fa fa-arrow-left"></i> Volver
+                    </button>
+                    <button type="button" class="ie-soft-action" (click)="nueva()">
+                        <span class="ie-soft-action-icon"><i class="fa fa-plus"></i></span> Nueva inspección
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="ie-kpis">
+            <div class="ie-kpi">
+                <span class="ie-kpi-icon"><i class="fa fa-clipboard-list"></i></span>
+                <div><span>Inspecciones</span><strong>{{ registros.length }}</strong></div>
+            </div>
+            <div class="ie-kpi">
+                <span class="ie-kpi-icon"><i class="fa fa-fire-extinguisher"></i></span>
+                <div><span>Extintores</span><strong>{{ totalExtintores }}</strong></div>
+            </div>
+            <div class="ie-kpi">
+                <span class="ie-kpi-icon"><i class="fa fa-camera"></i></span>
+                <div><span>Fotos</span><strong>{{ totalFotos }}</strong></div>
+            </div>
+            <div class="ie-kpi">
+                <span class="ie-kpi-icon"><i class="fa fa-boxes-stacked"></i></span>
+                <div><span>Peso en BD</span><strong>{{ formatearPeso(pesoTotal) }}</strong></div>
+            </div>
+        </div>
+
+        <div class="ie-panel">
+            <div class="ie-toolbar">
+                <div class="ie-search">
+                    <i class="fa fa-magnifying-glass"></i>
+                    <input type="text" [(ngModel)]="filtro" placeholder="Buscar por mes, inspector o estado...">
+                </div>
+                <div class="ie-filter-wrap">
+                    <p-dropdown
+                        styleClass="ie-pdropdown"
+                        panelStyleClass="ie-pdropdown-panel"
+                        [options]="opcionesEstado"
+                        optionLabel="label"
+                        optionValue="value"
+                        [(ngModel)]="filtroEstado"
+                        appendTo="body"
+                        [style]="{ width: '100%' }">
+                    </p-dropdown>
+                </div>
+            </div>
+
+            <div class="ie-loading" *ngIf="cargando">
+                <i class="fa fa-spinner fa-spin"></i> Cargando inspecciones...
+            </div>
+
+            <ng-container *ngIf="!cargando">
+                <table class="ie-table" *ngIf="registrosFiltrados.length > 0">
+                    <thead>
+                        <tr>
+                            <th>Mes</th>
+                            <th>Fecha</th>
+                            <th>Inspector</th>
+                            <th>Extintores</th>
+                            <th>Fotos</th>
+                            <th>Estado</th>
+                            <th class="ie-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let registro of registrosFiltrados">
+                            <td data-label="Mes"><strong>{{ mesLargo(registro.mes_registro) }}</strong></td>
+                            <td data-label="Fecha">{{ fechaCorta(registro.fecha_inspeccion) }}</td>
+                            <td data-label="Inspector">{{ registro.nombre_inspector }}</td>
+                            <td data-label="Extintores">{{ registro.total_extintores || 0 }}</td>
+                            <td data-label="Fotos">{{ registro.total_fotos || 0 }}/{{ registro.total_extintores || 0 }}</td>
+                            <td data-label="Estado">
+                                <span class="ie-badge" [ngClass]="registro.estado">
+                                    {{ registro.estado === 'cerrada' ? 'Cerrada' : 'Borrador' }}
+                                </span>
+                            </td>
+                            <td data-label="Acciones" class="ie-actions">
+                                <button type="button" class="ie-soft-action" title="Descargar PDF" (click)="verPdf(registro)">
+                                    <span class="ie-soft-action-icon"><i class="fa fa-file-pdf"></i></span> PDF
+                                </button>
+                                <button type="button" class="ie-soft-action" title="Editar" (click)="editar(registro)">
+                                    <span class="ie-soft-action-icon"><i class="fa fa-pen"></i></span> Editar
+                                </button>
+                                <button type="button" class="ie-soft-action ie-soft-action-only ie-soft-action-danger" title="Eliminar" (click)="eliminar(registro)">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="ie-empty" *ngIf="registrosFiltrados.length === 0">
+                    <i class="fa" [ngClass]="registros.length > 0 ? 'fa-magnifying-glass' : 'fa-inbox'"></i>
+                    <h3>{{ registros.length > 0 ? 'Sin resultados' : 'Aún no hay inspecciones de este cliente' }}</h3>
+                    <p>{{ registros.length > 0 ? 'Ajusta los filtros para ver otros registros.' : 'Crea la primera inspección de extintores para comenzar.' }}</p>
+                    <button type="button" class="ie-soft-action" *ngIf="registros.length === 0" (click)="nueva()">
+                        <span class="ie-soft-action-icon"><i class="fa fa-plus"></i></span> Nueva inspección
+                    </button>
+                </div>
+            </ng-container>
+        </div>
+    </ng-container>
+
+</div>

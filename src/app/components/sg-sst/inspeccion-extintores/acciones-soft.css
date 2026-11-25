@@ -1,0 +1,67 @@
+.ie-soft-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.42rem 0.9rem 0.42rem 0.42rem;
+    border: 1px solid #bae6fd;
+    border-radius: 14px;
+    background: #e0f2fe;
+    color: #0e7490;
+    font-family: inherit;
+    font-size: var(--ie-soft-fs, 14px);
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(8, 145, 178, 0.12);
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.ie-soft-action:hover:not(:disabled) {
+    background: #cffafe;
+    border-color: #7dd3fc;
+    transform: translateY(-1px);
+}
+
+.ie-soft-action:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.ie-soft-action-icon {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #0891b2;
+    color: #fff;
+    font-size: 14px;
+}
+
+.ie-soft-action.ie-soft-action-only {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.ie-soft-action.ie-soft-action-only > i {
+    font-size: 16px;
+}
+
+.ie-soft-action.ie-soft-action-danger {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(220, 38, 38, 0.24);
+}
+
+.ie-soft-action.ie-soft-action-danger:hover:not(:disabled) {
+    background: #b91c1c;
+    border-color: #b91c1c;
+}

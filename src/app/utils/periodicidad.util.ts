@@ -6,6 +6,7 @@ export const PERIODICIDADES = [
     { label: 'Mensual', value: 'mensual' },
     { label: 'Trimestral', value: 'trimestral' },
     { label: 'Cuatrimestral', value: 'cuatrimestral' },
+    { label: 'Semestral', value: 'semestral' },
     { label: 'Anual', value: 'anual' },
     { label: 'Personalizada', value: 'personalizada' }
 ];
@@ -97,13 +98,14 @@ export const obtenerProximaFechaPeriodicidad = (
         }
     }
 
-    if (['mensual', 'trimestral', 'cuatrimestral', 'anual', 'personalizada'].includes(periodicidad)) {
+    if (['mensual', 'trimestral', 'cuatrimestral', 'semestral', 'anual', 'personalizada'].includes(periodicidad)) {
         if (periodicidad === 'personalizada') {
             return desde;
         }
         const intervalo = periodicidad === 'mensual' ? 1
             : periodicidad === 'trimestral' ? 3
-                : periodicidad === 'cuatrimestral' ? 4 : 12;
+                : periodicidad === 'cuatrimestral' ? 4
+                    : periodicidad === 'semestral' ? 6 : 12;
         const diaOriginal = inicio.getDate();
         let paso = 0;
         let cursor = new Date(inicio);
